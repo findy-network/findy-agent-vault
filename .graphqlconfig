@@ -1,0 +1,15 @@
+{
+  "name": "Findy Agent API GraphQL Schema",
+  "schemaPath": "schema/schema.graphqls",
+  "extensions": {
+    "endpoints": {
+      "Default GraphQL Endpoint": {
+        "url": "http://localhost:8085/query",
+        "headers": {
+          "user-agent": "JS GraphQL"
+        },
+        "introspect": false
+      }
+    }
+  }
+}

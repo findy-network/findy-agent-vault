@@ -1,0 +1,126 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Pairwise {
+  id: ID!
+  ourDid: String!
+  theirDid: String!
+  theirEndpoint: String!
+  theirLabel: String!
+
+  createdMs: String!
+  approvedMs: String!
+  initiatedByUs: Boolean!
+}
+
+type PairwiseEdge {
+  cursor: String!
+  node: Pairwise!
+}
+
+type PairwiseConnection {
+  edges: [PairwiseEdge]
+  nodes: [Pairwise]
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+enum ProtocolType {
+  NONE
+  CONNECTION
+  CREDENTIAL
+  PROOF
+  BASIC_MESSAGE
+}
+
+enum EventType {
+  NOTIFICATION
+  ACTION
+}
+
+type Event {
+  id: ID!
+  description: String!
+  protocol: ProtocolType!
+  type: EventType!
+  createdMs: String!
+  connection: Pairwise
+}
+
+type EventEdge {
+  cursor: String!
+  node: Event!
+}
+
+type EventConnection {
+  edges: [EventEdge]
+  nodes: [Event]
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type User {
+  id: ID!
+  name: String!
+  lastLoginTimeMs: String!
+}
+
+input Invitation {
+  payload: String!
+}
+
+input Offer {
+  id: ID!
+  accept: Boolean!
+}
+
+input Request {
+  id: ID!
+  accept: Boolean!
+}
+
+type Response {
+  ok: Boolean!
+}
+
+type LoginResponse {
+  token: String!
+}
+
+type Query {
+  connections(
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PairwiseConnection!
+  connection(id: ID!): Pairwise
+
+  events(after: String, before: String, first: Int, last: Int): EventConnection!
+  event(id: ID!): Event
+
+  user: User!
+}
+
+type Mutation {
+  invite: Response!
+  connect(input: Invitation!): Response!
+  sendMessage: Response!
+  acceptOffer(input: Offer!): Response!
+  acceptRequest(input: Request!): Response!
+
+  # for testing only
+  addRandomEvent: Boolean!
+}
+
+type Subscription {
+  eventAdded: EventEdge!
+}
