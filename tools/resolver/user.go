@@ -8,6 +8,6 @@ import (
 	"github.com/findy-network/findy-agent-api/graph/model"
 )
 
-func (r *queryResolver) User(ctx context.Context) (*model.User, error) {
+func (r *queryResolver) User(_ context.Context) (*model.User, error) {
 	return data.State.User.ToNode(), nil
 }

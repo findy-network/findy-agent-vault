@@ -14,27 +14,27 @@ func init() {
 
 type Resolver struct{}
 
-func (r *mutationResolver) Invite(ctx context.Context) (*model.Response, error) {
+func (r *mutationResolver) Invite(_ context.Context) (*model.Response, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *mutationResolver) Connect(ctx context.Context, input model.Invitation) (*model.Response, error) {
+func (r *mutationResolver) Connect(_ context.Context, _ model.Invitation) (*model.Response, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *mutationResolver) SendMessage(ctx context.Context) (*model.Response, error) {
+func (r *mutationResolver) SendMessage(_ context.Context) (*model.Response, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *mutationResolver) AcceptOffer(ctx context.Context, input model.Offer) (*model.Response, error) {
+func (r *mutationResolver) AcceptOffer(_ context.Context, _ model.Offer) (*model.Response, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *mutationResolver) AcceptRequest(ctx context.Context, input model.Request) (*model.Response, error) {
+func (r *mutationResolver) AcceptRequest(_ context.Context, _ model.Request) (*model.Response, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Event(ctx context.Context, id string) (*model.Event, error) {
+func (r *queryResolver) Event(_ context.Context, id string) (*model.Event, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 

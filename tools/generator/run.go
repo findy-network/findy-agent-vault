@@ -35,7 +35,7 @@ var tokenCmd = &cobra.Command{
 			fmt.Printf("Generated token.\nCopy and paste following to graphiQL (%s) \"Headers\" section:\n", graphiQLURL)
 			fmt.Printf("{\"Authorization\": \"Bearer %s\"}\n", t)
 		} else {
-			fmt.Errorf("Error generating token: %s", err.Error())
+			fmt.Printf("Error generating token: %s\n", err.Error())
 		}
 	},
 }
@@ -47,7 +47,7 @@ var rootCmd = &cobra.Command{
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		_, _ = fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }

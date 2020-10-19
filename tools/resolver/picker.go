@@ -14,7 +14,7 @@ import (
 	"github.com/lainio/err2"
 )
 
-const MAX_PATCH_SIZE = 100
+const maxPatchSize = 100
 
 type PaginationParams struct {
 	first  *int
@@ -64,8 +64,8 @@ func validateFirstAndLast(first, last *int) error {
 	if first == nil && last == nil {
 		return errors.New(resolver.ErrorFirstLastMissing)
 	}
-	if (first != nil && (*first < 1 || *first > MAX_PATCH_SIZE)) ||
-		(last != nil && (*last < 1 || *last > MAX_PATCH_SIZE)) {
+	if (first != nil && (*first < 1 || *first > maxPatchSize)) ||
+		(last != nil && (*last < 1 || *last > maxPatchSize)) {
 		return errors.New(resolver.ErrorFirstLastInvalid)
 	}
 	return nil
