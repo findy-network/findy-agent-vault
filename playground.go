@@ -2,9 +2,12 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/lainio/err2"
 
 	"github.com/rs/cors"
 
@@ -20,9 +23,12 @@ import (
 const defaultPort = "8085"
 
 func initLogging() {
-	flag.Set("logtostderr", "true")
-	flag.Set("stderrthreshold", "WARNING")
-	flag.Set("v", "3")
+	defer err2.Catch(func(err error) {
+		fmt.Println("ERROR:", err)
+	})
+	err2.Check(flag.Set("logtostderr", "true"))
+	err2.Check(flag.Set("stderrthreshold", "WARNING"))
+	err2.Check(flag.Set("v", "3"))
 	flag.Parse()
 }
 
@@ -31,7 +37,7 @@ func TokenHandler() http.HandlerFunc {
 		token, err := server.CreateToken(data.State.User.ID)
 		if err == nil {
 			w.Header().Add("Content-Type", "text/plain")
-			w.Write([]byte(token))
+			_, _ = w.Write([]byte(token))
 		} else {
 			panic(err)
 		}

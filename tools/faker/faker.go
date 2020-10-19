@@ -51,5 +51,5 @@ func Run() {
 
 	fakeAndPrintEvents(connCount*10, conns)
 
-	fakeUser()
+	_, _ = fakeUser()
 }

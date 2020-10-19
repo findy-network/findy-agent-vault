@@ -9,9 +9,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/felixge/httpsnoop v1.0.1 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/gorilla/mux v1.7.4
 	github.com/gorilla/websocket v1.4.2
-	github.com/hashicorp/golang-lru v0.5.0
 	github.com/lainio/err2 v0.0.0-20191102185951-8064eeb0a9a3
 	github.com/rs/cors v1.6.0
 	github.com/spf13/cobra v1.0.0
