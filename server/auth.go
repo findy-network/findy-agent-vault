@@ -8,10 +8,10 @@ import (
 	"github.com/golang/glog"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 )
 
-const JWT_SECRET = "supersecret"
+const jwtSecret = "supersecret"
 
 // JWTChecker checks the token for all requests
 // The authentication error is generated here instead of resolvers to make sure all resolvers use authentication.
@@ -20,7 +20,7 @@ const JWT_SECRET = "supersecret"
 func jwtChecker(next http.Handler) http.Handler {
 	checker := jwtmiddleware.New(jwtmiddleware.Options{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
-			return []byte(JWT_SECRET), nil
+			return []byte(jwtSecret), nil
 		},
 		SigningMethod:       jwt.SigningMethodHS256,
 		EnableAuthOnOptions: true,
@@ -41,7 +41,7 @@ func jwtChecker(next http.Handler) http.Handler {
 					return
 				}
 				w.Header().Set("Content-Type", "application/json")
-				w.Write(js)
+				_, _ = w.Write(js)
 				return
 			}
 
@@ -57,5 +57,5 @@ func CreateToken(id string) (string, error) {
 	claims["id"] = id
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 	signer := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return signer.SignedString([]byte(JWT_SECRET))
+	return signer.SignedString([]byte(jwtSecret))
 }

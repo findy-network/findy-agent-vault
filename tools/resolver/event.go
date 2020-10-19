@@ -62,7 +62,7 @@ func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.Ev
 	return events, nil
 }
 
-func (r *mutationResolver) AddRandomEvent(ctx context.Context) (bool, error) {
+func (r *mutationResolver) AddRandomEvent(_ context.Context) (bool, error) {
 	glog.V(2).Info("mutationResolver:AddRandomEvent ")
 
 	state := data.State.Events
