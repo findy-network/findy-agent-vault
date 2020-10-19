@@ -2,7 +2,6 @@ package resolver
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/golang/glog"
@@ -50,13 +49,13 @@ func (r *queryResolver) Connections(
 	return state.PairwiseConnection(afterIndex, beforeIndex), nil
 }
 
-func (r *queryResolver) Connection(ctx context.Context, id string) (node *model.Pairwise, err error) {
+func (r *queryResolver) Connection(_ context.Context, id string) (node *model.Pairwise, err error) {
 	glog.V(2).Info("queryResolver:Connection, id: ", id)
 
 	state := data.State.Connections
 	node = state.PairwiseForID(id)
 	if node == nil {
-		err = errors.New(fmt.Sprintf("Connection for id %s was not found", id))
+		err = fmt.Errorf("Connection for id %s was not found", id)
 	}
 	return
 }

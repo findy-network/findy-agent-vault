@@ -1,6 +1,7 @@
 package resolver
 
 import (
+	"context"
 	"errors"
 	"reflect"
 	"testing"
@@ -51,7 +52,7 @@ func TestGetConnections(t *testing.T) {
 		r := Resolver{}
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				got, err := r.Query().Connections(nil, tt.args.after, tt.args.before, tt.args.first, tt.args.last)
+				got, err := r.Query().Connections(context.TODO(), tt.args.after, tt.args.before, tt.args.first, tt.args.last)
 				result := ConnTestRes{
 					Connections: got,
 					Error:       err,
