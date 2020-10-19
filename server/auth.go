@@ -11,7 +11,25 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-const jwtSecret = "supersecret"
+type JSONErrorExtension struct {
+	Code string `json:"code"`
+}
+
+type JSONError struct {
+	Message    string              `json:"message"`
+	Path       []string            `json:"path"`
+	Extensions *JSONErrorExtension `json:"extensions"`
+}
+
+type JSONPayload struct {
+	Data   *map[string]interface{} `json:"data"`
+	Errors *[]JSONError            `json:"errors"`
+}
+
+const (
+	jwtSecret       = "supersecret"
+	unauthenticated = "UNAUTHENTICATED"
+)
 
 // JWTChecker checks the token for all requests
 // The authentication error is generated here instead of resolvers to make sure all resolvers use authentication.
@@ -31,10 +49,10 @@ func jwtChecker(next http.Handler) http.Handler {
 		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err string) {
 			glog.V(3).Infof("auth failed: %s", err)
 			if r.Method == http.MethodPost {
-				code := map[string]interface{}{"code": "UNAUTHENTICATED"}
-				extensions := map[string]interface{}{"extensions": &code}
-				errs := map[string]interface{}{"errors": []interface{}{&extensions}}
-				js, e := json.Marshal(&errs)
+				js, e := json.Marshal(&JSONPayload{
+					Errors: &[]JSONError{
+						JSONError{Extensions: &JSONErrorExtension{Code: unauthenticated}}},
+				})
 
 				if e != nil {
 					http.Error(w, e.Error(), http.StatusInternalServerError)
@@ -53,9 +71,18 @@ func jwtChecker(next http.Handler) http.Handler {
 }
 
 func CreateToken(id string) (string, error) {
+	return createToken(id, time.Hour*24)
+}
+
+func createToken(id string, duration time.Duration) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["id"] = id
-	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+	claims["exp"] = time.Now().Add(duration).Unix()
 	signer := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return signer.SignedString([]byte(jwtSecret))
+}
+
+func createTestToken() string {
+	token, _ := createToken("test", time.Hour*2)
+	return token
 }

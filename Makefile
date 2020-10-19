@@ -33,7 +33,7 @@ lint_e:
 	@$(GOPATH)/bin/golint ./... | grep -v export | cat
 
 test:
-	go test -v -p 1 -failfast ./...
+	go test -v ./...
 
 test_cov:
 	go test -v -p 1 -failfast -coverprofile=c.out ./... && go tool cover -html=c.out
