@@ -46,28 +46,12 @@ func TokenHandler() http.HandlerFunc {
 
 func main() {
 	initLogging()
+	resolver.InitResolver()
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
 	}
-
-	/*// TEST subscription
-	ticker := time.NewTicker(time.Second * 30)
-	done := make(chan bool)
-	go func() {
-		for {
-			select {
-			case <-done:
-				return
-			case t := <-ticker.C:
-				fmt.Println("Tick at", t)
-				resolver.AddEvent()
-			}
-		}
-	}()
-	// TEST SUBSCRIPTION end*/
-
 	srv := server.Server(&resolver.Resolver{})
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)

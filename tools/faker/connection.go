@@ -2,9 +2,10 @@ package faker
 
 import (
 	"fmt"
-	"math/rand"
 	"reflect"
 	"sort"
+
+	"github.com/findy-network/findy-agent-api/tools/utils"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/findy-network/findy-agent-api/tools/data"
@@ -18,10 +19,9 @@ type fakeLastName struct {
 func fakeConnections(count int) (conns []data.InternalPairwise, err error) {
 	defer err2.Return(&err)
 	conns = make([]data.InternalPairwise, count)
-
 	err = faker.AddProvider("organisationLabel", func(v reflect.Value) (interface{}, error) {
 		orgs := []string{"Bank", "Ltd", "Agency", "Company", "United"}
-		index := rand.Intn(len(orgs))
+		index := utils.Random(len(orgs))
 		f := fakeLastName{}
 		_ = faker.FakeData(&f)
 		return f.Name + " " + orgs[index], nil

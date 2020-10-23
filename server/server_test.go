@@ -1,7 +1,9 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -23,7 +25,7 @@ func queryJSON(content string) string {
 }
 
 func doQuery(query string, auth bool) (payload JSONPayload) {
-	request, _ := http.NewRequest(http.MethodPost, "/query", strings.NewReader(queryJSON(query)))
+	request, _ := http.NewRequestWithContext(context.TODO(), http.MethodPost, "/query", strings.NewReader(queryJSON(query)))
 	request.Header.Set("Content-Type", "application/json")
 	if auth {
 		request.Header.Set("Authorization", "Bearer "+testToken)
@@ -33,7 +35,7 @@ func doQuery(query string, auth bool) (payload JSONPayload) {
 	Server(&tools.Resolver{}).ServeHTTP(response, request)
 
 	bytes := response.Body.Bytes()
-	//fmt.Println(string(bytes))
+	fmt.Println(string(bytes))
 	_ = json.Unmarshal(bytes, &payload)
 	return
 }
