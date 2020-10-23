@@ -73,7 +73,7 @@ func validateFirstAndLast(first, last *int) error {
 	return nil
 }
 
-func validateAndParseBeforeAndAfter(items *data.Items, before, after *string) (afterIndex, beforeIndex int, err error) {
+func validateAndParseBeforeAndAfter(items *data.Items, after, before *string) (afterIndex, beforeIndex int, err error) {
 	defer err2.Return(&err)
 
 	beforeIndex = items.Count() - 1
