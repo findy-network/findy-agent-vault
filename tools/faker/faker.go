@@ -5,20 +5,33 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/bxcodec/faker/v3"
+	"github.com/findy-network/findy-agent-api/tools/data"
+
 	"github.com/lainio/err2"
 )
 
-func printObject(objectPtr interface{}, object interface{}, printComma bool) {
+const (
+	eventsCountFactor = 10
+)
+
+func InitFaker() {
+	_ = faker.AddProvider("eventPairwiseId", func(v reflect.Value) (interface{}, error) {
+		return data.State.Connections.RandomID(), nil
+	})
+}
+
+func printObject(objectPtr, object interface{}, printComma bool) {
 	t := reflect.TypeOf(object)
 	s := reflect.ValueOf(objectPtr).Elem()
-	fmt.Printf("{")
+	fmt.Printf("{\n")
 	for i := 0; i < s.NumField(); i++ {
 		f := s.Field(i)
 		if !strings.HasPrefix(t.Field(i).Name, "Skip") {
-
 			if i != 0 {
-				fmt.Printf(",")
+				fmt.Printf("\n")
 			}
+			fmt.Printf("\t\t")
 			if f.Type().String() == "string" {
 				fmt.Printf("\"%s\"", f.Interface())
 			} else if f.Type().String() == "int64" {
@@ -28,11 +41,11 @@ func printObject(objectPtr interface{}, object interface{}, printComma bool) {
 			} else {
 				fmt.Printf("%s", f.Interface())
 			}
-
+			fmt.Printf(",")
 		}
 	}
 
-	fmt.Print("}")
+	fmt.Print("\n\t}")
 	if printComma {
 		fmt.Print(",")
 	}
@@ -44,12 +57,14 @@ func Run() {
 		fmt.Println("ERROR:", err)
 	})
 
+	InitFaker()
+
 	connCount := 5
 
 	conns, err := fakeConnections(connCount)
 	err2.Check(err)
 
-	fakeAndPrintEvents(connCount*10, conns)
+	fakeAndPrintEvents(connCount*eventsCountFactor, conns)
 
 	_, _ = fakeUser()
 }

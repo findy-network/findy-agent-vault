@@ -13,11 +13,6 @@ import (
 
 const graphiQLURL = "http://localhost:8085/"
 
-func init() {
-	rootCmd.AddCommand(fakeCmd)
-	rootCmd.AddCommand(tokenCmd)
-}
-
 var fakeCmd = &cobra.Command{
 	Use:   "fake",
 	Short: "Generate fake data",
@@ -53,5 +48,8 @@ func Execute() {
 }
 
 func main() {
+	rootCmd.AddCommand(fakeCmd)
+	rootCmd.AddCommand(tokenCmd)
+
 	Execute()
 }

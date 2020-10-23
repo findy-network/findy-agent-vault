@@ -29,6 +29,8 @@ type JSONPayload struct {
 const (
 	jwtSecret       = "supersecret"
 	unauthenticated = "UNAUTHENTICATED"
+	hoursInDay      = 24
+	hoursForTest    = 2
 )
 
 // JWTChecker checks the token for all requests
@@ -47,12 +49,14 @@ func jwtChecker(next http.Handler) http.Handler {
 			jwtmiddleware.FromParameter("access_token"), // TODO: unsafe but needed for browser websocket auth
 		),
 		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err string) {
-			glog.V(3).Infof("auth failed: %s", err)
+			glog.V(lowLogLevel).Infof("auth failed: %s", err)
 			if r.Method == http.MethodPost {
-				js, e := json.Marshal(&JSONPayload{
-					Errors: &[]JSONError{
-						JSONError{Extensions: &JSONErrorExtension{Code: unauthenticated}}},
-				})
+				js, e := json.Marshal(
+					&JSONPayload{
+						Errors: &[]JSONError{{
+							Extensions: &JSONErrorExtension{Code: unauthenticated},
+						}},
+					})
 
 				if e != nil {
 					http.Error(w, e.Error(), http.StatusInternalServerError)
@@ -67,11 +71,10 @@ func jwtChecker(next http.Handler) http.Handler {
 		},
 	})
 	return checker.Handler(next)
-
 }
 
 func CreateToken(id string) (string, error) {
-	return createToken(id, time.Hour*24)
+	return createToken(id, time.Hour*hoursInDay)
 }
 
 func createToken(id string, duration time.Duration) (string, error) {
@@ -83,6 +86,6 @@ func createToken(id string, duration time.Duration) (string, error) {
 }
 
 func createTestToken() string {
-	token, _ := createToken("test", time.Hour*2)
+	token, _ := createToken("test", time.Hour*hoursForTest)
 	return token
 }

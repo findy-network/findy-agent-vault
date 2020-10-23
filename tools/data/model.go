@@ -91,7 +91,6 @@ func (e *InternalEvent) ToEdge() *model.EventEdge {
 		Cursor: cursor,
 		Node:   e.ToNode(),
 	}
-
 }
 
 func (e *InternalEvent) ToNode() *model.Event {
@@ -111,7 +110,6 @@ func (e *InternalEvent) ToNode() *model.Event {
 		CreatedMs:   createdStr,
 		Connection:  node,
 	}
-
 }
 
 type InternalUser struct {

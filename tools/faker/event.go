@@ -2,19 +2,12 @@ package faker
 
 import (
 	"fmt"
-	"reflect"
 	"sort"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/findy-network/findy-agent-api/tools/data"
 	"github.com/lainio/err2"
 )
-
-func init() {
-	_ = faker.AddProvider("eventPairwiseId", func(v reflect.Value) (interface{}, error) {
-		return data.State.Connections.RandomID(), nil
-	})
-}
 
 func FakeEvents(count int) (events []data.InternalEvent, err error) {
 	events = make([]data.InternalEvent, count)
@@ -48,5 +41,4 @@ func fakeAndPrintEvents(
 		printObject(&events[i], events[i], true)
 	}
 	fmt.Println("}")
-
 }
