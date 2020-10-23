@@ -14,7 +14,10 @@ import (
 	"github.com/lainio/err2"
 )
 
-const maxPatchSize = 100
+const (
+	cursorPartsCount = 2
+	maxPatchSize     = 100
+)
 
 type PaginationParams struct {
 	first  *int
@@ -37,8 +40,7 @@ func logPaginationRequest(prefix string, params *PaginationParams) {
 	if params.after != nil {
 		after = fmt.Sprintf(", after: %s", *params.after)
 	}
-	glog.V(2).Infof("%s%s%s%s%s", prefix, after, before, first, last)
-
+	glog.V(logLevelMedium).Infof("%s%s%s%s%s", prefix, after, before, first, last)
 }
 
 func parseCursor(cursor string) (int64, error) {
@@ -48,7 +50,7 @@ func parseCursor(cursor string) (int64, error) {
 	}
 
 	parts := strings.Split(string(plain), ":")
-	if len(parts) != 2 {
+	if len(parts) != cursorPartsCount {
 		return 0, errors.New(resolver.ErrorCursorInvalid)
 	}
 
@@ -71,22 +73,18 @@ func validateFirstAndLast(first, last *int) error {
 	return nil
 }
 
-func pick(items *data.Items, pagination *PaginationParams) (afterIndex int, beforeIndex int, err error) {
+func validateAndParseBeforeAndAfter(items *data.Items, after, before *string) (afterIndex, beforeIndex int, err error) {
 	defer err2.Return(&err)
 
-	afterIndex = 0
 	beforeIndex = items.Count() - 1
-
-	err2.Check(validateFirstAndLast(pagination.first, pagination.last))
-
-	if pagination.after != nil || pagination.before != nil {
+	if after != nil || before != nil {
 		var afterVal, beforeVal int64
-		if pagination.after != nil {
-			afterVal, err = parseCursor(*pagination.after)
+		if after != nil {
+			afterVal, err = parseCursor(*after)
 			err2.Check(err)
 		}
-		if pagination.before != nil {
-			beforeVal, err = parseCursor(*pagination.before)
+		if before != nil {
+			beforeVal, err = parseCursor(*before)
 			err2.Check(err)
 		}
 		for index := 0; index < items.Count(); index++ {
@@ -103,6 +101,16 @@ func pick(items *data.Items, pagination *PaginationParams) (afterIndex int, befo
 			}
 		}
 	}
+	return
+}
+
+func pick(items *data.Items, pagination *PaginationParams) (afterIndex, beforeIndex int, err error) {
+	defer err2.Return(&err)
+
+	err2.Check(validateFirstAndLast(pagination.first, pagination.last))
+
+	afterIndex, beforeIndex, err = validateAndParseBeforeAndAfter(items, pagination.after, pagination.before)
+	err2.Check(err)
 
 	if pagination.first != nil {
 		afterPlusFirst := afterIndex + (*pagination.first - 1)

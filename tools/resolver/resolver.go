@@ -4,11 +4,21 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/findy-network/findy-agent-api/tools/faker"
+
+	"github.com/findy-network/findy-agent-api/tools/data"
+
 	"github.com/findy-network/findy-agent-api/graph/generated"
 	"github.com/findy-network/findy-agent-api/graph/model"
 )
 
-func init() {
+const (
+	logLevelMedium = 2
+)
+
+func InitResolver() {
+	data.InitState()
+	faker.InitFaker()
 	initEvents()
 }
 

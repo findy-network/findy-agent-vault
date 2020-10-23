@@ -18,13 +18,19 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const (
+	queryCacheSize          = 1000
+	persistedQueryCacheSize = 100
+	lowLogLevel             = 3
+)
+
 func schema(resolver generated.ResolverRoot) graphql.ExecutableSchema {
 	return generated.NewExecutableSchema(generated.Config{Resolvers: resolver})
 }
 
 func logRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		glog.V(3).Infof("received request: %s %s", r.Method, r.URL.String())
+		glog.V(lowLogLevel).Infof("received request: %s %s", r.Method, r.URL.String())
 		next.ServeHTTP(w, r)
 	})
 }
@@ -47,11 +53,11 @@ func Server(resolver generated.ResolverRoot) http.Handler {
 	srv.AddTransport(transport.POST{})
 	srv.AddTransport(transport.MultipartForm{})
 
-	srv.SetQueryCache(lru.New(1000))
+	srv.SetQueryCache(lru.New(queryCacheSize))
 
 	srv.Use(extension.Introspection{})
 	srv.Use(extension.AutomaticPersistedQuery{
-		Cache: lru.New(100),
+		Cache: lru.New(persistedQueryCacheSize),
 	})
 
 	// TODO: figure out CORS policy for our HTTP use case

@@ -1,10 +1,11 @@
 package data
 
 import (
-	"math/rand"
 	"reflect"
 	"sort"
 	"sync"
+
+	"github.com/findy-network/findy-agent-api/tools/utils"
 
 	"github.com/findy-network/findy-agent-api/graph/model"
 )
@@ -32,7 +33,7 @@ func (i *Items) RandomID() (id string) {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 	max := len(i.items) - 1
-	index := rand.Intn(max)
+	index := utils.Random(max)
 	id = i.items[index].Identifier()
 	return
 }
@@ -177,7 +178,15 @@ type Data struct {
 
 var State *Data
 
-func init() {
+func InitState() {
+	sort.Slice(connections, func(i, j int) bool {
+		return connections[i].Created() < connections[j].Created()
+	})
+
+	sort.Slice(events, func(i, j int) bool {
+		return events[i].Created() < events[j].Created()
+	})
+
 	State = &Data{
 		Connections: &Items{items: make([]APIObject, 0), apiType: reflect.TypeOf(model.Pairwise{}).Name()},
 		Events:      &Items{items: make([]APIObject, 0), apiType: reflect.TypeOf(model.Event{}).Name()},

@@ -18,14 +18,12 @@ var eventAddedObserver map[string]chan *model.EventEdge
 
 func initEvents() {
 	eventAddedObserver = map[string]chan *model.EventEdge{}
-
 }
 
 func (r *queryResolver) Events(
 	_ context.Context,
 	after *string, before *string,
-	first *int, last *int) (c *model.EventConnection, err error) {
-
+	first, last *int) (c *model.EventConnection, err error) {
 	defer err2.Return(&err)
 	pagination := &PaginationParams{
 		first:  first,
@@ -44,7 +42,7 @@ func (r *queryResolver) Events(
 
 func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.EventEdge, error) {
 	id := "tenantId-" + strconv.FormatInt(time.Now().Unix(), 10)
-	glog.V(2).Info("subscriptionResolver:EventAdded, id: ", id)
+	glog.V(logLevelMedium).Info("subscriptionResolver:EventAdded, id: ", id)
 
 	user := ctx.Value("user")
 	fmt.Printf("%v", user)
@@ -53,7 +51,7 @@ func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.Ev
 
 	go func() {
 		<-ctx.Done()
-		glog.V(2).Info("subscriptionResolver: event observer removed, id: ", id)
+		glog.V(logLevelMedium).Info("subscriptionResolver: event observer removed, id: ", id)
 		delete(eventAddedObserver, id)
 	}()
 
@@ -63,7 +61,7 @@ func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.Ev
 }
 
 func (r *mutationResolver) AddRandomEvent(_ context.Context) (bool, error) {
-	glog.V(2).Info("mutationResolver:AddRandomEvent ")
+	glog.V(logLevelMedium).Info("mutationResolver:AddRandomEvent ")
 
 	state := data.State.Events
 	events, err := faker.FakeEvents(1)
