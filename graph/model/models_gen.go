@@ -10,6 +10,7 @@ import (
 
 type Event struct {
 	ID          string       `json:"id"`
+	Read        bool         `json:"read"`
 	Description string       `json:"description"`
 	Protocol    ProtocolType `json:"protocol"`
 	Type        EventType    `json:"type"`
@@ -35,6 +36,10 @@ type Invitation struct {
 
 type LoginResponse struct {
 	Token string `json:"token"`
+}
+
+type MarkReadInput struct {
+	ID string `json:"id"`
 }
 
 type Offer struct {
@@ -82,9 +87,8 @@ type Response struct {
 }
 
 type User struct {
-	ID              string `json:"id"`
-	Name            string `json:"name"`
-	LastLoginTimeMs string `json:"lastLoginTimeMs"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type EventType string
