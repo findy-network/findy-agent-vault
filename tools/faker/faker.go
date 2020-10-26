@@ -16,6 +16,7 @@ const (
 )
 
 func InitFaker() {
+	data.InitStateAndSort(true)
 	_ = faker.AddProvider("eventPairwiseId", func(v reflect.Value) (interface{}, error) {
 		return data.State.Connections.RandomID(), nil
 	})
