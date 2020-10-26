@@ -1,6 +1,7 @@
 package data
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
 	"sync"
@@ -170,15 +171,37 @@ func (i *Items) EventConnection(after, before int) *model.EventConnection {
 	return c
 }
 
+func (i *Items) MarkEventRead(id string) (*model.Event, error) {
+	i.mutex.Lock()
+	defer i.mutex.Unlock()
+
+	for _, item := range i.items {
+		if item.Identifier() == id {
+			event := item.Event()
+			event.Read = true
+			return event.ToNode(), nil
+		}
+	}
+	return nil, fmt.Errorf("unable to find event for id: %s", id)
+}
+
 type Data struct {
 	Connections *Items
 	Events      *Items
 	User        *InternalUser
 }
 
-var State *Data
+var State = &Data{
+	Connections: &Items{items: make([]APIObject, 0), apiType: reflect.TypeOf(model.Pairwise{}).Name()},
+	Events:      &Items{items: make([]APIObject, 0), apiType: reflect.TypeOf(model.Event{}).Name()},
+	User:        &user,
+}
 
 func InitState() {
+	InitStateAndSort(false)
+}
+
+func InitStateAndSort(scratch bool) {
 	sort.Slice(connections, func(i, j int) bool {
 		return connections[i].Created() < connections[j].Created()
 	})
@@ -187,19 +210,15 @@ func InitState() {
 		return events[i].Created() < events[j].Created()
 	})
 
-	State = &Data{
-		Connections: &Items{items: make([]APIObject, 0), apiType: reflect.TypeOf(model.Pairwise{}).Name()},
-		Events:      &Items{items: make([]APIObject, 0), apiType: reflect.TypeOf(model.Event{}).Name()},
-	}
-	for index := range connections {
-		State.Connections.items = append(State.Connections.items, &connections[index])
-	}
-	State.Connections.Sort()
+	if !scratch {
+		for index := range connections {
+			State.Connections.items = append(State.Connections.items, &connections[index])
+		}
+		State.Connections.Sort()
 
-	for index := range events {
-		State.Events.items = append(State.Events.items, &events[index])
+		for index := range events {
+			State.Events.items = append(State.Events.items, &events[index])
+		}
+		State.Events.Sort()
 	}
-	State.Events.Sort()
-
-	State.User = &user
 }

@@ -11,6 +11,10 @@ import (
 	"github.com/findy-network/findy-agent-api/graph/model"
 )
 
+func (r *mutationResolver) MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.Event, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *mutationResolver) Invite(ctx context.Context) (*model.Response, error) {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -78,6 +82,9 @@ type subscriptionResolver struct{ *Resolver }
 //  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
 //    it when you're done.
 //  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *mutationResolver) MarkRead(ctx context.Context, input model.MarkReadInput) (*model.Response, error) {
+	panic(fmt.Errorf("not implemented"))
+}
 func (r *mutationResolver) Login(ctx context.Context) (*model.LoginResponse, error) {
 	panic(fmt.Errorf("not implemented"))
 }

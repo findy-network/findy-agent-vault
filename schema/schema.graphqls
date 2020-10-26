@@ -48,6 +48,7 @@ enum EventType {
 
 type Event {
   id: ID!
+  read: Boolean!
   description: String!
   protocol: ProtocolType!
   type: EventType!
@@ -70,7 +71,6 @@ type EventConnection {
 type User {
   id: ID!
   name: String!
-  lastLoginTimeMs: String!
 }
 
 input Invitation {
@@ -85,6 +85,10 @@ input Offer {
 input Request {
   id: ID!
   accept: Boolean!
+}
+
+input MarkReadInput {
+  id: ID!
 }
 
 type Response {
@@ -111,6 +115,8 @@ type Query {
 }
 
 type Mutation {
+  markEventRead(input: MarkReadInput!): Event
+
   invite: Response!
   connect(input: Invitation!): Response!
   sendMessage: Response!
