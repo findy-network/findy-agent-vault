@@ -62,6 +62,7 @@ func (p *InternalPairwise) ToNode() *model.Pairwise {
 
 type InternalEvent struct {
 	ID           string             `faker:"uuid_hyphenated"`
+	Read         bool               `faker:"-"`
 	Description  string             `faker:"sentence"`
 	ProtocolType model.ProtocolType `faker:"oneof: model.ProtocolTypeNone, model.ProtocolTypeConnection, model.ProtocolTypeCredential, model.ProtocolTypeProof, model.ProtocolTypeBasicMessage"`
 	Type         model.EventType    `faker:"oneof: model.EventTypeNotification, model.EventTypeAction"`
@@ -104,6 +105,7 @@ func (e *InternalEvent) ToNode() *model.Event {
 	}
 	return &model.Event{
 		ID:          e.ID,
+		Read:        e.Read,
 		Description: e.Description,
 		Protocol:    e.ProtocolType,
 		Type:        e.Type,
@@ -113,16 +115,13 @@ func (e *InternalEvent) ToNode() *model.Event {
 }
 
 type InternalUser struct {
-	ID              string `faker:"uuid_hyphenated"`
-	Name            string `faker:"first_name"`
-	LastLoginTimeMs int64  `faker:"unix_time"`
+	ID   string `faker:"uuid_hyphenated"`
+	Name string `faker:"first_name"`
 }
 
 func (u *InternalUser) ToNode() *model.User {
-	lastLoginTimeMsStr := strconv.FormatInt(u.LastLoginTimeMs, 10)
 	return &model.User{
-		ID:              u.ID,
-		Name:            u.Name,
-		LastLoginTimeMs: lastLoginTimeMsStr,
+		ID:   u.ID,
+		Name: u.Name,
 	}
 }

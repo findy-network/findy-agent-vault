@@ -51,6 +51,7 @@ type ComplexityRoot struct {
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Protocol    func(childComplexity int) int
+		Read        func(childComplexity int) int
 		Type        func(childComplexity int) int
 	}
 
@@ -76,6 +77,7 @@ type ComplexityRoot struct {
 		AddRandomEvent func(childComplexity int) int
 		Connect        func(childComplexity int, input model.Invitation) int
 		Invite         func(childComplexity int) int
+		MarkEventRead  func(childComplexity int, input model.MarkReadInput) int
 		SendMessage    func(childComplexity int) int
 	}
 
@@ -126,13 +128,13 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		ID              func(childComplexity int) int
-		LastLoginTimeMs func(childComplexity int) int
-		Name            func(childComplexity int) int
+		ID   func(childComplexity int) int
+		Name func(childComplexity int) int
 	}
 }
 
 type MutationResolver interface {
+	MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.Event, error)
 	Invite(ctx context.Context) (*model.Response, error)
 	Connect(ctx context.Context, input model.Invitation) (*model.Response, error)
 	SendMessage(ctx context.Context) (*model.Response, error)
@@ -200,6 +202,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Event.Protocol(childComplexity), true
+
+	case "Event.read":
+		if e.complexity.Event.Read == nil {
+			break
+		}
+
+		return e.complexity.Event.Read(childComplexity), true
 
 	case "Event.type":
 		if e.complexity.Event.Type == nil {
@@ -306,6 +315,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.Invite(childComplexity), true
+
+	case "Mutation.markEventRead":
+		if e.complexity.Mutation.MarkEventRead == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_markEventRead_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.MarkEventRead(childComplexity, args["input"].(model.MarkReadInput)), true
 
 	case "Mutation.sendMessage":
 		if e.complexity.Mutation.SendMessage == nil {
@@ -516,13 +537,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.ID(childComplexity), true
 
-	case "User.lastLoginTimeMs":
-		if e.complexity.User.LastLoginTimeMs == nil {
-			break
-		}
-
-		return e.complexity.User.LastLoginTimeMs(childComplexity), true
-
 	case "User.name":
 		if e.complexity.User.Name == nil {
 			break
@@ -661,6 +675,7 @@ enum EventType {
 
 type Event {
   id: ID!
+  read: Boolean!
   description: String!
   protocol: ProtocolType!
   type: EventType!
@@ -683,7 +698,6 @@ type EventConnection {
 type User {
   id: ID!
   name: String!
-  lastLoginTimeMs: String!
 }
 
 input Invitation {
@@ -698,6 +712,10 @@ input Offer {
 input Request {
   id: ID!
   accept: Boolean!
+}
+
+input MarkReadInput {
+  id: ID!
 }
 
 type Response {
@@ -724,6 +742,8 @@ type Query {
 }
 
 type Mutation {
+  markEventRead(input: MarkReadInput!): Event
+
   invite: Response!
   connect(input: Invitation!): Response!
   sendMessage: Response!
@@ -782,6 +802,21 @@ func (ec *executionContext) field_Mutation_connect_args(ctx context.Context, raw
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNInvitation2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐInvitation(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_markEventRead_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.MarkReadInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNMarkReadInput2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐMarkReadInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -990,6 +1025,41 @@ func (ec *executionContext) _Event_id(ctx context.Context, field graphql.Collect
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Event_read(ctx context.Context, field graphql.CollectedField, obj *model.Event) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Event",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Read, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Event_description(ctx context.Context, field graphql.CollectedField, obj *model.Event) (ret graphql.Marshaler) {
@@ -1401,6 +1471,45 @@ func (ec *executionContext) _LoginResponse_token(ctx context.Context, field grap
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_markEventRead(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_markEventRead_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().MarkEventRead(rctx, args["input"].(model.MarkReadInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Event)
+	fc.Result = res
+	return ec.marshalOEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEvent(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_invite(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2670,41 +2779,6 @@ func (ec *executionContext) _User_name(ctx context.Context, field graphql.Collec
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_lastLoginTimeMs(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LastLoginTimeMs, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3812,6 +3886,26 @@ func (ec *executionContext) unmarshalInputInvitation(ctx context.Context, obj in
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputMarkReadInput(ctx context.Context, obj interface{}) (model.MarkReadInput, error) {
+	var it model.MarkReadInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputOffer(ctx context.Context, obj interface{}) (model.Offer, error) {
 	var it model.Offer
 	var asMap = obj.(map[string]interface{})
@@ -3889,6 +3983,11 @@ func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = graphql.MarshalString("Event")
 		case "id":
 			out.Values[i] = ec._Event_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "read":
+			out.Values[i] = ec._Event_read(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -4035,6 +4134,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "markEventRead":
+			out.Values[i] = ec._Mutation_markEventRead(ctx, field)
 		case "invite":
 			out.Values[i] = ec._Mutation_invite(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -4404,11 +4505,6 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "lastLoginTimeMs":
-			out.Values[i] = ec._User_lastLoginTimeMs(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4760,6 +4856,11 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 
 func (ec *executionContext) unmarshalNInvitation2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐInvitation(ctx context.Context, v interface{}) (model.Invitation, error) {
 	res, err := ec.unmarshalInputInvitation(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNMarkReadInput2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐMarkReadInput(ctx context.Context, v interface{}) (model.MarkReadInput, error) {
+	res, err := ec.unmarshalInputMarkReadInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

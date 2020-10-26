@@ -20,6 +20,11 @@ func initEvents() {
 	eventAddedObserver = map[string]chan *model.EventEdge{}
 }
 
+func (r *mutationResolver) MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.Event, error) {
+	state := data.State.Events
+	return state.MarkEventRead(input.ID)
+}
+
 func (r *queryResolver) Events(
 	_ context.Context,
 	after *string, before *string,
