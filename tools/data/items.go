@@ -1,7 +1,6 @@
 package data
 
 import (
-	"fmt"
 	"reflect"
 	"sort"
 	"sync"
@@ -135,6 +134,22 @@ func (i *Items) PairwiseConnection(after, before int) *model.PairwiseConnection 
 	return p
 }
 
+func (i *Items) EventForID(id string) *model.Event {
+	var node *model.Event
+
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
+
+	for _, item := range i.items {
+		if item.Identifier() == id {
+			node = item.Event().ToNode()
+			break
+		}
+	}
+
+	return node
+}
+
 func (i *Items) EventConnection(after, before int) *model.EventConnection {
 	i.mutex.RLock()
 	result := i.items[after:before]
@@ -171,7 +186,7 @@ func (i *Items) EventConnection(after, before int) *model.EventConnection {
 	return c
 }
 
-func (i *Items) MarkEventRead(id string) (*model.Event, error) {
+func (i *Items) MarkEventRead(id string) *model.Event {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
 
@@ -179,10 +194,10 @@ func (i *Items) MarkEventRead(id string) (*model.Event, error) {
 		if item.Identifier() == id {
 			event := item.Event()
 			event.Read = true
-			return event.ToNode(), nil
+			return event.ToNode()
 		}
 	}
-	return nil, fmt.Errorf("unable to find event for id: %s", id)
+	return nil
 }
 
 type Data struct {

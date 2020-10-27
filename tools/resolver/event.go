@@ -20,9 +20,15 @@ func initEvents() {
 	eventAddedObserver = map[string]chan *model.EventEdge{}
 }
 
-func (r *mutationResolver) MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.Event, error) {
+func (r *mutationResolver) MarkEventRead(ctx context.Context, input model.MarkReadInput) (node *model.Event, err error) {
+	glog.V(logLevelMedium).Info("queryResolver:MarkEventRead, id: ", input.ID)
+
 	state := data.State.Events
-	return state.MarkEventRead(input.ID)
+	node = state.MarkEventRead(input.ID)
+	if node == nil {
+		err = fmt.Errorf("event for id %s was not found", input.ID)
+	}
+	return
 }
 
 func (r *queryResolver) Events(
@@ -36,13 +42,24 @@ func (r *queryResolver) Events(
 		after:  after,
 		before: before,
 	}
-	logPaginationRequest("queryResolver:conns", pagination)
+	logPaginationRequest("queryResolver:events", pagination)
 
 	state := data.State.Events
 	afterIndex, beforeIndex, err := pick(state, pagination)
 	err2.Check(err)
 
 	return state.EventConnection(afterIndex, beforeIndex), nil
+}
+
+func (r *queryResolver) Event(ctx context.Context, id string) (node *model.Event, err error) {
+	glog.V(logLevelMedium).Info("queryResolver:Event, id: ", id)
+
+	state := data.State.Events
+	node = state.EventForID(id)
+	if node == nil {
+		err = fmt.Errorf("event for id %s was not found", id)
+	}
+	return
 }
 
 func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.EventEdge, error) {
