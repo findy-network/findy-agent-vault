@@ -44,10 +44,6 @@ func (r *mutationResolver) AcceptRequest(_ context.Context, _ model.Request) (*m
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Event(_ context.Context, id string) (*model.Event, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
