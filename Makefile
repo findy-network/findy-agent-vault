@@ -17,6 +17,9 @@ build: generate
 build_findy: generate
 	go build -tags findy -v ./...
 
+test_findy:
+	go test -tags findy -v ./...
+
 vet:
 	go vet ./...
 
