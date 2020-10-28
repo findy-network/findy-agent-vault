@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/findy-network/findy-agent-api/graph/model"
+	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
 func CreateCursor(created int64, object interface{}) string {

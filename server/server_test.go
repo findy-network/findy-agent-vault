@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	tools "github.com/findy-network/findy-agent-api/tools/resolver"
+	tools "github.com/findy-network/findy-agent-vault/tools/resolver"
 )
 
 var testToken string = createTestToken()

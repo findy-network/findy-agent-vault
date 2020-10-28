@@ -13,7 +13,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/findy-network/findy-agent-api/graph/model"
+	"github.com/findy-network/findy-agent-vault/graph/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -771,7 +771,7 @@ func (ec *executionContext) field_Mutation_acceptOffer_args(ctx context.Context,
 	var arg0 model.Offer
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNOffer2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐOffer(ctx, tmp)
+		arg0, err = ec.unmarshalNOffer2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐOffer(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -786,7 +786,7 @@ func (ec *executionContext) field_Mutation_acceptRequest_args(ctx context.Contex
 	var arg0 model.Request
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNRequest2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐRequest(ctx, tmp)
+		arg0, err = ec.unmarshalNRequest2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐRequest(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -801,7 +801,7 @@ func (ec *executionContext) field_Mutation_connect_args(ctx context.Context, raw
 	var arg0 model.Invitation
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNInvitation2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐInvitation(ctx, tmp)
+		arg0, err = ec.unmarshalNInvitation2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐInvitation(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -816,7 +816,7 @@ func (ec *executionContext) field_Mutation_markEventRead_args(ctx context.Contex
 	var arg0 model.MarkReadInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNMarkReadInput2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐMarkReadInput(ctx, tmp)
+		arg0, err = ec.unmarshalNMarkReadInput2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐMarkReadInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1129,7 +1129,7 @@ func (ec *executionContext) _Event_protocol(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(model.ProtocolType)
 	fc.Result = res
-	return ec.marshalNProtocolType2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐProtocolType(ctx, field.Selections, res)
+	return ec.marshalNProtocolType2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProtocolType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Event_type(ctx context.Context, field graphql.CollectedField, obj *model.Event) (ret graphql.Marshaler) {
@@ -1164,7 +1164,7 @@ func (ec *executionContext) _Event_type(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(model.EventType)
 	fc.Result = res
-	return ec.marshalNEventType2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEventType(ctx, field.Selections, res)
+	return ec.marshalNEventType2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEventType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Event_createdMs(ctx context.Context, field graphql.CollectedField, obj *model.Event) (ret graphql.Marshaler) {
@@ -1231,7 +1231,7 @@ func (ec *executionContext) _Event_connection(ctx context.Context, field graphql
 	}
 	res := resTmp.(*model.Pairwise)
 	fc.Result = res
-	return ec.marshalOPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐPairwise(ctx, field.Selections, res)
+	return ec.marshalOPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EventConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.EventConnection) (ret graphql.Marshaler) {
@@ -1263,7 +1263,7 @@ func (ec *executionContext) _EventConnection_edges(ctx context.Context, field gr
 	}
 	res := resTmp.([]*model.EventEdge)
 	fc.Result = res
-	return ec.marshalOEventEdge2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEventEdge(ctx, field.Selections, res)
+	return ec.marshalOEventEdge2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEventEdge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EventConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *model.EventConnection) (ret graphql.Marshaler) {
@@ -1295,7 +1295,7 @@ func (ec *executionContext) _EventConnection_nodes(ctx context.Context, field gr
 	}
 	res := resTmp.([]*model.Event)
 	fc.Result = res
-	return ec.marshalOEvent2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEvent(ctx, field.Selections, res)
+	return ec.marshalOEvent2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEvent(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EventConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.EventConnection) (ret graphql.Marshaler) {
@@ -1330,7 +1330,7 @@ func (ec *executionContext) _EventConnection_pageInfo(ctx context.Context, field
 	}
 	res := resTmp.(*model.PageInfo)
 	fc.Result = res
-	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPageInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EventConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.EventConnection) (ret graphql.Marshaler) {
@@ -1435,7 +1435,7 @@ func (ec *executionContext) _EventEdge_node(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*model.Event)
 	fc.Result = res
-	return ec.marshalNEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEvent(ctx, field.Selections, res)
+	return ec.marshalNEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEvent(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LoginResponse_token(ctx context.Context, field graphql.CollectedField, obj *model.LoginResponse) (ret graphql.Marshaler) {
@@ -1509,7 +1509,7 @@ func (ec *executionContext) _Mutation_markEventRead(ctx context.Context, field g
 	}
 	res := resTmp.(*model.Event)
 	fc.Result = res
-	return ec.marshalOEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEvent(ctx, field.Selections, res)
+	return ec.marshalOEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEvent(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_invite(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1544,7 +1544,7 @@ func (ec *executionContext) _Mutation_invite(ctx context.Context, field graphql.
 	}
 	res := resTmp.(*model.Response)
 	fc.Result = res
-	return ec.marshalNResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐResponse(ctx, field.Selections, res)
+	return ec.marshalNResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_connect(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1586,7 +1586,7 @@ func (ec *executionContext) _Mutation_connect(ctx context.Context, field graphql
 	}
 	res := resTmp.(*model.Response)
 	fc.Result = res
-	return ec.marshalNResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐResponse(ctx, field.Selections, res)
+	return ec.marshalNResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_sendMessage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1621,7 +1621,7 @@ func (ec *executionContext) _Mutation_sendMessage(ctx context.Context, field gra
 	}
 	res := resTmp.(*model.Response)
 	fc.Result = res
-	return ec.marshalNResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐResponse(ctx, field.Selections, res)
+	return ec.marshalNResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_acceptOffer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1663,7 +1663,7 @@ func (ec *executionContext) _Mutation_acceptOffer(ctx context.Context, field gra
 	}
 	res := resTmp.(*model.Response)
 	fc.Result = res
-	return ec.marshalNResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐResponse(ctx, field.Selections, res)
+	return ec.marshalNResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_acceptRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1705,7 +1705,7 @@ func (ec *executionContext) _Mutation_acceptRequest(ctx context.Context, field g
 	}
 	res := resTmp.(*model.Response)
 	fc.Result = res
-	return ec.marshalNResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐResponse(ctx, field.Selections, res)
+	return ec.marshalNResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addRandomEvent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2186,7 +2186,7 @@ func (ec *executionContext) _PairwiseConnection_edges(ctx context.Context, field
 	}
 	res := resTmp.([]*model.PairwiseEdge)
 	fc.Result = res
-	return ec.marshalOPairwiseEdge2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐPairwiseEdge(ctx, field.Selections, res)
+	return ec.marshalOPairwiseEdge2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwiseEdge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PairwiseConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *model.PairwiseConnection) (ret graphql.Marshaler) {
@@ -2218,7 +2218,7 @@ func (ec *executionContext) _PairwiseConnection_nodes(ctx context.Context, field
 	}
 	res := resTmp.([]*model.Pairwise)
 	fc.Result = res
-	return ec.marshalOPairwise2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐPairwise(ctx, field.Selections, res)
+	return ec.marshalOPairwise2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PairwiseConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.PairwiseConnection) (ret graphql.Marshaler) {
@@ -2253,7 +2253,7 @@ func (ec *executionContext) _PairwiseConnection_pageInfo(ctx context.Context, fi
 	}
 	res := resTmp.(*model.PageInfo)
 	fc.Result = res
-	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPageInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PairwiseConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.PairwiseConnection) (ret graphql.Marshaler) {
@@ -2358,7 +2358,7 @@ func (ec *executionContext) _PairwiseEdge_node(ctx context.Context, field graphq
 	}
 	res := resTmp.(*model.Pairwise)
 	fc.Result = res
-	return ec.marshalNPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐPairwise(ctx, field.Selections, res)
+	return ec.marshalNPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_connections(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2400,7 +2400,7 @@ func (ec *executionContext) _Query_connections(ctx context.Context, field graphq
 	}
 	res := resTmp.(*model.PairwiseConnection)
 	fc.Result = res
-	return ec.marshalNPairwiseConnection2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐPairwiseConnection(ctx, field.Selections, res)
+	return ec.marshalNPairwiseConnection2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwiseConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_connection(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2439,7 +2439,7 @@ func (ec *executionContext) _Query_connection(ctx context.Context, field graphql
 	}
 	res := resTmp.(*model.Pairwise)
 	fc.Result = res
-	return ec.marshalOPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐPairwise(ctx, field.Selections, res)
+	return ec.marshalOPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_events(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2481,7 +2481,7 @@ func (ec *executionContext) _Query_events(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.(*model.EventConnection)
 	fc.Result = res
-	return ec.marshalNEventConnection2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEventConnection(ctx, field.Selections, res)
+	return ec.marshalNEventConnection2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEventConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_event(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2520,7 +2520,7 @@ func (ec *executionContext) _Query_event(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.(*model.Event)
 	fc.Result = res
-	return ec.marshalOEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEvent(ctx, field.Selections, res)
+	return ec.marshalOEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEvent(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2555,7 +2555,7 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2703,7 +2703,7 @@ func (ec *executionContext) _Subscription_eventAdded(ctx context.Context, field 
 			w.Write([]byte{'{'})
 			graphql.MarshalString(field.Alias).MarshalGQL(w)
 			w.Write([]byte{':'})
-			ec.marshalNEventEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEventEdge(ctx, field.Selections, res).MarshalGQL(w)
+			ec.marshalNEventEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEventEdge(ctx, field.Selections, res).MarshalGQL(w)
 			w.Write([]byte{'}'})
 		})
 	}
@@ -4776,7 +4776,7 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEvent(ctx context.Context, sel ast.SelectionSet, v *model.Event) graphql.Marshaler {
+func (ec *executionContext) marshalNEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEvent(ctx context.Context, sel ast.SelectionSet, v *model.Event) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4786,11 +4786,11 @@ func (ec *executionContext) marshalNEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfi
 	return ec._Event(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNEventConnection2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEventConnection(ctx context.Context, sel ast.SelectionSet, v model.EventConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNEventConnection2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEventConnection(ctx context.Context, sel ast.SelectionSet, v model.EventConnection) graphql.Marshaler {
 	return ec._EventConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNEventConnection2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEventConnection(ctx context.Context, sel ast.SelectionSet, v *model.EventConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNEventConnection2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEventConnection(ctx context.Context, sel ast.SelectionSet, v *model.EventConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4800,11 +4800,11 @@ func (ec *executionContext) marshalNEventConnection2ᚖgithubᚗcomᚋfindyᚑne
 	return ec._EventConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNEventEdge2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEventEdge(ctx context.Context, sel ast.SelectionSet, v model.EventEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNEventEdge2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEventEdge(ctx context.Context, sel ast.SelectionSet, v model.EventEdge) graphql.Marshaler {
 	return ec._EventEdge(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNEventEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEventEdge(ctx context.Context, sel ast.SelectionSet, v *model.EventEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNEventEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEventEdge(ctx context.Context, sel ast.SelectionSet, v *model.EventEdge) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4814,13 +4814,13 @@ func (ec *executionContext) marshalNEventEdge2ᚖgithubᚗcomᚋfindyᚑnetwork�
 	return ec._EventEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNEventType2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEventType(ctx context.Context, v interface{}) (model.EventType, error) {
+func (ec *executionContext) unmarshalNEventType2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEventType(ctx context.Context, v interface{}) (model.EventType, error) {
 	var res model.EventType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNEventType2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEventType(ctx context.Context, sel ast.SelectionSet, v model.EventType) graphql.Marshaler {
+func (ec *executionContext) marshalNEventType2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEventType(ctx context.Context, sel ast.SelectionSet, v model.EventType) graphql.Marshaler {
 	return v
 }
 
@@ -4854,22 +4854,22 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) unmarshalNInvitation2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐInvitation(ctx context.Context, v interface{}) (model.Invitation, error) {
+func (ec *executionContext) unmarshalNInvitation2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐInvitation(ctx context.Context, v interface{}) (model.Invitation, error) {
 	res, err := ec.unmarshalInputInvitation(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNMarkReadInput2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐMarkReadInput(ctx context.Context, v interface{}) (model.MarkReadInput, error) {
+func (ec *executionContext) unmarshalNMarkReadInput2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐMarkReadInput(ctx context.Context, v interface{}) (model.MarkReadInput, error) {
 	res, err := ec.unmarshalInputMarkReadInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNOffer2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐOffer(ctx context.Context, v interface{}) (model.Offer, error) {
+func (ec *executionContext) unmarshalNOffer2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐOffer(ctx context.Context, v interface{}) (model.Offer, error) {
 	res, err := ec.unmarshalInputOffer(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.PageInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.PageInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4879,7 +4879,7 @@ func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋfindyᚑnetwork�
 	return ec._PageInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐPairwise(ctx context.Context, sel ast.SelectionSet, v *model.Pairwise) graphql.Marshaler {
+func (ec *executionContext) marshalNPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx context.Context, sel ast.SelectionSet, v *model.Pairwise) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4889,11 +4889,11 @@ func (ec *executionContext) marshalNPairwise2ᚖgithubᚗcomᚋfindyᚑnetwork�
 	return ec._Pairwise(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPairwiseConnection2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐPairwiseConnection(ctx context.Context, sel ast.SelectionSet, v model.PairwiseConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNPairwiseConnection2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwiseConnection(ctx context.Context, sel ast.SelectionSet, v model.PairwiseConnection) graphql.Marshaler {
 	return ec._PairwiseConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPairwiseConnection2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐPairwiseConnection(ctx context.Context, sel ast.SelectionSet, v *model.PairwiseConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNPairwiseConnection2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwiseConnection(ctx context.Context, sel ast.SelectionSet, v *model.PairwiseConnection) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4903,26 +4903,26 @@ func (ec *executionContext) marshalNPairwiseConnection2ᚖgithubᚗcomᚋfindy�
 	return ec._PairwiseConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNProtocolType2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐProtocolType(ctx context.Context, v interface{}) (model.ProtocolType, error) {
+func (ec *executionContext) unmarshalNProtocolType2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProtocolType(ctx context.Context, v interface{}) (model.ProtocolType, error) {
 	var res model.ProtocolType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNProtocolType2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐProtocolType(ctx context.Context, sel ast.SelectionSet, v model.ProtocolType) graphql.Marshaler {
+func (ec *executionContext) marshalNProtocolType2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProtocolType(ctx context.Context, sel ast.SelectionSet, v model.ProtocolType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNRequest2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐRequest(ctx context.Context, v interface{}) (model.Request, error) {
+func (ec *executionContext) unmarshalNRequest2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐRequest(ctx context.Context, v interface{}) (model.Request, error) {
 	res, err := ec.unmarshalInputRequest(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNResponse2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐResponse(ctx context.Context, sel ast.SelectionSet, v model.Response) graphql.Marshaler {
+func (ec *executionContext) marshalNResponse2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐResponse(ctx context.Context, sel ast.SelectionSet, v model.Response) graphql.Marshaler {
 	return ec._Response(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐResponse(ctx context.Context, sel ast.SelectionSet, v *model.Response) graphql.Marshaler {
+func (ec *executionContext) marshalNResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐResponse(ctx context.Context, sel ast.SelectionSet, v *model.Response) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4947,11 +4947,11 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) marshalNUser2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -5214,7 +5214,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
-func (ec *executionContext) marshalOEvent2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEvent(ctx context.Context, sel ast.SelectionSet, v []*model.Event) graphql.Marshaler {
+func (ec *executionContext) marshalOEvent2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEvent(ctx context.Context, sel ast.SelectionSet, v []*model.Event) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -5241,7 +5241,7 @@ func (ec *executionContext) marshalOEvent2ᚕᚖgithubᚗcomᚋfindyᚑnetwork�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEvent(ctx, sel, v[i])
+			ret[i] = ec.marshalOEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEvent(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -5254,14 +5254,14 @@ func (ec *executionContext) marshalOEvent2ᚕᚖgithubᚗcomᚋfindyᚑnetwork�
 	return ret
 }
 
-func (ec *executionContext) marshalOEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEvent(ctx context.Context, sel ast.SelectionSet, v *model.Event) graphql.Marshaler {
+func (ec *executionContext) marshalOEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEvent(ctx context.Context, sel ast.SelectionSet, v *model.Event) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Event(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOEventEdge2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEventEdge(ctx context.Context, sel ast.SelectionSet, v []*model.EventEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOEventEdge2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEventEdge(ctx context.Context, sel ast.SelectionSet, v []*model.EventEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -5288,7 +5288,7 @@ func (ec *executionContext) marshalOEventEdge2ᚕᚖgithubᚗcomᚋfindyᚑnetwo
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOEventEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEventEdge(ctx, sel, v[i])
+			ret[i] = ec.marshalOEventEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEventEdge(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -5301,7 +5301,7 @@ func (ec *executionContext) marshalOEventEdge2ᚕᚖgithubᚗcomᚋfindyᚑnetwo
 	return ret
 }
 
-func (ec *executionContext) marshalOEventEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐEventEdge(ctx context.Context, sel ast.SelectionSet, v *model.EventEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOEventEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEventEdge(ctx context.Context, sel ast.SelectionSet, v *model.EventEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -5323,7 +5323,7 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return graphql.MarshalInt(*v)
 }
 
-func (ec *executionContext) marshalOPairwise2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐPairwise(ctx context.Context, sel ast.SelectionSet, v []*model.Pairwise) graphql.Marshaler {
+func (ec *executionContext) marshalOPairwise2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx context.Context, sel ast.SelectionSet, v []*model.Pairwise) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -5350,7 +5350,7 @@ func (ec *executionContext) marshalOPairwise2ᚕᚖgithubᚗcomᚋfindyᚑnetwor
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐPairwise(ctx, sel, v[i])
+			ret[i] = ec.marshalOPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -5363,14 +5363,14 @@ func (ec *executionContext) marshalOPairwise2ᚕᚖgithubᚗcomᚋfindyᚑnetwor
 	return ret
 }
 
-func (ec *executionContext) marshalOPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐPairwise(ctx context.Context, sel ast.SelectionSet, v *model.Pairwise) graphql.Marshaler {
+func (ec *executionContext) marshalOPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx context.Context, sel ast.SelectionSet, v *model.Pairwise) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Pairwise(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOPairwiseEdge2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐPairwiseEdge(ctx context.Context, sel ast.SelectionSet, v []*model.PairwiseEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOPairwiseEdge2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwiseEdge(ctx context.Context, sel ast.SelectionSet, v []*model.PairwiseEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -5397,7 +5397,7 @@ func (ec *executionContext) marshalOPairwiseEdge2ᚕᚖgithubᚗcomᚋfindyᚑne
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOPairwiseEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐPairwiseEdge(ctx, sel, v[i])
+			ret[i] = ec.marshalOPairwiseEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwiseEdge(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -5410,7 +5410,7 @@ func (ec *executionContext) marshalOPairwiseEdge2ᚕᚖgithubᚗcomᚋfindyᚑne
 	return ret
 }
 
-func (ec *executionContext) marshalOPairwiseEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑapiᚋgraphᚋmodelᚐPairwiseEdge(ctx context.Context, sel ast.SelectionSet, v *model.PairwiseEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOPairwiseEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwiseEdge(ctx context.Context, sel ast.SelectionSet, v *model.PairwiseEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
