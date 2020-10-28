@@ -1,6 +1,6 @@
 package data
 
-import "github.com/findy-network/findy-agent-api/graph/model"
+import "github.com/findy-network/findy-agent-vault/graph/model"
 
 var connections = []InternalPairwise{
 	{

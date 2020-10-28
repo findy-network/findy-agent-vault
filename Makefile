@@ -14,6 +14,9 @@ update-deps:
 build: generate
 	go build -v ./...
 
+build_findy: generate
+	go build -tags findy -v ./...
+
 vet:
 	go vet ./...
 

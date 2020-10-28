@@ -5,10 +5,10 @@ import (
 	"reflect"
 	"sort"
 
-	"github.com/findy-network/findy-agent-api/tools/utils"
+	"github.com/findy-network/findy-agent-vault/tools/utils"
 
 	"github.com/bxcodec/faker/v3"
-	"github.com/findy-network/findy-agent-api/tools/data"
+	"github.com/findy-network/findy-agent-vault/tools/data"
 	"github.com/lainio/err2"
 )
 

@@ -11,13 +11,13 @@ import (
 
 	"github.com/rs/cors"
 
-	"github.com/findy-network/findy-agent-api/tools/data"
+	"github.com/findy-network/findy-agent-vault/tools/data"
 
 	"github.com/golang/glog"
 
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/findy-network/findy-agent-api/server"
-	"github.com/findy-network/findy-agent-api/tools/resolver"
+	"github.com/findy-network/findy-agent-vault/server"
+	"github.com/findy-network/findy-agent-vault/tools/resolver"
 )
 
 const defaultPort = "8085"

@@ -14,7 +14,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
-	"github.com/findy-network/findy-agent-api/graph/generated"
+	"github.com/findy-network/findy-agent-vault/graph/generated"
 	"github.com/gorilla/websocket"
 )
 

@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/findy-network/findy-agent-api/tools/faker"
+	"github.com/findy-network/findy-agent-vault/tools/faker"
 
-	"github.com/findy-network/findy-agent-api/tools/data"
+	"github.com/findy-network/findy-agent-vault/tools/data"
 
-	"github.com/findy-network/findy-agent-api/graph/generated"
-	"github.com/findy-network/findy-agent-api/graph/model"
+	"github.com/findy-network/findy-agent-vault/graph/generated"
+	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
 const (

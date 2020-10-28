@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/findy-network/findy-agent-api/tools/data"
+	"github.com/findy-network/findy-agent-vault/tools/data"
 
-	"github.com/findy-network/findy-agent-api/graph/model"
+	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
 type EvTestRes struct {
