@@ -92,6 +92,10 @@ issues:
     - path: _test.go
       linters:
         - dupl
+    - path: resolver/schema.resolvers.go
+      linters:
+        - gocritic
+        - lll
     - linters:
         - gocritic
       text: "unnecessaryDefer:"

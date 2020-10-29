@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/findy-network/findy-agent-vault/agency"
 	"github.com/findy-network/findy-agent-vault/tools/faker"
 
 	"github.com/findy-network/findy-agent-vault/tools/data"
@@ -17,6 +18,8 @@ const (
 )
 
 func InitResolver() {
+	agency.Instance.Init()
+	fmt.Println(agency.Instance.Invite())
 	data.InitState()
 	faker.InitFaker()
 	initEvents()
