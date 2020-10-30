@@ -17,8 +17,10 @@ const (
 	logLevelMedium = 2
 )
 
+type agencyListener struct{}
+
 func InitResolver() {
-	agency.Instance.Init()
+	agency.Instance.Init(&agencyListener{})
 	data.InitState()
 	faker.InitFaker()
 	initEvents()

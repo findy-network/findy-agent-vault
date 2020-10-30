@@ -93,13 +93,14 @@ func doAddEvent(event *data.InternalEvent) {
 	}
 }
 
-func addEvent(description string, pType model.ProtocolType) {
+func addEvent(description string, pType model.ProtocolType, pairwiseID string) {
 	doAddEvent(&data.InternalEvent{
 		ID:           uuid.New().String(),
 		Read:         false,
 		Description:  description,
 		ProtocolType: pType,
 		Type:         model.EventTypeNotification,
+		PairwiseID:   pairwiseID,
 	})
 }
 
