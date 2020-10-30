@@ -67,6 +67,11 @@ type ComplexityRoot struct {
 		Node   func(childComplexity int) int
 	}
 
+	InvitationResponse struct {
+		ImageB64   func(childComplexity int) int
+		Invitation func(childComplexity int) int
+	}
+
 	LoginResponse struct {
 		Token func(childComplexity int) int
 	}
@@ -135,7 +140,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.Event, error)
-	Invite(ctx context.Context) (*model.Response, error)
+	Invite(ctx context.Context) (*model.InvitationResponse, error)
 	Connect(ctx context.Context, input model.Invitation) (*model.Response, error)
 	SendMessage(ctx context.Context) (*model.Response, error)
 	AcceptOffer(ctx context.Context, input model.Offer) (*model.Response, error)
@@ -258,6 +263,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EventEdge.Node(childComplexity), true
+
+	case "InvitationResponse.imageB64":
+		if e.complexity.InvitationResponse.ImageB64 == nil {
+			break
+		}
+
+		return e.complexity.InvitationResponse.ImageB64(childComplexity), true
+
+	case "InvitationResponse.invitation":
+		if e.complexity.InvitationResponse.Invitation == nil {
+			break
+		}
+
+		return e.complexity.InvitationResponse.Invitation(childComplexity), true
 
 	case "LoginResponse.token":
 		if e.complexity.LoginResponse.Token == nil {
@@ -722,6 +741,11 @@ type Response {
   ok: Boolean!
 }
 
+type InvitationResponse {
+  invitation: String!
+  imageB64: String!
+}
+
 type LoginResponse {
   token: String!
 }
@@ -744,7 +768,7 @@ type Query {
 type Mutation {
   markEventRead(input: MarkReadInput!): Event
 
-  invite: Response!
+  invite: InvitationResponse!
   connect(input: Invitation!): Response!
   sendMessage: Response!
   acceptOffer(input: Offer!): Response!
@@ -1438,6 +1462,76 @@ func (ec *executionContext) _EventEdge_node(ctx context.Context, field graphql.C
 	return ec.marshalNEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEvent(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _InvitationResponse_invitation(ctx context.Context, field graphql.CollectedField, obj *model.InvitationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "InvitationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Invitation, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InvitationResponse_imageB64(ctx context.Context, field graphql.CollectedField, obj *model.InvitationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "InvitationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ImageB64, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _LoginResponse_token(ctx context.Context, field graphql.CollectedField, obj *model.LoginResponse) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1542,9 +1636,9 @@ func (ec *executionContext) _Mutation_invite(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Response)
+	res := resTmp.(*model.InvitationResponse)
 	fc.Result = res
-	return ec.marshalNResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐResponse(ctx, field.Selections, res)
+	return ec.marshalNInvitationResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐInvitationResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_connect(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4092,6 +4186,38 @@ func (ec *executionContext) _EventEdge(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
+var invitationResponseImplementors = []string{"InvitationResponse"}
+
+func (ec *executionContext) _InvitationResponse(ctx context.Context, sel ast.SelectionSet, obj *model.InvitationResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, invitationResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("InvitationResponse")
+		case "invitation":
+			out.Values[i] = ec._InvitationResponse_invitation(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "imageB64":
+			out.Values[i] = ec._InvitationResponse_imageB64(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var loginResponseImplementors = []string{"LoginResponse"}
 
 func (ec *executionContext) _LoginResponse(ctx context.Context, sel ast.SelectionSet, obj *model.LoginResponse) graphql.Marshaler {
@@ -4857,6 +4983,20 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 func (ec *executionContext) unmarshalNInvitation2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐInvitation(ctx context.Context, v interface{}) (model.Invitation, error) {
 	res, err := ec.unmarshalInputInvitation(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInvitationResponse2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐInvitationResponse(ctx context.Context, sel ast.SelectionSet, v model.InvitationResponse) graphql.Marshaler {
+	return ec._InvitationResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNInvitationResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐInvitationResponse(ctx context.Context, sel ast.SelectionSet, v *model.InvitationResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._InvitationResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNMarkReadInput2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐMarkReadInput(ctx context.Context, v interface{}) (model.MarkReadInput, error) {

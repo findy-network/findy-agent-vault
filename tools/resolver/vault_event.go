@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/golang/glog"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
@@ -66,8 +68,7 @@ func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.Ev
 	id := "tenantId-" + strconv.FormatInt(time.Now().Unix(), 10)
 	glog.V(logLevelMedium).Info("subscriptionResolver:EventAdded, id: ", id)
 
-	user := ctx.Value("user")
-	fmt.Printf("%v", user)
+	// access user object: user := ctx.Value("user")
 
 	events := make(chan *model.EventEdge, 1)
 
@@ -82,19 +83,35 @@ func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.Ev
 	return events, nil
 }
 
-func (r *mutationResolver) AddRandomEvent(_ context.Context) (bool, error) {
-	glog.V(logLevelMedium).Info("mutationResolver:AddRandomEvent ")
-
+func doAddEvent(event *data.InternalEvent) {
 	state := data.State.Events
-	events, err := faker.FakeEvents(1)
-	if err == nil {
-		event := &events[0]
-		event.CreatedMs = time.Now().Unix()
-		state.Append(event)
-		glog.Infof("Added random event %s", events[0].ID)
-		for _, observer := range eventAddedObserver {
-			observer <- events[0].ToEdge()
-		}
+	event.CreatedMs = time.Now().Unix()
+	state.Append(event)
+	glog.Infof("Added event %s", event.ID)
+	for _, observer := range eventAddedObserver {
+		observer <- event.ToEdge()
 	}
-	return true, err
+}
+
+func addEvent(description string, pType model.ProtocolType) {
+	doAddEvent(&data.InternalEvent{
+		ID:           uuid.New().String(),
+		Read:         false,
+		Description:  description,
+		ProtocolType: pType,
+		Type:         model.EventTypeNotification,
+	})
+}
+
+func (r *mutationResolver) AddRandomEvent(_ context.Context) (ok bool, err error) {
+	glog.V(logLevelMedium).Info("mutationResolver:AddRandomEvent ")
+	defer err2.Return(&err)
+
+	events, err := faker.FakeEvents(1)
+	err2.Check(err)
+
+	doAddEvent(&events[0])
+	ok = true
+
+	return
 }
