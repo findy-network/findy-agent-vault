@@ -19,17 +19,12 @@ const (
 
 func InitResolver() {
 	agency.Instance.Init()
-	fmt.Println(agency.Instance.Invite())
 	data.InitState()
 	faker.InitFaker()
 	initEvents()
 }
 
 type Resolver struct{}
-
-func (r *mutationResolver) Invite(_ context.Context) (*model.Response, error) {
-	panic(fmt.Errorf("not implemented"))
-}
 
 func (r *mutationResolver) Connect(_ context.Context, _ model.Invitation) (*model.Response, error) {
 	panic(fmt.Errorf("not implemented"))
