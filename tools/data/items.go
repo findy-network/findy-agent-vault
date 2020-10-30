@@ -5,9 +5,9 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/findy-network/findy-agent-api/tools/utils"
+	"github.com/findy-network/findy-agent-vault/tools/utils"
 
-	"github.com/findy-network/findy-agent-api/graph/model"
+	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
 type Items struct {
