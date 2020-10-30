@@ -9,8 +9,8 @@ import (
 
 	"github.com/golang/glog"
 
-	"github.com/findy-network/findy-agent-api/resolver"
-	"github.com/findy-network/findy-agent-api/tools/data"
+	"github.com/findy-network/findy-agent-vault/resolver"
+	"github.com/findy-network/findy-agent-vault/tools/data"
 	"github.com/lainio/err2"
 )
 

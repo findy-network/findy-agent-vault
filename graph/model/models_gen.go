@@ -34,6 +34,11 @@ type Invitation struct {
 	Payload string `json:"payload"`
 }
 
+type InvitationResponse struct {
+	Invitation string `json:"invitation"`
+	ImageB64   string `json:"imageB64"`
+}
+
 type LoginResponse struct {
 	Token string `json:"token"`
 }

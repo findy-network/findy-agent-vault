@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/findy-network/findy-agent-api/resolver"
+	"github.com/findy-network/findy-agent-vault/resolver"
 )
 
 type PaginationExecutor interface {

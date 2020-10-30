@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/findy-network/findy-agent-api/tools/faker"
+	"github.com/findy-network/findy-agent-vault/agency"
+	"github.com/findy-network/findy-agent-vault/tools/faker"
 
-	"github.com/findy-network/findy-agent-api/tools/data"
+	"github.com/findy-network/findy-agent-vault/tools/data"
 
-	"github.com/findy-network/findy-agent-api/graph/generated"
-	"github.com/findy-network/findy-agent-api/graph/model"
+	"github.com/findy-network/findy-agent-vault/graph/generated"
+	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
 const (
@@ -17,16 +18,13 @@ const (
 )
 
 func InitResolver() {
+	agency.Instance.Init()
 	data.InitState()
 	faker.InitFaker()
 	initEvents()
 }
 
 type Resolver struct{}
-
-func (r *mutationResolver) Invite(_ context.Context) (*model.Response, error) {
-	panic(fmt.Errorf("not implemented"))
-}
 
 func (r *mutationResolver) Connect(_ context.Context, _ model.Invitation) (*model.Response, error) {
 	panic(fmt.Errorf("not implemented"))

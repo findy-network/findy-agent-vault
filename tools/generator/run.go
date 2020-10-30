@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/findy-network/findy-agent-api/server"
+	"github.com/findy-network/findy-agent-vault/server"
 
-	"github.com/findy-network/findy-agent-api/tools/faker"
+	"github.com/findy-network/findy-agent-vault/tools/faker"
 
 	"github.com/spf13/cobra"
 )
