@@ -27,7 +27,7 @@ func (r *mutationResolver) Invite(ctx context.Context) (resp *model.InvitationRe
 		ImageB64:   img,
 	}
 
-	addEvent("Created new invitation", model.ProtocolTypeConnection)
+	addEvent("Created new invitation", model.ProtocolTypeConnection, "")
 
 	return
 }
