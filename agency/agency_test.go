@@ -5,6 +5,12 @@ import (
 	"testing"
 )
 
+type agencyListener struct{}
+
+func (l *agencyListener) AddConnection(id, ourDID, theirDID, theirEndpoint, theirLabel string, initiatedByUs bool) {
+
+}
+
 func TestMain(m *testing.M) {
 	setup()
 	code := m.Run()
@@ -13,7 +19,7 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	Instance.Init()
+	Instance.Init(&agencyListener{})
 }
 
 func teardown() {

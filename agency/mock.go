@@ -21,7 +21,7 @@ type invitation struct {
 
 var Instance Agency = &Mock{}
 
-func (m *Mock) Init() {}
+func (m *Mock) Init(l Listener) {}
 
 func (m *Mock) Invite() (result string, err error) {
 	defer err2.Return(&err)

@@ -4,7 +4,6 @@ package agency
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 
 	"github.com/golang/glog"
@@ -20,7 +19,6 @@ import (
 	"github.com/findy-network/findy-agent/cmds/agent"
 	"github.com/findy-network/findy-agent/cmds/onboard"
 	didexchange "github.com/findy-network/findy-agent/std/didexchange/invitation"
-	"github.com/findy-network/findy-wrapper-go/dto"
 )
 
 const (
@@ -30,6 +28,7 @@ const (
 )
 
 type Findy struct {
+	listener Listener
 	agent    *cloud.Agent
 	client   *client.Client
 	endpoint string
@@ -44,22 +43,8 @@ func walletCmd() *cmds.Cmd {
 	}
 }
 
-func (f *Findy) listenWs() {
-
-	glog.Info("starting listening loop")
-
-	go func() {
-		err2.Check(f.client.Listen(func(pl *mesg.Payload) (while bool, err error) {
-			defer err2.Return(&err)
-
-			fmt.Println(dto.ToJSON(pl))
-			return true, nil
-		}))
-	}()
-}
-
 // TODO: do not onboard here, instead use JWT for authentication to agency
-func (f *Findy) Init() {
+func (f *Findy) Init(l Listener) {
 	cmd := agent.PingCmd{Cmd: *walletCmd()}
 
 	err := cmd.Validate()
@@ -82,6 +67,7 @@ func (f *Findy) Init() {
 		}
 	}
 
+	f.listener = l
 	f.client = &client.Client{
 		Wallet: ssi.NewRawWalletCfg(walletName, walletKey),
 	}
@@ -95,7 +81,11 @@ func (f *Findy) Init() {
 	}
 	f.endpoint = im.Message.Endpoint
 
-	f.listenWs()
+	glog.Info("starting listening loop")
+
+	go func() {
+		err2.Check(f.client.Listen(f.findyCallback))
+	}()
 }
 
 // TODO: fetch constructed JSON from CA

@@ -3,6 +3,7 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/golang/glog"
 
@@ -58,4 +59,25 @@ func (r *queryResolver) Connection(_ context.Context, id string) (node *model.Pa
 		err = fmt.Errorf("connection for id %s was not found", id)
 	}
 	return
+}
+
+func doAddConnection(connection *data.InternalPairwise) {
+	state := data.State.Connections
+	connection.CreatedMs = time.Now().Unix()
+	state.Append(connection)
+	glog.Infof("Added connection %s", connection.ID)
+	addEvent(fmt.Sprintf("Added connection %s", connection.TheirLabel), model.ProtocolTypeConnection, connection.ID)
+}
+
+func (l *agencyListener) AddConnection(id, ourDID, theirDID, theirEndpoint, theirLabel string, initiatedByUs bool) {
+	doAddConnection(&data.InternalPairwise{
+		ID:            id,
+		OurDid:        ourDID,
+		TheirDid:      theirDID,
+		TheirEndpoint: theirEndpoint,
+		TheirLabel:    theirLabel,
+		InitiatedByUs: initiatedByUs,
+		ApprovedMs:    time.Now().Unix(),
+		CreatedMs:     time.Now().Unix(),
+	})
 }
