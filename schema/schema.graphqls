@@ -73,8 +73,8 @@ type User {
   name: String!
 }
 
-input Invitation {
-  payload: String!
+input ConnectInput {
+  invitation: String!
 }
 
 input Offer {
@@ -123,7 +123,7 @@ type Mutation {
   markEventRead(input: MarkReadInput!): Event
 
   invite: InvitationResponse!
-  connect(input: Invitation!): Response!
+  connect(input: ConnectInput!): Response!
   sendMessage: Response!
   acceptOffer(input: Offer!): Response!
   acceptRequest(input: Request!): Response!

@@ -16,7 +16,7 @@ type invitation struct {
 	RecipientKeys   []string `json:"recipientKeys,omitempty" faker:"-"`
 	ID              string   `json:"@id,omitempty" faker:"uuid_hyphenated"`
 	Label           string   `json:"label,omitempty" faker:"first_name"`
-	Type            string   `json:"@type,omitempty" faker:"-"` //did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/invitation
+	Type            string   `json:"@type,omitempty" faker:"-"`
 }
 
 var Instance Agency = &Mock{}
@@ -39,6 +39,6 @@ func (m *Mock) Invite() (result string, err error) {
 	return
 }
 
-func (m *Mock) Connect() (string, error) {
+func (m *Mock) Connect(_ string) (string, error) {
 	return "", nil
 }

@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/99designs/gqlgen v0.13.0
-	github.com/auth0/go-jwt-middleware v0.0.0-20200810150920-a32d7af194d1
+	github.com/auth0/go-jwt-middleware v0.0.0-20201030150249-d783b5c46b39
 	github.com/bxcodec/faker v2.0.1+incompatible
 	github.com/bxcodec/faker/v3 v3.5.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
