@@ -28,10 +28,6 @@ func InitResolver() {
 
 type Resolver struct{}
 
-func (r *mutationResolver) Connect(_ context.Context, _ model.Invitation) (*model.Response, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
 func (r *mutationResolver) SendMessage(_ context.Context) (*model.Response, error) {
 	panic(fmt.Errorf("not implemented"))
 }
