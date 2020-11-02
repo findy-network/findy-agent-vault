@@ -80,7 +80,7 @@ type ComplexityRoot struct {
 		AcceptOffer    func(childComplexity int, input model.Offer) int
 		AcceptRequest  func(childComplexity int, input model.Request) int
 		AddRandomEvent func(childComplexity int) int
-		Connect        func(childComplexity int, input model.Invitation) int
+		Connect        func(childComplexity int, input model.ConnectInput) int
 		Invite         func(childComplexity int) int
 		MarkEventRead  func(childComplexity int, input model.MarkReadInput) int
 		SendMessage    func(childComplexity int) int
@@ -141,7 +141,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.Event, error)
 	Invite(ctx context.Context) (*model.InvitationResponse, error)
-	Connect(ctx context.Context, input model.Invitation) (*model.Response, error)
+	Connect(ctx context.Context, input model.ConnectInput) (*model.Response, error)
 	SendMessage(ctx context.Context) (*model.Response, error)
 	AcceptOffer(ctx context.Context, input model.Offer) (*model.Response, error)
 	AcceptRequest(ctx context.Context, input model.Request) (*model.Response, error)
@@ -326,7 +326,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.Connect(childComplexity, args["input"].(model.Invitation)), true
+		return e.complexity.Mutation.Connect(childComplexity, args["input"].(model.ConnectInput)), true
 
 	case "Mutation.invite":
 		if e.complexity.Mutation.Invite == nil {
@@ -719,8 +719,8 @@ type User {
   name: String!
 }
 
-input Invitation {
-  payload: String!
+input ConnectInput {
+  invitation: String!
 }
 
 input Offer {
@@ -769,7 +769,7 @@ type Mutation {
   markEventRead(input: MarkReadInput!): Event
 
   invite: InvitationResponse!
-  connect(input: Invitation!): Response!
+  connect(input: ConnectInput!): Response!
   sendMessage: Response!
   acceptOffer(input: Offer!): Response!
   acceptRequest(input: Request!): Response!
@@ -822,10 +822,10 @@ func (ec *executionContext) field_Mutation_acceptRequest_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_connect_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.Invitation
+	var arg0 model.ConnectInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNInvitation2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐInvitation(ctx, tmp)
+		arg0, err = ec.unmarshalNConnectInput2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐConnectInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1666,7 +1666,7 @@ func (ec *executionContext) _Mutation_connect(ctx context.Context, field graphql
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Connect(rctx, args["input"].(model.Invitation))
+		return ec.resolvers.Mutation().Connect(rctx, args["input"].(model.ConnectInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3960,17 +3960,17 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputInvitation(ctx context.Context, obj interface{}) (model.Invitation, error) {
-	var it model.Invitation
+func (ec *executionContext) unmarshalInputConnectInput(ctx context.Context, obj interface{}) (model.ConnectInput, error) {
+	var it model.ConnectInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
 		switch k {
-		case "payload":
+		case "invitation":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("payload"))
-			it.Payload, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("invitation"))
+			it.Invitation, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4902,6 +4902,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNConnectInput2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐConnectInput(ctx context.Context, v interface{}) (model.ConnectInput, error) {
+	res, err := ec.unmarshalInputConnectInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEvent(ctx context.Context, sel ast.SelectionSet, v *model.Event) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -4978,11 +4983,6 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNInvitation2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐInvitation(ctx context.Context, v interface{}) (model.Invitation, error) {
-	res, err := ec.unmarshalInputInvitation(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNInvitationResponse2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐInvitationResponse(ctx context.Context, sel ast.SelectionSet, v model.InvitationResponse) graphql.Marshaler {

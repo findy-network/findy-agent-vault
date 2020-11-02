@@ -7,5 +7,5 @@ type Listener interface {
 type Agency interface {
 	Init(l Listener)
 	Invite() (string, error)
-	Connect() (string, error)
+	Connect(invitation string) (string, error)
 }

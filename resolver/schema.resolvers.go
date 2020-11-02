@@ -19,7 +19,7 @@ func (r *mutationResolver) Invite(ctx context.Context) (*model.InvitationRespons
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *mutationResolver) Connect(ctx context.Context, input model.Invitation) (*model.Response, error) {
+func (r *mutationResolver) Connect(ctx context.Context, input model.ConnectInput) (*model.Response, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
