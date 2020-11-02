@@ -39,6 +39,6 @@ func (m *Mock) Invite() (result string, err error) {
 	return
 }
 
-func (m *Mock) Connect() (string, error) {
+func (m *Mock) Connect(_ string) (string, error) {
 	return "", nil
 }
