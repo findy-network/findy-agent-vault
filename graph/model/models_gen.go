@@ -8,6 +8,10 @@ import (
 	"strconv"
 )
 
+type ConnectInput struct {
+	Invitation string `json:"invitation"`
+}
+
 type Event struct {
 	ID          string       `json:"id"`
 	Read        bool         `json:"read"`
@@ -28,10 +32,6 @@ type EventConnection struct {
 type EventEdge struct {
 	Cursor string `json:"cursor"`
 	Node   *Event `json:"node"`
-}
-
-type Invitation struct {
-	Payload string `json:"payload"`
 }
 
 type InvitationResponse struct {
