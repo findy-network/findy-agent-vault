@@ -51,7 +51,7 @@ func (state *Data) initStateAndSort(scratch bool) {
 
 func (state *Data) MarkEventRead(id string) *model.Event {
 	if state.Events.MarkEventRead(id) {
-		return state.Events.EventForID(id, state.Connections)
+		return state.Events.EventForID(id, state.Connections, state.Jobs)
 	}
 
 	return nil

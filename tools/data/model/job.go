@@ -2,6 +2,7 @@ package model
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
 )
@@ -137,4 +138,23 @@ func (i *Items) JobConnection(after, before int) *model.JobConnection {
 		TotalCount: totalCount,
 	}
 	return c
+}
+
+func (i *Items) UpdateJob(id string, details *model.JobDetails, status model.JobStatus, result model.JobResult) bool {
+	i.mutex.Lock()
+	defer i.mutex.Unlock()
+
+	for _, item := range i.items {
+		if item.Identifier() != id {
+			continue
+		}
+		job := item.Job()
+		job.UpdatedMs = time.Now().Unix()
+		job.Status = status
+		job.Result = result
+		job.Details = details
+		return true
+	}
+
+	return false
 }

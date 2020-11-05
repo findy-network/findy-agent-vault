@@ -2,6 +2,9 @@ package resolver
 
 import (
 	"context"
+	"time"
+
+	data "github.com/findy-network/findy-agent-vault/tools/data/model"
 
 	"github.com/findy-network/findy-agent-vault/agency"
 
@@ -24,8 +27,20 @@ func (r *mutationResolver) Connect(_ context.Context, input model.ConnectInput) 
 		model.ProtocolTypeConnection,
 		false,
 		&model.JobDetails{},
-		"Sent connection request",
-		"")
+		"Sent connection request")
 
 	return
+}
+
+func (l *agencyListener) AddConnection(id, ourDID, theirDID, theirEndpoint, theirLabel string, initiatedByUs bool) {
+	doAddConnection(&data.InternalPairwise{
+		ID:            id,
+		OurDid:        ourDID,
+		TheirDid:      theirDID,
+		TheirEndpoint: theirEndpoint,
+		TheirLabel:    theirLabel,
+		InitiatedByUs: initiatedByUs,
+		ApprovedMs:    time.Now().Unix(),
+		CreatedMs:     time.Now().Unix(),
+	})
 }

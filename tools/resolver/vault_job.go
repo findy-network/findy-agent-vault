@@ -53,7 +53,7 @@ func (r *queryResolver) Job(ctx context.Context, id string) (node *model.Job, er
 	return
 }
 
-func addJob(id string, protocol model.ProtocolType, initiatedByUs bool, details *model.JobDetails, description, pairwiseID string) {
+func addJob(id string, protocol model.ProtocolType, initiatedByUs bool, details *model.JobDetails, description string) {
 	timeNow := time.Now().Unix()
 	items := state.Jobs
 	items.Append(&data.InternalJob{
@@ -67,5 +67,12 @@ func addJob(id string, protocol model.ProtocolType, initiatedByUs bool, details 
 		UpdatedMs:     timeNow,
 	})
 	glog.Infof("Added job %s", id)
-	addEvent(description, protocol, pairwiseID)
+	addEvent(description, *details.PairwiseID, id)
+}
+
+func updateJob(id string, details *model.JobDetails, status model.JobStatus, result model.JobResult, description string) {
+	items := state.Jobs
+	items.UpdateJob(id, details, status, result)
+	glog.Infof("Updated job %s", id)
+	addEvent(description, *details.PairwiseID, id)
 }
