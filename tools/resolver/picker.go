@@ -77,7 +77,9 @@ func validateFirstAndLast(first, last *int) error {
 func validateAndParseBeforeAndAfter(items *model.Items, after, before *string) (afterIndex, beforeIndex int, err error) {
 	defer err2.Return(&err)
 
-	beforeIndex = items.Count() - 1
+	count := items.Count()
+
+	beforeIndex = count - 1
 	if after != nil || before != nil {
 		var afterVal, beforeVal int64
 		if after != nil {
@@ -88,10 +90,13 @@ func validateAndParseBeforeAndAfter(items *model.Items, after, before *string) (
 			beforeVal, err = parseCursor(*before)
 			err2.Check(err)
 		}
-		for index := 0; index < items.Count(); index++ {
+		for index := 0; index < count; index++ {
 			created := items.CreatedForIndex(index)
 			if afterVal > 0 && created <= afterVal {
-				afterIndex = index + 1
+				nextIndex := index + 1
+				if nextIndex < count {
+					afterIndex = index + 1
+				}
 			}
 			if beforeVal > 0 && created < beforeVal {
 				beforeIndex = index
@@ -102,7 +107,7 @@ func validateAndParseBeforeAndAfter(items *model.Items, after, before *string) (
 			}
 		}
 	}
-	return
+	return afterIndex, beforeIndex, nil
 }
 
 func pick(items *model.Items, pagination *PaginationParams) (afterIndex, beforeIndex int, err error) {
