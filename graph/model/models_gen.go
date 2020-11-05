@@ -18,14 +18,12 @@ type CredentialValue struct {
 }
 
 type Event struct {
-	ID          string       `json:"id"`
-	Read        bool         `json:"read"`
-	Description string       `json:"description"`
-	Protocol    ProtocolType `json:"protocol"`
-	Type        EventType    `json:"type"`
-	CreatedMs   string       `json:"createdMs"`
-	Job         *Job         `json:"job"`
-	Connection  *Pairwise    `json:"connection"`
+	ID          string    `json:"id"`
+	Read        bool      `json:"read"`
+	Description string    `json:"description"`
+	CreatedMs   string    `json:"createdMs"`
+	Job         *Job      `json:"job"`
+	Connection  *Pairwise `json:"connection"`
 }
 
 type EventConnection struct {
@@ -130,47 +128,6 @@ type Response struct {
 type User struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
-}
-
-type EventType string
-
-const (
-	EventTypeNotification EventType = "NOTIFICATION"
-	EventTypeAction       EventType = "ACTION"
-)
-
-var AllEventType = []EventType{
-	EventTypeNotification,
-	EventTypeAction,
-}
-
-func (e EventType) IsValid() bool {
-	switch e {
-	case EventTypeNotification, EventTypeAction:
-		return true
-	}
-	return false
-}
-
-func (e EventType) String() string {
-	return string(e)
-}
-
-func (e *EventType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = EventType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid EventType", str)
-	}
-	return nil
-}
-
-func (e EventType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type JobResult string

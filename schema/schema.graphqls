@@ -33,25 +33,10 @@ type PairwiseConnection {
   totalCount: Int!
 }
 
-enum ProtocolType {
-  NONE
-  CONNECTION
-  CREDENTIAL
-  PROOF
-  BASIC_MESSAGE
-}
-
-enum EventType {
-  NOTIFICATION
-  ACTION
-}
-
 type Event {
   id: ID!
   read: Boolean!
   description: String!
-  protocol: ProtocolType!
-  type: EventType!
   createdMs: String!
   job: Job
   connection: Pairwise
@@ -67,6 +52,14 @@ type EventConnection {
   nodes: [Event]
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+enum ProtocolType {
+  NONE
+  CONNECTION
+  CREDENTIAL
+  PROOF
+  BASIC_MESSAGE
 }
 
 enum JobStatus {

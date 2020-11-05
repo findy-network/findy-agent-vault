@@ -49,14 +49,14 @@ func (r *queryResolver) Events(
 	afterIndex, beforeIndex, err := pick(items, pagination)
 	err2.Check(err)
 
-	return items.EventConnection(afterIndex, beforeIndex, state.Connections), nil
+	return items.EventConnection(afterIndex, beforeIndex, state.Connections, state.Jobs), nil
 }
 
 func (r *queryResolver) Event(ctx context.Context, id string) (node *model.Event, err error) {
 	glog.V(logLevelMedium).Info("queryResolver:Event, id: ", id)
 
 	items := state.Events
-	node = items.EventForID(id, state.Connections)
+	node = items.EventForID(id, state.Connections, state.Jobs)
 	if node == nil {
 		err = fmt.Errorf("event for id %s was not found", id)
 	}
@@ -88,18 +88,17 @@ func doAddEvent(event *data.InternalEvent) {
 	items.Append(event)
 	glog.Infof("Added event %s", event.ID)
 	for _, observer := range eventAddedObserver {
-		observer <- event.ToEdge(state.Connections)
+		observer <- event.ToEdge(state.Connections, state.Jobs)
 	}
 }
 
-func addEvent(description string, pType model.ProtocolType, pairwiseID string) {
+func addEvent(description string, pairwiseID, jobID string) {
 	doAddEvent(&data.InternalEvent{
-		ID:           uuid.New().String(),
-		Read:         false,
-		Description:  description,
-		ProtocolType: pType,
-		Type:         model.EventTypeNotification,
-		PairwiseID:   pairwiseID,
+		ID:          uuid.New().String(),
+		Read:        false,
+		Description: description,
+		PairwiseID:  pairwiseID,
+		JobID:       jobID,
 	})
 }
 

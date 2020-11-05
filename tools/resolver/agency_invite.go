@@ -32,8 +32,7 @@ func (r *mutationResolver) Invite(ctx context.Context) (resp *model.InvitationRe
 		model.ProtocolTypeConnection,
 		true,
 		&model.JobDetails{},
-		"Created connection invitation",
-		"")
+		"Created connection invitation")
 
 	return
 }
