@@ -67,7 +67,11 @@ func addJob(id string, protocol model.ProtocolType, initiatedByUs bool, details 
 		UpdatedMs:     timeNow,
 	})
 	glog.Infof("Added job %s", id)
-	addEvent(description, *details.PairwiseID, id)
+	var pairwiseID string
+	if details != nil && details.PairwiseID != nil {
+		pairwiseID = *details.PairwiseID
+	}
+	addEvent(description, pairwiseID, id)
 }
 
 func updateJob(id string, details *model.JobDetails, status model.JobStatus, result model.JobResult, description string) {
