@@ -5,7 +5,11 @@ import (
 	our "github.com/findy-network/findy-agent-vault/tools/data/model"
 )
 
-var connections = []our.InternalPairwise{
+type Pairwise = our.InternalPairwise
+type Event = our.InternalEvent
+type User = our.InternalUser
+
+var connections = []Pairwise{
 	{
 		"5bc45c3f-f1d9-4fc4-b946-8976ddf8fffc",
 		"jePDyDFRVoEdMOOoHUtXAlQhW",
@@ -58,7 +62,7 @@ var connections = []our.InternalPairwise{
 	},
 }
 
-var events = []our.InternalEvent{
+var events = []Event{
 	{
 		"baa82ccd-f0ab-4e36-bd44-5fad46af2622",
 		false,
@@ -510,7 +514,7 @@ var events = []our.InternalEvent{
 		1553443938,
 	},
 }
-var user = our.InternalUser{
+var user = User{
 	"4b59b71e-9cc8-4104-96c9-9763a8b2589b",
 	"Troy",
 }

@@ -110,10 +110,10 @@ func (i *Items) JobConnection(after, before int) *model.JobConnection {
 
 	edges := make([]*model.JobEdge, totalCount)
 	nodes := make([]*model.Job, totalCount)
-	for index, event := range result {
-		node := event.Job().ToNode()
+	for index, job := range result {
+		node := job.Job().ToNode()
 		edges[index] = &model.JobEdge{
-			Cursor: CreateCursor(event.Event().CreatedMs, model.Job{}),
+			Cursor: CreateCursor(job.Job().CreatedMs, model.Job{}),
 			Node:   node,
 		}
 		nodes[index] = node
