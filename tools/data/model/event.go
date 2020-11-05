@@ -90,17 +90,20 @@ func (i *Items) EventConnection(after, before int, connections, jobs *Items) *mo
 	i.mutex.RUnlock()
 
 	var startCursor, endCursor *string
+	var hasNextPage, hasPreviousPage bool
 	if totalCount > 0 {
 		startCursor = &edges[0].Cursor
 		endCursor = &edges[totalCount-1].Cursor
+		hasNextPage = edges[len(edges)-1].Node.ID != i.LastID()
+		hasPreviousPage = edges[0].Node.ID != i.FirstID()
 	}
 	c := &model.EventConnection{
 		Edges: edges,
 		Nodes: nodes,
 		PageInfo: &model.PageInfo{
 			EndCursor:       endCursor,
-			HasNextPage:     edges[len(edges)-1].Node.ID != i.LastID(),
-			HasPreviousPage: edges[0].Node.ID != i.FirstID(),
+			HasNextPage:     hasNextPage,
+			HasPreviousPage: hasPreviousPage,
 			StartCursor:     startCursor,
 		},
 		TotalCount: totalCount,

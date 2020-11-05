@@ -48,7 +48,10 @@ func (r *queryResolver) Connections(
 	afterIndex, beforeIndex, err := pick(items, pagination)
 	err2.Check(err)
 
-	return items.PairwiseConnection(afterIndex, beforeIndex), nil
+	glog.V(logLevelLow).Infof("Connections: returning connections between %d and %d", afterIndex, beforeIndex)
+	c = items.PairwiseConnection(afterIndex, beforeIndex)
+
+	return
 }
 
 func (r *queryResolver) Connection(_ context.Context, id string) (node *model.Pairwise, err error) {
