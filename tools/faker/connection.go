@@ -8,7 +8,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/tools/utils"
 
 	"github.com/bxcodec/faker/v3"
-	"github.com/findy-network/findy-agent-vault/tools/data"
+	data "github.com/findy-network/findy-agent-vault/tools/data/model"
 	"github.com/lainio/err2"
 )
 

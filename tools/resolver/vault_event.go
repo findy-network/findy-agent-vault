@@ -11,7 +11,7 @@ import (
 	"github.com/golang/glog"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
-	"github.com/findy-network/findy-agent-vault/tools/data"
+	data "github.com/findy-network/findy-agent-vault/tools/data/model"
 	"github.com/findy-network/findy-agent-vault/tools/faker"
 	"github.com/lainio/err2"
 )
@@ -25,7 +25,6 @@ func initEvents() {
 func (r *mutationResolver) MarkEventRead(ctx context.Context, input model.MarkReadInput) (node *model.Event, err error) {
 	glog.V(logLevelMedium).Info("queryResolver:MarkEventRead, id: ", input.ID)
 
-	state := data.State.Events
 	node = state.MarkEventRead(input.ID)
 	if node == nil {
 		err = fmt.Errorf("event for id %s was not found", input.ID)
@@ -46,18 +45,21 @@ func (r *queryResolver) Events(
 	}
 	logPaginationRequest("queryResolver:events", pagination)
 
-	state := data.State.Events
-	afterIndex, beforeIndex, err := pick(state, pagination)
+	items := state.Events
+	afterIndex, beforeIndex, err := pick(items, pagination)
 	err2.Check(err)
 
-	return state.EventConnection(afterIndex, beforeIndex), nil
+	glog.V(logLevelLow).Infof("Events: returning events between %d and %d", afterIndex, beforeIndex)
+	c = items.EventConnection(afterIndex, beforeIndex, state.Connections, state.Jobs)
+
+	return
 }
 
 func (r *queryResolver) Event(ctx context.Context, id string) (node *model.Event, err error) {
 	glog.V(logLevelMedium).Info("queryResolver:Event, id: ", id)
 
-	state := data.State.Events
-	node = state.EventForID(id)
+	items := state.Events
+	node = items.EventForID(id, state.Connections, state.Jobs)
 	if node == nil {
 		err = fmt.Errorf("event for id %s was not found", id)
 	}
@@ -84,23 +86,22 @@ func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.Ev
 }
 
 func doAddEvent(event *data.InternalEvent) {
-	state := data.State.Events
+	items := state.Events
 	event.CreatedMs = time.Now().Unix()
-	state.Append(event)
+	items.Append(event)
 	glog.Infof("Added event %s", event.ID)
 	for _, observer := range eventAddedObserver {
-		observer <- event.ToEdge()
+		observer <- event.ToEdge(state.Connections, state.Jobs)
 	}
 }
 
-func addEvent(description string, pType model.ProtocolType, pairwiseID string) {
+func addEvent(description, pairwiseID, jobID string) {
 	doAddEvent(&data.InternalEvent{
-		ID:           uuid.New().String(),
-		Read:         false,
-		Description:  description,
-		ProtocolType: pType,
-		Type:         model.EventTypeNotification,
-		PairwiseID:   pairwiseID,
+		ID:          uuid.New().String(),
+		Read:        false,
+		Description: description,
+		PairwiseID:  pairwiseID,
+		JobID:       jobID,
 	})
 }
 

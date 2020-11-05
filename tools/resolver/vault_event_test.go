@@ -5,8 +5,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/findy-network/findy-agent-vault/tools/data"
-
 	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
@@ -29,12 +27,12 @@ func TestPaginationErrorsGetEvents(t *testing.T) {
 
 func TestGetEvents(t *testing.T) {
 	t.Run("get events", func(t *testing.T) {
-		state := data.State.Events
+		s := state.Events
 		var (
 			valid  = 1
-			first  = state.EventConnection(0, 1)
-			second = state.EventConnection(1, 2)
-			last   = state.EventConnection(state.Count()-1, state.Count())
+			first  = s.EventConnection(0, 1, state.Connections, state.Jobs)
+			second = s.EventConnection(1, 2, state.Connections, state.Jobs)
+			last   = s.EventConnection(s.Count()-1, s.Count(), state.Connections, state.Jobs)
 		)
 		tests := []struct {
 			name   string
