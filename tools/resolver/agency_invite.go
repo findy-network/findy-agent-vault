@@ -16,7 +16,7 @@ func (r *mutationResolver) Invite(ctx context.Context) (resp *model.InvitationRe
 	defer err2.Return(&err)
 	glog.V(logLevelMedium).Info("mutationResolver:Invite")
 
-	str, err := agency.Instance.Invite()
+	str, id, err := agency.Instance.Invite()
 	err2.Check(err)
 
 	img, err := utils.StrToQRCode(str)
@@ -27,7 +27,13 @@ func (r *mutationResolver) Invite(ctx context.Context) (resp *model.InvitationRe
 		ImageB64:   img,
 	}
 
-	addEvent("Created new invitation", model.ProtocolTypeConnection, "")
+	addJob(
+		id,
+		model.ProtocolTypeConnection,
+		true,
+		&model.JobDetails{},
+		"Created connection invitation",
+		"")
 
 	return
 }

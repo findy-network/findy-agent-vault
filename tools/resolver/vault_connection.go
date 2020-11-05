@@ -10,7 +10,7 @@ import (
 	"github.com/lainio/err2"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
-	"github.com/findy-network/findy-agent-vault/tools/data"
+	data "github.com/findy-network/findy-agent-vault/tools/data/model"
 )
 
 /*
@@ -43,18 +43,19 @@ func (r *queryResolver) Connections(
 	}
 	logPaginationRequest("queryResolver:conns", pagination)
 
-	state := data.State.Connections
-	afterIndex, beforeIndex, err := pick(state, pagination)
+	items := state.Connections
+
+	afterIndex, beforeIndex, err := pick(items, pagination)
 	err2.Check(err)
 
-	return state.PairwiseConnection(afterIndex, beforeIndex), nil
+	return items.PairwiseConnection(afterIndex, beforeIndex), nil
 }
 
 func (r *queryResolver) Connection(_ context.Context, id string) (node *model.Pairwise, err error) {
 	glog.V(logLevelMedium).Info("queryResolver:Connection, id: ", id)
 
-	state := data.State.Connections
-	node = state.PairwiseForID(id)
+	items := state.Connections
+	node = items.PairwiseForID(id)
 	if node == nil {
 		err = fmt.Errorf("connection for id %s was not found", id)
 	}
@@ -62,9 +63,9 @@ func (r *queryResolver) Connection(_ context.Context, id string) (node *model.Pa
 }
 
 func doAddConnection(connection *data.InternalPairwise) {
-	state := data.State.Connections
+	items := state.Connections
 	connection.CreatedMs = time.Now().Unix()
-	state.Append(connection)
+	items.Append(connection)
 	glog.Infof("Added connection %s", connection.ID)
 	addEvent(fmt.Sprintf("Added connection %s", connection.TheirLabel), model.ProtocolTypeConnection, connection.ID)
 }

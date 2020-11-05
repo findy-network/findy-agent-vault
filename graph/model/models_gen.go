@@ -12,6 +12,11 @@ type ConnectInput struct {
 	Invitation string `json:"invitation"`
 }
 
+type CredentialValue struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 type Event struct {
 	ID          string       `json:"id"`
 	Read        bool         `json:"read"`
@@ -19,6 +24,7 @@ type Event struct {
 	Protocol    ProtocolType `json:"protocol"`
 	Type        EventType    `json:"type"`
 	CreatedMs   string       `json:"createdMs"`
+	Job         *Job         `json:"job"`
 	Connection  *Pairwise    `json:"connection"`
 }
 
@@ -37,6 +43,36 @@ type EventEdge struct {
 type InvitationResponse struct {
 	Invitation string `json:"invitation"`
 	ImageB64   string `json:"imageB64"`
+}
+
+type Job struct {
+	ID            string       `json:"id"`
+	Protocol      ProtocolType `json:"protocol"`
+	InitiatedByUs bool         `json:"initiatedByUs"`
+	Status        JobStatus    `json:"status"`
+	Result        JobResult    `json:"result"`
+	CreatedMs     string       `json:"createdMs"`
+	UpdatedMs     string       `json:"updatedMs"`
+	Details       *JobDetails  `json:"details"`
+}
+
+type JobConnection struct {
+	Edges      []*JobEdge `json:"edges"`
+	Nodes      []*Job     `json:"nodes"`
+	PageInfo   *PageInfo  `json:"pageInfo"`
+	TotalCount int        `json:"totalCount"`
+}
+
+type JobDetails struct {
+	PairwiseID       *string            `json:"pairwiseId"`
+	CredDefID        *string            `json:"credDefId"`
+	CredentialValues []*CredentialValue `json:"credentialValues"`
+	Verified         *bool              `json:"verified"`
+}
+
+type JobEdge struct {
+	Cursor string `json:"cursor"`
+	Node   *Job   `json:"node"`
 }
 
 type LoginResponse struct {
@@ -134,6 +170,92 @@ func (e *EventType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e EventType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type JobResult string
+
+const (
+	JobResultNone    JobResult = "NONE"
+	JobResultSuccess JobResult = "SUCCESS"
+	JobResultFailure JobResult = "FAILURE"
+)
+
+var AllJobResult = []JobResult{
+	JobResultNone,
+	JobResultSuccess,
+	JobResultFailure,
+}
+
+func (e JobResult) IsValid() bool {
+	switch e {
+	case JobResultNone, JobResultSuccess, JobResultFailure:
+		return true
+	}
+	return false
+}
+
+func (e JobResult) String() string {
+	return string(e)
+}
+
+func (e *JobResult) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = JobResult(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid JobResult", str)
+	}
+	return nil
+}
+
+func (e JobResult) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type JobStatus string
+
+const (
+	JobStatusWaiting  JobStatus = "WAITING"
+	JobStatusPending  JobStatus = "PENDING"
+	JobStatusComplete JobStatus = "COMPLETE"
+)
+
+var AllJobStatus = []JobStatus{
+	JobStatusWaiting,
+	JobStatusPending,
+	JobStatusComplete,
+}
+
+func (e JobStatus) IsValid() bool {
+	switch e {
+	case JobStatusWaiting, JobStatusPending, JobStatusComplete:
+		return true
+	}
+	return false
+}
+
+func (e JobStatus) String() string {
+	return string(e)
+}
+
+func (e *JobStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = JobStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid JobStatus", str)
+	}
+	return nil
+}
+
+func (e JobStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

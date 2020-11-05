@@ -1,8 +1,11 @@
 package data
 
-import "github.com/findy-network/findy-agent-vault/graph/model"
+import (
+	"github.com/findy-network/findy-agent-vault/graph/model"
+	our "github.com/findy-network/findy-agent-vault/tools/data/model"
+)
 
-var connections = []InternalPairwise{
+var connections = []our.InternalPairwise{
 	{
 		"5bc45c3f-f1d9-4fc4-b946-8976ddf8fffc",
 		"jePDyDFRVoEdMOOoHUtXAlQhW",
@@ -55,7 +58,7 @@ var connections = []InternalPairwise{
 	},
 }
 
-var events = []InternalEvent{
+var events = []our.InternalEvent{
 	{
 		"baa82ccd-f0ab-4e36-bd44-5fad46af2622",
 		false,
@@ -507,7 +510,7 @@ var events = []InternalEvent{
 		1553443938,
 	},
 }
-var user = InternalUser{
+var user = our.InternalUser{
 	"4b59b71e-9cc8-4104-96c9-9763a8b2589b",
 	"Troy",
 }

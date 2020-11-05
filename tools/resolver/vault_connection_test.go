@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/findy-network/findy-agent-vault/tools/data"
+	model2 "github.com/findy-network/findy-agent-vault/tools/data/model"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
 )
@@ -29,7 +29,7 @@ func TestPaginationErrorsGetConnections(t *testing.T) {
 
 func TestGetConnections(t *testing.T) {
 	t.Run("get connections", func(t *testing.T) {
-		state := data.State.Connections
+		state := model2.State.Connections
 		var (
 			valid  = 1
 			first  = state.PairwiseConnection(0, 1)
