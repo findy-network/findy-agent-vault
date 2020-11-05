@@ -49,7 +49,10 @@ func (r *queryResolver) Events(
 	afterIndex, beforeIndex, err := pick(items, pagination)
 	err2.Check(err)
 
-	return items.EventConnection(afterIndex, beforeIndex, state.Connections, state.Jobs), nil
+	glog.V(logLevelLow).Infof("Events: returning events between %d and %d", afterIndex, beforeIndex)
+	c = items.EventConnection(afterIndex, beforeIndex, state.Connections, state.Jobs)
+
+	return
 }
 
 func (r *queryResolver) Event(ctx context.Context, id string) (node *model.Event, err error) {

@@ -15,6 +15,7 @@ import (
 
 const (
 	logLevelMedium = 2
+	logLevelLow    = 3
 )
 
 type agencyListener struct{}

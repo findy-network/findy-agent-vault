@@ -39,6 +39,8 @@ func (r *queryResolver) Jobs(
 	afterIndex, beforeIndex, err := pick(items, pagination)
 	err2.Check(err)
 
+	glog.V(logLevelLow).Infof("Jobs: returning jobs between %d and %d", afterIndex, beforeIndex)
+
 	return items.JobConnection(afterIndex, beforeIndex), nil
 }
 
