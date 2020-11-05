@@ -7,10 +7,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/findy-network/findy-agent-vault/tools/data/model"
+
 	"github.com/golang/glog"
 
 	"github.com/findy-network/findy-agent-vault/resolver"
-	"github.com/findy-network/findy-agent-vault/tools/data"
 	"github.com/lainio/err2"
 )
 
@@ -73,7 +74,7 @@ func validateFirstAndLast(first, last *int) error {
 	return nil
 }
 
-func validateAndParseBeforeAndAfter(items *data.Items, after, before *string) (afterIndex, beforeIndex int, err error) {
+func validateAndParseBeforeAndAfter(items *model.Items, after, before *string) (afterIndex, beforeIndex int, err error) {
 	defer err2.Return(&err)
 
 	beforeIndex = items.Count() - 1
@@ -104,7 +105,7 @@ func validateAndParseBeforeAndAfter(items *data.Items, after, before *string) (a
 	return
 }
 
-func pick(items *data.Items, pagination *PaginationParams) (afterIndex, beforeIndex int, err error) {
+func pick(items *model.Items, pagination *PaginationParams) (afterIndex, beforeIndex int, err error) {
 	defer err2.Return(&err)
 
 	err2.Check(validateFirstAndLast(pagination.first, pagination.last))

@@ -55,6 +55,14 @@ func (r *queryResolver) Event(ctx context.Context, id string) (*model.Event, err
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *queryResolver) Jobs(ctx context.Context, after *string, before *string, first *int, last *int, completed *bool) (*model.JobConnection, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) Job(ctx context.Context, id string) (*model.Job, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) User(ctx context.Context) (*model.User, error) {
 	panic(fmt.Errorf("not implemented"))
 }

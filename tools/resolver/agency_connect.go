@@ -14,12 +14,18 @@ func (r *mutationResolver) Connect(_ context.Context, input model.ConnectInput) 
 	defer err2.Return(&err)
 	glog.V(logLevelMedium).Info("mutationResolver:Connect")
 
-	_, err = agency.Instance.Connect(input.Invitation)
+	id, err := agency.Instance.Connect(input.Invitation)
 	err2.Check(err)
 
 	res = &model.Response{Ok: true}
 
-	addEvent("Sent connection request", model.ProtocolTypeConnection, "")
+	addJob(
+		id,
+		model.ProtocolTypeConnection,
+		false,
+		&model.JobDetails{},
+		"Sent connection request",
+		"")
 
 	return
 }
