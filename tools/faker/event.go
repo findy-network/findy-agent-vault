@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"sort"
 
+	data "github.com/findy-network/findy-agent-vault/tools/data/model"
+
 	"github.com/bxcodec/faker/v3"
-	"github.com/findy-network/findy-agent-vault/tools/data"
 	"github.com/lainio/err2"
 )
 
@@ -31,7 +32,7 @@ func fakeAndPrintEvents(
 
 	// Add connections to state so that events get a valid connection id
 	for index := range connections {
-		data.State.Connections.Append(&connections[index])
+		state.Connections.Append(&connections[index])
 	}
 	events, err := FakeEvents(count)
 

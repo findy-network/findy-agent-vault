@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/findy-network/findy-agent-vault/tools/data"
+
 	"github.com/lainio/err2"
 
 	"github.com/rs/cors"
-
-	"github.com/findy-network/findy-agent-vault/tools/data"
 
 	"github.com/golang/glog"
 
@@ -21,6 +21,8 @@ import (
 )
 
 const defaultPort = "8085"
+
+var state *data.Data
 
 func initLogging() {
 	defer err2.Catch(func(err error) {
@@ -34,7 +36,7 @@ func initLogging() {
 
 func TokenHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		token, err := server.CreateToken(data.State.User.ID)
+		token, err := server.CreateToken(state.User.ID)
 		if err == nil {
 			w.Header().Add("Content-Type", "text/plain")
 			_, _ = w.Write([]byte(token))
@@ -46,7 +48,8 @@ func TokenHandler() http.HandlerFunc {
 
 func main() {
 	initLogging()
-	resolver.InitResolver()
+	state = data.InitState(false)
+	resolver.InitResolver(state)
 
 	port := os.Getenv("PORT")
 	if port == "" {

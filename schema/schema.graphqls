@@ -33,26 +33,12 @@ type PairwiseConnection {
   totalCount: Int!
 }
 
-enum ProtocolType {
-  NONE
-  CONNECTION
-  CREDENTIAL
-  PROOF
-  BASIC_MESSAGE
-}
-
-enum EventType {
-  NOTIFICATION
-  ACTION
-}
-
 type Event {
   id: ID!
   read: Boolean!
   description: String!
-  protocol: ProtocolType!
-  type: EventType!
   createdMs: String!
+  job: Job
   connection: Pairwise
 }
 
@@ -64,6 +50,61 @@ type EventEdge {
 type EventConnection {
   edges: [EventEdge]
   nodes: [Event]
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+enum ProtocolType {
+  NONE
+  CONNECTION
+  CREDENTIAL
+  PROOF
+  BASIC_MESSAGE
+}
+
+enum JobStatus {
+  WAITING
+  PENDING
+  COMPLETE
+}
+
+enum JobResult {
+  NONE
+  SUCCESS
+  FAILURE
+}
+
+type CredentialValue {
+  name: String!
+  value: String!
+}
+
+type JobDetails {
+  pairwiseId: String
+  credDefId: String
+  credentialValues: [CredentialValue]
+  verified: Boolean
+}
+
+type Job {
+  id: ID!
+  protocol: ProtocolType!
+  initiatedByUs: Boolean!
+  status: JobStatus!
+  result: JobResult!
+  createdMs: String!
+  updatedMs: String!
+  details: JobDetails!
+}
+
+type JobEdge {
+  cursor: String!
+  node: Job!
+}
+
+type JobConnection {
+  edges: [JobEdge]
+  nodes: [Job]
   pageInfo: PageInfo!
   totalCount: Int!
 }
@@ -115,6 +156,9 @@ type Query {
 
   events(after: String, before: String, first: Int, last: Int): EventConnection!
   event(id: ID!): Event
+
+  jobs(after: String, before: String, first: Int, last: Int, completed: Boolean): JobConnection!
+  job(id: ID!): Job
 
   user: User!
 }

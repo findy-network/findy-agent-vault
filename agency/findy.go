@@ -89,11 +89,12 @@ func (f *Findy) Init(l Listener) {
 }
 
 // TODO: fetch constructed JSON from CA
-func (f *Findy) Invite() (invitation string, err error) {
+func (f *Findy) Invite() (invitation, id string, err error) {
 	defer err2.Return(&err)
 
+	id = utils.UUID()
 	inv := didexchange.Invitation{
-		ID:              utils.UUID(),
+		ID:              id,
 		Type:            pltype.AriesConnectionInvitation,
 		ServiceEndpoint: f.endpoint,
 		RecipientKeys:   []string{f.agent.Tr.PayloadPipe().Out.VerKey()},
@@ -111,12 +112,12 @@ func (f *Findy) Connect(invitation string) (id string, err error) {
 	inv := didexchange.Invitation{}
 	err2.Check(json.Unmarshal([]byte(invitation), &inv))
 
-	im, err := f.agent.Trans().Call(pltype.CAPairwiseCreate, &mesg.Msg{
+	_, err = f.agent.Trans().Call(pltype.CAPairwiseCreate, &mesg.Msg{
 		Info:       walletName,
 		Invitation: &inv,
 	})
 	err2.Check(err)
 
-	id = im.ID
+	id = inv.ID
 	return
 }

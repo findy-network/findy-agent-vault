@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/findy-network/findy-agent-vault/tools/data"
+
 	"github.com/findy-network/findy-agent-vault/agency"
 	"github.com/findy-network/findy-agent-vault/tools/faker"
-
-	"github.com/findy-network/findy-agent-vault/tools/data"
 
 	"github.com/findy-network/findy-agent-vault/graph/generated"
 	"github.com/findy-network/findy-agent-vault/graph/model"
@@ -15,14 +15,20 @@ import (
 
 const (
 	logLevelMedium = 2
+	logLevelLow    = 3
 )
 
 type agencyListener struct{}
 
-func InitResolver() {
+var state *data.Data
+
+func InitResolver(s *data.Data) {
 	agency.Instance.Init(&agencyListener{})
-	data.InitState()
-	faker.InitFaker()
+	if s == nil {
+		s = data.InitState(false)
+	}
+	state = s
+	faker.InitFaker(state)
 	initEvents()
 }
 

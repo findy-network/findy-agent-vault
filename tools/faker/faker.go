@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/bxcodec/faker/v3"
 	"github.com/findy-network/findy-agent-vault/tools/data"
 
+	"github.com/bxcodec/faker/v3"
 	"github.com/lainio/err2"
 )
 
@@ -15,10 +15,15 @@ const (
 	eventsCountFactor = 10
 )
 
-func InitFaker() {
-	data.InitStateAndSort(true)
+var state *data.Data
+
+func InitFaker(s *data.Data) {
+	if s == nil {
+		s = data.InitState(true)
+	}
+	state = s
 	_ = faker.AddProvider("eventPairwiseId", func(v reflect.Value) (interface{}, error) {
-		return data.State.Connections.RandomID(), nil
+		return state.Connections.RandomID(), nil
 	})
 }
 
@@ -58,7 +63,7 @@ func Run() {
 		fmt.Println("ERROR:", err)
 	})
 
-	InitFaker()
+	InitFaker(nil)
 
 	connCount := 5
 

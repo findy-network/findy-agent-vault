@@ -5,8 +5,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/findy-network/findy-agent-vault/tools/data"
-
 	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
@@ -29,12 +27,12 @@ func TestPaginationErrorsGetConnections(t *testing.T) {
 
 func TestGetConnections(t *testing.T) {
 	t.Run("get connections", func(t *testing.T) {
-		state := data.State.Connections
+		s := state.Connections
 		var (
 			valid  = 1
-			first  = state.PairwiseConnection(0, 1)
-			second = state.PairwiseConnection(1, 2)
-			last   = state.PairwiseConnection(state.Count()-1, state.Count())
+			first  = s.PairwiseConnection(0, 1)
+			second = s.PairwiseConnection(1, 2)
+			last   = s.PairwiseConnection(s.Count()-1, s.Count())
 		)
 		tests := []struct {
 			name   string

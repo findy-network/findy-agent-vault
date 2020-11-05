@@ -89,6 +89,7 @@ issues:
       linters:
         - dupl
         - lll
+        - govet
     - path: _test.go
       linters:
         - dupl

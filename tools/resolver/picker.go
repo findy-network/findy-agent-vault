@@ -7,10 +7,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/findy-network/findy-agent-vault/tools/data/model"
+
 	"github.com/golang/glog"
 
 	"github.com/findy-network/findy-agent-vault/resolver"
-	"github.com/findy-network/findy-agent-vault/tools/data"
 	"github.com/lainio/err2"
 )
 
@@ -73,10 +74,12 @@ func validateFirstAndLast(first, last *int) error {
 	return nil
 }
 
-func validateAndParseBeforeAndAfter(items *data.Items, after, before *string) (afterIndex, beforeIndex int, err error) {
+func validateAndParseBeforeAndAfter(items *model.Items, after, before *string) (afterIndex, beforeIndex int, err error) {
 	defer err2.Return(&err)
 
-	beforeIndex = items.Count() - 1
+	count := items.Count()
+
+	beforeIndex = count - 1
 	if after != nil || before != nil {
 		var afterVal, beforeVal int64
 		if after != nil {
@@ -87,10 +90,13 @@ func validateAndParseBeforeAndAfter(items *data.Items, after, before *string) (a
 			beforeVal, err = parseCursor(*before)
 			err2.Check(err)
 		}
-		for index := 0; index < items.Count(); index++ {
+		for index := 0; index < count; index++ {
 			created := items.CreatedForIndex(index)
 			if afterVal > 0 && created <= afterVal {
-				afterIndex = index + 1
+				nextIndex := index + 1
+				if nextIndex < count {
+					afterIndex = index + 1
+				}
 			}
 			if beforeVal > 0 && created < beforeVal {
 				beforeIndex = index
@@ -101,10 +107,10 @@ func validateAndParseBeforeAndAfter(items *data.Items, after, before *string) (a
 			}
 		}
 	}
-	return
+	return afterIndex, beforeIndex, nil
 }
 
-func pick(items *data.Items, pagination *PaginationParams) (afterIndex, beforeIndex int, err error) {
+func pick(items *model.Items, pagination *PaginationParams) (afterIndex, beforeIndex int, err error) {
 	defer err2.Return(&err)
 
 	err2.Check(validateFirstAndLast(pagination.first, pagination.last))
