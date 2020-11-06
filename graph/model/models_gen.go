@@ -12,11 +12,6 @@ type ConnectInput struct {
 	Invitation string `json:"invitation"`
 }
 
-type CredentialValue struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
 type Event struct {
 	ID          string    `json:"id"`
 	Read        bool      `json:"read"`
@@ -44,14 +39,14 @@ type InvitationResponse struct {
 }
 
 type Job struct {
-	ID            string       `json:"id"`
-	Protocol      ProtocolType `json:"protocol"`
-	InitiatedByUs bool         `json:"initiatedByUs"`
-	Status        JobStatus    `json:"status"`
-	Result        JobResult    `json:"result"`
-	CreatedMs     string       `json:"createdMs"`
-	UpdatedMs     string       `json:"updatedMs"`
-	Details       *JobDetails  `json:"details"`
+	ID         string       `json:"id"`
+	Protocol   ProtocolType `json:"protocol"`
+	ProtocolID *string      `json:"protocolId"`
+	Connection *Pairwise    `json:"connection"`
+	Status     JobStatus    `json:"status"`
+	Result     JobResult    `json:"result"`
+	CreatedMs  string       `json:"createdMs"`
+	UpdatedMs  string       `json:"updatedMs"`
 }
 
 type JobConnection struct {
@@ -59,13 +54,6 @@ type JobConnection struct {
 	Nodes      []*Job     `json:"nodes"`
 	PageInfo   *PageInfo  `json:"pageInfo"`
 	TotalCount int        `json:"totalCount"`
-}
-
-type JobDetails struct {
-	PairwiseID       *string            `json:"pairwiseId"`
-	CredDefID        *string            `json:"credDefId"`
-	CredentialValues []*CredentialValue `json:"credentialValues"`
-	Verified         *bool              `json:"verified"`
 }
 
 type JobEdge struct {

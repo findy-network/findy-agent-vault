@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/findy-network/findy-agent-vault/tools/data"
+
 	"github.com/findy-network/findy-agent-vault/server"
 
 	"github.com/findy-network/findy-agent-vault/tools/faker"
@@ -17,7 +19,8 @@ var fakeCmd = &cobra.Command{
 	Use:   "fake",
 	Short: "Generate fake data",
 	Run: func(cmd *cobra.Command, args []string) {
-		faker.Run()
+		s := data.InitState()
+		faker.Run(s.Connections, s.Events)
 	},
 }
 

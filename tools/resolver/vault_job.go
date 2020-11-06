@@ -41,44 +41,40 @@ func (r *queryResolver) Jobs(
 
 	glog.V(logLevelLow).Infof("Jobs: returning jobs between %d and %d", afterIndex, beforeIndex)
 
-	return items.JobConnection(afterIndex, beforeIndex), nil
+	return items.JobConnection(afterIndex, beforeIndex, state.Connections), nil
 }
 
 func (r *queryResolver) Job(ctx context.Context, id string) (node *model.Job, err error) {
 	glog.V(logLevelMedium).Info("queryResolver:Job, id: ", id)
 
 	items := state.Jobs
-	node = items.JobForID(id)
+	node = items.JobForID(id, state.Connections)
 	if node == nil {
 		err = fmt.Errorf("job for id %s was not found", id)
 	}
 	return
 }
 
-func addJob(id string, protocol model.ProtocolType, initiatedByUs bool, details *model.JobDetails, description string) {
+func addJob(id string, protocol model.ProtocolType, protocolID, pairwiseID *string, description string) {
 	timeNow := time.Now().Unix()
 	items := state.Jobs
 	items.Append(&data.InternalJob{
-		ID:            id,
-		ProtocolType:  protocol,
-		Status:        model.JobStatusWaiting,
-		Result:        model.JobResultNone,
-		Details:       details,
-		InitiatedByUs: initiatedByUs,
-		CreatedMs:     timeNow,
-		UpdatedMs:     timeNow,
+		ID:           id,
+		ProtocolType: protocol,
+		ProtocolID:   protocolID,
+		PairwiseID:   pairwiseID,
+		Status:       model.JobStatusWaiting,
+		Result:       model.JobResultNone,
+		CreatedMs:    timeNow,
+		UpdatedMs:    timeNow,
 	})
 	glog.Infof("Added job %s", id)
-	var pairwiseID string
-	if details != nil && details.PairwiseID != nil {
-		pairwiseID = *details.PairwiseID
-	}
-	addEvent(description, pairwiseID, id)
+	addEvent(description, pairwiseID, &id)
 }
 
-func updateJob(id string, details *model.JobDetails, status model.JobStatus, result model.JobResult, description string) {
+func updateJob(id string, protocolID, pairwiseID *string, status model.JobStatus, result model.JobResult, description string) {
 	items := state.Jobs
-	items.UpdateJob(id, details, status, result)
+	items.UpdateJob(id, protocolID, pairwiseID, status, result)
 	glog.Infof("Updated job %s", id)
-	addEvent(description, *details.PairwiseID, id)
+	addEvent(description, pairwiseID, &id)
 }

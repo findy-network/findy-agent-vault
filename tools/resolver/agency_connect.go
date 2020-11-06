@@ -25,8 +25,8 @@ func (r *mutationResolver) Connect(_ context.Context, input model.ConnectInput) 
 	addJob(
 		id,
 		model.ProtocolTypeConnection,
-		false,
-		&model.JobDetails{},
+		nil,
+		nil,
 		"Sent connection request")
 
 	return

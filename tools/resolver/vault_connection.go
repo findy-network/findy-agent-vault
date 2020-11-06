@@ -72,7 +72,8 @@ func doAddConnection(connection *data.InternalPairwise) {
 	glog.Infof("Added connection %s", connection.ID)
 	updateJob(
 		connection.ID,
-		&model.JobDetails{PairwiseID: &connection.ID},
+		&connection.ID,
+		&connection.ID,
 		model.JobStatusComplete,
 		model.JobResultSuccess,
 		"Established connection to "+connection.TheirLabel)
