@@ -10,9 +10,10 @@ import (
 type InternalJob struct {
 	ID            string
 	ProtocolType  model.ProtocolType
+	ProtocolID    *string
+	PairwiseID    *string
 	Status        model.JobStatus
 	Result        model.JobResult
-	Details       *model.JobDetails
 	InitiatedByUs bool
 	CreatedMs     int64
 	UpdatedMs     int64
@@ -40,71 +41,61 @@ func (j *InternalJob) Job() *InternalJob {
 
 func (j *InternalJob) Copy() *InternalJob {
 	newJob := &InternalJob{
-		ID:            j.ID,
-		ProtocolType:  j.ProtocolType,
-		Status:        j.Status,
-		Result:        j.Result,
-		Details:       j.copyDetails(),
-		InitiatedByUs: j.InitiatedByUs,
-		CreatedMs:     j.CreatedMs,
-		UpdatedMs:     j.UpdatedMs,
+		ID:           j.ID,
+		ProtocolType: j.ProtocolType,
+		ProtocolID:   j.ProtocolID,
+		PairwiseID:   j.PairwiseID,
+		Status:       j.Status,
+		Result:       j.Result,
+		CreatedMs:    j.CreatedMs,
+		UpdatedMs:    j.UpdatedMs,
 	}
 	return newJob
 }
 
-func (j *InternalJob) copyDetails() *model.JobDetails {
-	newDetails := &model.JobDetails{
-		PairwiseID:       j.Details.PairwiseID,
-		CredDefID:        j.Details.CredDefID,
-		CredentialValues: make([]*model.CredentialValue, 0),
-		Verified:         j.Details.Verified,
-	}
-	for _, v := range j.Details.CredentialValues {
-		newDetails.CredentialValues = append(newDetails.CredentialValues, &model.CredentialValue{
-			Name:  v.Name,
-			Value: v.Value,
-		})
-	}
-	return newDetails
-}
-
-func (j *InternalJob) ToEdge() *model.JobEdge {
+func (j *InternalJob) ToEdge(connections *Items) *model.JobEdge {
 	cursor := CreateCursor(j.CreatedMs, model.Job{})
 	return &model.JobEdge{
 		Cursor: cursor,
-		Node:   j.ToNode(),
+		Node:   j.ToNode(connections),
 	}
 }
 
-func (j *InternalJob) ToNode() *model.Job {
+func (j *InternalJob) ToNode(connections *Items) *model.Job {
 	createdStr := strconv.FormatInt(j.CreatedMs, 10)
 	updatedStr := strconv.FormatInt(j.UpdatedMs, 10)
+
+	var pw *model.Pairwise
+	if j.PairwiseID != nil {
+		pw = connections.PairwiseForID(*j.PairwiseID)
+	}
+
 	return &model.Job{
-		ID:            j.ID,
-		Protocol:      j.ProtocolType,
-		Status:        j.Status,
-		Result:        j.Result,
-		Details:       j.copyDetails(),
-		InitiatedByUs: j.InitiatedByUs,
-		CreatedMs:     createdStr,
-		UpdatedMs:     updatedStr,
+		ID:         j.ID,
+		Protocol:   j.ProtocolType,
+		ProtocolID: j.ProtocolID,
+		Connection: pw,
+		Status:     j.Status,
+		Result:     j.Result,
+		CreatedMs:  createdStr,
+		UpdatedMs:  updatedStr,
 	}
 }
 
-func (i *Items) JobForID(id string) (node *model.Job) {
+func (i *Items) JobForID(id string, connections *Items) (node *model.Job) {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 
 	for _, item := range i.items {
 		if item.Identifier() == id {
-			node = item.Job().ToNode()
+			node = item.Job().ToNode(connections)
 			break
 		}
 	}
 	return
 }
 
-func (i *Items) JobConnection(after, before int) *model.JobConnection {
+func (i *Items) JobConnection(after, before int, connections *Items) *model.JobConnection {
 	i.mutex.RLock()
 	result := i.items[after:before]
 	totalCount := len(result)
@@ -112,7 +103,7 @@ func (i *Items) JobConnection(after, before int) *model.JobConnection {
 	edges := make([]*model.JobEdge, totalCount)
 	nodes := make([]*model.Job, totalCount)
 	for index, job := range result {
-		node := job.Job().ToNode()
+		node := job.Job().ToNode(connections)
 		edges[index] = &model.JobEdge{
 			Cursor: CreateCursor(job.Job().CreatedMs, model.Job{}),
 			Node:   node,
@@ -144,7 +135,7 @@ func (i *Items) JobConnection(after, before int) *model.JobConnection {
 	return c
 }
 
-func (i *Items) UpdateJob(id string, details *model.JobDetails, status model.JobStatus, result model.JobResult) bool {
+func (i *Items) UpdateJob(id string, protocolID, pairwiseID *string, status model.JobStatus, result model.JobResult) bool {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
 
@@ -156,7 +147,8 @@ func (i *Items) UpdateJob(id string, details *model.JobDetails, status model.Job
 		job.UpdatedMs = time.Now().Unix()
 		job.Status = status
 		job.Result = result
-		job.Details = details
+		job.ProtocolID = protocolID
+		job.PairwiseID = pairwiseID
 		return true
 	}
 

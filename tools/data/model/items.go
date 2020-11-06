@@ -30,13 +30,13 @@ func (i *Items) Count() (count int) {
 	return
 }
 
-func (i *Items) RandomID() (id string) {
+func (i *Items) RandomID() *string {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 	max := len(i.items) - 1
 	index := utils.Random(max)
-	id = i.items[index].Identifier()
-	return
+	id := i.items[index].Identifier()
+	return &id
 }
 
 func (i *Items) FirstID() (id string) {

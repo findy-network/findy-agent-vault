@@ -7,12 +7,12 @@ import (
 )
 
 type InternalEvent struct {
-	ID          string `faker:"uuid_hyphenated"`
-	Read        bool   `faker:"-"`
-	Description string `faker:"sentence"`
-	JobID       string `faker:"-"`
-	PairwiseID  string `faker:"eventPairwiseId"`
-	CreatedMs   int64  `faker:"unix_time"`
+	ID          string  `faker:"uuid_hyphenated"`
+	Read        bool    `faker:"-"`
+	Description string  `faker:"sentence"`
+	JobID       *string `faker:"-"`
+	PairwiseID  *string `faker:"eventPairwiseId"`
+	CreatedMs   int64   `faker:"unix_time"`
 }
 
 func (e *InternalEvent) Created() int64 {
@@ -45,13 +45,21 @@ func (e *InternalEvent) ToEdge(connections, jobs *Items) *model.EventEdge {
 
 func (e *InternalEvent) ToNode(connections, jobs *Items) *model.Event {
 	createdStr := strconv.FormatInt(e.CreatedMs, 10)
+	var pw *model.Pairwise
+	var job *model.Job
+	if e.PairwiseID != nil {
+		pw = connections.PairwiseForID(*e.PairwiseID)
+	}
+	if e.JobID != nil {
+		job = jobs.JobForID(*e.JobID, connections)
+	}
 	return &model.Event{
 		ID:          e.ID,
 		Read:        e.Read,
 		Description: e.Description,
 		CreatedMs:   createdStr,
-		Connection:  connections.PairwiseForID(e.PairwiseID),
-		Job:         jobs.JobForID(e.JobID),
+		Connection:  pw,
+		Job:         job,
 	}
 }
 

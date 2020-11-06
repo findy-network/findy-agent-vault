@@ -41,7 +41,7 @@ func (f *Findy) findyCallback(pl *mesg.Payload) (while bool, err error) {
 			err = mapstructure.Decode(status.Payload, &c)
 			err2.Check(err)
 
-			f.listener.AddConnection(c.Name, c.MyDID, c.TheirDID, c.TheirEndpoint, c.TheirLabel, false)
+			f.listener.AddConnection(c.Name, c.MyDID, c.TheirDID, c.TheirEndpoint, c.TheirLabel)
 		}
 	default:
 		fmt.Println(dto.ToJSON(pl))
