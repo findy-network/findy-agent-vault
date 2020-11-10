@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"time"
 
+	"github.com/findy-network/findy-agent-vault/tools/utils"
 	"github.com/google/uuid"
 
 	"github.com/golang/glog"
@@ -67,7 +67,7 @@ func (r *queryResolver) Event(ctx context.Context, id string) (node *model.Event
 }
 
 func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.EventEdge, error) {
-	id := "tenantId-" + strconv.FormatInt(time.Now().Unix(), 10)
+	id := "tenantId-" + strconv.FormatInt(utils.CurrentTimeMs(), 10)
 	glog.V(logLevelMedium).Info("subscriptionResolver:EventAdded, id: ", id)
 
 	// access user object: user := ctx.Value("user")
@@ -87,7 +87,7 @@ func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.Ev
 
 func doAddEvent(event *data.InternalEvent) {
 	items := state.Events
-	event.CreatedMs = time.Now().Unix()
+	event.CreatedMs = utils.CurrentTimeMs()
 	items.Append(event)
 	glog.Infof("Added event %s", event.ID)
 	for _, observer := range eventAddedObserver {
@@ -95,7 +95,7 @@ func doAddEvent(event *data.InternalEvent) {
 	}
 }
 
-func addEvent(description, pairwiseID, jobID string) {
+func addEvent(description string, pairwiseID, jobID *string) {
 	doAddEvent(&data.InternalEvent{
 		ID:          uuid.New().String(),
 		Read:        false,

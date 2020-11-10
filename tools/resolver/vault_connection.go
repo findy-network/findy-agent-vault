@@ -3,8 +3,8 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"time"
 
+	"github.com/findy-network/findy-agent-vault/tools/utils"
 	"github.com/golang/glog"
 
 	"github.com/lainio/err2"
@@ -67,12 +67,17 @@ func (r *queryResolver) Connection(_ context.Context, id string) (node *model.Pa
 
 func doAddConnection(connection *data.InternalPairwise) {
 	items := state.Connections
-	connection.CreatedMs = time.Now().Unix()
+	connection.CreatedMs = utils.CurrentTimeMs()
+	initiatedByUs := state.Jobs.IsJobInitiatedByUs(connection.ID)
+	if initiatedByUs != nil {
+		connection.InitiatedByUs = *initiatedByUs
+	}
 	items.Append(connection)
 	glog.Infof("Added connection %s", connection.ID)
 	updateJob(
 		connection.ID,
-		&model.JobDetails{PairwiseID: &connection.ID},
+		&connection.ID,
+		&connection.ID,
 		model.JobStatusComplete,
 		model.JobResultSuccess,
 		"Established connection to "+connection.TheirLabel)

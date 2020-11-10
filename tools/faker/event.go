@@ -25,21 +25,21 @@ func FakeEvents(count int) (events []data.InternalEvent, err error) {
 
 func fakeAndPrintEvents(
 	count int,
-	connections []data.InternalPairwise,
-) {
-	var err error
+	skipPrint bool,
+) (events []data.InternalEvent, err error) {
 	defer err2.Annotate("fakeAndPrintEvents", &err)
 
-	// Add connections to state so that events get a valid connection id
-	for index := range connections {
-		state.Connections.Append(&connections[index])
-	}
-	events, err := FakeEvents(count)
+	events, err = FakeEvents(count)
+	err2.Check(err)
 
-	fmt.Println("\nvar events = []InternalEvent{")
-	for i := 0; i < len(events); i++ {
-		fmt.Printf("	")
-		printObject(&events[i], events[i], true)
+	if !skipPrint {
+		fmt.Println("\nvar events = []InternalEvent{")
+		for i := 0; i < len(events); i++ {
+			fmt.Printf("	")
+			printObject(&events[i], events[i], true)
+		}
+		fmt.Println("}")
 	}
-	fmt.Println("}")
+
+	return
 }

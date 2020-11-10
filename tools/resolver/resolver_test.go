@@ -2,9 +2,10 @@ package resolver
 
 import (
 	"context"
-	"flag"
 	"os"
 	"testing"
+
+	"github.com/findy-network/findy-agent-vault/tools/utils"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
 )
@@ -17,10 +18,9 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	flag.Parse()
+	utils.SetLogDefaults()
 
-	InitResolver(nil)
-	r := Resolver{}
+	r := InitResolver()
 
 	// Generate some jobs data
 	_, err := r.Mutation().Invite(context.TODO())
