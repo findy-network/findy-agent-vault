@@ -7,7 +7,7 @@ import (
 
 type agencyListener struct{}
 
-func (l *agencyListener) AddConnection(id, ourDID, theirDID, theirEndpoint, theirLabel string, initiatedByUs bool) {
+func (l *agencyListener) AddConnection(id, ourDID, theirDID, theirEndpoint, theirLabel string) {
 
 }
 
