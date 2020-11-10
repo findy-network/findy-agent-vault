@@ -72,14 +72,15 @@ type ComplexityRoot struct {
 	}
 
 	Job struct {
-		Connection func(childComplexity int) int
-		CreatedMs  func(childComplexity int) int
-		ID         func(childComplexity int) int
-		Protocol   func(childComplexity int) int
-		ProtocolID func(childComplexity int) int
-		Result     func(childComplexity int) int
-		Status     func(childComplexity int) int
-		UpdatedMs  func(childComplexity int) int
+		Connection    func(childComplexity int) int
+		CreatedMs     func(childComplexity int) int
+		ID            func(childComplexity int) int
+		InitiatedByUs func(childComplexity int) int
+		Protocol      func(childComplexity int) int
+		ProtocolID    func(childComplexity int) int
+		Result        func(childComplexity int) int
+		Status        func(childComplexity int) int
+		UpdatedMs     func(childComplexity int) int
 	}
 
 	JobConnection struct {
@@ -317,6 +318,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Job.ID(childComplexity), true
+
+	case "Job.initiatedByUs":
+		if e.complexity.Job.InitiatedByUs == nil {
+			break
+		}
+
+		return e.complexity.Job.InitiatedByUs(childComplexity), true
 
 	case "Job.protocol":
 		if e.complexity.Job.Protocol == nil {
@@ -865,6 +873,7 @@ type Job {
   id: ID!
   protocol: ProtocolType!
   protocolId: String
+  initiatedByUs: Boolean!
   connection: Pairwise
   status: JobStatus!
   result: JobResult!
@@ -1833,6 +1842,41 @@ func (ec *executionContext) _Job_protocolId(ctx context.Context, field graphql.C
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Job_initiatedByUs(ctx context.Context, field graphql.CollectedField, obj *model.Job) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Job",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InitiatedByUs, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Job_connection(ctx context.Context, field graphql.CollectedField, obj *model.Job) (ret graphql.Marshaler) {
@@ -4993,6 +5037,11 @@ func (ec *executionContext) _Job(ctx context.Context, sel ast.SelectionSet, obj 
 			}
 		case "protocolId":
 			out.Values[i] = ec._Job_protocolId(ctx, field, obj)
+		case "initiatedByUs":
+			out.Values[i] = ec._Job_initiatedByUs(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "connection":
 			out.Values[i] = ec._Job_connection(ctx, field, obj)
 		case "status":

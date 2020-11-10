@@ -39,14 +39,15 @@ type InvitationResponse struct {
 }
 
 type Job struct {
-	ID         string       `json:"id"`
-	Protocol   ProtocolType `json:"protocol"`
-	ProtocolID *string      `json:"protocolId"`
-	Connection *Pairwise    `json:"connection"`
-	Status     JobStatus    `json:"status"`
-	Result     JobResult    `json:"result"`
-	CreatedMs  string       `json:"createdMs"`
-	UpdatedMs  string       `json:"updatedMs"`
+	ID            string       `json:"id"`
+	Protocol      ProtocolType `json:"protocol"`
+	ProtocolID    *string      `json:"protocolId"`
+	InitiatedByUs bool         `json:"initiatedByUs"`
+	Connection    *Pairwise    `json:"connection"`
+	Status        JobStatus    `json:"status"`
+	Result        JobResult    `json:"result"`
+	CreatedMs     string       `json:"createdMs"`
+	UpdatedMs     string       `json:"updatedMs"`
 }
 
 type JobConnection struct {
