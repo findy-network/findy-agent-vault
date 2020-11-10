@@ -3,9 +3,9 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"time"
 
 	data "github.com/findy-network/findy-agent-vault/tools/data/model"
+	"github.com/findy-network/findy-agent-vault/tools/utils"
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
 
@@ -55,18 +55,25 @@ func (r *queryResolver) Job(ctx context.Context, id string) (node *model.Job, er
 	return
 }
 
-func addJob(id string, protocol model.ProtocolType, protocolID, pairwiseID *string, description string) {
-	timeNow := time.Now().Unix()
+func addJob(
+	id string,
+	protocol model.ProtocolType,
+	protocolID *string,
+	initiatedByUs bool,
+	pairwiseID *string,
+	description string) {
+	timeNow := utils.CurrentTimeMs()
 	items := state.Jobs
 	items.Append(&data.InternalJob{
-		ID:           id,
-		ProtocolType: protocol,
-		ProtocolID:   protocolID,
-		PairwiseID:   pairwiseID,
-		Status:       model.JobStatusWaiting,
-		Result:       model.JobResultNone,
-		CreatedMs:    timeNow,
-		UpdatedMs:    timeNow,
+		ID:            id,
+		ProtocolType:  protocol,
+		ProtocolID:    protocolID,
+		InitiatedByUs: initiatedByUs,
+		PairwiseID:    pairwiseID,
+		Status:        model.JobStatusWaiting,
+		Result:        model.JobResultNone,
+		CreatedMs:     timeNow,
+		UpdatedMs:     timeNow,
 	})
 	glog.Infof("Added job %s", id)
 	addEvent(description, pairwiseID, &id)

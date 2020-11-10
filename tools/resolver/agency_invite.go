@@ -31,6 +31,7 @@ func (r *mutationResolver) Invite(ctx context.Context) (resp *model.InvitationRe
 		id,
 		model.ProtocolTypeConnection,
 		nil,
+		true,
 		nil,
 		"Created connection invitation")
 

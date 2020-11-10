@@ -1,7 +1,7 @@
 package agency
 
 type Listener interface {
-	AddConnection(id, ourDID, theirDID, theirEndpoint, theirLabel string, initiatedByUs bool)
+	AddConnection(id, ourDID, theirDID, theirEndpoint, theirLabel string)
 }
 
 type Agency interface {

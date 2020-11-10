@@ -78,6 +78,7 @@ type Job {
   id: ID!
   protocol: ProtocolType!
   protocolId: String
+  initiatedByUs: Boolean!
   connection: Pairwise
   status: JobStatus!
   result: JobResult!

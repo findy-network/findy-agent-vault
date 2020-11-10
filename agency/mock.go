@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 
 	"github.com/bxcodec/faker"
+	"github.com/google/uuid"
 	"github.com/lainio/err2"
 )
 
@@ -40,5 +41,5 @@ func (m *Mock) Invite() (result, id string, err error) {
 }
 
 func (m *Mock) Connect(_ string) (string, error) {
-	return "", nil
+	return uuid.New().String(), nil
 }

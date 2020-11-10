@@ -2,9 +2,9 @@ package model
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
+	"github.com/findy-network/findy-agent-vault/tools/utils"
 )
 
 type InternalJob struct {
@@ -41,14 +41,15 @@ func (j *InternalJob) Job() *InternalJob {
 
 func (j *InternalJob) Copy() *InternalJob {
 	newJob := &InternalJob{
-		ID:           j.ID,
-		ProtocolType: j.ProtocolType,
-		ProtocolID:   j.ProtocolID,
-		PairwiseID:   j.PairwiseID,
-		Status:       j.Status,
-		Result:       j.Result,
-		CreatedMs:    j.CreatedMs,
-		UpdatedMs:    j.UpdatedMs,
+		ID:            j.ID,
+		ProtocolType:  j.ProtocolType,
+		ProtocolID:    j.ProtocolID,
+		PairwiseID:    j.PairwiseID,
+		Status:        j.Status,
+		Result:        j.Result,
+		InitiatedByUs: j.InitiatedByUs,
+		CreatedMs:     j.CreatedMs,
+		UpdatedMs:     j.UpdatedMs,
 	}
 	return newJob
 }
@@ -80,6 +81,21 @@ func (j *InternalJob) ToNode(connections *Items) *model.Job {
 		CreatedMs:  createdStr,
 		UpdatedMs:  updatedStr,
 	}
+}
+
+func (i *Items) IsJobInitiatedByUs(id string) (is *bool) {
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
+
+	for _, item := range i.items {
+		if item.Identifier() == id {
+			jobInitiated := item.Job().InitiatedByUs
+			is = &jobInitiated
+			break
+		}
+	}
+
+	return
 }
 
 func (i *Items) JobForID(id string, connections *Items) (node *model.Job) {
@@ -144,7 +160,7 @@ func (i *Items) UpdateJob(id string, protocolID, pairwiseID *string, status mode
 			continue
 		}
 		job := item.Job()
-		job.UpdatedMs = time.Now().Unix()
+		job.UpdatedMs = utils.CurrentTimeMs()
 		job.Status = status
 		job.Result = result
 		job.ProtocolID = protocolID
