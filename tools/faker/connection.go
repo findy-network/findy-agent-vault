@@ -16,7 +16,7 @@ type fakeLastName struct {
 	Name string `faker:"last_name"`
 }
 
-func fakeConnections(count int) (conns []data.InternalPairwise, err error) {
+func fakeConnections(count int, skipPrint bool) (conns []data.InternalPairwise, err error) {
 	defer err2.Return(&err)
 	conns = make([]data.InternalPairwise, count)
 	err = faker.AddProvider("organisationLabel", func(v reflect.Value) (interface{}, error) {
@@ -35,11 +35,13 @@ func fakeConnections(count int) (conns []data.InternalPairwise, err error) {
 	sort.Slice(conns, func(i, j int) bool {
 		return conns[i].CreatedMs < conns[j].CreatedMs
 	})
-	fmt.Println("var connections = []InternalPairwise{")
-	for i := 0; i < len(conns); i++ {
-		fmt.Printf("	")
-		printObject(&(conns)[i], (conns)[i], true)
+	if !skipPrint {
+		fmt.Println("var connections = []InternalPairwise{")
+		for i := 0; i < len(conns); i++ {
+			fmt.Printf("	")
+			printObject(&(conns)[i], (conns)[i], true)
+		}
+		fmt.Println("}")
 	}
-	fmt.Println("}")
 	return
 }

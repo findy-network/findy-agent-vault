@@ -1,13 +1,13 @@
 package main
 
 import (
-	"flag"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/findy-network/findy-agent-vault/tools/data"
+	"github.com/findy-network/findy-agent-vault/tools/utils"
 
 	"github.com/lainio/err2"
 
@@ -22,40 +22,34 @@ import (
 
 const defaultPort = "8085"
 
-var state *data.Data
-
-func initLogging() {
-	defer err2.Catch(func(err error) {
-		fmt.Println("ERROR:", err)
-	})
-	err2.Check(flag.Set("logtostderr", "true"))
-	err2.Check(flag.Set("stderrthreshold", "WARNING"))
-	err2.Check(flag.Set("v", "3"))
-	flag.Parse()
-}
+var gqlResolver *resolver.Resolver
 
 func TokenHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		token, err := server.CreateToken(state.User.ID)
-		if err == nil {
-			w.Header().Add("Content-Type", "text/plain")
-			_, _ = w.Write([]byte(token))
-		} else {
-			panic(err)
-		}
+		defer err2.Catch(func(err error) {
+			fmt.Println("ERROR generation token:", err.Error())
+		})
+		user, err := gqlResolver.Query().User(context.TODO())
+		err2.Check(err)
+
+		token, err := server.CreateToken(user.ID)
+		err2.Check(err)
+
+		w.Header().Add("Content-Type", "text/plain")
+		_, err = w.Write([]byte(token))
+		err2.Check(err)
 	}
 }
 
 func main() {
-	initLogging()
-	state = data.InitState(false)
-	resolver.InitResolver(state)
+	utils.SetLogDefaults()
+	gqlResolver = resolver.InitResolver()
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
 	}
-	srv := server.Server(&resolver.Resolver{})
+	srv := server.Server(gqlResolver)
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)
 	http.Handle("/token", cors.AllowAll().Handler(TokenHandler()))

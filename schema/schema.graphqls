@@ -74,27 +74,16 @@ enum JobResult {
   FAILURE
 }
 
-type CredentialValue {
-  name: String!
-  value: String!
-}
-
-type JobDetails {
-  pairwiseId: String
-  credDefId: String
-  credentialValues: [CredentialValue]
-  verified: Boolean
-}
-
 type Job {
   id: ID!
   protocol: ProtocolType!
+  protocolId: String
   initiatedByUs: Boolean!
+  connection: Pairwise
   status: JobStatus!
   result: JobResult!
   createdMs: String!
   updatedMs: String!
-  details: JobDetails!
 }
 
 type JobEdge {

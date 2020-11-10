@@ -31,9 +31,9 @@ func TestGetIncompleteJobs(t *testing.T) {
 		s := state.Jobs
 		var (
 			valid  = 1
-			first  = s.JobConnection(0, 1)
-			second = s.JobConnection(1, 2)
-			last   = s.JobConnection(s.Count()-1, s.Count())
+			first  = s.JobConnection(0, 1, state.Connections)
+			second = s.JobConnection(1, 2, state.Connections)
+			last   = s.JobConnection(s.Count()-1, s.Count(), state.Connections)
 		)
 		tests := []struct {
 			name   string

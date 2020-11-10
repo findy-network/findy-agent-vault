@@ -9,12 +9,14 @@ import (
 	"github.com/lainio/err2"
 )
 
-func fakeUser() (user model.InternalUser, err error) {
+func fakeUser(skipPrint bool) (user model.InternalUser, err error) {
 	defer err2.Return(&err)
 
 	err2.Check(faker.FakeData(&user))
-	fmt.Printf("var user = InternalUser")
-	printObject(&user, user, false)
+	if !skipPrint {
+		fmt.Printf("var user = InternalUser")
+		printObject(&user, user, false)
+	}
 
 	return
 }
