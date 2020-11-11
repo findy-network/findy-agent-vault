@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/findy-network/findy-agent-vault/tools/utils"
+
 	"github.com/golang/glog"
 
 	"github.com/findy-network/findy-agent-vault/tools/data/model"
@@ -18,9 +20,21 @@ const (
 )
 
 func initFaker(c *model.Items) {
-	_ = faker.AddProvider("eventPairwiseId", func(v reflect.Value) (interface{}, error) {
-		return c.RandomID(), nil
+	defer err2.Catch(func(err error) {
+		panic(err)
 	})
+
+	err2.Check(faker.AddProvider("organisationLabel", func(v reflect.Value) (interface{}, error) {
+		orgs := []string{"Bank", "Ltd", "Agency", "Company", "United"}
+		index := utils.Random(len(orgs))
+		f := fakeLastName{}
+		_ = faker.FakeData(&f)
+		return f.Name + " " + orgs[index], nil
+	}))
+
+	err2.Check(faker.AddProvider("eventPairwiseId", func(v reflect.Value) (interface{}, error) {
+		return c.RandomID(), nil
+	}))
 }
 
 func printObject(objectPtr, object interface{}, printComma bool) {
@@ -61,7 +75,7 @@ func Run(c, e *model.Items) ([]model.InternalPairwise, []model.InternalEvent, mo
 	initFaker(c)
 
 	connCount := 5
-	conns, err := fakeConnections(connCount, true)
+	conns, err := FakeConnections(connCount, true)
 	err2.Check(err)
 
 	for index := range conns {
