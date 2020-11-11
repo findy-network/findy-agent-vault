@@ -44,12 +44,12 @@ func (r *queryResolver) Jobs(
 	return items.JobConnection(afterIndex, beforeIndex, state.Connections), nil
 }
 
-func (r *queryResolver) Job(ctx context.Context, id string) (node *model.Job, err error) {
+func (r *queryResolver) Job(ctx context.Context, id string) (edge *model.JobEdge, err error) {
 	glog.V(logLevelMedium).Info("queryResolver:Job, id: ", id)
 
 	items := state.Jobs
-	node = items.JobForID(id, state.Connections)
-	if node == nil {
+	edge = items.JobForID(id, state.Connections)
+	if edge == nil {
 		err = fmt.Errorf("job for id %s was not found", id)
 	}
 	return

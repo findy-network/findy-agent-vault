@@ -22,11 +22,11 @@ func initEvents() {
 	eventAddedObserver = map[string]chan *model.EventEdge{}
 }
 
-func (r *mutationResolver) MarkEventRead(ctx context.Context, input model.MarkReadInput) (node *model.Event, err error) {
+func (r *mutationResolver) MarkEventRead(ctx context.Context, input model.MarkReadInput) (edge *model.EventEdge, err error) {
 	glog.V(logLevelMedium).Info("queryResolver:MarkEventRead, id: ", input.ID)
 
-	node = state.MarkEventRead(input.ID)
-	if node == nil {
+	edge = state.MarkEventRead(input.ID)
+	if edge == nil {
 		err = fmt.Errorf("event for id %s was not found", input.ID)
 	}
 	return
@@ -55,12 +55,12 @@ func (r *queryResolver) Events(
 	return
 }
 
-func (r *queryResolver) Event(ctx context.Context, id string) (node *model.Event, err error) {
+func (r *queryResolver) Event(ctx context.Context, id string) (edge *model.EventEdge, err error) {
 	glog.V(logLevelMedium).Info("queryResolver:Event, id: ", id)
 
 	items := state.Events
-	node = items.EventForID(id, state.Connections, state.Jobs)
-	if node == nil {
+	edge = items.EventForID(id, state.Connections, state.Jobs)
+	if edge == nil {
 		err = fmt.Errorf("event for id %s was not found", id)
 	}
 	return

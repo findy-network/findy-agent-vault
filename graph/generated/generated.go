@@ -164,7 +164,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.Event, error)
+	MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.EventEdge, error)
 	Invite(ctx context.Context) (*model.InvitationResponse, error)
 	Connect(ctx context.Context, input model.ConnectInput) (*model.Response, error)
 	SendMessage(ctx context.Context) (*model.Response, error)
@@ -174,11 +174,11 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Connections(ctx context.Context, after *string, before *string, first *int, last *int) (*model.PairwiseConnection, error)
-	Connection(ctx context.Context, id string) (*model.Pairwise, error)
+	Connection(ctx context.Context, id string) (*model.PairwiseEdge, error)
 	Events(ctx context.Context, after *string, before *string, first *int, last *int) (*model.EventConnection, error)
-	Event(ctx context.Context, id string) (*model.Event, error)
+	Event(ctx context.Context, id string) (*model.EventEdge, error)
 	Jobs(ctx context.Context, after *string, before *string, first *int, last *int, completed *bool) (*model.JobConnection, error)
-	Job(ctx context.Context, id string) (*model.Job, error)
+	Job(ctx context.Context, id string) (*model.JobEdge, error)
 	User(ctx context.Context) (*model.User, error)
 }
 type SubscriptionResolver interface {
@@ -936,19 +936,19 @@ type Query {
     first: Int
     last: Int
   ): PairwiseConnection!
-  connection(id: ID!): Pairwise
+  connection(id: ID!): PairwiseEdge
 
   events(after: String, before: String, first: Int, last: Int): EventConnection!
-  event(id: ID!): Event
+  event(id: ID!): EventEdge
 
   jobs(after: String, before: String, first: Int, last: Int, completed: Boolean): JobConnection!
-  job(id: ID!): Job
+  job(id: ID!): JobEdge
 
   user: User!
 }
 
 type Mutation {
-  markEventRead(input: MarkReadInput!): Event
+  markEventRead(input: MarkReadInput!): EventEdge
 
   invite: InvitationResponse!
   connect(input: ConnectInput!): Response!
@@ -2324,9 +2324,9 @@ func (ec *executionContext) _Mutation_markEventRead(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.Event)
+	res := resTmp.(*model.EventEdge)
 	fc.Result = res
-	return ec.marshalOEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEvent(ctx, field.Selections, res)
+	return ec.marshalOEventEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEventEdge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_invite(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3254,9 +3254,9 @@ func (ec *executionContext) _Query_connection(ctx context.Context, field graphql
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.Pairwise)
+	res := resTmp.(*model.PairwiseEdge)
 	fc.Result = res
-	return ec.marshalOPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx, field.Selections, res)
+	return ec.marshalOPairwiseEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwiseEdge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_events(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3335,9 +3335,9 @@ func (ec *executionContext) _Query_event(ctx context.Context, field graphql.Coll
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.Event)
+	res := resTmp.(*model.EventEdge)
 	fc.Result = res
-	return ec.marshalOEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEvent(ctx, field.Selections, res)
+	return ec.marshalOEventEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEventEdge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_jobs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3416,9 +3416,9 @@ func (ec *executionContext) _Query_job(ctx context.Context, field graphql.Collec
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.Job)
+	res := resTmp.(*model.JobEdge)
 	fc.Result = res
-	return ec.marshalOJob2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐJob(ctx, field.Selections, res)
+	return ec.marshalOJobEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐJobEdge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {

@@ -37,6 +37,14 @@ func (p *InternalPairwise) Job() *InternalJob {
 	panic("Pairwise is not job")
 }
 
+func (p *InternalPairwise) ToEdge() *model.PairwiseEdge {
+	cursor := CreateCursor(p.CreatedMs, model.Pairwise{})
+	return &model.PairwiseEdge{
+		Cursor: cursor,
+		Node:   p.ToNode(),
+	}
+}
+
 func (p *InternalPairwise) ToNode() *model.Pairwise {
 	return &model.Pairwise{
 		ID:            p.ID,
@@ -50,22 +58,22 @@ func (p *InternalPairwise) ToNode() *model.Pairwise {
 	}
 }
 
-func (i *Items) PairwiseForID(id string) (node *model.Pairwise) {
+func (i *Items) PairwiseForID(id string) (edge *model.PairwiseEdge) {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 
 	if id == "" {
-		return node
+		return
 	}
 
 	for _, item := range i.items {
 		if item.Identifier() == id {
-			node = item.Pairwise().ToNode()
+			edge = item.Pairwise().ToEdge()
 			break
 		}
 	}
 
-	return node
+	return
 }
 
 func (i *Items) PairwiseConnection(after, before int) *model.PairwiseConnection {
@@ -76,12 +84,9 @@ func (i *Items) PairwiseConnection(after, before int) *model.PairwiseConnection 
 	edges := make([]*model.PairwiseEdge, totalCount)
 	nodes := make([]*model.Pairwise, totalCount)
 	for index, pairwise := range result {
-		node := pairwise.Pairwise().ToNode()
-		edges[index] = &model.PairwiseEdge{
-			Cursor: CreateCursor(pairwise.Pairwise().CreatedMs, model.Pairwise{}),
-			Node:   node,
-		}
-		nodes[index] = node
+		edge := pairwise.Pairwise().ToEdge()
+		edges[index] = edge
+		nodes[index] = edge.Node
 	}
 	i.mutex.RUnlock()
 

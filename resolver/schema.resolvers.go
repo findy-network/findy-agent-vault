@@ -11,7 +11,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
-func (r *mutationResolver) MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.Event, error) {
+func (r *mutationResolver) MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.EventEdge, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
@@ -43,7 +43,7 @@ func (r *queryResolver) Connections(ctx context.Context, after *string, before *
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Connection(ctx context.Context, id string) (*model.Pairwise, error) {
+func (r *queryResolver) Connection(ctx context.Context, id string) (*model.PairwiseEdge, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
@@ -51,7 +51,7 @@ func (r *queryResolver) Events(ctx context.Context, after *string, before *strin
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Event(ctx context.Context, id string) (*model.Event, error) {
+func (r *queryResolver) Event(ctx context.Context, id string) (*model.EventEdge, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
@@ -59,7 +59,7 @@ func (r *queryResolver) Jobs(ctx context.Context, after *string, before *string,
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Job(ctx context.Context, id string) (*model.Job, error) {
+func (r *queryResolver) Job(ctx context.Context, id string) (*model.JobEdge, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
