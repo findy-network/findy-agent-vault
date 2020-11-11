@@ -42,7 +42,7 @@ func (state *Data) sort() {
 	state.Events.Sort()
 }
 
-func (state *Data) MarkEventRead(id string) *model.Event {
+func (state *Data) MarkEventRead(id string) *model.EventEdge {
 	if state.Events.MarkEventRead(id) {
 		return state.Events.EventForID(id, state.Connections, state.Jobs)
 	}

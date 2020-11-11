@@ -141,19 +141,19 @@ type Query {
     first: Int
     last: Int
   ): PairwiseConnection!
-  connection(id: ID!): Pairwise
+  connection(id: ID!): PairwiseEdge
 
   events(after: String, before: String, first: Int, last: Int): EventConnection!
-  event(id: ID!): Event
+  event(id: ID!): EventEdge
 
   jobs(after: String, before: String, first: Int, last: Int, completed: Boolean): JobConnection!
-  job(id: ID!): Job
+  job(id: ID!): JobEdge
 
   user: User!
 }
 
 type Mutation {
-  markEventRead(input: MarkReadInput!): Event
+  markEventRead(input: MarkReadInput!): EventEdge
 
   invite: InvitationResponse!
   connect(input: ConnectInput!): Response!

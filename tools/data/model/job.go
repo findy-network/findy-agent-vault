@@ -68,7 +68,9 @@ func (j *InternalJob) ToNode(connections *Items) *model.Job {
 
 	var pw *model.Pairwise
 	if j.PairwiseID != nil {
-		pw = connections.PairwiseForID(*j.PairwiseID)
+		if edge := connections.PairwiseForID(*j.PairwiseID); edge != nil {
+			pw = edge.Node
+		}
 	}
 
 	return &model.Job{
@@ -98,13 +100,13 @@ func (i *Items) IsJobInitiatedByUs(id string) (is *bool) {
 	return
 }
 
-func (i *Items) JobForID(id string, connections *Items) (node *model.Job) {
+func (i *Items) JobForID(id string, connections *Items) (edge *model.JobEdge) {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 
 	for _, item := range i.items {
 		if item.Identifier() == id {
-			node = item.Job().ToNode(connections)
+			edge = item.Job().ToEdge(connections)
 			break
 		}
 	}
