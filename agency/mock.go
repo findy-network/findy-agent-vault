@@ -64,16 +64,16 @@ func (m *Mock) Connect(strInvitation string) (id string, err error) {
 	return
 }
 
-func (m *Mock) SendMessage(connectionId, message string) (id string, err error) {
+func (m *Mock) SendMessage(connectionID, message string) (id string, err error) {
 	defer err2.Return(&err)
 
 	id = uuid.New().String()
 
-	m.listener.AddMessage(connectionId, id, message, true)
+	m.listener.AddMessage(connectionID, id, message, true)
 	time.AfterFunc(time.Second, func() {
 		if messages, err := generator.FakeMessages(1); err == nil {
 			msg := messages[0]
-			m.listener.AddMessage(connectionId, msg.ID, msg.Message, false)
+			m.listener.AddMessage(connectionID, msg.ID, msg.Message, false)
 		}
 	})
 
