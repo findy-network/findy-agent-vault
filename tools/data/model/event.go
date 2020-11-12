@@ -46,9 +46,11 @@ func (e *InternalEvent) ToEdge(connections, jobs *Items) *model.EventEdge {
 func (e *InternalEvent) ToNode(connections, jobs *Items) *model.Event {
 	createdStr := strconv.FormatInt(e.CreatedMs, 10)
 	var pw *model.Pairwise
-	var job *model.Job
+	var job *model.JobEdge
 	if e.PairwiseID != nil {
-		pw = connections.PairwiseForID(*e.PairwiseID)
+		if edge := connections.PairwiseForID(*e.PairwiseID); edge != nil {
+			pw = edge.Node
+		}
 	}
 	if e.JobID != nil {
 		job = jobs.JobForID(*e.JobID, connections)
@@ -63,21 +65,19 @@ func (e *InternalEvent) ToNode(connections, jobs *Items) *model.Event {
 	}
 }
 
-func (i *Items) EventForID(id string, connections, jobs *Items) *model.Event {
-	var node *model.Event
-
+func (i *Items) EventForID(id string, connections, jobs *Items) (edge *model.EventEdge) {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 
 	for _, item := range i.items {
 		if item.Identifier() == id {
 			event := item.Event()
-			node = event.ToNode(connections, jobs)
+			edge = event.ToEdge(connections, jobs)
 			break
 		}
 	}
 
-	return node
+	return edge
 }
 
 func (i *Items) EventConnection(after, before int, connections, jobs *Items) *model.EventConnection {

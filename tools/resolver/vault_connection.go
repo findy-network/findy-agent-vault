@@ -58,9 +58,11 @@ func (r *queryResolver) Connection(_ context.Context, id string) (node *model.Pa
 	glog.V(logLevelMedium).Info("queryResolver:Connection, id: ", id)
 
 	items := state.Connections
-	node = items.PairwiseForID(id)
-	if node == nil {
+	edge := items.PairwiseForID(id)
+	if edge == nil {
 		err = fmt.Errorf("connection for id %s was not found", id)
+	} else {
+		node = edge.Node
 	}
 	return
 }

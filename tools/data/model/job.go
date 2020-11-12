@@ -66,7 +66,7 @@ func (j *InternalJob) ToNode(connections *Items) *model.Job {
 	createdStr := strconv.FormatInt(j.CreatedMs, 10)
 	updatedStr := strconv.FormatInt(j.UpdatedMs, 10)
 
-	var pw *model.Pairwise
+	var pw *model.PairwiseEdge
 	if j.PairwiseID != nil {
 		pw = connections.PairwiseForID(*j.PairwiseID)
 	}
@@ -74,7 +74,6 @@ func (j *InternalJob) ToNode(connections *Items) *model.Job {
 	return &model.Job{
 		ID:         j.ID,
 		Protocol:   j.ProtocolType,
-		ProtocolID: j.ProtocolID,
 		Connection: pw,
 		Status:     j.Status,
 		Result:     j.Result,
@@ -98,13 +97,13 @@ func (i *Items) IsJobInitiatedByUs(id string) (is *bool) {
 	return
 }
 
-func (i *Items) JobForID(id string, connections *Items) (node *model.Job) {
+func (i *Items) JobForID(id string, connections *Items) (edge *model.JobEdge) {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 
 	for _, item := range i.items {
 		if item.Identifier() == id {
-			node = item.Job().ToNode(connections)
+			edge = item.Job().ToEdge(connections)
 			break
 		}
 	}

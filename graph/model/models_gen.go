@@ -17,7 +17,7 @@ type Event struct {
 	Read        bool      `json:"read"`
 	Description string    `json:"description"`
 	CreatedMs   string    `json:"createdMs"`
-	Job         *Job      `json:"job"`
+	Job         *JobEdge  `json:"job"`
 	Connection  *Pairwise `json:"connection"`
 }
 
@@ -39,15 +39,14 @@ type InvitationResponse struct {
 }
 
 type Job struct {
-	ID            string       `json:"id"`
-	Protocol      ProtocolType `json:"protocol"`
-	ProtocolID    *string      `json:"protocolId"`
-	InitiatedByUs bool         `json:"initiatedByUs"`
-	Connection    *Pairwise    `json:"connection"`
-	Status        JobStatus    `json:"status"`
-	Result        JobResult    `json:"result"`
-	CreatedMs     string       `json:"createdMs"`
-	UpdatedMs     string       `json:"updatedMs"`
+	ID            string        `json:"id"`
+	Protocol      ProtocolType  `json:"protocol"`
+	InitiatedByUs bool          `json:"initiatedByUs"`
+	Status        JobStatus     `json:"status"`
+	Result        JobResult     `json:"result"`
+	CreatedMs     string        `json:"createdMs"`
+	UpdatedMs     string        `json:"updatedMs"`
+	Connection    *PairwiseEdge `json:"connection"`
 }
 
 type JobConnection struct {
