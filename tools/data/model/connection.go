@@ -12,7 +12,7 @@ type InternalPairwise struct {
 	TheirDid      string
 	TheirEndpoint string `faker:"url"`
 	TheirLabel    string `faker:"organisationLabel"`
-	InitiatedByUs bool
+	Invited       bool
 	ApprovedMs    int64 `faker:"unix_time"`
 	CreatedMs     int64 `faker:"unix_time"`
 }
@@ -37,6 +37,10 @@ func (p *InternalPairwise) Job() *InternalJob {
 	panic("Pairwise is not job")
 }
 
+func (p *InternalPairwise) BasicMessage() *InternalMessage {
+	panic("Pairwise is not message")
+}
+
 func (p *InternalPairwise) ToEdge() *model.PairwiseEdge {
 	cursor := CreateCursor(p.CreatedMs, model.Pairwise{})
 	return &model.PairwiseEdge{
@@ -54,7 +58,7 @@ func (p *InternalPairwise) ToNode() *model.Pairwise {
 		TheirLabel:    p.TheirLabel,
 		CreatedMs:     strconv.FormatInt(p.CreatedMs, 10),
 		ApprovedMs:    strconv.FormatInt(p.ApprovedMs, 10),
-		InitiatedByUs: p.InitiatedByUs,
+		Invited:       p.Invited,
 	}
 }
 

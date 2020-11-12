@@ -15,6 +15,7 @@ type APIObject interface {
 	Identifier() string
 	Created() int64
 	Pairwise() *InternalPairwise
+	BasicMessage() *InternalMessage
 	Event() *InternalEvent
 	Job() *InternalJob
 }

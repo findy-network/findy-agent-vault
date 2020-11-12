@@ -2,7 +2,6 @@ package data
 
 import (
 	"reflect"
-	"sort"
 
 	"github.com/findy-network/findy-agent-vault/tools/faker"
 
@@ -13,6 +12,7 @@ import (
 
 type Data struct {
 	Connections *our.Items
+	Messages    *our.Items
 	Events      *our.Items
 	Jobs        *our.Items
 	User        *our.InternalUser
@@ -21,24 +21,18 @@ type Data struct {
 func InitState() *Data {
 	state := &Data{
 		Connections: our.NewItems(reflect.TypeOf(model.Pairwise{}).Name()),
+		Messages:    our.NewItems(reflect.TypeOf(model.BasicMessage{}).Name()),
 		Events:      our.NewItems(reflect.TypeOf(model.Event{}).Name()),
 		Jobs:        our.NewItems(reflect.TypeOf(model.Job{}).Name()),
-		User:        &user,
 	}
-	faker.Run(state.Connections, state.Events)
+	state.User = faker.Run(state.Connections, state.Events, state.Messages)
 	state.sort()
 	return state
 }
 
 func (state *Data) sort() {
-	sort.Slice(connections, func(i, j int) bool {
-		return connections[i].Created() < connections[j].Created()
-	})
-
-	sort.Slice(events, func(i, j int) bool {
-		return events[i].Created() < events[j].Created()
-	})
 	state.Connections.Sort()
+	state.Messages.Sort()
 	state.Events.Sort()
 }
 

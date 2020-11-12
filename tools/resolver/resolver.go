@@ -29,10 +29,6 @@ func InitResolver() *Resolver {
 
 type Resolver struct{}
 
-func (r *mutationResolver) SendMessage(_ context.Context) (*model.Response, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
 func (r *mutationResolver) AcceptOffer(_ context.Context, _ model.Offer) (*model.Response, error) {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -49,6 +45,15 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
 // Subscription returns generated.SubscriptionResolver implementation.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
+
+// Pairwise returns generated.PairwiseResolver implementation.
+func (r *Resolver) Pairwise() generated.PairwiseResolver { return &pairwiseResolver{r} }
+
+// BasicMessage returns generated.BasicMessageResolver implementation.
+func (r *Resolver) BasicMessage() generated.BasicMessageResolver { return &basicMessageResolver{r} }
+
+type basicMessageResolver struct{ *Resolver }
+type pairwiseResolver struct{ *Resolver }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

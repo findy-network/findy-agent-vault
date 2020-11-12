@@ -15,10 +15,15 @@ type Pairwise {
   theirDid: String!
   theirEndpoint: String!
   theirLabel: String!
-
   createdMs: String!
   approvedMs: String!
-  initiatedByUs: Boolean!
+  invited: Boolean!
+  messages(
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): BasicMessageConnection!
 }
 
 type PairwiseEdge {
@@ -29,6 +34,27 @@ type PairwiseEdge {
 type PairwiseConnection {
   edges: [PairwiseEdge]
   nodes: [Pairwise]
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type BasicMessage {
+  id: ID!
+  message: String!
+  sentByMe: Boolean!
+  delivered: Boolean
+  createdMs: String!
+  connection: Pairwise!
+}
+
+type BasicMessageEdge {
+  cursor: String!
+  node: BasicMessage!
+}
+
+type BasicMessageConnection {
+  edges: [BasicMessageEdge]
+  nodes: [BasicMessage]
   pageInfo: PageInfo!
   totalCount: Int!
 }
@@ -83,6 +109,7 @@ type Job {
   createdMs: String!
   updatedMs: String!
   connection: PairwiseEdge
+  message: BasicMessageEdge
 }
 
 type JobEdge {
@@ -104,6 +131,11 @@ type User {
 
 input ConnectInput {
   invitation: String!
+}
+
+input MessageInput {
+  connectionId: ID!
+  message: String!
 }
 
 input Offer {
@@ -142,6 +174,8 @@ type Query {
   ): PairwiseConnection!
   connection(id: ID!): Pairwise
 
+  message(id: ID!): BasicMessage
+
   events(after: String, before: String, first: Int, last: Int): EventConnection!
   event(id: ID!): Event
 
@@ -156,7 +190,7 @@ type Mutation {
 
   invite: InvitationResponse!
   connect(input: ConnectInput!): Response!
-  sendMessage: Response!
+  sendMessage(input: MessageInput!): Response!
   acceptOffer(input: Offer!): Response!
   acceptRequest(input: Request!): Response!
 
