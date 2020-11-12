@@ -66,17 +66,14 @@ func (j *InternalJob) ToNode(connections *Items) *model.Job {
 	createdStr := strconv.FormatInt(j.CreatedMs, 10)
 	updatedStr := strconv.FormatInt(j.UpdatedMs, 10)
 
-	var pw *model.Pairwise
+	var pw *model.PairwiseEdge
 	if j.PairwiseID != nil {
-		if edge := connections.PairwiseForID(*j.PairwiseID); edge != nil {
-			pw = edge.Node
-		}
+		pw = connections.PairwiseForID(*j.PairwiseID)
 	}
 
 	return &model.Job{
 		ID:         j.ID,
 		Protocol:   j.ProtocolType,
-		ProtocolID: j.ProtocolID,
 		Connection: pw,
 		Status:     j.Status,
 		Result:     j.Result,

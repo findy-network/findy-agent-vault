@@ -38,7 +38,7 @@ type Event {
   read: Boolean!
   description: String!
   createdMs: String!
-  job: Job
+  job: JobEdge
   connection: Pairwise
 }
 
@@ -77,13 +77,12 @@ enum JobResult {
 type Job {
   id: ID!
   protocol: ProtocolType!
-  protocolId: String
   initiatedByUs: Boolean!
-  connection: Pairwise
   status: JobStatus!
   result: JobResult!
   createdMs: String!
   updatedMs: String!
+  connection: PairwiseEdge
 }
 
 type JobEdge {
@@ -141,19 +140,19 @@ type Query {
     first: Int
     last: Int
   ): PairwiseConnection!
-  connection(id: ID!): PairwiseEdge
+  connection(id: ID!): Pairwise
 
   events(after: String, before: String, first: Int, last: Int): EventConnection!
-  event(id: ID!): EventEdge
+  event(id: ID!): Event
 
   jobs(after: String, before: String, first: Int, last: Int, completed: Boolean): JobConnection!
-  job(id: ID!): JobEdge
+  job(id: ID!): Job
 
   user: User!
 }
 
 type Mutation {
-  markEventRead(input: MarkReadInput!): EventEdge
+  markEventRead(input: MarkReadInput!): Event
 
   invite: InvitationResponse!
   connect(input: ConnectInput!): Response!

@@ -46,16 +46,14 @@ func (e *InternalEvent) ToEdge(connections, jobs *Items) *model.EventEdge {
 func (e *InternalEvent) ToNode(connections, jobs *Items) *model.Event {
 	createdStr := strconv.FormatInt(e.CreatedMs, 10)
 	var pw *model.Pairwise
-	var job *model.Job
+	var job *model.JobEdge
 	if e.PairwiseID != nil {
 		if edge := connections.PairwiseForID(*e.PairwiseID); edge != nil {
 			pw = edge.Node
 		}
 	}
 	if e.JobID != nil {
-		if edge := jobs.JobForID(*e.JobID, connections); edge != nil {
-			job = edge.Node
-		}
+		job = jobs.JobForID(*e.JobID, connections)
 	}
 	return &model.Event{
 		ID:          e.ID,
