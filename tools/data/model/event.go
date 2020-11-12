@@ -11,7 +11,7 @@ type InternalEvent struct {
 	Read        bool    `faker:"-"`
 	Description string  `faker:"sentence"`
 	JobID       *string `faker:"-"`
-	PairwiseID  *string `faker:"eventPairwiseId"`
+	PairwiseID  *string `faker:"pairwiseIdPtr"`
 	CreatedMs   int64   `faker:"unix_time"`
 }
 
@@ -33,6 +33,10 @@ func (e *InternalEvent) Event() *InternalEvent {
 
 func (e *InternalEvent) Job() *InternalJob {
 	panic("Event is not job")
+}
+
+func (e *InternalEvent) BasicMessage() *InternalMessage {
+	panic("Event is not message")
 }
 
 func (e *InternalEvent) ToEdge(connections, jobs *Items) *model.EventEdge {

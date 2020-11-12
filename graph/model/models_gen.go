@@ -8,6 +8,27 @@ import (
 	"strconv"
 )
 
+type BasicMessage struct {
+	ID         string    `json:"id"`
+	Message    string    `json:"message"`
+	SentByMe   bool      `json:"sentByMe"`
+	Delivered  *bool     `json:"delivered"`
+	CreatedMs  string    `json:"createdMs"`
+	Connection *Pairwise `json:"connection"`
+}
+
+type BasicMessageConnection struct {
+	Edges      []*BasicMessageEdge `json:"edges"`
+	Nodes      []*BasicMessage     `json:"nodes"`
+	PageInfo   *PageInfo           `json:"pageInfo"`
+	TotalCount int                 `json:"totalCount"`
+}
+
+type BasicMessageEdge struct {
+	Cursor string        `json:"cursor"`
+	Node   *BasicMessage `json:"node"`
+}
+
 type ConnectInput struct {
 	Invitation string `json:"invitation"`
 }
@@ -39,14 +60,15 @@ type InvitationResponse struct {
 }
 
 type Job struct {
-	ID            string        `json:"id"`
-	Protocol      ProtocolType  `json:"protocol"`
-	InitiatedByUs bool          `json:"initiatedByUs"`
-	Status        JobStatus     `json:"status"`
-	Result        JobResult     `json:"result"`
-	CreatedMs     string        `json:"createdMs"`
-	UpdatedMs     string        `json:"updatedMs"`
-	Connection    *PairwiseEdge `json:"connection"`
+	ID            string            `json:"id"`
+	Protocol      ProtocolType      `json:"protocol"`
+	InitiatedByUs bool              `json:"initiatedByUs"`
+	Status        JobStatus         `json:"status"`
+	Result        JobResult         `json:"result"`
+	CreatedMs     string            `json:"createdMs"`
+	UpdatedMs     string            `json:"updatedMs"`
+	Connection    *PairwiseEdge     `json:"connection"`
+	Message       *BasicMessageEdge `json:"message"`
 }
 
 type JobConnection struct {
@@ -69,6 +91,11 @@ type MarkReadInput struct {
 	ID string `json:"id"`
 }
 
+type MessageInput struct {
+	ConnectionID string `json:"connectionId"`
+	Message      string `json:"message"`
+}
+
 type Offer struct {
 	ID     string `json:"id"`
 	Accept bool   `json:"accept"`
@@ -82,14 +109,15 @@ type PageInfo struct {
 }
 
 type Pairwise struct {
-	ID            string `json:"id"`
-	OurDid        string `json:"ourDid"`
-	TheirDid      string `json:"theirDid"`
-	TheirEndpoint string `json:"theirEndpoint"`
-	TheirLabel    string `json:"theirLabel"`
-	CreatedMs     string `json:"createdMs"`
-	ApprovedMs    string `json:"approvedMs"`
-	InitiatedByUs bool   `json:"initiatedByUs"`
+	ID            string                  `json:"id"`
+	OurDid        string                  `json:"ourDid"`
+	TheirDid      string                  `json:"theirDid"`
+	TheirEndpoint string                  `json:"theirEndpoint"`
+	TheirLabel    string                  `json:"theirLabel"`
+	CreatedMs     string                  `json:"createdMs"`
+	ApprovedMs    string                  `json:"approvedMs"`
+	Invited       bool                    `json:"invited"`
+	Messages      *BasicMessageConnection `json:"messages"`
 }
 
 type PairwiseConnection struct {

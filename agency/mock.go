@@ -8,6 +8,7 @@ import (
 
 	"github.com/bxcodec/faker"
 	generator "github.com/findy-network/findy-agent-vault/tools/faker"
+	"github.com/google/uuid"
 	"github.com/lainio/err2"
 )
 
@@ -57,6 +58,22 @@ func (m *Mock) Connect(strInvitation string) (id string, err error) {
 		if connections, err := generator.FakeConnections(1, true); err == nil {
 			connection := connections[0]
 			m.listener.AddConnection(inv.ID, connection.OurDid, connection.TheirDid, connection.TheirEndpoint, connection.TheirLabel)
+		}
+	})
+
+	return
+}
+
+func (m *Mock) SendMessage(connectionId, message string) (id string, err error) {
+	defer err2.Return(&err)
+
+	id = uuid.New().String()
+
+	m.listener.AddMessage(connectionId, id, message, true)
+	time.AfterFunc(time.Second, func() {
+		if messages, err := generator.FakeMessages(1); err == nil {
+			msg := messages[0]
+			m.listener.AddMessage(connectionId, msg.ID, msg.Message, false)
 		}
 	})
 
