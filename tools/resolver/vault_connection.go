@@ -72,7 +72,7 @@ func doAddConnection(connection *data.InternalPairwise) {
 	connection.CreatedMs = utils.CurrentTimeMs()
 	initiatedByUs := state.Jobs.IsJobInitiatedByUs(connection.ID)
 	if initiatedByUs != nil {
-		connection.InitiatedByUs = *initiatedByUs
+		connection.Invited = *initiatedByUs
 	}
 	items.Append(connection)
 	glog.Infof("Added connection %s", connection.ID)

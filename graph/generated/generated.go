@@ -36,7 +36,9 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	BasicMessage() BasicMessageResolver
 	Mutation() MutationResolver
+	Pairwise() PairwiseResolver
 	Query() QueryResolver
 	Subscription() SubscriptionResolver
 }
@@ -45,6 +47,27 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	BasicMessage struct {
+		Connection func(childComplexity int) int
+		CreatedMs  func(childComplexity int) int
+		Delivered  func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Message    func(childComplexity int) int
+		SentByMe   func(childComplexity int) int
+	}
+
+	BasicMessageConnection struct {
+		Edges      func(childComplexity int) int
+		Nodes      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	BasicMessageEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	Event struct {
 		Connection  func(childComplexity int) int
 		CreatedMs   func(childComplexity int) int
@@ -76,6 +99,7 @@ type ComplexityRoot struct {
 		CreatedMs     func(childComplexity int) int
 		ID            func(childComplexity int) int
 		InitiatedByUs func(childComplexity int) int
+		Message       func(childComplexity int) int
 		Protocol      func(childComplexity int) int
 		Result        func(childComplexity int) int
 		Status        func(childComplexity int) int
@@ -105,7 +129,7 @@ type ComplexityRoot struct {
 		Connect        func(childComplexity int, input model.ConnectInput) int
 		Invite         func(childComplexity int) int
 		MarkEventRead  func(childComplexity int, input model.MarkReadInput) int
-		SendMessage    func(childComplexity int) int
+		SendMessage    func(childComplexity int, input model.MessageInput) int
 	}
 
 	PageInfo struct {
@@ -119,7 +143,8 @@ type ComplexityRoot struct {
 		ApprovedMs    func(childComplexity int) int
 		CreatedMs     func(childComplexity int) int
 		ID            func(childComplexity int) int
-		InitiatedByUs func(childComplexity int) int
+		Invited       func(childComplexity int) int
+		Messages      func(childComplexity int, after *string, before *string, first *int, last *int) int
 		OurDid        func(childComplexity int) int
 		TheirDid      func(childComplexity int) int
 		TheirEndpoint func(childComplexity int) int
@@ -145,6 +170,7 @@ type ComplexityRoot struct {
 		Events      func(childComplexity int, after *string, before *string, first *int, last *int) int
 		Job         func(childComplexity int, id string) int
 		Jobs        func(childComplexity int, after *string, before *string, first *int, last *int, completed *bool) int
+		Message     func(childComplexity int, id string) int
 		User        func(childComplexity int) int
 	}
 
@@ -162,18 +188,25 @@ type ComplexityRoot struct {
 	}
 }
 
+type BasicMessageResolver interface {
+	Connection(ctx context.Context, obj *model.BasicMessage) (*model.Pairwise, error)
+}
 type MutationResolver interface {
 	MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.Event, error)
 	Invite(ctx context.Context) (*model.InvitationResponse, error)
 	Connect(ctx context.Context, input model.ConnectInput) (*model.Response, error)
-	SendMessage(ctx context.Context) (*model.Response, error)
+	SendMessage(ctx context.Context, input model.MessageInput) (*model.Response, error)
 	AcceptOffer(ctx context.Context, input model.Offer) (*model.Response, error)
 	AcceptRequest(ctx context.Context, input model.Request) (*model.Response, error)
 	AddRandomEvent(ctx context.Context) (bool, error)
 }
+type PairwiseResolver interface {
+	Messages(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.BasicMessageConnection, error)
+}
 type QueryResolver interface {
 	Connections(ctx context.Context, after *string, before *string, first *int, last *int) (*model.PairwiseConnection, error)
 	Connection(ctx context.Context, id string) (*model.Pairwise, error)
+	Message(ctx context.Context, id string) (*model.BasicMessage, error)
 	Events(ctx context.Context, after *string, before *string, first *int, last *int) (*model.EventConnection, error)
 	Event(ctx context.Context, id string) (*model.Event, error)
 	Jobs(ctx context.Context, after *string, before *string, first *int, last *int, completed *bool) (*model.JobConnection, error)
@@ -198,6 +231,90 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "BasicMessage.connection":
+		if e.complexity.BasicMessage.Connection == nil {
+			break
+		}
+
+		return e.complexity.BasicMessage.Connection(childComplexity), true
+
+	case "BasicMessage.createdMs":
+		if e.complexity.BasicMessage.CreatedMs == nil {
+			break
+		}
+
+		return e.complexity.BasicMessage.CreatedMs(childComplexity), true
+
+	case "BasicMessage.delivered":
+		if e.complexity.BasicMessage.Delivered == nil {
+			break
+		}
+
+		return e.complexity.BasicMessage.Delivered(childComplexity), true
+
+	case "BasicMessage.id":
+		if e.complexity.BasicMessage.ID == nil {
+			break
+		}
+
+		return e.complexity.BasicMessage.ID(childComplexity), true
+
+	case "BasicMessage.message":
+		if e.complexity.BasicMessage.Message == nil {
+			break
+		}
+
+		return e.complexity.BasicMessage.Message(childComplexity), true
+
+	case "BasicMessage.sentByMe":
+		if e.complexity.BasicMessage.SentByMe == nil {
+			break
+		}
+
+		return e.complexity.BasicMessage.SentByMe(childComplexity), true
+
+	case "BasicMessageConnection.edges":
+		if e.complexity.BasicMessageConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.BasicMessageConnection.Edges(childComplexity), true
+
+	case "BasicMessageConnection.nodes":
+		if e.complexity.BasicMessageConnection.Nodes == nil {
+			break
+		}
+
+		return e.complexity.BasicMessageConnection.Nodes(childComplexity), true
+
+	case "BasicMessageConnection.pageInfo":
+		if e.complexity.BasicMessageConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.BasicMessageConnection.PageInfo(childComplexity), true
+
+	case "BasicMessageConnection.totalCount":
+		if e.complexity.BasicMessageConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.BasicMessageConnection.TotalCount(childComplexity), true
+
+	case "BasicMessageEdge.cursor":
+		if e.complexity.BasicMessageEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.BasicMessageEdge.Cursor(childComplexity), true
+
+	case "BasicMessageEdge.node":
+		if e.complexity.BasicMessageEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.BasicMessageEdge.Node(childComplexity), true
 
 	case "Event.connection":
 		if e.complexity.Event.Connection == nil {
@@ -324,6 +441,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Job.InitiatedByUs(childComplexity), true
+
+	case "Job.message":
+		if e.complexity.Job.Message == nil {
+			break
+		}
+
+		return e.complexity.Job.Message(childComplexity), true
 
 	case "Job.protocol":
 		if e.complexity.Job.Protocol == nil {
@@ -469,7 +593,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Mutation.SendMessage(childComplexity), true
+		args, err := ec.field_Mutation_sendMessage_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SendMessage(childComplexity, args["input"].(model.MessageInput)), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -520,12 +649,24 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Pairwise.ID(childComplexity), true
 
-	case "Pairwise.initiatedByUs":
-		if e.complexity.Pairwise.InitiatedByUs == nil {
+	case "Pairwise.invited":
+		if e.complexity.Pairwise.Invited == nil {
 			break
 		}
 
-		return e.complexity.Pairwise.InitiatedByUs(childComplexity), true
+		return e.complexity.Pairwise.Invited(childComplexity), true
+
+	case "Pairwise.messages":
+		if e.complexity.Pairwise.Messages == nil {
+			break
+		}
+
+		args, err := ec.field_Pairwise_messages_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Pairwise.Messages(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int)), true
 
 	case "Pairwise.ourDid":
 		if e.complexity.Pairwise.OurDid == nil {
@@ -669,6 +810,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Jobs(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int), args["completed"].(*bool)), true
 
+	case "Query.message":
+		if e.complexity.Query.Message == nil {
+			break
+		}
+
+		args, err := ec.field_Query_message_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Message(childComplexity, args["id"].(string)), true
+
 	case "Query.user":
 		if e.complexity.Query.User == nil {
 			break
@@ -802,10 +955,15 @@ type Pairwise {
   theirDid: String!
   theirEndpoint: String!
   theirLabel: String!
-
   createdMs: String!
   approvedMs: String!
-  initiatedByUs: Boolean!
+  invited: Boolean!
+  messages(
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): BasicMessageConnection!
 }
 
 type PairwiseEdge {
@@ -816,6 +974,27 @@ type PairwiseEdge {
 type PairwiseConnection {
   edges: [PairwiseEdge]
   nodes: [Pairwise]
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type BasicMessage {
+  id: ID!
+  message: String!
+  sentByMe: Boolean!
+  delivered: Boolean
+  createdMs: String!
+  connection: Pairwise!
+}
+
+type BasicMessageEdge {
+  cursor: String!
+  node: BasicMessage!
+}
+
+type BasicMessageConnection {
+  edges: [BasicMessageEdge]
+  nodes: [BasicMessage]
   pageInfo: PageInfo!
   totalCount: Int!
 }
@@ -870,6 +1049,7 @@ type Job {
   createdMs: String!
   updatedMs: String!
   connection: PairwiseEdge
+  message: BasicMessageEdge
 }
 
 type JobEdge {
@@ -891,6 +1071,11 @@ type User {
 
 input ConnectInput {
   invitation: String!
+}
+
+input MessageInput {
+  connectionId: ID!
+  message: String!
 }
 
 input Offer {
@@ -929,6 +1114,8 @@ type Query {
   ): PairwiseConnection!
   connection(id: ID!): Pairwise
 
+  message(id: ID!): BasicMessage
+
   events(after: String, before: String, first: Int, last: Int): EventConnection!
   event(id: ID!): Event
 
@@ -943,7 +1130,7 @@ type Mutation {
 
   invite: InvitationResponse!
   connect(input: ConnectInput!): Response!
-  sendMessage: Response!
+  sendMessage(input: MessageInput!): Response!
   acceptOffer(input: Offer!): Response!
   acceptRequest(input: Request!): Response!
 
@@ -1019,6 +1206,63 @@ func (ec *executionContext) field_Mutation_markEventRead_args(ctx context.Contex
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_sendMessage_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.MessageInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNMessageInput2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐMessageInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Pairwise_messages_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["before"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
 	return args, nil
 }
 
@@ -1217,6 +1461,21 @@ func (ec *executionContext) field_Query_jobs_args(ctx context.Context, rawArgs m
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_message_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1254,6 +1513,417 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _BasicMessage_id(ctx context.Context, field graphql.CollectedField, obj *model.BasicMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BasicMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BasicMessage_message(ctx context.Context, field graphql.CollectedField, obj *model.BasicMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BasicMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BasicMessage_sentByMe(ctx context.Context, field graphql.CollectedField, obj *model.BasicMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BasicMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SentByMe, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BasicMessage_delivered(ctx context.Context, field graphql.CollectedField, obj *model.BasicMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BasicMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Delivered, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BasicMessage_createdMs(ctx context.Context, field graphql.CollectedField, obj *model.BasicMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BasicMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedMs, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BasicMessage_connection(ctx context.Context, field graphql.CollectedField, obj *model.BasicMessage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BasicMessage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.BasicMessage().Connection(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Pairwise)
+	fc.Result = res
+	return ec.marshalNPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BasicMessageConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.BasicMessageConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BasicMessageConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.BasicMessageEdge)
+	fc.Result = res
+	return ec.marshalOBasicMessageEdge2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐBasicMessageEdge(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BasicMessageConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *model.BasicMessageConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BasicMessageConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Nodes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.BasicMessage)
+	fc.Result = res
+	return ec.marshalOBasicMessage2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐBasicMessage(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BasicMessageConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.BasicMessageConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BasicMessageConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BasicMessageConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.BasicMessageConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BasicMessageConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BasicMessageEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *model.BasicMessageEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BasicMessageEdge",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BasicMessageEdge_node(ctx context.Context, field graphql.CollectedField, obj *model.BasicMessageEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BasicMessageEdge",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.BasicMessage)
+	fc.Result = res
+	return ec.marshalNBasicMessage2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐBasicMessage(ctx, field.Selections, res)
+}
 
 func (ec *executionContext) _Event_id(ctx context.Context, field graphql.CollectedField, obj *model.Event) (ret graphql.Marshaler) {
 	defer func() {
@@ -2010,6 +2680,38 @@ func (ec *executionContext) _Job_connection(ctx context.Context, field graphql.C
 	return ec.marshalOPairwiseEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwiseEdge(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Job_message(ctx context.Context, field graphql.CollectedField, obj *model.Job) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Job",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.BasicMessageEdge)
+	fc.Result = res
+	return ec.marshalOBasicMessageEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐBasicMessageEdge(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _JobConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.JobConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2381,9 +3083,16 @@ func (ec *executionContext) _Mutation_sendMessage(ctx context.Context, field gra
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_sendMessage_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SendMessage(rctx)
+		return ec.resolvers.Mutation().SendMessage(rctx, args["input"].(model.MessageInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2898,7 +3607,7 @@ func (ec *executionContext) _Pairwise_approvedMs(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Pairwise_initiatedByUs(ctx context.Context, field graphql.CollectedField, obj *model.Pairwise) (ret graphql.Marshaler) {
+func (ec *executionContext) _Pairwise_invited(ctx context.Context, field graphql.CollectedField, obj *model.Pairwise) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2916,7 +3625,7 @@ func (ec *executionContext) _Pairwise_initiatedByUs(ctx context.Context, field g
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.InitiatedByUs, nil
+		return obj.Invited, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2931,6 +3640,48 @@ func (ec *executionContext) _Pairwise_initiatedByUs(ctx context.Context, field g
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Pairwise_messages(ctx context.Context, field graphql.CollectedField, obj *model.Pairwise) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Pairwise",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Pairwise_messages_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Pairwise().Messages(rctx, obj, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.BasicMessageConnection)
+	fc.Result = res
+	return ec.marshalNBasicMessageConnection2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐBasicMessageConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PairwiseConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.PairwiseConnection) (ret graphql.Marshaler) {
@@ -3216,6 +3967,45 @@ func (ec *executionContext) _Query_connection(ctx context.Context, field graphql
 	res := resTmp.(*model.Pairwise)
 	fc.Result = res
 	return ec.marshalOPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_message(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_message_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Message(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.BasicMessage)
+	fc.Result = res
+	return ec.marshalOBasicMessage2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐBasicMessage(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_events(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4763,6 +5553,34 @@ func (ec *executionContext) unmarshalInputMarkReadInput(ctx context.Context, obj
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputMessageInput(ctx context.Context, obj interface{}) (model.MessageInput, error) {
+	var it model.MessageInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "connectionId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("connectionId"))
+			it.ConnectionID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "message":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("message"))
+			it.Message, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputOffer(ctx context.Context, obj interface{}) (model.Offer, error) {
 	var it model.Offer
 	var asMap = obj.(map[string]interface{})
@@ -4826,6 +5644,132 @@ func (ec *executionContext) unmarshalInputRequest(ctx context.Context, obj inter
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
+
+var basicMessageImplementors = []string{"BasicMessage"}
+
+func (ec *executionContext) _BasicMessage(ctx context.Context, sel ast.SelectionSet, obj *model.BasicMessage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, basicMessageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BasicMessage")
+		case "id":
+			out.Values[i] = ec._BasicMessage_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "message":
+			out.Values[i] = ec._BasicMessage_message(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "sentByMe":
+			out.Values[i] = ec._BasicMessage_sentByMe(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "delivered":
+			out.Values[i] = ec._BasicMessage_delivered(ctx, field, obj)
+		case "createdMs":
+			out.Values[i] = ec._BasicMessage_createdMs(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "connection":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._BasicMessage_connection(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var basicMessageConnectionImplementors = []string{"BasicMessageConnection"}
+
+func (ec *executionContext) _BasicMessageConnection(ctx context.Context, sel ast.SelectionSet, obj *model.BasicMessageConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, basicMessageConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BasicMessageConnection")
+		case "edges":
+			out.Values[i] = ec._BasicMessageConnection_edges(ctx, field, obj)
+		case "nodes":
+			out.Values[i] = ec._BasicMessageConnection_nodes(ctx, field, obj)
+		case "pageInfo":
+			out.Values[i] = ec._BasicMessageConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "totalCount":
+			out.Values[i] = ec._BasicMessageConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var basicMessageEdgeImplementors = []string{"BasicMessageEdge"}
+
+func (ec *executionContext) _BasicMessageEdge(ctx context.Context, sel ast.SelectionSet, obj *model.BasicMessageEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, basicMessageEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BasicMessageEdge")
+		case "cursor":
+			out.Values[i] = ec._BasicMessageEdge_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "node":
+			out.Values[i] = ec._BasicMessageEdge_node(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
 
 var eventImplementors = []string{"Event"}
 
@@ -5021,6 +5965,8 @@ func (ec *executionContext) _Job(ctx context.Context, sel ast.SelectionSet, obj 
 			}
 		case "connection":
 			out.Values[i] = ec._Job_connection(ctx, field, obj)
+		case "message":
+			out.Values[i] = ec._Job_message(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5235,43 +6181,57 @@ func (ec *executionContext) _Pairwise(ctx context.Context, sel ast.SelectionSet,
 		case "id":
 			out.Values[i] = ec._Pairwise_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "ourDid":
 			out.Values[i] = ec._Pairwise_ourDid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "theirDid":
 			out.Values[i] = ec._Pairwise_theirDid(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "theirEndpoint":
 			out.Values[i] = ec._Pairwise_theirEndpoint(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "theirLabel":
 			out.Values[i] = ec._Pairwise_theirLabel(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdMs":
 			out.Values[i] = ec._Pairwise_createdMs(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "approvedMs":
 			out.Values[i] = ec._Pairwise_approvedMs(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
-		case "initiatedByUs":
-			out.Values[i] = ec._Pairwise_initiatedByUs(ctx, field, obj)
+		case "invited":
+			out.Values[i] = ec._Pairwise_invited(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "messages":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Pairwise_messages(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5389,6 +6349,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_connection(ctx, field)
+				return res
+			})
+		case "message":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_message(ctx, field)
 				return res
 			})
 		case "events":
@@ -5794,6 +6765,30 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) marshalNBasicMessage2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐBasicMessage(ctx context.Context, sel ast.SelectionSet, v *model.BasicMessage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._BasicMessage(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNBasicMessageConnection2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐBasicMessageConnection(ctx context.Context, sel ast.SelectionSet, v model.BasicMessageConnection) graphql.Marshaler {
+	return ec._BasicMessageConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBasicMessageConnection2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐBasicMessageConnection(ctx context.Context, sel ast.SelectionSet, v *model.BasicMessageConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._BasicMessageConnection(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5945,6 +6940,11 @@ func (ec *executionContext) unmarshalNMarkReadInput2githubᚗcomᚋfindyᚑnetwo
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNMessageInput2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐMessageInput(ctx context.Context, v interface{}) (model.MessageInput, error) {
+	res, err := ec.unmarshalInputMessageInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNOffer2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐOffer(ctx context.Context, v interface{}) (model.Offer, error) {
 	res, err := ec.unmarshalInputOffer(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5958,6 +6958,10 @@ func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋfindyᚑnetwork�
 		return graphql.Null
 	}
 	return ec._PageInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPairwise2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx context.Context, sel ast.SelectionSet, v model.Pairwise) graphql.Marshaler {
+	return ec._Pairwise(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx context.Context, sel ast.SelectionSet, v *model.Pairwise) graphql.Marshaler {
@@ -6269,6 +7273,100 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalOBasicMessage2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐBasicMessage(ctx context.Context, sel ast.SelectionSet, v []*model.BasicMessage) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOBasicMessage2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐBasicMessage(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOBasicMessage2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐBasicMessage(ctx context.Context, sel ast.SelectionSet, v *model.BasicMessage) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._BasicMessage(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOBasicMessageEdge2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐBasicMessageEdge(ctx context.Context, sel ast.SelectionSet, v []*model.BasicMessageEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOBasicMessageEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐBasicMessageEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOBasicMessageEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐBasicMessageEdge(ctx context.Context, sel ast.SelectionSet, v *model.BasicMessageEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._BasicMessageEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {

@@ -3,6 +3,7 @@ package faker
 import (
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/findy-network/findy-agent-vault/tools/utils"
@@ -17,6 +18,7 @@ import (
 
 const (
 	eventsCountFactor = 10
+	msgsCountFactor   = 5
 )
 
 func initFaker(c *model.Items) {
@@ -32,8 +34,14 @@ func initFaker(c *model.Items) {
 		return f.Name + " " + orgs[index], nil
 	}))
 
-	err2.Check(faker.AddProvider("eventPairwiseId", func(v reflect.Value) (interface{}, error) {
-		return c.RandomID(), nil
+	err2.Check(faker.AddProvider("pairwiseIdPtr", func(v reflect.Value) (interface{}, error) {
+		id := c.RandomID()
+		return id, nil
+	}))
+
+	err2.Check(faker.AddProvider("pairwiseId", func(v reflect.Value) (interface{}, error) {
+		id := c.RandomID()
+		return *id, nil
 	}))
 }
 
@@ -68,7 +76,7 @@ func printObject(objectPtr, object interface{}, printComma bool) {
 	fmt.Print("\n")
 }
 
-func Run(c, e *model.Items) ([]model.InternalPairwise, []model.InternalEvent, model.InternalUser) {
+func Run(c, e, m *model.Items) *model.InternalUser {
 	defer err2.Catch(func(err error) {
 		panic(err)
 	})
@@ -77,14 +85,18 @@ func Run(c, e *model.Items) ([]model.InternalPairwise, []model.InternalEvent, mo
 	connCount := 5
 	conns, err := FakeConnections(connCount, true)
 	err2.Check(err)
-
 	for index := range conns {
 		c.Append(&conns[index])
 	}
 
+	msgs, err := FakeMessages(connCount * msgsCountFactor)
+	err2.Check(err)
+	for index := range msgs {
+		m.Append(&msgs[index])
+	}
+
 	events, err := fakeAndPrintEvents(connCount*eventsCountFactor, true)
 	err2.Check(err)
-
 	for index := range events {
 		e.Append(&events[index])
 	}
@@ -92,7 +104,21 @@ func Run(c, e *model.Items) ([]model.InternalPairwise, []model.InternalEvent, mo
 	user, err := fakeUser(true)
 	err2.Check(err)
 
-	glog.Infof("Generated %d connections and %d events for user %s", len(conns), len(events), user.Name)
+	glog.Infof("Generated %d connections, %d messages and %d events for user %s", len(conns), len(msgs), len(events), user.Name)
+	return &user
+}
 
-	return conns, events, user
+func FakeMessages(count int) (msgs []model.InternalMessage, err error) {
+	defer err2.Return(&err)
+	msgs = make([]model.InternalMessage, count)
+
+	for i := 0; i < count; i++ {
+		m := model.InternalMessage{}
+		err2.Check(faker.FakeData(&m))
+		msgs[i] = m
+	}
+	sort.Slice(msgs, func(i, j int) bool {
+		return msgs[i].CreatedMs < msgs[j].CreatedMs
+	})
+	return
 }
