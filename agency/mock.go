@@ -4,13 +4,16 @@ package agency
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/bxcodec/faker"
-	"github.com/google/uuid"
+	generator "github.com/findy-network/findy-agent-vault/tools/faker"
 	"github.com/lainio/err2"
 )
 
-type Mock struct{}
+type Mock struct {
+	listener Listener
+}
 
 type invitation struct {
 	ServiceEndpoint string   `json:"serviceEndpoint,omitempty" faker:"url"`
@@ -22,7 +25,9 @@ type invitation struct {
 
 var Instance Agency = &Mock{}
 
-func (m *Mock) Init(l Listener) {}
+func (m *Mock) Init(l Listener) {
+	m.listener = l
+}
 
 func (m *Mock) Invite() (result, id string, err error) {
 	defer err2.Return(&err)
@@ -40,6 +45,20 @@ func (m *Mock) Invite() (result, id string, err error) {
 	return
 }
 
-func (m *Mock) Connect(_ string) (string, error) {
-	return uuid.New().String(), nil
+func (m *Mock) Connect(strInvitation string) (id string, err error) {
+	defer err2.Return(&err)
+
+	inv := invitation{}
+	err2.Check(json.Unmarshal([]byte(strInvitation), &inv))
+
+	id = inv.ID
+
+	time.AfterFunc(time.Second, func() {
+		if connections, err := generator.FakeConnections(1, true); err == nil {
+			connection := connections[0]
+			m.listener.AddConnection(inv.ID, connection.OurDid, connection.TheirDid, connection.TheirEndpoint, connection.TheirLabel)
+		}
+	})
+
+	return
 }
