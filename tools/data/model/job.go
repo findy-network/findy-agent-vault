@@ -39,6 +39,10 @@ func (j *InternalJob) Job() *InternalJob {
 	return j
 }
 
+func (j *InternalJob) BasicMessage() *InternalMessage {
+	panic("Job is not message")
+}
+
 func (j *InternalJob) Copy() *InternalJob {
 	newJob := &InternalJob{
 		ID:            j.ID,
