@@ -11,6 +11,14 @@ func (l *agencyListener) AddConnection(id, ourDID, theirDID, theirEndpoint, thei
 
 }
 
+func (l *agencyListener) AddMessage(connectionID, id, message string, sentByMe bool) {
+
+}
+
+func (l *agencyListener) UpdateMessage(connectionID, id, delivered bool) {
+
+}
+
 func TestMain(m *testing.M) {
 	setup()
 	code := m.Run()
