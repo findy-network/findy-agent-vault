@@ -12,7 +12,7 @@ type InternalEvent struct {
 	Description string  `faker:"sentence"`
 	JobID       *string `faker:"-"`
 	PairwiseID  *string `faker:"pairwiseIdPtr"`
-	CreatedMs   int64   `faker:"unix_time"`
+	CreatedMs   int64   `faker:"created"`
 }
 
 func (e *InternalEvent) Created() int64 {

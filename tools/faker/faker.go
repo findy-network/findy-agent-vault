@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/findy-network/findy-agent-vault/tools/utils"
 
@@ -29,9 +30,7 @@ func initFaker(c *model.Items) {
 	err2.Check(faker.AddProvider("organisationLabel", func(v reflect.Value) (interface{}, error) {
 		orgs := []string{"Bank", "Ltd", "Agency", "Company", "United"}
 		index := utils.Random(len(orgs))
-		f := fakeLastName{}
-		_ = faker.FakeData(&f)
-		return f.Name + " " + orgs[index], nil
+		return faker.LastName() + " " + orgs[index], nil
 	}))
 
 	err2.Check(faker.AddProvider("pairwiseIdPtr", func(v reflect.Value) (interface{}, error) {
@@ -42,6 +41,11 @@ func initFaker(c *model.Items) {
 	err2.Check(faker.AddProvider("pairwiseId", func(v reflect.Value) (interface{}, error) {
 		id := c.RandomID()
 		return *id, nil
+	}))
+
+	err2.Check(faker.AddProvider("created", func(v reflect.Value) (interface{}, error) {
+		t := faker.UnixTime() * int64(time.Microsecond)
+		return t, nil
 	}))
 }
 

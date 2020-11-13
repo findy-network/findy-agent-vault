@@ -43,9 +43,9 @@ func (r *queryResolver) Connections(
 	}
 	logPaginationRequest("queryResolver:conns", pagination)
 
-	items := state.Connections
+	items := state.Connections()
 
-	afterIndex, beforeIndex, err := pick(items, pagination)
+	afterIndex, beforeIndex, err := pick(items.Objects(), pagination)
 	err2.Check(err)
 
 	glog.V(logLevelLow).Infof("Connections: returning connections between %d and %d", afterIndex, beforeIndex)
@@ -57,7 +57,7 @@ func (r *queryResolver) Connections(
 func (r *queryResolver) Connection(_ context.Context, id string) (node *model.Pairwise, err error) {
 	glog.V(logLevelMedium).Info("queryResolver:Connection, id: ", id)
 
-	items := state.Connections
+	items := state.Connections()
 	edge := items.PairwiseForID(id)
 	if edge == nil {
 		err = fmt.Errorf("connection for id %s was not found", id)
@@ -68,7 +68,7 @@ func (r *queryResolver) Connection(_ context.Context, id string) (node *model.Pa
 }
 
 func doAddConnection(connection *data.InternalPairwise) {
-	items := state.Connections
+	items := state.Connections().Objects()
 	connection.CreatedMs = utils.CurrentTimeMs()
 	initiatedByUs := state.Jobs.IsJobInitiatedByUs(connection.ID)
 	if initiatedByUs != nil {

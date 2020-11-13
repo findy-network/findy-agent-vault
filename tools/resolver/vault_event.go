@@ -25,11 +25,11 @@ func initEvents() {
 func (r *mutationResolver) MarkEventRead(ctx context.Context, input model.MarkReadInput) (node *model.Event, err error) {
 	glog.V(logLevelMedium).Info("queryResolver:MarkEventRead, id: ", input.ID)
 
-	edge := state.MarkEventRead(input.ID)
-	if edge == nil {
-		err = fmt.Errorf("event for id %s was not found", input.ID)
-	} else {
+	if state.Events.MarkEventRead(input.ID) {
+		edge := state.Events.EventForID(input.ID)
 		node = edge.Node
+	} else {
+		err = fmt.Errorf("event for id %s was not found", input.ID)
 	}
 	return
 }
@@ -76,8 +76,6 @@ func (r *eventResolver) Job(ctx context.Context, obj *model.Event) (edge *model.
 
 	if jobID := state.Events.EventJobID(obj.ID); jobID != nil {
 		edge = state.Jobs.JobForID(*jobID)
-	} else {
-		err = fmt.Errorf("job for event id %s was not found", obj.ID)
 	}
 
 	return
@@ -89,8 +87,6 @@ func (r *eventResolver) Connection(ctx context.Context, obj *model.Event) (pw *m
 
 	if cID := state.Events.EventConnectionID(obj.ID); cID != nil {
 		pw, err = r.Query().Connection(ctx, *cID)
-	} else {
-		err = fmt.Errorf("connection for event id %s was not found", obj.ID)
 	}
 
 	return

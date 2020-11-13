@@ -12,7 +12,7 @@ type InternalMessage struct {
 	PairwiseID string `faker:"pairwiseId"`
 	SentByMe   bool
 	Delivered  *bool
-	CreatedMs  int64 `faker:"unix_time"`
+	CreatedMs  int64 `faker:"created"`
 }
 
 func (m *InternalMessage) Created() int64 {
