@@ -57,9 +57,13 @@ func (r *queryResolver) Job(ctx context.Context, id string) (node *model.Job, er
 	return
 }
 
-func (r *jobResolver) Output(ctx context.Context, obj *model.Job) (*model.JobOutput, error) {
-	panic(fmt.Errorf("not implemented"))
-	// JOB OUTPUT FOR ID
+func (r *jobResolver) Output(ctx context.Context, obj *model.Job) (output *model.JobOutput, err error) {
+	glog.V(logLevelMedium).Info("jobResolver:Output, id: ", obj.ID)
+	defer err2.Return(&err)
+
+	output = state.OutputForJob(obj.ID)
+
+	return
 }
 
 func addJob(

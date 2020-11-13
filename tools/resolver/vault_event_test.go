@@ -30,9 +30,9 @@ func TestGetEvents(t *testing.T) {
 		s := state.Events
 		var (
 			valid  = 1
-			first  = s.EventConnection(0, 1, state.Connections, state.Jobs)
-			second = s.EventConnection(1, 2, state.Connections, state.Jobs)
-			last   = s.EventConnection(s.Count()-1, s.Count(), state.Connections, state.Jobs)
+			first  = s.EventConnection(0, 1)
+			second = s.EventConnection(1, 2)
+			last   = s.EventConnection(s.Count()-1, s.Count())
 		)
 		tests := []struct {
 			name   string

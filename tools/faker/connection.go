@@ -9,10 +9,6 @@ import (
 	"github.com/lainio/err2"
 )
 
-type fakeLastName struct {
-	Name string `faker:"last_name"`
-}
-
 func FakeConnections(count int, skipPrint bool) (conns []data.InternalPairwise, err error) {
 	defer err2.Return(&err)
 	conns = make([]data.InternalPairwise, count)

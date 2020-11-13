@@ -107,6 +107,27 @@ func (i *Items) JobForID(id string) (edge *model.JobEdge) {
 	return
 }
 
+func (i *Items) JobProtocolForID(id string) (t model.ProtocolType, protocolID *string) {
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
+
+	t = model.ProtocolTypeNone
+	var pID string
+
+	for _, item := range i.items {
+		if item.Identifier() == id {
+			job := item.Job()
+			t = job.ProtocolType
+			if job.ProtocolID != nil {
+				pID = *job.ProtocolID
+				protocolID = &pID
+			}
+			break
+		}
+	}
+	return
+}
+
 func (i *Items) JobConnection(after, before int) *model.JobConnection {
 	i.mutex.RLock()
 	result := i.items[after:before]

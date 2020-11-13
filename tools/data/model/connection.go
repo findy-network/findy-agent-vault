@@ -6,6 +6,16 @@ import (
 	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
+type ConnectionItems interface {
+	PairwiseConnection(after, before int) *model.PairwiseConnection
+	PairwiseForID(id string) *model.PairwiseEdge
+	Objects() *Items
+}
+
+func (i *Items) Connections() ConnectionItems { return &connectionItems{i} }
+
+type connectionItems struct{ *Items }
+
 type InternalPairwise struct {
 	ID            string `faker:"uuid_hyphenated"`
 	OurDid        string
@@ -13,8 +23,8 @@ type InternalPairwise struct {
 	TheirEndpoint string `faker:"url"`
 	TheirLabel    string `faker:"organisationLabel"`
 	Invited       bool
-	ApprovedMs    int64 `faker:"unix_time"`
-	CreatedMs     int64 `faker:"unix_time"`
+	ApprovedMs    int64 `faker:"created"`
+	CreatedMs     int64 `faker:"created"`
 }
 
 func (p *InternalPairwise) Created() int64 {
@@ -62,7 +72,11 @@ func (p *InternalPairwise) ToNode() *model.Pairwise {
 	}
 }
 
-func (i *Items) PairwiseForID(id string) (edge *model.PairwiseEdge) {
+func (i *connectionItems) Objects() *Items {
+	return i.Items
+}
+
+func (i *connectionItems) PairwiseForID(id string) (edge *model.PairwiseEdge) {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 
@@ -80,7 +94,7 @@ func (i *Items) PairwiseForID(id string) (edge *model.PairwiseEdge) {
 	return
 }
 
-func (i *Items) PairwiseConnection(after, before int) *model.PairwiseConnection {
+func (i *connectionItems) PairwiseConnection(after, before int) *model.PairwiseConnection {
 	i.mutex.RLock()
 	result := i.items[after:before]
 	totalCount := len(result)

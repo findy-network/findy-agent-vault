@@ -42,6 +42,7 @@ func (m *Mock) Invite() (result, id string, err error) {
 
 	jsonBytes := err2.Bytes.Try(json.Marshal(&inv))
 	result = string(jsonBytes)
+	id = inv.ID
 
 	return
 }
