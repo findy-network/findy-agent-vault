@@ -41,19 +41,28 @@ func (r *queryResolver) Jobs(
 
 	glog.V(logLevelLow).Infof("Jobs: returning jobs between %d and %d", afterIndex, beforeIndex)
 
-	return items.JobConnection(afterIndex, beforeIndex, state.Connections), nil
+	return items.JobConnection(afterIndex, beforeIndex), nil
 }
 
 func (r *queryResolver) Job(ctx context.Context, id string) (node *model.Job, err error) {
 	glog.V(logLevelMedium).Info("queryResolver:Job, id: ", id)
 
 	items := state.Jobs
-	edge := items.JobForID(id, state.Connections)
+	edge := items.JobForID(id)
 	if edge == nil {
 		err = fmt.Errorf("job for id %s was not found", id)
 	} else {
 		node = edge.Node
 	}
+	return
+}
+
+func (r *jobResolver) Output(ctx context.Context, obj *model.Job) (output *model.JobOutput, err error) {
+	glog.V(logLevelMedium).Info("jobResolver:Output, id: ", obj.ID)
+	defer err2.Return(&err)
+
+	output = state.OutputForJob(obj.ID)
+
 	return
 }
 

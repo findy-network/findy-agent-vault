@@ -62,3 +62,13 @@ models:
     fields:
       connection:
         resolver: true # force a resolver to be generated
+  Event:
+    fields:
+      connection:
+        resolver: true # force a resolver to be generated
+      job:
+        resolver: true # force a resolver to be generated
+  Job:
+    fields:
+      output:
+        resolver: true # force a resolver to be generated

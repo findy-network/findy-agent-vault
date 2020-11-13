@@ -27,12 +27,12 @@ func TestPaginationErrorsGetConnections(t *testing.T) {
 
 func TestGetConnections(t *testing.T) {
 	t.Run("get connections", func(t *testing.T) {
-		s := state.Connections
+		s := state.Connections()
 		var (
 			valid  = 1
 			first  = s.PairwiseConnection(0, 1)
 			second = s.PairwiseConnection(1, 2)
-			last   = s.PairwiseConnection(s.Count()-1, s.Count())
+			last   = s.PairwiseConnection(s.Objects().Count()-1, s.Objects().Count())
 		)
 		tests := []struct {
 			name   string

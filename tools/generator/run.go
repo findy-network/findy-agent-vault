@@ -20,7 +20,7 @@ var fakeCmd = &cobra.Command{
 	Short: "Generate fake data",
 	Run: func(cmd *cobra.Command, args []string) {
 		s := data.InitState()
-		faker.Run(s.Connections, s.Events, s.Messages)
+		faker.Run(s.Connections().Objects(), s.Events, s.Messages)
 	},
 }
 

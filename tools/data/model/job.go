@@ -58,31 +58,24 @@ func (j *InternalJob) Copy() *InternalJob {
 	return newJob
 }
 
-func (j *InternalJob) ToEdge(connections *Items) *model.JobEdge {
+func (j *InternalJob) ToEdge() *model.JobEdge {
 	cursor := CreateCursor(j.CreatedMs, model.Job{})
 	return &model.JobEdge{
 		Cursor: cursor,
-		Node:   j.ToNode(connections),
+		Node:   j.ToNode(),
 	}
 }
 
-func (j *InternalJob) ToNode(connections *Items) *model.Job {
+func (j *InternalJob) ToNode() *model.Job {
 	createdStr := strconv.FormatInt(j.CreatedMs, 10)
 	updatedStr := strconv.FormatInt(j.UpdatedMs, 10)
-
-	var pw *model.PairwiseEdge
-	if j.PairwiseID != nil {
-		pw = connections.PairwiseForID(*j.PairwiseID)
-	}
-
 	return &model.Job{
-		ID:         j.ID,
-		Protocol:   j.ProtocolType,
-		Connection: pw,
-		Status:     j.Status,
-		Result:     j.Result,
-		CreatedMs:  createdStr,
-		UpdatedMs:  updatedStr,
+		ID:        j.ID,
+		Protocol:  j.ProtocolType,
+		Status:    j.Status,
+		Result:    j.Result,
+		CreatedMs: createdStr,
+		UpdatedMs: updatedStr,
 	}
 }
 
@@ -101,20 +94,41 @@ func (i *Items) IsJobInitiatedByUs(id string) (is *bool) {
 	return
 }
 
-func (i *Items) JobForID(id string, connections *Items) (edge *model.JobEdge) {
+func (i *Items) JobForID(id string) (edge *model.JobEdge) {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 
 	for _, item := range i.items {
 		if item.Identifier() == id {
-			edge = item.Job().ToEdge(connections)
+			edge = item.Job().ToEdge()
 			break
 		}
 	}
 	return
 }
 
-func (i *Items) JobConnection(after, before int, connections *Items) *model.JobConnection {
+func (i *Items) JobProtocolForID(id string) (t model.ProtocolType, protocolID *string) {
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
+
+	t = model.ProtocolTypeNone
+	var pID string
+
+	for _, item := range i.items {
+		if item.Identifier() == id {
+			job := item.Job()
+			t = job.ProtocolType
+			if job.ProtocolID != nil {
+				pID = *job.ProtocolID
+				protocolID = &pID
+			}
+			break
+		}
+	}
+	return
+}
+
+func (i *Items) JobConnection(after, before int) *model.JobConnection {
 	i.mutex.RLock()
 	result := i.items[after:before]
 	totalCount := len(result)
@@ -122,7 +136,7 @@ func (i *Items) JobConnection(after, before int, connections *Items) *model.JobC
 	edges := make([]*model.JobEdge, totalCount)
 	nodes := make([]*model.Job, totalCount)
 	for index, job := range result {
-		node := job.Job().ToNode(connections)
+		node := job.Job().ToNode()
 		edges[index] = &model.JobEdge{
 			Cursor: CreateCursor(job.Job().CreatedMs, model.Job{}),
 			Node:   node,
