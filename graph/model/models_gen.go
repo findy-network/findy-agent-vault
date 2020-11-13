@@ -60,15 +60,14 @@ type InvitationResponse struct {
 }
 
 type Job struct {
-	ID            string            `json:"id"`
-	Protocol      ProtocolType      `json:"protocol"`
-	InitiatedByUs bool              `json:"initiatedByUs"`
-	Status        JobStatus         `json:"status"`
-	Result        JobResult         `json:"result"`
-	CreatedMs     string            `json:"createdMs"`
-	UpdatedMs     string            `json:"updatedMs"`
-	Connection    *PairwiseEdge     `json:"connection"`
-	Message       *BasicMessageEdge `json:"message"`
+	ID            string       `json:"id"`
+	Protocol      ProtocolType `json:"protocol"`
+	InitiatedByUs bool         `json:"initiatedByUs"`
+	Status        JobStatus    `json:"status"`
+	Result        JobResult    `json:"result"`
+	CreatedMs     string       `json:"createdMs"`
+	UpdatedMs     string       `json:"updatedMs"`
+	Output        *JobOutput   `json:"output"`
 }
 
 type JobConnection struct {
@@ -81,6 +80,11 @@ type JobConnection struct {
 type JobEdge struct {
 	Cursor string `json:"cursor"`
 	Node   *Job   `json:"node"`
+}
+
+type JobOutput struct {
+	Connection *PairwiseEdge     `json:"connection"`
+	Message    *BasicMessageEdge `json:"message"`
 }
 
 type LoginResponse struct {

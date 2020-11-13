@@ -15,6 +15,18 @@ func (r *basicMessageResolver) Connection(ctx context.Context, obj *model.BasicM
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *eventResolver) Job(ctx context.Context, obj *model.Event) (*model.JobEdge, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *eventResolver) Connection(ctx context.Context, obj *model.Event) (*model.Pairwise, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *jobResolver) Output(ctx context.Context, obj *model.Job) (*model.JobOutput, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *mutationResolver) MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.Event, error) {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -86,6 +98,12 @@ func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.Ev
 // BasicMessage returns generated.BasicMessageResolver implementation.
 func (r *Resolver) BasicMessage() generated.BasicMessageResolver { return &basicMessageResolver{r} }
 
+// Event returns generated.EventResolver implementation.
+func (r *Resolver) Event() generated.EventResolver { return &eventResolver{r} }
+
+// Job returns generated.JobResolver implementation.
+func (r *Resolver) Job() generated.JobResolver { return &jobResolver{r} }
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
@@ -99,6 +117,8 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
 type basicMessageResolver struct{ *Resolver }
+type eventResolver struct{ *Resolver }
+type jobResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type pairwiseResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

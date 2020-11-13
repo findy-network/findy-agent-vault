@@ -38,7 +38,7 @@ func (state *Data) sort() {
 
 func (state *Data) MarkEventRead(id string) *model.EventEdge {
 	if state.Events.MarkEventRead(id) {
-		return state.Events.EventForID(id, state.Connections, state.Jobs)
+		return state.Events.EventForID(id)
 	}
 
 	return nil
