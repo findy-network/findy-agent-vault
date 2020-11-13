@@ -37,6 +37,8 @@ type Config struct {
 
 type ResolverRoot interface {
 	BasicMessage() BasicMessageResolver
+	Event() EventResolver
+	Job() JobResolver
 	Mutation() MutationResolver
 	Pairwise() PairwiseResolver
 	Query() QueryResolver
@@ -95,11 +97,10 @@ type ComplexityRoot struct {
 	}
 
 	Job struct {
-		Connection    func(childComplexity int) int
 		CreatedMs     func(childComplexity int) int
 		ID            func(childComplexity int) int
 		InitiatedByUs func(childComplexity int) int
-		Message       func(childComplexity int) int
+		Output        func(childComplexity int) int
 		Protocol      func(childComplexity int) int
 		Result        func(childComplexity int) int
 		Status        func(childComplexity int) int
@@ -116,6 +117,11 @@ type ComplexityRoot struct {
 	JobEdge struct {
 		Cursor func(childComplexity int) int
 		Node   func(childComplexity int) int
+	}
+
+	JobOutput struct {
+		Connection func(childComplexity int) int
+		Message    func(childComplexity int) int
 	}
 
 	LoginResponse struct {
@@ -190,6 +196,13 @@ type ComplexityRoot struct {
 
 type BasicMessageResolver interface {
 	Connection(ctx context.Context, obj *model.BasicMessage) (*model.Pairwise, error)
+}
+type EventResolver interface {
+	Job(ctx context.Context, obj *model.Event) (*model.JobEdge, error)
+	Connection(ctx context.Context, obj *model.Event) (*model.Pairwise, error)
+}
+type JobResolver interface {
+	Output(ctx context.Context, obj *model.Job) (*model.JobOutput, error)
 }
 type MutationResolver interface {
 	MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.Event, error)
@@ -414,13 +427,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.InvitationResponse.Invitation(childComplexity), true
 
-	case "Job.connection":
-		if e.complexity.Job.Connection == nil {
-			break
-		}
-
-		return e.complexity.Job.Connection(childComplexity), true
-
 	case "Job.createdMs":
 		if e.complexity.Job.CreatedMs == nil {
 			break
@@ -442,12 +448,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Job.InitiatedByUs(childComplexity), true
 
-	case "Job.message":
-		if e.complexity.Job.Message == nil {
+	case "Job.output":
+		if e.complexity.Job.Output == nil {
 			break
 		}
 
-		return e.complexity.Job.Message(childComplexity), true
+		return e.complexity.Job.Output(childComplexity), true
 
 	case "Job.protocol":
 		if e.complexity.Job.Protocol == nil {
@@ -518,6 +524,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.JobEdge.Node(childComplexity), true
+
+	case "JobOutput.connection":
+		if e.complexity.JobOutput.Connection == nil {
+			break
+		}
+
+		return e.complexity.JobOutput.Connection(childComplexity), true
+
+	case "JobOutput.message":
+		if e.complexity.JobOutput.Message == nil {
+			break
+		}
+
+		return e.complexity.JobOutput.Message(childComplexity), true
 
 	case "LoginResponse.token":
 		if e.complexity.LoginResponse.Token == nil {
@@ -1048,6 +1068,10 @@ type Job {
   result: JobResult!
   createdMs: String!
   updatedMs: String!
+  output: JobOutput
+}
+
+type JobOutput {
   connection: PairwiseEdge
   message: BasicMessageEdge
 }
@@ -2076,14 +2100,14 @@ func (ec *executionContext) _Event_job(ctx context.Context, field graphql.Collec
 		Object:     "Event",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Job, nil
+		return ec.resolvers.Event().Job(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2108,14 +2132,14 @@ func (ec *executionContext) _Event_connection(ctx context.Context, field graphql
 		Object:     "Event",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Connection, nil
+		return ec.resolvers.Event().Connection(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2648,7 +2672,7 @@ func (ec *executionContext) _Job_updatedMs(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Job_connection(ctx context.Context, field graphql.CollectedField, obj *model.Job) (ret graphql.Marshaler) {
+func (ec *executionContext) _Job_output(ctx context.Context, field graphql.CollectedField, obj *model.Job) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2659,14 +2683,14 @@ func (ec *executionContext) _Job_connection(ctx context.Context, field graphql.C
 		Object:     "Job",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Connection, nil
+		return ec.resolvers.Job().Output(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2675,41 +2699,9 @@ func (ec *executionContext) _Job_connection(ctx context.Context, field graphql.C
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.PairwiseEdge)
+	res := resTmp.(*model.JobOutput)
 	fc.Result = res
-	return ec.marshalOPairwiseEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwiseEdge(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Job_message(ctx context.Context, field graphql.CollectedField, obj *model.Job) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Job",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Message, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.BasicMessageEdge)
-	fc.Result = res
-	return ec.marshalOBasicMessageEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐBasicMessageEdge(ctx, field.Selections, res)
+	return ec.marshalOJobOutput2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐJobOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _JobConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.JobConnection) (ret graphql.Marshaler) {
@@ -2914,6 +2906,70 @@ func (ec *executionContext) _JobEdge_node(ctx context.Context, field graphql.Col
 	res := resTmp.(*model.Job)
 	fc.Result = res
 	return ec.marshalNJob2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐJob(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _JobOutput_connection(ctx context.Context, field graphql.CollectedField, obj *model.JobOutput) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "JobOutput",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Connection, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.PairwiseEdge)
+	fc.Result = res
+	return ec.marshalOPairwiseEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwiseEdge(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _JobOutput_message(ctx context.Context, field graphql.CollectedField, obj *model.JobOutput) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "JobOutput",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.BasicMessageEdge)
+	fc.Result = res
+	return ec.marshalOBasicMessageEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐBasicMessageEdge(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LoginResponse_token(ctx context.Context, field graphql.CollectedField, obj *model.LoginResponse) (ret graphql.Marshaler) {
@@ -5785,27 +5841,45 @@ func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, ob
 		case "id":
 			out.Values[i] = ec._Event_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "read":
 			out.Values[i] = ec._Event_read(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "description":
 			out.Values[i] = ec._Event_description(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdMs":
 			out.Values[i] = ec._Event_createdMs(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "job":
-			out.Values[i] = ec._Event_job(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Event_job(ctx, field, obj)
+				return res
+			})
 		case "connection":
-			out.Values[i] = ec._Event_connection(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Event_connection(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5931,42 +6005,49 @@ func (ec *executionContext) _Job(ctx context.Context, sel ast.SelectionSet, obj 
 		case "id":
 			out.Values[i] = ec._Job_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "protocol":
 			out.Values[i] = ec._Job_protocol(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "initiatedByUs":
 			out.Values[i] = ec._Job_initiatedByUs(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "status":
 			out.Values[i] = ec._Job_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "result":
 			out.Values[i] = ec._Job_result(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdMs":
 			out.Values[i] = ec._Job_createdMs(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedMs":
 			out.Values[i] = ec._Job_updatedMs(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
-		case "connection":
-			out.Values[i] = ec._Job_connection(ctx, field, obj)
-		case "message":
-			out.Values[i] = ec._Job_message(ctx, field, obj)
+		case "output":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Job_output(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6035,6 +6116,32 @@ func (ec *executionContext) _JobEdge(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var jobOutputImplementors = []string{"JobOutput"}
+
+func (ec *executionContext) _JobOutput(ctx context.Context, sel ast.SelectionSet, obj *model.JobOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, jobOutputImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("JobOutput")
+		case "connection":
+			out.Values[i] = ec._JobOutput_connection(ctx, field, obj)
+		case "message":
+			out.Values[i] = ec._JobOutput_message(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7594,6 +7701,13 @@ func (ec *executionContext) marshalOJobEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋ
 		return graphql.Null
 	}
 	return ec._JobEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOJobOutput2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐJobOutput(ctx context.Context, sel ast.SelectionSet, v *model.JobOutput) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._JobOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOPairwise2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx context.Context, sel ast.SelectionSet, v []*model.Pairwise) graphql.Marshaler {

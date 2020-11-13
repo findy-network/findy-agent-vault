@@ -46,13 +46,21 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 // Subscription returns generated.SubscriptionResolver implementation.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
-// Pairwise returns generated.PairwiseResolver implementation.
-func (r *Resolver) Pairwise() generated.PairwiseResolver { return &pairwiseResolver{r} }
-
 // BasicMessage returns generated.BasicMessageResolver implementation.
 func (r *Resolver) BasicMessage() generated.BasicMessageResolver { return &basicMessageResolver{r} }
 
+// Event returns generated.EventResolver implementation.
+func (r *Resolver) Event() generated.EventResolver { return &eventResolver{r} }
+
+// Job returns generated.JobResolver implementation.
+func (r *Resolver) Job() generated.JobResolver { return &jobResolver{r} }
+
+// Pairwise returns generated.PairwiseResolver implementation.
+func (r *Resolver) Pairwise() generated.PairwiseResolver { return &pairwiseResolver{r} }
+
 type basicMessageResolver struct{ *Resolver }
+type eventResolver struct{ *Resolver }
+type jobResolver struct{ *Resolver }
 type pairwiseResolver struct{ *Resolver }
 
 type mutationResolver struct{ *Resolver }

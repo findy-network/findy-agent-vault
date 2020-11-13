@@ -108,6 +108,10 @@ type Job {
   result: JobResult!
   createdMs: String!
   updatedMs: String!
+  output: JobOutput
+}
+
+type JobOutput {
   connection: PairwiseEdge
   message: BasicMessageEdge
 }
