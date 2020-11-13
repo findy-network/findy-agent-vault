@@ -52,7 +52,7 @@ func (r *queryResolver) Events(
 	err2.Check(err)
 
 	glog.V(logLevelLow).Infof("Events: returning events between %d and %d", afterIndex, beforeIndex)
-	c = items.EventConnection(afterIndex, beforeIndex, state.Connections, state.Jobs)
+	c = items.EventConnection(afterIndex, beforeIndex)
 
 	return
 }
@@ -61,12 +61,38 @@ func (r *queryResolver) Event(ctx context.Context, id string) (node *model.Event
 	glog.V(logLevelMedium).Info("queryResolver:Event, id: ", id)
 
 	items := state.Events
-	edge := items.EventForID(id, state.Connections, state.Jobs)
+	edge := items.EventForID(id)
 	if edge == nil {
 		err = fmt.Errorf("event for id %s was not found", id)
 	} else {
 		node = edge.Node
 	}
+	return
+}
+
+func (r *eventResolver) Job(ctx context.Context, obj *model.Event) (edge *model.JobEdge, err error) {
+	glog.V(logLevelMedium).Info("eventResolver:Job, id: ", obj.ID)
+	defer err2.Return(&err)
+
+	if jobID := state.Events.EventJobID(obj.ID); jobID != nil {
+		edge = state.Jobs.JobForID(*jobID)
+	} else {
+		err = fmt.Errorf("job for event id %s was not found", obj.ID)
+	}
+
+	return
+}
+
+func (r *eventResolver) Connection(ctx context.Context, obj *model.Event) (pw *model.Pairwise, err error) {
+	glog.V(logLevelMedium).Info("eventResolver:Connection, id: ", obj.ID)
+	defer err2.Return(&err)
+
+	if cID := state.Events.EventConnectionID(obj.ID); cID != nil {
+		pw, err = r.Query().Connection(ctx, *cID)
+	} else {
+		err = fmt.Errorf("connection for event id %s was not found", obj.ID)
+	}
+
 	return
 }
 
@@ -95,7 +121,7 @@ func doAddEvent(event *data.InternalEvent) {
 	items.Append(event)
 	glog.Infof("Added event %s", event.ID)
 	for _, observer := range eventAddedObserver {
-		observer <- event.ToEdge(state.Connections, state.Jobs)
+		observer <- event.ToEdge()
 	}
 }
 

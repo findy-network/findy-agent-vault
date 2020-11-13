@@ -39,44 +39,72 @@ func (e *InternalEvent) BasicMessage() *InternalMessage {
 	panic("Event is not message")
 }
 
-func (e *InternalEvent) ToEdge(connections, jobs *Items) *model.EventEdge {
+func (e *InternalEvent) ToEdge() *model.EventEdge {
 	cursor := CreateCursor(e.CreatedMs, model.Event{})
 	return &model.EventEdge{
 		Cursor: cursor,
-		Node:   e.ToNode(connections, jobs),
+		Node:   e.ToNode(),
 	}
 }
 
-func (e *InternalEvent) ToNode(connections, jobs *Items) *model.Event {
+func (e *InternalEvent) ToNode() *model.Event {
 	createdStr := strconv.FormatInt(e.CreatedMs, 10)
-	var pw *model.Pairwise
-	var job *model.JobEdge
-	if e.PairwiseID != nil {
-		if edge := connections.PairwiseForID(*e.PairwiseID); edge != nil {
-			pw = edge.Node
-		}
-	}
-	if e.JobID != nil {
-		job = jobs.JobForID(*e.JobID, connections)
-	}
 	return &model.Event{
 		ID:          e.ID,
 		Read:        e.Read,
 		Description: e.Description,
 		CreatedMs:   createdStr,
-		Connection:  pw,
-		Job:         job,
 	}
 }
 
-func (i *Items) EventForID(id string, connections, jobs *Items) (edge *model.EventEdge) {
+func (i *Items) EventJobID(id string) (jobID *string) {
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
+
+	if id == "" {
+		return
+	}
+
+	for _, item := range i.items {
+		if item.Identifier() == id {
+			if jID := item.Event().JobID; jID != nil {
+				return jID
+			}
+			break
+		}
+	}
+
+	return
+}
+
+func (i *Items) EventConnectionID(id string) (jobID *string) {
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
+
+	if id == "" {
+		return
+	}
+
+	for _, item := range i.items {
+		if item.Identifier() == id {
+			if pwID := item.Event().PairwiseID; pwID != nil {
+				return pwID
+			}
+			break
+		}
+	}
+
+	return
+}
+
+func (i *Items) EventForID(id string) (edge *model.EventEdge) {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 
 	for _, item := range i.items {
 		if item.Identifier() == id {
 			event := item.Event()
-			edge = event.ToEdge(connections, jobs)
+			edge = event.ToEdge()
 			break
 		}
 	}
@@ -84,7 +112,7 @@ func (i *Items) EventForID(id string, connections, jobs *Items) (edge *model.Eve
 	return edge
 }
 
-func (i *Items) EventConnection(after, before int, connections, jobs *Items) *model.EventConnection {
+func (i *Items) EventConnection(after, before int) *model.EventConnection {
 	i.mutex.RLock()
 	result := i.items[after:before]
 	totalCount := len(result)
@@ -92,7 +120,7 @@ func (i *Items) EventConnection(after, before int, connections, jobs *Items) *mo
 	edges := make([]*model.EventEdge, totalCount)
 	nodes := make([]*model.Event, totalCount)
 	for index, event := range result {
-		node := event.Event().ToNode(connections, jobs)
+		node := event.Event().ToNode()
 		edges[index] = &model.EventEdge{
 			Cursor: CreateCursor(event.Event().CreatedMs, model.Event{}),
 			Node:   node,
