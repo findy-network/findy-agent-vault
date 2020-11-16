@@ -42,7 +42,7 @@ func (r *pairwiseResolver) Messages(
 	items = items.Filter(func(item data.APIObject) data.APIObject {
 		m := item.BasicMessage()
 		if m.PairwiseID == pw.ID {
-			return m
+			return m.Copy()
 		}
 		return nil
 	})

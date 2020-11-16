@@ -24,6 +24,13 @@ type Pairwise {
     first: Int
     last: Int
   ): BasicMessageConnection!
+  credentials(
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): CredentialConnection!
+  proofs(after: String, before: String, first: Int, last: Int): ProofConnection!
 }
 
 type PairwiseEdge {
@@ -55,6 +62,76 @@ type BasicMessageEdge {
 type BasicMessageConnection {
   edges: [BasicMessageEdge]
   nodes: [BasicMessage]
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+enum CredentialRole {
+  ISSUER
+  HOLDER
+}
+
+type CredentialValue {
+  name: String!
+  value: String!
+}
+
+type Credential {
+  id: ID!
+  role: CredentialRole!
+  schemaId: String!
+  credDefId: String!
+  attributes: [CredentialValue]
+  initiatedByUs: Boolean!
+  approvedMs: String
+  createdMs: String!
+  connection: Pairwise!
+}
+
+type CredentialEdge {
+  cursor: String!
+  node: Credential!
+}
+
+type CredentialConnection {
+  edges: [CredentialEdge]
+  nodes: [Credential]
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+enum ProofRole {
+  VERIFIER
+  PROVER
+}
+
+type ProofAttribute {
+  name: String!
+  value: String
+  credDefId: String!
+}
+
+type Proof {
+  id: ID!
+  role: ProofRole!
+  schemaId: String!
+  credDefId: String!
+  attributes: [ProofAttribute]!
+  initiatedByUs: Boolean!
+  verifiedMs: String
+  approvedMs: String
+  createdMs: String!
+  connection: Pairwise!
+}
+
+type ProofEdge {
+  cursor: String!
+  node: Proof!
+}
+
+type ProofConnection {
+  edges: [ProofEdge]
+  nodes: [Proof]
   pageInfo: PageInfo!
   totalCount: Int!
 }
@@ -114,6 +191,8 @@ type Job {
 type JobOutput {
   connection: PairwiseEdge
   message: BasicMessageEdge
+  credential: CredentialEdge
+  proof: ProofEdge
 }
 
 type JobEdge {
@@ -180,10 +259,26 @@ type Query {
 
   message(id: ID!): BasicMessage
 
+  credential(id: ID!): Credential
+  credentials(
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): CredentialConnection!
+
+  proof(id: ID!): Proof
+
   events(after: String, before: String, first: Int, last: Int): EventConnection!
   event(id: ID!): Event
 
-  jobs(after: String, before: String, first: Int, last: Int, completed: Boolean): JobConnection!
+  jobs(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    completed: Boolean
+  ): JobConnection!
   job(id: ID!): Job
 
   user: User!

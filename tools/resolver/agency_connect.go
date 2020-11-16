@@ -36,12 +36,14 @@ func (r *mutationResolver) Connect(_ context.Context, input model.ConnectInput) 
 func (l *agencyListener) AddConnection(id, ourDID, theirDID, theirEndpoint, theirLabel string) {
 	currentTime := utils.CurrentTimeMs()
 	doAddConnection(&data.InternalPairwise{
-		ID:            id,
+		BaseObject: &data.BaseObject{
+			ID:        id,
+			CreatedMs: currentTime,
+		},
 		OurDid:        ourDID,
 		TheirDid:      theirDID,
 		TheirEndpoint: theirEndpoint,
 		TheirLabel:    theirLabel,
 		ApprovedMs:    currentTime,
-		CreatedMs:     currentTime,
 	})
 }

@@ -15,6 +15,10 @@ func (r *basicMessageResolver) Connection(ctx context.Context, obj *model.BasicM
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *credentialResolver) Connection(ctx context.Context, obj *model.Credential) (*model.Pairwise, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *eventResolver) Job(ctx context.Context, obj *model.Event) (*model.JobEdge, error) {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -59,6 +63,18 @@ func (r *pairwiseResolver) Messages(ctx context.Context, obj *model.Pairwise, af
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *pairwiseResolver) Credentials(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.CredentialConnection, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *pairwiseResolver) Proofs(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.ProofConnection, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *proofResolver) Connection(ctx context.Context, obj *model.Proof) (*model.Pairwise, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) Connections(ctx context.Context, after *string, before *string, first *int, last *int) (*model.PairwiseConnection, error) {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -68,6 +84,18 @@ func (r *queryResolver) Connection(ctx context.Context, id string) (*model.Pairw
 }
 
 func (r *queryResolver) Message(ctx context.Context, id string) (*model.BasicMessage, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) Credential(ctx context.Context, id string) (*model.Credential, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) Credentials(ctx context.Context, after *string, before *string, first *int, last *int) (*model.CredentialConnection, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) Proof(ctx context.Context, id string) (*model.Proof, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
@@ -98,6 +126,9 @@ func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.Ev
 // BasicMessage returns generated.BasicMessageResolver implementation.
 func (r *Resolver) BasicMessage() generated.BasicMessageResolver { return &basicMessageResolver{r} }
 
+// Credential returns generated.CredentialResolver implementation.
+func (r *Resolver) Credential() generated.CredentialResolver { return &credentialResolver{r} }
+
 // Event returns generated.EventResolver implementation.
 func (r *Resolver) Event() generated.EventResolver { return &eventResolver{r} }
 
@@ -110,6 +141,9 @@ func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResol
 // Pairwise returns generated.PairwiseResolver implementation.
 func (r *Resolver) Pairwise() generated.PairwiseResolver { return &pairwiseResolver{r} }
 
+// Proof returns generated.ProofResolver implementation.
+func (r *Resolver) Proof() generated.ProofResolver { return &proofResolver{r} }
+
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
@@ -117,9 +151,11 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
 type basicMessageResolver struct{ *Resolver }
+type credentialResolver struct{ *Resolver }
 type eventResolver struct{ *Resolver }
 type jobResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type pairwiseResolver struct{ *Resolver }
+type proofResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
