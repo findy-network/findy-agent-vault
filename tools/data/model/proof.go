@@ -9,6 +9,7 @@ import (
 type ProofItems interface {
 	ProofConnection(after, before int) *model.ProofConnection
 	ProofForID(id string) *model.ProofEdge
+	ProofPairwiseID(id string) *string
 	Objects() *Items
 }
 
@@ -99,6 +100,25 @@ func (p *InternalProof) ToNode() *model.Proof {
 
 func (i *proofItems) Objects() *Items {
 	return i.Items
+}
+
+func (i *proofItems) ProofPairwiseID(id string) (connectionID *string) {
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
+
+	if id == "" {
+		return
+	}
+
+	for _, item := range i.items {
+		if item.Identifier() == id {
+			c := item.Proof().PairwiseID
+			connectionID = &c
+			break
+		}
+	}
+
+	return
 }
 
 func (i *proofItems) ProofForID(id string) (edge *model.ProofEdge) {

@@ -9,6 +9,7 @@ import (
 type CredentialItems interface {
 	CredentialConnection(after, before int) *model.CredentialConnection
 	CredentialForID(id string) *model.CredentialEdge
+	CredentialPairwiseID(id string) *string
 	Objects() *Items
 }
 
@@ -88,6 +89,25 @@ func (c *InternalCredential) ToNode() *model.Credential {
 
 func (i *credentialItems) Objects() *Items {
 	return i.Items
+}
+
+func (i *credentialItems) CredentialPairwiseID(id string) (connectionID *string) {
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
+
+	if id == "" {
+		return
+	}
+
+	for _, item := range i.items {
+		if item.Identifier() == id {
+			c := item.Credential().PairwiseID
+			connectionID = &c
+			break
+		}
+	}
+
+	return
 }
 
 func (i *credentialItems) CredentialForID(id string) (edge *model.CredentialEdge) {
