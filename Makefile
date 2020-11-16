@@ -42,7 +42,7 @@ test:
 	go test -v ./...
 
 test_cov:
-	go test -v -p 1 -failfast -coverprofile=c.out ./... && go tool cover -html=c.out
+	go test -v -coverprofile=c.out ./... && go tool cover -html=c.out
 
 check: check_fmt vet shadow
 
