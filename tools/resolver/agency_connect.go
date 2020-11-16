@@ -47,3 +47,21 @@ func (l *agencyListener) AddConnection(id, ourDID, theirDID, theirEndpoint, thei
 		ApprovedMs:    currentTime,
 	})
 }
+
+func doAddConnection(connection *data.InternalPairwise) {
+	items := state.Connections().Objects()
+	connection.CreatedMs = utils.CurrentTimeMs()
+	initiatedByUs := state.Jobs.IsJobInitiatedByUs(connection.ID)
+	if initiatedByUs != nil {
+		connection.Invited = *initiatedByUs
+	}
+	items.Append(connection)
+	glog.Infof("Added connection %s", connection.ID)
+	updateJob(
+		connection.ID,
+		&connection.ID,
+		&connection.ID,
+		model.JobStatusComplete,
+		model.JobResultSuccess,
+		"Established connection to "+connection.TheirLabel)
+}
