@@ -76,14 +76,16 @@ func addJob(
 	timeNow := utils.CurrentTimeMs()
 	items := state.Jobs
 	items.Append(&data.InternalJob{
-		ID:            id,
+		BaseObject: &data.BaseObject{
+			ID:        id,
+			CreatedMs: timeNow,
+		},
 		ProtocolType:  protocol,
 		ProtocolID:    protocolID,
 		InitiatedByUs: initiatedByUs,
 		PairwiseID:    pairwiseID,
 		Status:        model.JobStatusWaiting,
 		Result:        model.JobResultNone,
-		CreatedMs:     timeNow,
 		UpdatedMs:     timeNow,
 	})
 	glog.Infof("Added job %s", id)

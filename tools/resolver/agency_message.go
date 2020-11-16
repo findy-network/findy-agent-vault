@@ -35,12 +35,14 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input model.MessageI
 func (l *agencyListener) AddMessage(connectionID, id, message string, sentByMe bool) {
 	currentTime := utils.CurrentTimeMs()
 	msg := data.InternalMessage{
-		ID:         id,
+		BaseObject: &data.BaseObject{
+			ID:        id,
+			CreatedMs: currentTime,
+		},
 		Message:    message,
 		PairwiseID: connectionID,
 		SentByMe:   sentByMe,
 		Delivered:  nil,
-		CreatedMs:  currentTime,
 	}
 	state.Messages.Append(&msg)
 	glog.Infof("Added message %s", msg.ID)
