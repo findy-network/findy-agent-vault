@@ -80,6 +80,7 @@ type ComplexityRoot struct {
 		CredDefID     func(childComplexity int) int
 		ID            func(childComplexity int) int
 		InitiatedByUs func(childComplexity int) int
+		IssuedMs      func(childComplexity int) int
 		Role          func(childComplexity int) int
 		SchemaID      func(childComplexity int) int
 	}
@@ -209,11 +210,10 @@ type ComplexityRoot struct {
 		Attributes    func(childComplexity int) int
 		Connection    func(childComplexity int) int
 		CreatedMs     func(childComplexity int) int
-		CredDefID     func(childComplexity int) int
 		ID            func(childComplexity int) int
 		InitiatedByUs func(childComplexity int) int
+		Result        func(childComplexity int) int
 		Role          func(childComplexity int) int
-		SchemaID      func(childComplexity int) int
 		VerifiedMs    func(childComplexity int) int
 	}
 
@@ -457,6 +457,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Credential.InitiatedByUs(childComplexity), true
+
+	case "Credential.issuedMs":
+		if e.complexity.Credential.IssuedMs == nil {
+			break
+		}
+
+		return e.complexity.Credential.IssuedMs(childComplexity), true
 
 	case "Credential.role":
 		if e.complexity.Credential.Role == nil {
@@ -1023,13 +1030,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Proof.CreatedMs(childComplexity), true
 
-	case "Proof.credDefId":
-		if e.complexity.Proof.CredDefID == nil {
-			break
-		}
-
-		return e.complexity.Proof.CredDefID(childComplexity), true
-
 	case "Proof.id":
 		if e.complexity.Proof.ID == nil {
 			break
@@ -1044,19 +1044,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Proof.InitiatedByUs(childComplexity), true
 
+	case "Proof.result":
+		if e.complexity.Proof.Result == nil {
+			break
+		}
+
+		return e.complexity.Proof.Result(childComplexity), true
+
 	case "Proof.role":
 		if e.complexity.Proof.Role == nil {
 			break
 		}
 
 		return e.complexity.Proof.Role(childComplexity), true
-
-	case "Proof.schemaId":
-		if e.complexity.Proof.SchemaID == nil {
-			break
-		}
-
-		return e.complexity.Proof.SchemaID(childComplexity), true
 
 	case "Proof.verifiedMs":
 		if e.complexity.Proof.VerifiedMs == nil {
@@ -1450,6 +1450,7 @@ type Credential {
   attributes: [CredentialValue]
   initiatedByUs: Boolean!
   approvedMs: String
+  issuedMs: String
   createdMs: String!
   connection: Pairwise!
 }
@@ -1480,10 +1481,9 @@ type ProofAttribute {
 type Proof {
   id: ID!
   role: ProofRole!
-  schemaId: String!
-  credDefId: String!
   attributes: [ProofAttribute]!
   initiatedByUs: Boolean!
+  result: Boolean!
   verifiedMs: String
   approvedMs: String
   createdMs: String!
@@ -2832,6 +2832,38 @@ func (ec *executionContext) _Credential_approvedMs(ctx context.Context, field gr
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ApprovedMs, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Credential_issuedMs(ctx context.Context, field graphql.CollectedField, obj *model.Credential) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Credential",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IssuedMs, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5402,76 +5434,6 @@ func (ec *executionContext) _Proof_role(ctx context.Context, field graphql.Colle
 	return ec.marshalNProofRole2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofRole(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Proof_schemaId(ctx context.Context, field graphql.CollectedField, obj *model.Proof) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Proof",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.SchemaID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Proof_credDefId(ctx context.Context, field graphql.CollectedField, obj *model.Proof) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Proof",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CredDefID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Proof_attributes(ctx context.Context, field graphql.CollectedField, obj *model.Proof) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5526,6 +5488,41 @@ func (ec *executionContext) _Proof_initiatedByUs(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.InitiatedByUs, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Proof_result(ctx context.Context, field graphql.CollectedField, obj *model.Proof) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Proof",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Result, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8025,6 +8022,8 @@ func (ec *executionContext) _Credential(ctx context.Context, sel ast.SelectionSe
 			}
 		case "approvedMs":
 			out.Values[i] = ec._Credential_approvedMs(ctx, field, obj)
+		case "issuedMs":
+			out.Values[i] = ec._Credential_issuedMs(ctx, field, obj)
 		case "createdMs":
 			out.Values[i] = ec._Credential_createdMs(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -8799,16 +8798,6 @@ func (ec *executionContext) _Proof(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "schemaId":
-			out.Values[i] = ec._Proof_schemaId(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "credDefId":
-			out.Values[i] = ec._Proof_credDefId(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "attributes":
 			out.Values[i] = ec._Proof_attributes(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -8816,6 +8805,11 @@ func (ec *executionContext) _Proof(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "initiatedByUs":
 			out.Values[i] = ec._Proof_initiatedByUs(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "result":
+			out.Values[i] = ec._Proof_result(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
