@@ -10,6 +10,7 @@ type CredentialItems interface {
 	CredentialConnection(after, before int) *model.CredentialConnection
 	CredentialForID(id string) *model.CredentialEdge
 	CredentialPairwiseID(id string) *string
+	UpdateCredential(id string, approvedMs, issuedMs *int64) *model.CredentialRole
 	Objects() *Items
 }
 
@@ -19,13 +20,14 @@ type credentialItems struct{ *Items }
 
 type InternalCredential struct {
 	*BaseObject
-	CredentialRole model.CredentialRole
-	SchemaID       string
-	CredDefID      string
-	Attributes     []*model.CredentialValue
-	InitiatedByUs  bool
-	ApprovedMs     *int64
-	PairwiseID     string `faker:"pairwiseId"`
+	Role          model.CredentialRole
+	SchemaID      string
+	CredDefID     string
+	Attributes    []*model.CredentialValue
+	InitiatedByUs bool
+	ApprovedMs    *int64
+	IssuedMs      *int64
+	PairwiseID    string `faker:"pairwiseId"`
 }
 
 func (c *InternalCredential) Credential() *InternalCredential {
@@ -33,10 +35,14 @@ func (c *InternalCredential) Credential() *InternalCredential {
 }
 
 func (c *InternalCredential) Copy() *InternalCredential {
-	var approvedMs *int64
+	var approvedMs, issuedMs *int64
 	if c.ApprovedMs != nil {
 		a := *c.ApprovedMs
 		approvedMs = &a
+	}
+	if c.IssuedMs != nil {
+		i := *c.IssuedMs
+		issuedMs = &i
 	}
 	values := make([]*model.CredentialValue, 0)
 	for i := range c.Attributes {
@@ -48,13 +54,14 @@ func (c *InternalCredential) Copy() *InternalCredential {
 			ID:        c.ID,
 			CreatedMs: c.CreatedMs,
 		},
-		CredentialRole: c.CredentialRole,
-		SchemaID:       c.SchemaID,
-		CredDefID:      c.CredDefID,
-		Attributes:     values,
-		InitiatedByUs:  c.InitiatedByUs,
-		ApprovedMs:     approvedMs,
-		PairwiseID:     c.PairwiseID,
+		Role:          c.Role,
+		SchemaID:      c.SchemaID,
+		CredDefID:     c.CredDefID,
+		Attributes:    values,
+		InitiatedByUs: c.InitiatedByUs,
+		ApprovedMs:    approvedMs,
+		IssuedMs:      issuedMs,
+		PairwiseID:    c.PairwiseID,
 	}
 	return newCred
 }
@@ -70,19 +77,24 @@ func (c *InternalCredential) ToEdge() *model.CredentialEdge {
 func (c *InternalCredential) ToNode() *model.Credential {
 
 	cred := c.Copy()
-	var approvedMs *string
+	var approvedMs, issuedMs *string
 	if cred.ApprovedMs != nil {
 		a := strconv.FormatInt(*cred.ApprovedMs, 10)
 		approvedMs = &a
 	}
+	if cred.IssuedMs != nil {
+		i := strconv.FormatInt(*cred.IssuedMs, 10)
+		issuedMs = &i
+	}
 	return &model.Credential{
 		ID:            cred.ID,
-		Role:          cred.CredentialRole,
+		Role:          cred.Role,
 		SchemaID:      cred.SchemaID,
 		CredDefID:     cred.CredDefID,
 		Attributes:    cred.Attributes,
 		InitiatedByUs: cred.InitiatedByUs,
 		ApprovedMs:    approvedMs,
+		IssuedMs:      issuedMs,
 		CreatedMs:     strconv.FormatInt(cred.CreatedMs, 10),
 	}
 }
@@ -162,4 +174,26 @@ func (i *credentialItems) CredentialConnection(after, before int) *model.Credent
 		TotalCount: totalCount,
 	}
 	return p
+}
+
+func (i *credentialItems) UpdateCredential(id string, approvedMs, issuedMs *int64) *model.CredentialRole {
+	i.mutex.Lock()
+	defer i.mutex.Unlock()
+
+	for _, item := range i.items {
+		if item.Identifier() != id {
+			continue
+		}
+		cred := item.Credential()
+		if approvedMs != nil {
+			cred.ApprovedMs = approvedMs
+		}
+		if issuedMs != nil {
+			cred.IssuedMs = issuedMs
+		}
+		role := cred.Role
+		return &role
+	}
+
+	return nil
 }

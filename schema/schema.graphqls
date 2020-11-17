@@ -84,6 +84,7 @@ type Credential {
   attributes: [CredentialValue]
   initiatedByUs: Boolean!
   approvedMs: String
+  issuedMs: String
   createdMs: String!
   connection: Pairwise!
 }
@@ -114,10 +115,9 @@ type ProofAttribute {
 type Proof {
   id: ID!
   role: ProofRole!
-  schemaId: String!
-  credDefId: String!
   attributes: [ProofAttribute]!
   initiatedByUs: Boolean!
+  result: Boolean!
   verifiedMs: String
   approvedMs: String
   createdMs: String!

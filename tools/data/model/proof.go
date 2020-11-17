@@ -10,6 +10,7 @@ type ProofItems interface {
 	ProofConnection(after, before int) *model.ProofConnection
 	ProofForID(id string) *model.ProofEdge
 	ProofPairwiseID(id string) *string
+	UpdateProof(id string, result *bool, verifiedMs, approvedMs *int64) *model.ProofRole
 	Objects() *Items
 }
 
@@ -19,11 +20,10 @@ type proofItems struct{ *Items }
 
 type InternalProof struct {
 	*BaseObject
-	ProofRole     model.ProofRole
-	SchemaID      string
-	CredDefID     string
+	Role          model.ProofRole
 	Attributes    []*model.ProofAttribute
 	InitiatedByUs bool
+	Result        bool
 	VerifiedMs    *int64
 	ApprovedMs    *int64
 	PairwiseID    string `faker:"pairwiseId"`
@@ -53,11 +53,10 @@ func (p *InternalProof) Copy() *InternalProof {
 			ID:        p.ID,
 			CreatedMs: p.CreatedMs,
 		},
-		ProofRole:     p.ProofRole,
-		SchemaID:      p.SchemaID,
-		CredDefID:     p.CredDefID,
+		Role:          p.Role,
 		Attributes:    attributes,
 		InitiatedByUs: p.InitiatedByUs,
+		Result:        p.Result,
 		VerifiedMs:    verifiedMs,
 		ApprovedMs:    approvedMs,
 		PairwiseID:    p.PairwiseID,
@@ -87,11 +86,10 @@ func (p *InternalProof) ToNode() *model.Proof {
 	}
 	return &model.Proof{
 		ID:            proof.ID,
-		Role:          proof.ProofRole,
-		SchemaID:      proof.SchemaID,
-		CredDefID:     proof.CredDefID,
+		Role:          proof.Role,
 		Attributes:    proof.Attributes,
 		InitiatedByUs: proof.InitiatedByUs,
+		Result:        p.Result,
 		VerifiedMs:    verifiedMs,
 		ApprovedMs:    approvedMs,
 		CreatedMs:     strconv.FormatInt(proof.CreatedMs, 10),
@@ -173,4 +171,29 @@ func (i *proofItems) ProofConnection(after, before int) *model.ProofConnection {
 		TotalCount: totalCount,
 	}
 	return p
+}
+
+func (i *proofItems) UpdateProof(id string, result *bool, verifiedMs, approvedMs *int64) *model.ProofRole {
+	i.mutex.Lock()
+	defer i.mutex.Unlock()
+
+	for _, item := range i.items {
+		if item.Identifier() != id {
+			continue
+		}
+		proof := item.Proof()
+		if result != nil {
+			proof.Result = *result
+		}
+		if verifiedMs != nil {
+			proof.VerifiedMs = verifiedMs
+		}
+		if approvedMs != nil {
+			proof.ApprovedMs = approvedMs
+		}
+		r := proof.Role
+		return &r
+	}
+
+	return nil
 }

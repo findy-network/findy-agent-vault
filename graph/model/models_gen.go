@@ -41,6 +41,7 @@ type Credential struct {
 	Attributes    []*CredentialValue `json:"attributes"`
 	InitiatedByUs bool               `json:"initiatedByUs"`
 	ApprovedMs    *string            `json:"approvedMs"`
+	IssuedMs      *string            `json:"issuedMs"`
 	CreatedMs     string             `json:"createdMs"`
 	Connection    *Pairwise          `json:"connection"`
 }
@@ -172,10 +173,9 @@ type PairwiseEdge struct {
 type Proof struct {
 	ID            string            `json:"id"`
 	Role          ProofRole         `json:"role"`
-	SchemaID      string            `json:"schemaId"`
-	CredDefID     string            `json:"credDefId"`
 	Attributes    []*ProofAttribute `json:"attributes"`
 	InitiatedByUs bool              `json:"initiatedByUs"`
+	Result        bool              `json:"result"`
 	VerifiedMs    *string           `json:"verifiedMs"`
 	ApprovedMs    *string           `json:"approvedMs"`
 	CreatedMs     string            `json:"createdMs"`
