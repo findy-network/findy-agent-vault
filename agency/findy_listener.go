@@ -24,6 +24,13 @@ type statusPairwise struct {
 	TheirLabel    string `json:"theirLabel"`
 }
 
+type statusBasicMessage struct {
+	PwName    string `json:"pairwise"`
+	Message   string `json:"message"`
+	SentByMe  bool   `json:"sentByMe"`
+	Delivered bool   `json:"delivered"`
+}
+
 // TODO: use IDL/findy-agent types
 func (f *Findy) findyCallback(pl *mesg.Payload) (while bool, err error) {
 	defer err2.Return(&err)
@@ -42,6 +49,13 @@ func (f *Findy) findyCallback(pl *mesg.Payload) (while bool, err error) {
 			err2.Check(err)
 
 			f.listener.AddConnection(c.Name, c.MyDID, c.TheirDID, c.TheirEndpoint, c.TheirLabel)
+		case pltype.ProtocolBasicMessage:
+			var m statusBasicMessage
+			err = mapstructure.Decode(status.Payload, &m)
+			err2.Check(err)
+
+			id := f.taskMapper.read(status.ID)
+			f.listener.AddMessage(m.PwName, id, m.Message, m.SentByMe)
 		}
 	default:
 		fmt.Println(dto.ToJSON(pl))
