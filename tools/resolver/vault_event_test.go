@@ -13,16 +13,12 @@ type EvTestRes struct {
 	Error  error
 }
 
-type EventsExecutor struct{}
-
-func (*EventsExecutor) Request(ctx context.Context, after, before *string, first, last *int) error {
-	r := Resolver{}
-	_, err := r.Query().Events(context.TODO(), after, before, first, last)
-	return err
-}
-
 func TestPaginationErrorsGetEvents(t *testing.T) {
-	testPaginationErrors(t, "events", &EventsExecutor{})
+	testPaginationErrors(t, "events", func(ctx context.Context, after, before *string, first, last *int) error {
+		r := Resolver{}
+		_, err := r.Query().Events(context.TODO(), after, before, first, last)
+		return err
+	})
 }
 
 func TestGetEvents(t *testing.T) {
