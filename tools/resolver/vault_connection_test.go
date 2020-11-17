@@ -8,16 +8,12 @@ import (
 	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
-type ConnectionsExecutor struct{}
-
-func (*ConnectionsExecutor) Request(ctx context.Context, after, before *string, first, last *int) error {
-	r := Resolver{}
-	_, err := r.Query().Connections(context.TODO(), after, before, first, last)
-	return err
-}
-
 func TestPaginationErrorsGetConnections(t *testing.T) {
-	testPaginationErrors(t, "connections", &ConnectionsExecutor{})
+	testPaginationErrors(t, "connections", func(ctx context.Context, after, before *string, first, last *int) error {
+		r := Resolver{}
+		_, err := r.Query().Connections(context.TODO(), after, before, first, last)
+		return err
+	})
 }
 
 func TestGetConnections(t *testing.T) {
