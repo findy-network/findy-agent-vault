@@ -46,13 +46,11 @@ func (state *Data) Connections() our.ConnectionItems {
 	return state.connections.Connections()
 }
 
-func (state *Data) Credentials() our.CredentialItems {
-	return state.credentials.Credentials()
+func (state *Data) Credentials() *our.CredentialItems {
+	return &our.CredentialItems{Items: state.credentials}
 }
 
-func (state *Data) Proofs() our.ProofItems {
-	return state.proofs.Proofs()
-}
+func (state *Data) Proofs() *our.ProofItems { return &our.ProofItems{Items: state.proofs} }
 
 func (state *Data) OutputForJob(id string) (output *model.JobOutput) {
 	output = &model.JobOutput{

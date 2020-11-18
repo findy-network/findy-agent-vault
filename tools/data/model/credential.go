@@ -6,17 +6,9 @@ import (
 	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
-type CredentialItems interface {
-	CredentialConnection(after, before int) *model.CredentialConnection
-	CredentialForID(id string) *model.CredentialEdge
-	CredentialPairwiseID(id string) *string
-	UpdateCredential(id string, approvedMs, issuedMs, failedMs *int64) *ProtocolStatus
-	Objects() *Items
+type CredentialItems struct {
+	*Items
 }
-
-func (i *Items) Credentials() CredentialItems { return &credentialItems{i} }
-
-type credentialItems struct{ *Items }
 
 type InternalCredential struct {
 	*BaseObject
@@ -139,11 +131,11 @@ func (c *InternalCredential) ToNode() *model.Credential {
 	}
 }
 
-func (i *credentialItems) Objects() *Items {
+func (i *CredentialItems) Objects() *Items {
 	return i.Items
 }
 
-func (i *credentialItems) CredentialPairwiseID(id string) (connectionID *string) {
+func (i *CredentialItems) CredentialPairwiseID(id string) (connectionID *string) {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 
@@ -162,7 +154,7 @@ func (i *credentialItems) CredentialPairwiseID(id string) (connectionID *string)
 	return
 }
 
-func (i *credentialItems) CredentialForID(id string) (edge *model.CredentialEdge) {
+func (i *CredentialItems) CredentialForID(id string) (edge *model.CredentialEdge) {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 
@@ -180,7 +172,7 @@ func (i *credentialItems) CredentialForID(id string) (edge *model.CredentialEdge
 	return
 }
 
-func (i *credentialItems) CredentialConnection(after, before int) *model.CredentialConnection {
+func (i *CredentialItems) CredentialConnection(after, before int) *model.CredentialConnection {
 	i.mutex.RLock()
 	result := i.items[after:before]
 	totalCount := len(result)
@@ -216,7 +208,7 @@ func (i *credentialItems) CredentialConnection(after, before int) *model.Credent
 	return p
 }
 
-func (i *credentialItems) UpdateCredential(id string, approvedMs, issuedMs, failedMs *int64) *ProtocolStatus {
+func (i *CredentialItems) UpdateCredential(id string, approvedMs, issuedMs, failedMs *int64) *ProtocolStatus {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
 

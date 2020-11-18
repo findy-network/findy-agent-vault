@@ -35,7 +35,12 @@ func (r *queryResolver) Proof(ctx context.Context, id string) (node *model.Proof
 	return
 }
 
-func (r *pairwiseResolver) Proofs(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (c *model.ProofConnection, err error) {
+func (r *pairwiseResolver) Proofs(
+	ctx context.Context,
+	obj *model.Pairwise,
+	after, before *string,
+	first, last *int,
+) (c *model.ProofConnection, err error) {
 	defer err2.Return(&err)
 	pagination := &PaginationParams{
 		first:  first,
@@ -45,19 +50,19 @@ func (r *pairwiseResolver) Proofs(ctx context.Context, obj *model.Pairwise, afte
 	}
 	logPaginationRequest("pairwiseResolver:proofs", pagination)
 
-	items := state.Proofs().Objects()
-	items = items.Filter(func(item data.APIObject) data.APIObject {
+	items := state.Proofs()
+	items = &data.ProofItems{Items: items.Filter(func(item data.APIObject) data.APIObject {
 		c := item.Proof()
-		if c.PairwiseID == c.ID {
+		if c.VerifiedMs != nil && c.PairwiseID == obj.ID {
 			return c.Copy()
 		}
 		return nil
-	})
+	})}
 
-	afterIndex, beforeIndex, err := pick(items, pagination)
+	afterIndex, beforeIndex, err := pick(items.Objects(), pagination)
 	err2.Check(err)
 
 	glog.V(logLevelLow).Infof("Proofs: returning proofs between %d and %d", afterIndex, beforeIndex)
 
-	return state.Proofs().ProofConnection(afterIndex, beforeIndex), nil
+	return items.ProofConnection(afterIndex, beforeIndex), nil
 }

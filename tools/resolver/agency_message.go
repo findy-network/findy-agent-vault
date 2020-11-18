@@ -45,7 +45,7 @@ func (l *agencyListener) AddMessage(connectionID, id, message string, sentByMe b
 		Delivered:  nil,
 	}
 	state.Messages.Append(&msg)
-	glog.Infof("Added message %s", msg.ID)
+	glog.Infof("Added message %s for connection %s", msg.ID, connectionID)
 
 	addJob(
 		id,

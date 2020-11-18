@@ -21,9 +21,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func setup() {
-	utils.SetLogDefaults()
-
+func resetResolver() {
 	r := InitResolver()
 
 	// Generate some jobs data
@@ -38,6 +36,12 @@ func setup() {
 	if err != nil {
 		panic("Connect request failed")
 	}
+}
+
+func setup() {
+	utils.SetLogDefaults()
+
+	resetResolver()
 }
 
 func teardown() {

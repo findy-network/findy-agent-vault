@@ -35,7 +35,11 @@ func (r *queryResolver) Credential(ctx context.Context, id string) (node *model.
 	return
 }
 
-func (r *queryResolver) Credentials(ctx context.Context, after *string, before *string, first *int, last *int) (c *model.CredentialConnection, err error) {
+func (r *queryResolver) Credentials(
+	ctx context.Context,
+	after, before *string,
+	first, last *int,
+) (c *model.CredentialConnection, err error) {
 	defer err2.Return(&err)
 
 	pagination := &PaginationParams{
@@ -47,6 +51,15 @@ func (r *queryResolver) Credentials(ctx context.Context, after *string, before *
 	logPaginationRequest("queryResolver:credentials", pagination)
 
 	items := state.Credentials()
+	items = &data.CredentialItems{Items: items.Filter(func(item data.APIObject) data.APIObject {
+		c := item.Credential()
+		fmt.Println(c)
+		if c.IssuedMs != nil {
+			return c.Copy()
+		}
+		return nil
+	}),
+	}
 
 	afterIndex, beforeIndex, err := pick(items.Objects(), pagination)
 	err2.Check(err)
@@ -54,10 +67,15 @@ func (r *queryResolver) Credentials(ctx context.Context, after *string, before *
 	glog.V(logLevelLow).Infof("Credentials: returning connections between %d and %d", afterIndex, beforeIndex)
 	c = items.CredentialConnection(afterIndex, beforeIndex)
 
-	return
+	return c, err
 }
 
-func (r *pairwiseResolver) Credentials(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (c *model.CredentialConnection, err error) {
+func (r *pairwiseResolver) Credentials(
+	ctx context.Context,
+	obj *model.Pairwise,
+	after, before *string,
+	first, last *int,
+) (c *model.CredentialConnection, err error) {
 	defer err2.Return(&err)
 	pagination := &PaginationParams{
 		first:  first,
@@ -67,19 +85,21 @@ func (r *pairwiseResolver) Credentials(ctx context.Context, obj *model.Pairwise,
 	}
 	logPaginationRequest("pairwiseResolver:credentials", pagination)
 
-	items := state.Credentials().Objects()
-	items = items.Filter(func(item data.APIObject) data.APIObject {
+	items := state.Credentials()
+	items = &data.CredentialItems{Items: items.Filter(func(item data.APIObject) data.APIObject {
 		c := item.Credential()
-		if c.PairwiseID == c.ID {
+		fmt.Println(c)
+		if c.IssuedMs != nil && c.PairwiseID == obj.ID {
 			return c.Copy()
 		}
 		return nil
-	})
+	}),
+	}
 
-	afterIndex, beforeIndex, err := pick(items, pagination)
+	afterIndex, beforeIndex, err := pick(items.Objects(), pagination)
 	err2.Check(err)
 
 	glog.V(logLevelLow).Infof("Credentials: returning credentials between %d and %d", afterIndex, beforeIndex)
 
-	return state.Credentials().CredentialConnection(afterIndex, beforeIndex), nil
+	return items.CredentialConnection(afterIndex, beforeIndex), nil
 }

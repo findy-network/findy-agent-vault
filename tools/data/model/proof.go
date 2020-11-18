@@ -6,17 +6,9 @@ import (
 	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
-type ProofItems interface {
-	ProofConnection(after, before int) *model.ProofConnection
-	ProofForID(id string) *model.ProofEdge
-	ProofPairwiseID(id string) *string
-	UpdateProof(id string, result *bool, verifiedMs, approvedMs, failedMs *int64) *ProtocolStatus
-	Objects() *Items
+type ProofItems struct {
+	*Items
 }
-
-func (i *Items) Proofs() ProofItems { return &proofItems{i} }
-
-type proofItems struct{ *Items }
 
 type InternalProof struct {
 	*BaseObject
@@ -89,7 +81,7 @@ func (p *InternalProof) Copy() *InternalProof {
 		a := *p.Attributes[i]
 		attributes = append(attributes, &a)
 	}
-	newCred := &InternalProof{
+	newProof := &InternalProof{
 		BaseObject: &BaseObject{
 			ID:        p.ID,
 			CreatedMs: p.CreatedMs,
@@ -102,7 +94,7 @@ func (p *InternalProof) Copy() *InternalProof {
 		ApprovedMs:    approvedMs,
 		PairwiseID:    p.PairwiseID,
 	}
-	return newCred
+	return newProof
 }
 
 func (p *InternalProof) ToEdge() *model.ProofEdge {
@@ -114,33 +106,32 @@ func (p *InternalProof) ToEdge() *model.ProofEdge {
 }
 
 func (p *InternalProof) ToNode() *model.Proof {
-	proof := p.Copy()
 	var approvedMs, verifiedMs *string
-	if proof.ApprovedMs != nil {
-		a := strconv.FormatInt(*proof.ApprovedMs, 10)
+	if p.ApprovedMs != nil {
+		a := strconv.FormatInt(*p.ApprovedMs, 10)
 		approvedMs = &a
 	}
-	if proof.VerifiedMs != nil {
-		v := strconv.FormatInt(*proof.VerifiedMs, 10)
+	if p.VerifiedMs != nil {
+		v := strconv.FormatInt(*p.VerifiedMs, 10)
 		verifiedMs = &v
 	}
 	return &model.Proof{
-		ID:            proof.ID,
-		Role:          proof.Role,
-		Attributes:    proof.Attributes,
-		InitiatedByUs: proof.InitiatedByUs,
+		ID:            p.ID,
+		Role:          p.Role,
+		Attributes:    p.Attributes,
+		InitiatedByUs: p.InitiatedByUs,
 		Result:        p.Result,
 		VerifiedMs:    verifiedMs,
 		ApprovedMs:    approvedMs,
-		CreatedMs:     strconv.FormatInt(proof.CreatedMs, 10),
+		CreatedMs:     strconv.FormatInt(p.CreatedMs, 10),
 	}
 }
 
-func (i *proofItems) Objects() *Items {
+func (i *ProofItems) Objects() *Items {
 	return i.Items
 }
 
-func (i *proofItems) ProofPairwiseID(id string) (connectionID *string) {
+func (i *ProofItems) ProofPairwiseID(id string) (connectionID *string) {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 
@@ -159,7 +150,7 @@ func (i *proofItems) ProofPairwiseID(id string) (connectionID *string) {
 	return
 }
 
-func (i *proofItems) ProofForID(id string) (edge *model.ProofEdge) {
+func (i *ProofItems) ProofForID(id string) (edge *model.ProofEdge) {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 
@@ -177,15 +168,15 @@ func (i *proofItems) ProofForID(id string) (edge *model.ProofEdge) {
 	return
 }
 
-func (i *proofItems) ProofConnection(after, before int) *model.ProofConnection {
+func (i *ProofItems) ProofConnection(after, before int) *model.ProofConnection {
 	i.mutex.RLock()
 	result := i.items[after:before]
 	totalCount := len(result)
 
 	edges := make([]*model.ProofEdge, totalCount)
 	nodes := make([]*model.Proof, totalCount)
-	for index, pairwise := range result {
-		edge := pairwise.Proof().ToEdge()
+	for index, item := range result {
+		edge := item.Proof().ToEdge()
 		edges[index] = edge
 		nodes[index] = edge.Node
 	}
@@ -213,7 +204,7 @@ func (i *proofItems) ProofConnection(after, before int) *model.ProofConnection {
 	return p
 }
 
-func (i *proofItems) UpdateProof(id string, result *bool, verifiedMs, approvedMs, failedMs *int64) *ProtocolStatus {
+func (i *ProofItems) UpdateProof(id string, result *bool, verifiedMs, approvedMs, failedMs *int64) *ProtocolStatus {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
 
