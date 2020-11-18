@@ -87,8 +87,8 @@ func (i *Items) Filter(fn func(item APIObject) APIObject) *Items {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 	f := NewItems(i.apiType)
-	for _, i := range i.items {
-		res := fn(i)
+	for index := range i.items {
+		res := fn(i.items[index])
 		if res != nil {
 			f.Append(res)
 		}

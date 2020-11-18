@@ -1,7 +1,13 @@
 package resolver
 
 import (
+	"context"
+	"reflect"
+	"testing"
+
 	"github.com/findy-network/findy-agent-vault/graph/model"
+	"github.com/findy-network/findy-agent-vault/tools/utils"
+	"github.com/google/uuid"
 )
 
 type ProofTestRes struct {
@@ -10,41 +16,45 @@ type ProofTestRes struct {
 	ExpectsError bool
 }
 
-/*func checkProof(r *Resolver, pw *model.Pairwise, t *testing.T, name string, got, expected *ProofTestRes) {
+func checkProof(r *Resolver, pw *model.Pairwise, t *testing.T, name string, got, expected *ProofTestRes) {
 	if got.Error == nil && !expected.ExpectsError {
 		if expected.Proof.ID != got.Proof.ID ||
-			expected.Proof.Proof != got.Proof.Proof ||
-			expected.Proof.SentByMe != got.Proof.SentByMe ||
+			expected.Proof.Role != got.Proof.Role ||
+			expected.Proof.InitiatedByUs != got.Proof.InitiatedByUs ||
+			!reflect.DeepEqual(expected.Proof.Attributes, got.Proof.Attributes) ||
 			got.Proof.CreatedMs == "" {
 			t.Errorf("%s = %v, want %v", name, got.Proof, expected.Proof)
 		}
-		gotConn, err := r.BasicProof().Connection(context.TODO(), got.Proof)
+		gotConn, err := r.Proof().Connection(context.TODO(), got.Proof)
 		if err != nil || !reflect.DeepEqual(gotConn, pw) {
-			t.Errorf("%s = %v, want %v", "get message connection", got, pw)
+			t.Errorf("%s = %v, want %v", "get proof connection", got, pw)
 		}
-
 	} else if got.Error != nil && !expected.ExpectsError {
 		t.Errorf("%s failed, expecting for error", name)
 	}
-
 }
 
 func TestGetProof(t *testing.T) {
-	t.Run("get message", func(t *testing.T) {
-		// add new message
+	t.Run("get proof", func(t *testing.T) {
+		// add new proof
 		listener := &agencyListener{}
 		id := uuid.New().String()
-		msg := "Hello world"
 		pw := firstPairwise()
-		listener.AddProof(pw.ID, id, msg, true)
+		proof := &model.Proof{
+			ID:            id,
+			Role:          model.ProofRoleProver,
+			Attributes:    []*model.ProofAttribute{{Name: "email", CredDefID: "credDefID"}},
+			InitiatedByUs: false,
+		}
+		listener.AddProof(pw.ID, proof.ID, proof.Role, proof.Attributes, proof.InitiatedByUs)
 
 		tests := []struct {
 			name   string
 			ID     string
-			result *MsgTestRes
+			result *ProofTestRes
 		}{
-			{"added message", id, &MsgTestRes{Proof: &model.BasicProof{ID: id, Proof: msg, SentByMe: true}}},
-			{"invalid connection", "", &MsgTestRes{ExpectsError: true}},
+			{"added message", id, &ProofTestRes{Proof: proof}},
+			{"invalid connection", "", &ProofTestRes{ExpectsError: true}},
 		}
 
 		r := Resolver{}
@@ -52,14 +62,14 @@ func TestGetProof(t *testing.T) {
 			tc := testCase
 			t.Run(tc.name, func(t *testing.T) {
 				got, err := r.Query().Proof(context.TODO(), tc.ID)
-				checkProof(&r, pw, t, tc.name, &MsgTestRes{got, err, false}, tc.result)
+				checkProof(&r, pw, t, tc.name, &ProofTestRes{got, err, false}, tc.result)
 			})
 		}
 	})
 }
 
 func TestPaginationErrorsGetProofs(t *testing.T) {
-	testPaginationErrors(t, "messages", func(ctx context.Context, after, before *string, first, last *int) error {
+	testPaginationErrors(t, "proofs", func(ctx context.Context, after, before *string, first, last *int) error {
 		r := Resolver{}
 		pw := firstPairwise()
 		_, err := r.Pairwise().Proofs(context.TODO(), pw, after, before, first, last)
@@ -70,42 +80,46 @@ func TestPaginationErrorsGetProofs(t *testing.T) {
 func TestGetProofs(t *testing.T) {
 	r := Resolver{}
 
-	// add new connection and messages
+	// add new connection
 	listener := &agencyListener{}
+	currentTime := utils.CurrentTimeMs()
 
-	connId := uuid.New().String()
-	listener.AddConnection(connId, "ourDID", "theirDID", "theirEndpoint", "theirLabel")
-	conn, _ := r.Query().Connection(context.TODO(), connId)
+	connID := uuid.New().String()
+	listener.AddConnection(connID, "ourDID", "theirDID", "theirEndpoint", "theirLabel")
+	conn, _ := r.Query().Connection(context.TODO(), connID)
 
-	msgID1 := uuid.New().String()
-	listener.AddProof(connId, msgID1, msgID1, true)
+	id := uuid.New().String()
+	proof := &model.Proof{
+		ID:            id,
+		Role:          model.ProofRoleProver,
+		Attributes:    []*model.ProofAttribute{{Name: "email", CredDefID: "credDefID"}},
+		InitiatedByUs: false,
+	}
+	listener.AddProof(connID, proof.ID, proof.Role, proof.Attributes, proof.InitiatedByUs)
+	listener.UpdateProof(connID, proof.ID, &currentTime, &currentTime, nil)
 
-	msgID2 := uuid.New().String()
-	listener.AddProof(connId, msgID2, msgID2, true)
+	// add incomplete proof
+	listener.AddProof(connID, uuid.New().String(), proof.Role, proof.Attributes, proof.InitiatedByUs)
 
-	msgID3 := uuid.New().String()
-	listener.AddProof(connId, msgID3, msgID3, true)
-
-	t.Run("get messages", func(t *testing.T) {
+	t.Run("get proofs", func(t *testing.T) {
 		var (
 			valid = 1
 		)
 		tests := []struct {
 			name   string
 			args   PaginationParams
-			result *MsgTestRes
+			result *ProofTestRes
 		}{
-			{"first message", PaginationParams{first: &valid}, &MsgTestRes{Proof: &model.BasicProof{ID: msgID1, Proof: msgID1, SentByMe: true}}},
-			{"last message", PaginationParams{last: &valid}, &MsgTestRes{Proof: &model.BasicProof{ID: msgID3, Proof: msgID3, SentByMe: true}}},
+			{"first proof", PaginationParams{first: &valid}, &ProofTestRes{Proof: proof}},
+			{"last proof", PaginationParams{last: &valid}, &ProofTestRes{Proof: proof}},
 		}
 
 		for _, testCase := range tests {
 			tc := testCase
 			t.Run(tc.name, func(t *testing.T) {
 				got, err := r.Pairwise().Proofs(context.TODO(), conn, tc.args.after, tc.args.before, tc.args.first, tc.args.last)
-				checkProof(&r, conn, t, tc.name, &MsgTestRes{got.Nodes[0], err, false}, tc.result)
+				checkProof(&r, conn, t, tc.name, &ProofTestRes{got.Nodes[0], err, false}, tc.result)
 			})
 		}
 	})
 }
-*/

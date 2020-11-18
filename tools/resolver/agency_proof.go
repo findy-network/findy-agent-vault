@@ -24,7 +24,7 @@ func (l *agencyListener) AddProof(connectionID, id string, role model.ProofRole,
 	desc := proof.Description()
 	state.Proofs().Objects().Append(proof)
 
-	glog.Infof("Added proof %s", proof.ID)
+	glog.Infof("Added proof %s for connection %s", proof.ID, connectionID)
 	addJob(
 		id,
 		model.ProtocolTypeProof,
@@ -41,7 +41,7 @@ func (l *agencyListener) UpdateProof(connectionID, id string, approvedMs, verifi
 		result = &r
 	}
 	status := state.Proofs().UpdateProof(id, result, verifiedMs, approvedMs, failedMs)
-	glog.Infof("Updated proof %s", id)
+	glog.Infof("Updated proof %s for connection %s", id, connectionID)
 
 	// TODO: handle not found
 	if status != nil {

@@ -29,9 +29,9 @@ func (l *agencyListener) AddCredential(
 		PairwiseID:    connectionID,
 	}
 	desc := cred.Description()
-	state.Connections().Objects().Append(cred)
+	state.Credentials().Objects().Append(cred)
 
-	glog.Infof("Added credential %s", id)
+	glog.Infof("Added credential %s for connection %s", id, connectionID)
 	addJob(
 		id,
 		model.ProtocolTypeCredential,
@@ -44,7 +44,7 @@ func (l *agencyListener) AddCredential(
 
 func (l *agencyListener) UpdateCredential(connectionID, id string, approvedMs, issuedMs, failedMs *int64) {
 	status := state.Credentials().UpdateCredential(id, approvedMs, issuedMs, failedMs)
-	glog.Infof("Updated credential %s", id)
+	glog.Infof("Updated credential %s for connection %s", id, connectionID)
 
 	if status != nil {
 		updateJob(id, &id, &connectionID, status.Status, status.Result, status.Description)

@@ -23,6 +23,7 @@ func TestPaginationErrorsGetJobs(t *testing.T) {
 }
 
 func TestGetIncompleteJobs(t *testing.T) {
+	resetResolver()
 	t.Run("get incomplete jobs", func(t *testing.T) {
 		s := state.Jobs
 		var (
