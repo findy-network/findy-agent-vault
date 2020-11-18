@@ -10,11 +10,9 @@ import (
 	"github.com/findy-network/findy-agent-vault/resolver"
 )
 
-type PaginationExecutor interface {
-	Request(ctx context.Context, after *string, before *string, first *int, last *int) error
-}
+type executor func(ctx context.Context, after *string, before *string, first *int, last *int) error
 
-func testPaginationErrors(t *testing.T, objName string, ex PaginationExecutor) {
+func testPaginationErrors(t *testing.T, objName string, ex executor) {
 	t.Run(fmt.Sprintf("get %s", objName), func(t *testing.T) {
 		var (
 			valid              = 1
@@ -41,7 +39,7 @@ func testPaginationErrors(t *testing.T, objName string, ex PaginationExecutor) {
 		for _, testCase := range tests {
 			tc := testCase
 			t.Run(tc.name, func(t *testing.T) {
-				err := ex.Request(context.TODO(), tc.args.after, tc.args.before, tc.args.first, tc.args.last)
+				err := ex(context.TODO(), tc.args.after, tc.args.before, tc.args.first, tc.args.last)
 				if !reflect.DeepEqual(err, tc.err) {
 					t.Errorf("%s = err (%v)\n want (%v)", tc.name, err, tc.err)
 				}

@@ -8,51 +8,32 @@ import (
 )
 
 type InternalJob struct {
-	ID            string
+	*BaseObject
 	ProtocolType  model.ProtocolType
 	ProtocolID    *string
 	PairwiseID    *string
 	Status        model.JobStatus
 	Result        model.JobResult
 	InitiatedByUs bool
-	CreatedMs     int64
 	UpdatedMs     int64
-}
-
-func (j *InternalJob) Created() int64 {
-	return j.CreatedMs
-}
-
-func (j *InternalJob) Identifier() string {
-	return j.ID
-}
-
-func (j *InternalJob) Pairwise() *InternalPairwise {
-	panic("Job is not pairwise")
-}
-
-func (j *InternalJob) Event() *InternalEvent {
-	panic("Job is not event")
 }
 
 func (j *InternalJob) Job() *InternalJob {
 	return j
 }
 
-func (j *InternalJob) BasicMessage() *InternalMessage {
-	panic("Job is not message")
-}
-
 func (j *InternalJob) Copy() *InternalJob {
 	newJob := &InternalJob{
-		ID:            j.ID,
+		BaseObject: &BaseObject{
+			ID:        j.ID,
+			CreatedMs: j.CreatedMs,
+		},
 		ProtocolType:  j.ProtocolType,
 		ProtocolID:    j.ProtocolID,
 		PairwiseID:    j.PairwiseID,
 		Status:        j.Status,
 		Result:        j.Result,
 		InitiatedByUs: j.InitiatedByUs,
-		CreatedMs:     j.CreatedMs,
 		UpdatedMs:     j.UpdatedMs,
 	}
 	return newJob

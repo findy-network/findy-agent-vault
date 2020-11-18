@@ -123,7 +123,9 @@ func doAddEvent(event *data.InternalEvent) {
 
 func addEvent(description string, pairwiseID, jobID *string) {
 	doAddEvent(&data.InternalEvent{
-		ID:          uuid.New().String(),
+		BaseObject: &data.BaseObject{
+			ID: uuid.New().String(),
+		},
 		Read:        false,
 		Description: description,
 		PairwiseID:  pairwiseID,

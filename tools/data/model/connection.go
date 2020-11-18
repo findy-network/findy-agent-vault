@@ -17,38 +17,17 @@ func (i *Items) Connections() ConnectionItems { return &connectionItems{i} }
 type connectionItems struct{ *Items }
 
 type InternalPairwise struct {
-	ID            string `faker:"uuid_hyphenated"`
+	*BaseObject
 	OurDid        string
 	TheirDid      string
 	TheirEndpoint string `faker:"url"`
 	TheirLabel    string `faker:"organisationLabel"`
 	Invited       bool
 	ApprovedMs    int64 `faker:"created"`
-	CreatedMs     int64 `faker:"created"`
-}
-
-func (p *InternalPairwise) Created() int64 {
-	return p.CreatedMs
-}
-
-func (p *InternalPairwise) Identifier() string {
-	return p.ID
 }
 
 func (p *InternalPairwise) Pairwise() *InternalPairwise {
 	return p
-}
-
-func (p *InternalPairwise) Event() *InternalEvent {
-	panic("Pairwise is not event")
-}
-
-func (p *InternalPairwise) Job() *InternalJob {
-	panic("Pairwise is not job")
-}
-
-func (p *InternalPairwise) BasicMessage() *InternalMessage {
-	panic("Pairwise is not message")
 }
 
 func (p *InternalPairwise) ToEdge() *model.PairwiseEdge {
