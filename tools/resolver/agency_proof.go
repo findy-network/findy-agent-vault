@@ -7,30 +7,6 @@ import (
 	"github.com/golang/glog"
 )
 
-func proofStatus(verifiedMs, approvedMs *int64, role model.ProofRole) string {
-	if verifiedMs != nil {
-		switch role {
-		case model.ProofRoleVerifier:
-			return "Verified credential"
-		case model.ProofRoleProver:
-			return "Proved credential"
-		}
-	} else if approvedMs != nil {
-		return "Approved proof"
-	}
-	switch role {
-	case model.ProofRoleVerifier:
-		return "Received proof offer"
-	case model.ProofRoleProver:
-		return "Received proof request"
-	}
-	return ""
-}
-
-func proofStatusForProof(proof *data.InternalProof) string {
-	return proofStatus(proof.VerifiedMs, proof.ApprovedMs, proof.Role)
-}
-
 func (l *agencyListener) AddProof(connectionID, id string, role model.ProofRole, attributes []*model.ProofAttribute, initiatedByUs bool) {
 	proof := &data.InternalProof{
 		BaseObject: &data.BaseObject{
@@ -45,6 +21,7 @@ func (l *agencyListener) AddProof(connectionID, id string, role model.ProofRole,
 		ApprovedMs:    nil,
 		PairwiseID:    connectionID,
 	}
+	desc := proof.Description()
 	state.Proofs().Objects().Append(proof)
 
 	glog.Infof("Added proof %s", proof.ID)
@@ -54,35 +31,20 @@ func (l *agencyListener) AddProof(connectionID, id string, role model.ProofRole,
 		&id,
 		initiatedByUs,
 		&connectionID,
-		proofStatusForProof(proof))
+		desc)
 }
 
-func (l *agencyListener) UpdateProof(connectionID, id string, approvedMs, verifiedMs *int64, failed bool) {
+func (l *agencyListener) UpdateProof(connectionID, id string, approvedMs, verifiedMs, failedMs *int64) {
 	var result *bool
-	if verifiedMs != nil {
-		r := !failed
+	if verifiedMs != nil || failedMs != nil {
+		r := verifiedMs != nil && failedMs == nil
 		result = &r
 	}
-	role := state.Proofs().UpdateProof(id, result, verifiedMs, approvedMs)
+	status := state.Proofs().UpdateProof(id, result, verifiedMs, approvedMs, failedMs)
 	glog.Infof("Updated proof %s", id)
 
-	status := model.JobStatusWaiting
-	jobResult := model.JobResultNone
-	if failed {
-		status = model.JobStatusComplete
-		jobResult = model.JobResultFailure
-	} else if approvedMs == nil && verifiedMs == nil {
-		status = model.JobStatusPending
-	} else if verifiedMs != nil {
-		status = model.JobStatusComplete
-		jobResult = model.JobResultSuccess
+	// TODO: handle not found
+	if status != nil {
+		updateJob(id, &id, &connectionID, status.Status, status.Result, status.Description)
 	}
-
-	// TODO: handle not found error properly
-	desc := "ERROR"
-	if role != nil {
-		desc = proofStatus(verifiedMs, approvedMs, *role)
-	}
-
-	updateJob(id, &id, &connectionID, status, jobResult, desc)
 }

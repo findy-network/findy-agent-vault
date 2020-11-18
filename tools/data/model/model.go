@@ -4,11 +4,19 @@ import (
 	"encoding/base64"
 	"reflect"
 	"strconv"
+
+	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
 func CreateCursor(created int64, object interface{}) string {
 	typeName := reflect.TypeOf(object).Name()
 	return base64.StdEncoding.EncodeToString([]byte(typeName + ":" + strconv.FormatInt(created, 10)))
+}
+
+type ProtocolStatus struct {
+	Status      model.JobStatus
+	Result      model.JobResult
+	Description string
 }
 
 type APIObject interface {

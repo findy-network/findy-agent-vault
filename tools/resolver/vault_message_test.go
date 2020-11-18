@@ -27,11 +27,9 @@ func checkMessage(r *Resolver, pw *model.Pairwise, t *testing.T, name string, go
 		if err != nil || !reflect.DeepEqual(gotConn, pw) {
 			t.Errorf("%s = %v, want %v", "get message connection", got, pw)
 		}
-
 	} else if got.Error != nil && !expected.ExpectsError {
 		t.Errorf("%s failed, expecting for error", name)
 	}
-
 }
 
 func TestGetMessage(t *testing.T) {
@@ -78,18 +76,18 @@ func TestGetMessages(t *testing.T) {
 	// add new connection and messages
 	listener := &agencyListener{}
 
-	connId := uuid.New().String()
-	listener.AddConnection(connId, "ourDID", "theirDID", "theirEndpoint", "theirLabel")
-	conn, _ := r.Query().Connection(context.TODO(), connId)
+	connID := uuid.New().String()
+	listener.AddConnection(connID, "ourDID", "theirDID", "theirEndpoint", "theirLabel")
+	conn, _ := r.Query().Connection(context.TODO(), connID)
 
 	msgID1 := uuid.New().String()
-	listener.AddMessage(connId, msgID1, msgID1, true)
+	listener.AddMessage(connID, msgID1, msgID1, true)
 
 	msgID2 := uuid.New().String()
-	listener.AddMessage(connId, msgID2, msgID2, true)
+	listener.AddMessage(connID, msgID2, msgID2, true)
 
 	msgID3 := uuid.New().String()
-	listener.AddMessage(connId, msgID3, msgID3, true)
+	listener.AddMessage(connID, msgID3, msgID3, true)
 
 	t.Run("get messages", func(t *testing.T) {
 		var (
@@ -100,8 +98,16 @@ func TestGetMessages(t *testing.T) {
 			args   PaginationParams
 			result *MsgTestRes
 		}{
-			{"first message", PaginationParams{first: &valid}, &MsgTestRes{Message: &model.BasicMessage{ID: msgID1, Message: msgID1, SentByMe: true}}},
-			{"last message", PaginationParams{last: &valid}, &MsgTestRes{Message: &model.BasicMessage{ID: msgID3, Message: msgID3, SentByMe: true}}},
+			{
+				"first message",
+				PaginationParams{first: &valid},
+				&MsgTestRes{Message: &model.BasicMessage{ID: msgID1, Message: msgID1, SentByMe: true}},
+			},
+			{
+				"last message",
+				PaginationParams{last: &valid},
+				&MsgTestRes{Message: &model.BasicMessage{ID: msgID3, Message: msgID3, SentByMe: true}},
+			},
 		}
 
 		for _, testCase := range tests {

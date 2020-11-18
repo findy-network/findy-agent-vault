@@ -10,7 +10,7 @@ type CredentialItems interface {
 	CredentialConnection(after, before int) *model.CredentialConnection
 	CredentialForID(id string) *model.CredentialEdge
 	CredentialPairwiseID(id string) *string
-	UpdateCredential(id string, approvedMs, issuedMs *int64) *model.CredentialRole
+	UpdateCredential(id string, approvedMs, issuedMs, failedMs *int64) *ProtocolStatus
 	Objects() *Items
 }
 
@@ -27,7 +27,48 @@ type InternalCredential struct {
 	InitiatedByUs bool
 	ApprovedMs    *int64
 	IssuedMs      *int64
+	FailedMs      *int64
 	PairwiseID    string `faker:"pairwiseId"`
+}
+
+func (c *InternalCredential) Description() string {
+	if c.IssuedMs != nil {
+		switch c.Role {
+		case model.CredentialRoleIssuer:
+			return "Issued credential"
+		case model.CredentialRoleHolder:
+			return "Received credential"
+		}
+	} else if c.ApprovedMs != nil {
+		return "Approved credential"
+	}
+	switch c.Role {
+	case model.CredentialRoleIssuer:
+		return "Received credential request"
+	case model.CredentialRoleHolder:
+		return "Received credential offer"
+	}
+	return ""
+}
+
+func (c *InternalCredential) Status() *ProtocolStatus {
+	status := model.JobStatusWaiting
+	result := model.JobResultNone
+	if c.FailedMs != nil {
+		status = model.JobStatusComplete
+		result = model.JobResultFailure
+	} else if c.ApprovedMs == nil && c.IssuedMs == nil {
+		status = model.JobStatusPending
+	} else if c.IssuedMs != nil {
+		status = model.JobStatusComplete
+		result = model.JobResultSuccess
+	}
+
+	return &ProtocolStatus{
+		Status:      status,
+		Result:      result,
+		Description: c.Description(),
+	}
 }
 
 func (c *InternalCredential) Credential() *InternalCredential {
@@ -75,7 +116,6 @@ func (c *InternalCredential) ToEdge() *model.CredentialEdge {
 }
 
 func (c *InternalCredential) ToNode() *model.Credential {
-
 	cred := c.Copy()
 	var approvedMs, issuedMs *string
 	if cred.ApprovedMs != nil {
@@ -176,7 +216,7 @@ func (i *credentialItems) CredentialConnection(after, before int) *model.Credent
 	return p
 }
 
-func (i *credentialItems) UpdateCredential(id string, approvedMs, issuedMs *int64) *model.CredentialRole {
+func (i *credentialItems) UpdateCredential(id string, approvedMs, issuedMs, failedMs *int64) *ProtocolStatus {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
 
@@ -191,8 +231,10 @@ func (i *credentialItems) UpdateCredential(id string, approvedMs, issuedMs *int6
 		if issuedMs != nil {
 			cred.IssuedMs = issuedMs
 		}
-		role := cred.Role
-		return &role
+		if failedMs != nil {
+			cred.FailedMs = failedMs
+		}
+		return cred.Status()
 	}
 
 	return nil

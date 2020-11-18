@@ -8,6 +8,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
+	"github.com/findy-network/findy-agent-vault/tools/utils"
 	"github.com/findy-network/findy-agent/agent/didcomm"
 	"github.com/findy-network/findy-agent/agent/prot"
 
@@ -47,6 +48,8 @@ type statusPresentProof struct {
 func (f *Findy) findyCallback(pl *mesg.Payload) (while bool, err error) {
 	defer err2.Return(&err) // TODO
 
+	currentTime := utils.CurrentTimeMs()
+
 	switch pl.Type {
 	case pltype.CANotifyStatus:
 		var status prot.TaskStatus
@@ -83,7 +86,13 @@ func (f *Findy) findyCallback(pl *mesg.Payload) (while bool, err error) {
 						Value: v.Value,
 					})
 				}
-				f.listener.AddCredential(status.Name, uuid.New().String(), model.CredentialRoleHolder, c.SchemaID, c.CredDefID, values, false)
+				id := uuid.New().String()
+				f.taskMapper.write(status.ID, id)
+				f.listener.AddCredential(status.Name, id, model.CredentialRoleHolder, c.SchemaID, c.CredDefID, values, false)
+			} else {
+				// if ready -> what if fails
+				id := f.taskMapper.read(status.ID)
+				f.listener.UpdateCredential(status.Name, id, nil, &currentTime, nil)
 			}
 
 		case pltype.ProtocolPresentProof:
@@ -100,6 +109,9 @@ func (f *Findy) findyCallback(pl *mesg.Payload) (while bool, err error) {
 					})
 				}
 				f.listener.AddProof(status.Name, uuid.New().String(), model.ProofRoleProver, attributes, false)
+			} else {
+				id := f.taskMapper.read(status.ID)
+				f.listener.UpdateProof(status.Name, id, nil, &currentTime, nil)
 			}
 		}
 	default:
