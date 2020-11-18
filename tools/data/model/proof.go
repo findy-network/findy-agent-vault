@@ -10,7 +10,7 @@ type ProofItems interface {
 	ProofConnection(after, before int) *model.ProofConnection
 	ProofForID(id string) *model.ProofEdge
 	ProofPairwiseID(id string) *string
-	UpdateProof(id string, result *bool, verifiedMs, approvedMs *int64) *model.ProofRole
+	UpdateProof(id string, result *bool, verifiedMs, approvedMs, failedMs *int64) *ProtocolStatus
 	Objects() *Items
 }
 
@@ -26,7 +26,48 @@ type InternalProof struct {
 	Result        bool
 	VerifiedMs    *int64
 	ApprovedMs    *int64
+	FailedMs      *int64
 	PairwiseID    string `faker:"pairwiseId"`
+}
+
+func (p *InternalProof) Description() string {
+	if p.VerifiedMs != nil {
+		switch p.Role {
+		case model.ProofRoleVerifier:
+			return "Verified credential"
+		case model.ProofRoleProver:
+			return "Proved credential"
+		}
+	} else if p.ApprovedMs != nil {
+		return "Approved proof"
+	}
+	switch p.Role {
+	case model.ProofRoleVerifier:
+		return "Received proof offer"
+	case model.ProofRoleProver:
+		return "Received proof request"
+	}
+	return ""
+}
+
+func (p *InternalProof) Status() *ProtocolStatus {
+	status := model.JobStatusWaiting
+	result := model.JobResultNone
+	if p.FailedMs != nil {
+		status = model.JobStatusComplete
+		result = model.JobResultFailure
+	} else if p.ApprovedMs == nil && p.VerifiedMs == nil {
+		status = model.JobStatusPending
+	} else if p.VerifiedMs != nil {
+		status = model.JobStatusComplete
+		result = model.JobResultSuccess
+	}
+
+	return &ProtocolStatus{
+		Status:      status,
+		Result:      result,
+		Description: p.Description(),
+	}
 }
 
 func (p *InternalProof) Proof() *InternalProof {
@@ -73,7 +114,6 @@ func (p *InternalProof) ToEdge() *model.ProofEdge {
 }
 
 func (p *InternalProof) ToNode() *model.Proof {
-
 	proof := p.Copy()
 	var approvedMs, verifiedMs *string
 	if proof.ApprovedMs != nil {
@@ -173,7 +213,7 @@ func (i *proofItems) ProofConnection(after, before int) *model.ProofConnection {
 	return p
 }
 
-func (i *proofItems) UpdateProof(id string, result *bool, verifiedMs, approvedMs *int64) *model.ProofRole {
+func (i *proofItems) UpdateProof(id string, result *bool, verifiedMs, approvedMs, failedMs *int64) *ProtocolStatus {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
 
@@ -191,8 +231,10 @@ func (i *proofItems) UpdateProof(id string, result *bool, verifiedMs, approvedMs
 		if approvedMs != nil {
 			proof.ApprovedMs = approvedMs
 		}
-		r := proof.Role
-		return &r
+		if failedMs != nil {
+			proof.FailedMs = failedMs
+		}
+		return proof.Status()
 	}
 
 	return nil
