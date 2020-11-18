@@ -7,36 +7,29 @@ import (
 )
 
 type InternalMessage struct {
-	ID         string `faker:"uuid_hyphenated"`
+	*BaseObject
 	Message    string `faker:"sentence"`
 	PairwiseID string `faker:"pairwiseId"`
 	SentByMe   bool
 	Delivered  *bool
-	CreatedMs  int64 `faker:"created"`
-}
-
-func (m *InternalMessage) Created() int64 {
-	return m.CreatedMs
-}
-
-func (m *InternalMessage) Identifier() string {
-	return m.ID
-}
-
-func (m *InternalMessage) Pairwise() *InternalPairwise {
-	panic("Message is not connection")
-}
-
-func (m *InternalMessage) Event() *InternalEvent {
-	panic("Message is not event")
-}
-
-func (m *InternalMessage) Job() *InternalJob {
-	panic("Message is not job")
 }
 
 func (m *InternalMessage) BasicMessage() *InternalMessage {
 	return m
+}
+
+func (m *InternalMessage) Copy() *InternalMessage {
+	newMsg := &InternalMessage{
+		BaseObject: &BaseObject{
+			ID:        m.ID,
+			CreatedMs: m.CreatedMs,
+		},
+		Message:    m.Message,
+		PairwiseID: m.PairwiseID,
+		SentByMe:   m.SentByMe,
+		Delivered:  m.Delivered,
+	}
+	return newMsg
 }
 
 func (m *InternalMessage) ToEdge() *model.BasicMessageEdge {

@@ -4,13 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/findy-network/findy-agent-vault/tools/utils"
 	"github.com/golang/glog"
 
 	"github.com/lainio/err2"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
-	data "github.com/findy-network/findy-agent-vault/tools/data/model"
 )
 
 /*
@@ -65,22 +63,4 @@ func (r *queryResolver) Connection(_ context.Context, id string) (node *model.Pa
 		node = edge.Node
 	}
 	return
-}
-
-func doAddConnection(connection *data.InternalPairwise) {
-	items := state.Connections().Objects()
-	connection.CreatedMs = utils.CurrentTimeMs()
-	initiatedByUs := state.Jobs.IsJobInitiatedByUs(connection.ID)
-	if initiatedByUs != nil {
-		connection.Invited = *initiatedByUs
-	}
-	items.Append(connection)
-	glog.Infof("Added connection %s", connection.ID)
-	updateJob(
-		connection.ID,
-		&connection.ID,
-		&connection.ID,
-		model.JobStatusComplete,
-		model.JobResultSuccess,
-		"Established connection to "+connection.TheirLabel)
 }

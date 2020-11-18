@@ -36,12 +36,32 @@ func (r *mutationResolver) Connect(_ context.Context, input model.ConnectInput) 
 func (l *agencyListener) AddConnection(id, ourDID, theirDID, theirEndpoint, theirLabel string) {
 	currentTime := utils.CurrentTimeMs()
 	doAddConnection(&data.InternalPairwise{
-		ID:            id,
+		BaseObject: &data.BaseObject{
+			ID:        id,
+			CreatedMs: currentTime,
+		},
 		OurDid:        ourDID,
 		TheirDid:      theirDID,
 		TheirEndpoint: theirEndpoint,
 		TheirLabel:    theirLabel,
 		ApprovedMs:    currentTime,
-		CreatedMs:     currentTime,
 	})
+}
+
+func doAddConnection(connection *data.InternalPairwise) {
+	items := state.Connections().Objects()
+	connection.CreatedMs = utils.CurrentTimeMs()
+	initiatedByUs := state.Jobs.IsJobInitiatedByUs(connection.ID)
+	if initiatedByUs != nil {
+		connection.Invited = *initiatedByUs
+	}
+	items.Append(connection)
+	glog.Infof("Added connection %s", connection.ID)
+	updateJob(
+		connection.ID,
+		&connection.ID,
+		&connection.ID,
+		model.JobStatusComplete,
+		model.JobResultSuccess,
+		"Established connection to "+connection.TheirLabel)
 }

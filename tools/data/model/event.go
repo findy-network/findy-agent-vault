@@ -7,36 +7,15 @@ import (
 )
 
 type InternalEvent struct {
-	ID          string  `faker:"uuid_hyphenated"`
+	*BaseObject
 	Read        bool    `faker:"-"`
 	Description string  `faker:"sentence"`
 	JobID       *string `faker:"-"`
 	PairwiseID  *string `faker:"pairwiseIdPtr"`
-	CreatedMs   int64   `faker:"created"`
-}
-
-func (e *InternalEvent) Created() int64 {
-	return e.CreatedMs
-}
-
-func (e *InternalEvent) Identifier() string {
-	return e.ID
-}
-
-func (e *InternalEvent) Pairwise() *InternalPairwise {
-	panic("Event is not pairwise")
 }
 
 func (e *InternalEvent) Event() *InternalEvent {
 	return e
-}
-
-func (e *InternalEvent) Job() *InternalJob {
-	panic("Event is not job")
-}
-
-func (e *InternalEvent) BasicMessage() *InternalMessage {
-	panic("Event is not message")
 }
 
 func (e *InternalEvent) ToEdge() *model.EventEdge {

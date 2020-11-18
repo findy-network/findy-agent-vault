@@ -33,6 +33,36 @@ type ConnectInput struct {
 	Invitation string `json:"invitation"`
 }
 
+type Credential struct {
+	ID            string             `json:"id"`
+	Role          CredentialRole     `json:"role"`
+	SchemaID      string             `json:"schemaId"`
+	CredDefID     string             `json:"credDefId"`
+	Attributes    []*CredentialValue `json:"attributes"`
+	InitiatedByUs bool               `json:"initiatedByUs"`
+	ApprovedMs    *string            `json:"approvedMs"`
+	IssuedMs      *string            `json:"issuedMs"`
+	CreatedMs     string             `json:"createdMs"`
+	Connection    *Pairwise          `json:"connection"`
+}
+
+type CredentialConnection struct {
+	Edges      []*CredentialEdge `json:"edges"`
+	Nodes      []*Credential     `json:"nodes"`
+	PageInfo   *PageInfo         `json:"pageInfo"`
+	TotalCount int               `json:"totalCount"`
+}
+
+type CredentialEdge struct {
+	Cursor string      `json:"cursor"`
+	Node   *Credential `json:"node"`
+}
+
+type CredentialValue struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 type Event struct {
 	ID          string    `json:"id"`
 	Read        bool      `json:"read"`
@@ -85,6 +115,8 @@ type JobEdge struct {
 type JobOutput struct {
 	Connection *PairwiseEdge     `json:"connection"`
 	Message    *BasicMessageEdge `json:"message"`
+	Credential *CredentialEdge   `json:"credential"`
+	Proof      *ProofEdge        `json:"proof"`
 }
 
 type LoginResponse struct {
@@ -122,6 +154,8 @@ type Pairwise struct {
 	ApprovedMs    string                  `json:"approvedMs"`
 	Invited       bool                    `json:"invited"`
 	Messages      *BasicMessageConnection `json:"messages"`
+	Credentials   *CredentialConnection   `json:"credentials"`
+	Proofs        *ProofConnection        `json:"proofs"`
 }
 
 type PairwiseConnection struct {
@@ -136,6 +170,36 @@ type PairwiseEdge struct {
 	Node   *Pairwise `json:"node"`
 }
 
+type Proof struct {
+	ID            string            `json:"id"`
+	Role          ProofRole         `json:"role"`
+	Attributes    []*ProofAttribute `json:"attributes"`
+	InitiatedByUs bool              `json:"initiatedByUs"`
+	Result        bool              `json:"result"`
+	VerifiedMs    *string           `json:"verifiedMs"`
+	ApprovedMs    *string           `json:"approvedMs"`
+	CreatedMs     string            `json:"createdMs"`
+	Connection    *Pairwise         `json:"connection"`
+}
+
+type ProofAttribute struct {
+	Name      string  `json:"name"`
+	Value     *string `json:"value"`
+	CredDefID string  `json:"credDefId"`
+}
+
+type ProofConnection struct {
+	Edges      []*ProofEdge `json:"edges"`
+	Nodes      []*Proof     `json:"nodes"`
+	PageInfo   *PageInfo    `json:"pageInfo"`
+	TotalCount int          `json:"totalCount"`
+}
+
+type ProofEdge struct {
+	Cursor string `json:"cursor"`
+	Node   *Proof `json:"node"`
+}
+
 type Request struct {
 	ID     string `json:"id"`
 	Accept bool   `json:"accept"`
@@ -148,6 +212,47 @@ type Response struct {
 type User struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+type CredentialRole string
+
+const (
+	CredentialRoleIssuer CredentialRole = "ISSUER"
+	CredentialRoleHolder CredentialRole = "HOLDER"
+)
+
+var AllCredentialRole = []CredentialRole{
+	CredentialRoleIssuer,
+	CredentialRoleHolder,
+}
+
+func (e CredentialRole) IsValid() bool {
+	switch e {
+	case CredentialRoleIssuer, CredentialRoleHolder:
+		return true
+	}
+	return false
+}
+
+func (e CredentialRole) String() string {
+	return string(e)
+}
+
+func (e *CredentialRole) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CredentialRole(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CredentialRole", str)
+	}
+	return nil
+}
+
+func (e CredentialRole) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type JobResult string
@@ -233,6 +338,47 @@ func (e *JobStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e JobStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ProofRole string
+
+const (
+	ProofRoleVerifier ProofRole = "VERIFIER"
+	ProofRoleProver   ProofRole = "PROVER"
+)
+
+var AllProofRole = []ProofRole{
+	ProofRoleVerifier,
+	ProofRoleProver,
+}
+
+func (e ProofRole) IsValid() bool {
+	switch e {
+	case ProofRoleVerifier, ProofRoleProver:
+		return true
+	}
+	return false
+}
+
+func (e ProofRole) String() string {
+	return string(e)
+}
+
+func (e *ProofRole) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ProofRole(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ProofRole", str)
+	}
+	return nil
+}
+
+func (e ProofRole) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

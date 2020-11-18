@@ -13,20 +13,17 @@ type JobTestRes struct {
 	Error error
 }
 
-type JobsExecutor struct{}
-
-func (*JobsExecutor) Request(ctx context.Context, after, before *string, first, last *int) error {
-	r := Resolver{}
-	completed := false
-	_, err := r.Query().Jobs(context.TODO(), after, before, first, last, &completed)
-	return err
-}
-
 func TestPaginationErrorsGetJobs(t *testing.T) {
-	testPaginationErrors(t, "jobs", &JobsExecutor{})
+	testPaginationErrors(t, "jobs", func(ctx context.Context, after, before *string, first, last *int) error {
+		r := Resolver{}
+		completed := false
+		_, err := r.Query().Jobs(context.TODO(), after, before, first, last, &completed)
+		return err
+	})
 }
 
 func TestGetIncompleteJobs(t *testing.T) {
+	resetResolver()
 	t.Run("get incomplete jobs", func(t *testing.T) {
 		s := state.Jobs
 		var (

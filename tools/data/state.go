@@ -13,6 +13,8 @@ import (
 type Data struct {
 	connections *our.Items
 	Messages    *our.Items
+	credentials *our.Items
+	proofs      *our.Items
 	Events      *our.Items
 	Jobs        *our.Items
 	User        *our.InternalUser
@@ -22,6 +24,8 @@ func InitState() *Data {
 	state := &Data{
 		connections: our.NewItems(reflect.TypeOf(model.Pairwise{}).Name()),
 		Messages:    our.NewItems(reflect.TypeOf(model.BasicMessage{}).Name()),
+		credentials: our.NewItems(reflect.TypeOf(model.Credential{}).Name()),
+		proofs:      our.NewItems(reflect.TypeOf(model.Proof{}).Name()),
 		Events:      our.NewItems(reflect.TypeOf(model.Event{}).Name()),
 		Jobs:        our.NewItems(reflect.TypeOf(model.Job{}).Name()),
 	}
@@ -33,12 +37,20 @@ func InitState() *Data {
 func (state *Data) sort() {
 	state.connections.Sort()
 	state.Messages.Sort()
+	state.credentials.Sort()
+	state.proofs.Sort()
 	state.Events.Sort()
 }
 
 func (state *Data) Connections() our.ConnectionItems {
 	return state.connections.Connections()
 }
+
+func (state *Data) Credentials() *our.CredentialItems {
+	return &our.CredentialItems{Items: state.credentials}
+}
+
+func (state *Data) Proofs() *our.ProofItems { return &our.ProofItems{Items: state.proofs} }
 
 func (state *Data) OutputForJob(id string) (output *model.JobOutput) {
 	output = &model.JobOutput{

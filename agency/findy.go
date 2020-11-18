@@ -5,8 +5,10 @@ package agency
 import (
 	"encoding/json"
 	"os"
+	"sync"
 
 	"github.com/golang/glog"
+	"github.com/google/uuid"
 	"github.com/lainio/err2"
 
 	"github.com/findy-network/findy-agent/agent/cloud"
@@ -27,11 +29,32 @@ const (
 	agencyURL  = "http://localhost:8080"
 )
 
+// TODO: use db for this
+type mapper struct {
+	sync.RWMutex
+	m map[string]string
+}
+
+func (m *mapper) write(taskID, id string) {
+	m.Lock()
+	defer m.Unlock()
+	m.m[taskID] = id
+}
+
+func (m *mapper) read(taskID string) (id string) {
+	m.RLock()
+	defer m.RUnlock()
+	id = m.m[taskID]
+	return
+}
+
 type Findy struct {
 	listener Listener
 	agent    *cloud.Agent
 	client   *client.Client
 	endpoint string
+
+	taskMapper *mapper
 }
 
 var Instance Agency = &Findy{}
@@ -45,6 +68,9 @@ func walletCmd() *cmds.Cmd {
 
 // TODO: do not onboard here, instead use JWT for authentication to agency
 func (f *Findy) Init(l Listener) {
+	f.taskMapper = &mapper{
+		m: make(map[string]string),
+	}
 	cmd := agent.PingCmd{Cmd: *walletCmd()}
 
 	err := cmd.Validate()
@@ -113,11 +139,27 @@ func (f *Findy) Connect(invitation string) (id string, err error) {
 	err2.Check(json.Unmarshal([]byte(invitation), &inv))
 
 	_, err = f.agent.Trans().Call(pltype.CAPairwiseCreate, &mesg.Msg{
-		Info:       walletName,
+		Info:       walletName, // our label
 		Invitation: &inv,
 	})
 	err2.Check(err)
 
 	id = inv.ID
+	return
+}
+
+func (f *Findy) SendMessage(connectionID, message string) (id string, err error) {
+	defer err2.Return(&err)
+
+	id = uuid.New().String()
+
+	pl, err := f.agent.Trans().Call(pltype.BasicMessageSend, &mesg.Msg{
+		Name: connectionID,
+		Info: message,
+	})
+	err2.Check(err)
+
+	f.taskMapper.write(pl.Message.ID, id)
+
 	return
 }

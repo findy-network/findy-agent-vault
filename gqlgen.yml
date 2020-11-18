@@ -58,17 +58,29 @@ models:
     fields:
       messages:
         resolver: true # force a resolver to be generated
+      credentials:
+        resolver: true
+      proofs:
+        resolver: true
   BasicMessage:
     fields:
       connection:
-        resolver: true # force a resolver to be generated
+        resolver: true
+  Credential:
+    fields:
+      connection:
+        resolver: true
+  Proof:
+    fields:
+      connection:
+        resolver: true
   Event:
     fields:
       connection:
-        resolver: true # force a resolver to be generated
+        resolver: true
       job:
-        resolver: true # force a resolver to be generated
+        resolver: true
   Job:
     fields:
       output:
-        resolver: true # force a resolver to be generated
+        resolver: true
