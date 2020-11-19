@@ -20,7 +20,7 @@ type Data struct {
 	User        *our.InternalUser
 }
 
-func InitState() *Data {
+func InitState(skipFake bool) *Data {
 	state := &Data{
 		connections: our.NewItems(reflect.TypeOf(model.Pairwise{}).Name()),
 		Messages:    our.NewItems(reflect.TypeOf(model.BasicMessage{}).Name()),
@@ -29,7 +29,9 @@ func InitState() *Data {
 		Events:      our.NewItems(reflect.TypeOf(model.Event{}).Name()),
 		Jobs:        our.NewItems(reflect.TypeOf(model.Job{}).Name()),
 	}
-	state.User = faker.Run(state.connections, state.Events, state.Messages)
+	if !skipFake {
+		state.User = faker.Run(state.connections, state.Events, state.Messages, state.credentials)
+	}
 	state.sort()
 	return state
 }

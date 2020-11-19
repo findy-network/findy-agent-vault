@@ -20,9 +20,9 @@ type agencyListener struct{}
 
 var state *data.Data
 
-func InitResolver() *Resolver {
+func InitResolver(skipFake bool) *Resolver {
 	agency.Instance.Init(&agencyListener{})
-	state = data.InitState()
+	state = data.InitState(skipFake)
 	initEvents()
 	return &Resolver{}
 }
