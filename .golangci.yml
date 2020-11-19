@@ -90,6 +90,9 @@ issues:
         - dupl
         - lll
         - govet
+    - path: vault_
+      linters:
+        - dupl
     - path: _test.go
       linters:
         - dupl
