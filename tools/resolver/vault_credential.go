@@ -53,7 +53,6 @@ func (r *queryResolver) Credentials(
 	items := state.Credentials()
 	items = &data.CredentialItems{Items: items.Filter(func(item data.APIObject) data.APIObject {
 		c := item.Credential()
-		fmt.Println(c)
 		if c.IssuedMs != nil {
 			return c.Copy()
 		}
@@ -88,7 +87,6 @@ func (r *pairwiseResolver) Credentials(
 	items := state.Credentials()
 	items = &data.CredentialItems{Items: items.Filter(func(item data.APIObject) data.APIObject {
 		c := item.Credential()
-		fmt.Println(c)
 		if c.IssuedMs != nil && c.PairwiseID == obj.ID {
 			return c.Copy()
 		}
