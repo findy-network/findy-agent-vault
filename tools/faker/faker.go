@@ -111,7 +111,8 @@ func Run(p, e, m, c *model.Items) *model.InternalUser {
 	user, err := fakeUser(true)
 	err2.Check(err)
 
-	glog.Infof("Generated %d connections, %d messages, %d creds and %d events for user %s", len(conns), len(msgs), len(events), len(creds), user.Name)
+	glog.Infof("Generated %d connections, %d messages, %d creds "+
+		"and %d events for user %s", len(conns), len(msgs), len(events), len(creds), user.Name)
 	return &user
 }
 
