@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
@@ -12,7 +13,7 @@ type ProofItems struct {
 
 type InternalProof struct {
 	*BaseObject
-	Role          model.ProofRole
+	Role          model.ProofRole `faker:"oneof: PROVER, PROVER"`
 	Attributes    []*model.ProofAttribute
 	InitiatedByUs bool
 	Result        bool
@@ -39,7 +40,7 @@ func (p *InternalProof) Description() string {
 	case model.ProofRoleProver:
 		return "Received proof request"
 	}
-	return ""
+	panic(fmt.Errorf("invalid role %s for proof", p.Role))
 }
 
 func (p *InternalProof) Status() *ProtocolStatus {

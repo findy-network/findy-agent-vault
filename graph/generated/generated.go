@@ -163,13 +163,15 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AcceptOffer    func(childComplexity int, input model.Offer) int
-		AcceptRequest  func(childComplexity int, input model.Request) int
-		AddRandomEvent func(childComplexity int) int
-		Connect        func(childComplexity int, input model.ConnectInput) int
-		Invite         func(childComplexity int) int
-		MarkEventRead  func(childComplexity int, input model.MarkReadInput) int
-		SendMessage    func(childComplexity int, input model.MessageInput) int
+		AcceptOffer         func(childComplexity int, input model.Offer) int
+		AcceptRequest       func(childComplexity int, input model.Request) int
+		AddRandomCredential func(childComplexity int) int
+		AddRandomEvent      func(childComplexity int) int
+		AddRandomMessage    func(childComplexity int) int
+		Connect             func(childComplexity int, input model.ConnectInput) int
+		Invite              func(childComplexity int) int
+		MarkEventRead       func(childComplexity int, input model.MarkReadInput) int
+		SendMessage         func(childComplexity int, input model.MessageInput) int
 	}
 
 	PageInfo struct {
@@ -284,6 +286,8 @@ type MutationResolver interface {
 	AcceptOffer(ctx context.Context, input model.Offer) (*model.Response, error)
 	AcceptRequest(ctx context.Context, input model.Request) (*model.Response, error)
 	AddRandomEvent(ctx context.Context) (bool, error)
+	AddRandomMessage(ctx context.Context) (bool, error)
+	AddRandomCredential(ctx context.Context) (bool, error)
 }
 type PairwiseResolver interface {
 	Messages(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.BasicMessageConnection, error)
@@ -790,12 +794,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AcceptRequest(childComplexity, args["input"].(model.Request)), true
 
+	case "Mutation.addRandomCredential":
+		if e.complexity.Mutation.AddRandomCredential == nil {
+			break
+		}
+
+		return e.complexity.Mutation.AddRandomCredential(childComplexity), true
+
 	case "Mutation.addRandomEvent":
 		if e.complexity.Mutation.AddRandomEvent == nil {
 			break
 		}
 
 		return e.complexity.Mutation.AddRandomEvent(childComplexity), true
+
+	case "Mutation.addRandomMessage":
+		if e.complexity.Mutation.AddRandomMessage == nil {
+			break
+		}
+
+		return e.complexity.Mutation.AddRandomMessage(childComplexity), true
 
 	case "Mutation.connect":
 		if e.complexity.Mutation.Connect == nil {
@@ -1551,7 +1569,7 @@ type Job {
   result: JobResult!
   createdMs: String!
   updatedMs: String!
-  output: JobOutput
+  output: JobOutput!
 }
 
 type JobOutput {
@@ -1661,6 +1679,8 @@ type Mutation {
 
   # for testing only
   addRandomEvent: Boolean!
+  addRandomMessage: Boolean!
+  addRandomCredential: Boolean!
 }
 
 type Subscription {
@@ -3969,11 +3989,14 @@ func (ec *executionContext) _Job_output(ctx context.Context, field graphql.Colle
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.JobOutput)
 	fc.Result = res
-	return ec.marshalOJobOutput2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐJobOutput(ctx, field.Selections, res)
+	return ec.marshalNJobOutput2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐJobOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _JobConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.JobConnection) (ret graphql.Marshaler) {
@@ -4604,6 +4627,76 @@ func (ec *executionContext) _Mutation_addRandomEvent(ctx context.Context, field 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().AddRandomEvent(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addRandomMessage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddRandomMessage(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addRandomCredential(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddRandomCredential(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8373,6 +8466,9 @@ func (ec *executionContext) _Job(ctx context.Context, sel ast.SelectionSet, obj 
 					}
 				}()
 				res = ec._Job_output(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		default:
@@ -8555,6 +8651,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addRandomEvent":
 			out.Values[i] = ec._Mutation_addRandomEvent(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addRandomMessage":
+			out.Values[i] = ec._Mutation_addRandomMessage(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "addRandomCredential":
+			out.Values[i] = ec._Mutation_addRandomCredential(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -9623,6 +9729,20 @@ func (ec *executionContext) marshalNJobConnection2ᚖgithubᚗcomᚋfindyᚑnetw
 	return ec._JobConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNJobOutput2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐJobOutput(ctx context.Context, sel ast.SelectionSet, v model.JobOutput) graphql.Marshaler {
+	return ec._JobOutput(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNJobOutput2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐJobOutput(ctx context.Context, sel ast.SelectionSet, v *model.JobOutput) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._JobOutput(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNJobResult2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐJobResult(ctx context.Context, v interface{}) (model.JobResult, error) {
 	var res model.JobResult
 	err := res.UnmarshalGQL(v)
@@ -10514,13 +10634,6 @@ func (ec *executionContext) marshalOJobEdge2ᚖgithubᚗcomᚋfindyᚑnetworkᚋ
 		return graphql.Null
 	}
 	return ec._JobEdge(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOJobOutput2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐJobOutput(ctx context.Context, sel ast.SelectionSet, v *model.JobOutput) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._JobOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOPairwise2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx context.Context, sel ast.SelectionSet, v []*model.Pairwise) graphql.Marshaler {

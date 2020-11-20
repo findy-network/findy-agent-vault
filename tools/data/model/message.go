@@ -14,6 +14,13 @@ type InternalMessage struct {
 	Delivered  *bool
 }
 
+func (m *InternalMessage) Description() string {
+	if m.SentByMe {
+		return "Sent basic message"
+	}
+	return "Received basic message"
+}
+
 func (m *InternalMessage) BasicMessage() *InternalMessage {
 	return m
 }

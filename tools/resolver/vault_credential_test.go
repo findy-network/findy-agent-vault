@@ -152,7 +152,7 @@ func TestGetCredentialsForPairwise(t *testing.T) {
 }
 
 func TestGetAllCredentials(t *testing.T) {
-	resetResolver()
+	resetResolver(true)
 	r := Resolver{}
 
 	// add new connections
