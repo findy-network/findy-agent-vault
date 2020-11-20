@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
@@ -12,7 +13,7 @@ type CredentialItems struct {
 
 type InternalCredential struct {
 	*BaseObject
-	Role          model.CredentialRole
+	Role          model.CredentialRole `faker:"oneof: HOLDER, HOLDER"`
 	SchemaID      string
 	CredDefID     string
 	Attributes    []*model.CredentialValue
@@ -40,7 +41,8 @@ func (c *InternalCredential) Description() string {
 	case model.CredentialRoleHolder:
 		return "Received credential offer"
 	}
-	return ""
+
+	panic(fmt.Errorf("invalid role %s for credential", c.Role))
 }
 
 func (c *InternalCredential) Status() *ProtocolStatus {

@@ -21,13 +21,16 @@ type agencyListener struct{}
 var state *data.Data
 
 func InitResolver(skipFake bool) *Resolver {
-	agency.Instance.Init(&agencyListener{})
+	listener := &agencyListener{}
+	agency.Instance.Init(listener)
 	state = data.InitState(skipFake)
 	initEvents()
-	return &Resolver{}
+	return &Resolver{listener}
 }
 
-type Resolver struct{}
+type Resolver struct {
+	listener *agencyListener
+}
 
 func (r *mutationResolver) AcceptOffer(_ context.Context, _ model.Offer) (*model.Response, error) {
 	panic(fmt.Errorf("not implemented"))
