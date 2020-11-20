@@ -22,6 +22,7 @@ func TestPaginationErrorsGetEvents(t *testing.T) {
 }
 
 func TestGetEvents(t *testing.T) {
+	resetResolver(false)
 	t.Run("get events", func(t *testing.T) {
 		s := state.Events
 		var (

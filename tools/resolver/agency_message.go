@@ -44,8 +44,9 @@ func (l *agencyListener) AddMessage(connectionID, id, message string, sentByMe b
 		SentByMe:   sentByMe,
 		Delivered:  nil,
 	}
+	desc := msg.Description()
 	state.Messages.Append(&msg)
-	glog.Infof("Added message %s for connection %s", msg.ID, connectionID)
+	glog.Infof("Added message %s for connection %s", id, connectionID)
 
 	addJob(
 		id,
@@ -53,7 +54,7 @@ func (l *agencyListener) AddMessage(connectionID, id, message string, sentByMe b
 		&id,
 		sentByMe,
 		&connectionID,
-		"Sent basic message")
+		desc)
 }
 
 func (l *agencyListener) UpdateMessage(connectionID, id, delivered bool) {

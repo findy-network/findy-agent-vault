@@ -21,8 +21,8 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func resetResolver() {
-	r := InitResolver()
+func resetResolver(skipFake bool) {
+	r := InitResolver(skipFake)
 
 	// Generate some jobs data
 	res, err := r.Mutation().Invite(context.TODO())
@@ -41,7 +41,7 @@ func resetResolver() {
 func setup() {
 	utils.SetLogDefaults()
 
-	resetResolver()
+	resetResolver(false)
 }
 
 func teardown() {
