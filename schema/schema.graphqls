@@ -185,7 +185,7 @@ type Job {
   result: JobResult!
   createdMs: String!
   updatedMs: String!
-  output: JobOutput
+  output: JobOutput!
 }
 
 type JobOutput {
@@ -295,6 +295,8 @@ type Mutation {
 
   # for testing only
   addRandomEvent: Boolean!
+  addRandomMessage: Boolean!
+  addRandomCredential: Boolean!
 }
 
 type Subscription {

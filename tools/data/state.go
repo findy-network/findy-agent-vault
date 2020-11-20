@@ -66,9 +66,11 @@ func (state *Data) OutputForJob(id string) (output *model.JobOutput) {
 			output.Connection = state.Connections().PairwiseForID(*pID)
 		case model.ProtocolTypeBasicMessage:
 			output.Message = state.Messages.MessageForID(*pID)
-		case model.ProtocolTypeNone:
 		case model.ProtocolTypeCredential:
+			output.Credential = state.Credentials().CredentialForID(*pID)
 		case model.ProtocolTypeProof:
+			output.Proof = state.Proofs().ProofForID(*pID)
+		case model.ProtocolTypeNone:
 			break
 		}
 	}

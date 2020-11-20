@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	data "github.com/findy-network/findy-agent-vault/tools/data/model"
+	"github.com/findy-network/findy-agent-vault/tools/faker"
 
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
@@ -65,5 +66,20 @@ func (r *queryResolver) Message(ctx context.Context, id string) (node *model.Bas
 	} else {
 		node = edge.Node
 	}
+	return
+}
+
+func (r *mutationResolver) AddRandomMessage(ctx context.Context) (ok bool, err error) {
+	glog.V(logLevelMedium).Info("mutationResolver:AddRandomMessage ")
+	defer err2.Return(&err)
+
+	msgs, err := faker.FakeMessages(1)
+	err2.Check(err)
+
+	msg := msgs[0]
+	r.listener.AddMessage(msg.PairwiseID, msg.ID, msg.Message, msg.SentByMe)
+
+	ok = true
+
 	return
 }

@@ -6,6 +6,8 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	data "github.com/findy-network/findy-agent-vault/tools/data/model"
+	"github.com/findy-network/findy-agent-vault/tools/faker"
+	"github.com/findy-network/findy-agent-vault/tools/utils"
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
 )
@@ -100,4 +102,30 @@ func (r *pairwiseResolver) Credentials(
 	glog.V(logLevelLow).Infof("Credentials: returning credentials between %d and %d", afterIndex, beforeIndex)
 
 	return items.CredentialConnection(afterIndex, beforeIndex), nil
+}
+
+func (r *mutationResolver) AddRandomCredential(ctx context.Context) (ok bool, err error) {
+	glog.V(logLevelMedium).Info("mutationResolver:AddRandomCredential ")
+	defer err2.Return(&err)
+
+	creds, err := faker.FakeCredentials(1)
+	err2.Check(err)
+
+	cred := creds[0]
+	r.listener.AddCredential(
+		cred.PairwiseID,
+		cred.ID,
+		cred.Role,
+		cred.SchemaID,
+		cred.CredDefID,
+		cred.Attributes,
+		cred.InitiatedByUs,
+	)
+	currentTime := utils.CurrentTimeMs()
+	r.listener.UpdateCredential(cred.PairwiseID, cred.ID, &currentTime, &currentTime, nil)
+
+	fmt.Println(cred.Role)
+	ok = true
+
+	return
 }
