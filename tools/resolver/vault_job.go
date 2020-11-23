@@ -66,7 +66,13 @@ func (r *jobResolver) Output(ctx context.Context, obj *model.Job) (output *model
 	return
 }
 
-func (r *pairwiseResolver) Jobs(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int, completed *bool) (c *model.JobConnection, err error) {
+func (r *pairwiseResolver) Jobs(
+	ctx context.Context,
+	obj *model.Pairwise,
+	after, before *string,
+	first, last *int,
+	completed *bool,
+) (c *model.JobConnection, err error) {
 	defer err2.Return(&err)
 	pagination := &PaginationParams{
 		first:  first,
