@@ -92,7 +92,12 @@ func (r *eventResolver) Connection(ctx context.Context, obj *model.Event) (pw *m
 	return
 }
 
-func (r *pairwiseResolver) Events(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (c *model.EventConnection, err error) {
+func (r *pairwiseResolver) Events(
+	ctx context.Context,
+	obj *model.Pairwise,
+	after, before *string,
+	first, last *int,
+) (c *model.EventConnection, err error) {
 	defer err2.Return(&err)
 	pagination := &PaginationParams{
 		first:  first,
