@@ -145,3 +145,18 @@ func FakeCredentials(count int) (creds []model.InternalCredential, err error) {
 	})
 	return
 }
+
+func FakeProofs(count int) (creds []model.InternalProof, err error) {
+	defer err2.Return(&err)
+	creds = make([]model.InternalProof, count)
+
+	for i := 0; i < count; i++ {
+		c := model.InternalProof{}
+		err2.Check(faker.FakeData(&c))
+		creds[i] = c
+	}
+	sort.Slice(creds, func(i, j int) bool {
+		return creds[i].CreatedMs < creds[j].CreatedMs
+	})
+	return
+}
