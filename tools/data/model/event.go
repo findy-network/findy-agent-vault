@@ -18,6 +18,20 @@ func (e *InternalEvent) Event() *InternalEvent {
 	return e
 }
 
+func (e *InternalEvent) Copy() *InternalEvent {
+	newEvent := &InternalEvent{
+		BaseObject: &BaseObject{
+			ID:        e.ID,
+			CreatedMs: e.CreatedMs,
+		},
+		Read:        e.Read,
+		Description: e.Description,
+		JobID:       e.JobID,
+		PairwiseID:  e.PairwiseID,
+	}
+	return newEvent
+}
+
 func (e *InternalEvent) ToEdge() *model.EventEdge {
 	cursor := CreateCursor(e.CreatedMs, model.Event{})
 	return &model.EventEdge{
