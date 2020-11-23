@@ -297,6 +297,7 @@ type Mutation {
   addRandomEvent: Boolean!
   addRandomMessage: Boolean!
   addRandomCredential: Boolean!
+  addRandomProof: Boolean!
 }
 
 type Subscription {
