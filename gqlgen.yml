@@ -62,6 +62,10 @@ models:
         resolver: true
       proofs:
         resolver: true
+      jobs:
+        resolver: true
+      events:
+        resolver: true
   BasicMessage:
     fields:
       connection:

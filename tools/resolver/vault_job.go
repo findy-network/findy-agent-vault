@@ -66,6 +66,40 @@ func (r *jobResolver) Output(ctx context.Context, obj *model.Job) (output *model
 	return
 }
 
+func (r *pairwiseResolver) Jobs(
+	ctx context.Context,
+	obj *model.Pairwise,
+	after, before *string,
+	first, last *int,
+	completed *bool,
+) (c *model.JobConnection, err error) {
+	defer err2.Return(&err)
+	pagination := &PaginationParams{
+		first:  first,
+		last:   last,
+		after:  after,
+		before: before,
+	}
+	logPaginationRequest("pairwiseResolver:jobs", pagination)
+
+	items := state.Jobs
+	includeCompleted := completed != nil && *completed
+	items = items.Filter(func(item data.APIObject) data.APIObject {
+		j := item.Job()
+		if (j.Status != model.JobStatusComplete || includeCompleted) && (j.PairwiseID != nil && *j.PairwiseID == obj.ID) {
+			return j.Copy()
+		}
+		return nil
+	})
+
+	afterIndex, beforeIndex, err := pick(items, pagination)
+	err2.Check(err)
+
+	glog.V(logLevelLow).Infof("Jobs: returning jobs between %d and %d", afterIndex, beforeIndex)
+
+	return items.JobConnection(afterIndex, beforeIndex), nil
+}
+
 func addJob(
 	id string,
 	protocol model.ProtocolType,

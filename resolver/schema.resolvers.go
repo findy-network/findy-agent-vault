@@ -83,6 +83,14 @@ func (r *pairwiseResolver) Proofs(ctx context.Context, obj *model.Pairwise, afte
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *pairwiseResolver) Jobs(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int, completed *bool) (*model.JobConnection, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *pairwiseResolver) Events(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.EventConnection, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *proofResolver) Connection(ctx context.Context, obj *model.Proof) (*model.Pairwise, error) {
 	panic(fmt.Errorf("not implemented"))
 }
