@@ -156,6 +156,8 @@ type Pairwise struct {
 	Messages      *BasicMessageConnection `json:"messages"`
 	Credentials   *CredentialConnection   `json:"credentials"`
 	Proofs        *ProofConnection        `json:"proofs"`
+	Jobs          *JobConnection          `json:"jobs"`
+	Events        *EventConnection        `json:"events"`
 }
 
 type PairwiseConnection struct {

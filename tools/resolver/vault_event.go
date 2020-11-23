@@ -92,6 +92,38 @@ func (r *eventResolver) Connection(ctx context.Context, obj *model.Event) (pw *m
 	return
 }
 
+func (r *pairwiseResolver) Events(
+	ctx context.Context,
+	obj *model.Pairwise,
+	after, before *string,
+	first, last *int,
+) (c *model.EventConnection, err error) {
+	defer err2.Return(&err)
+	pagination := &PaginationParams{
+		first:  first,
+		last:   last,
+		after:  after,
+		before: before,
+	}
+	logPaginationRequest("pairwiseResolver:events", pagination)
+
+	items := state.Events
+	items = items.Filter(func(item data.APIObject) data.APIObject {
+		e := item.Event()
+		if e.PairwiseID != nil && *e.PairwiseID == obj.ID {
+			return e.Copy()
+		}
+		return nil
+	})
+
+	afterIndex, beforeIndex, err := pick(items, pagination)
+	err2.Check(err)
+
+	glog.V(logLevelLow).Infof("Events: returning events between %d and %d", afterIndex, beforeIndex)
+
+	return items.EventConnection(afterIndex, beforeIndex), nil
+}
+
 func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.EventEdge, error) {
 	id := "tenantId-" + strconv.FormatInt(utils.CurrentTimeMs(), 10)
 	glog.V(logLevelMedium).Info("subscriptionResolver:EventAdded, id: ", id)
@@ -112,10 +144,26 @@ func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.Ev
 }
 
 func doAddEvent(event *data.InternalEvent) {
+	var (
+		pwID  string
+		jobID string
+	)
+	if event.PairwiseID != nil {
+		pwID = *event.PairwiseID
+	}
+	if event.JobID != nil {
+		jobID = *event.JobID
+	}
+	glog.V(logLevelLow).Infof(
+		"doAddEvent: id %s, description: %s, pairwiseID: %v, jobId: %v",
+		event.ID,
+		event.Description,
+		pwID,
+		jobID,
+	)
 	items := state.Events
 	event.CreatedMs = utils.CurrentTimeMs()
 	items.Append(event)
-	glog.Infof("Added event %s", event.ID)
 	for _, observer := range eventAddedObserver {
 		observer <- event.ToEdge()
 	}
