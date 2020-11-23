@@ -67,6 +67,10 @@ func (r *mutationResolver) AddRandomCredential(ctx context.Context) (bool, error
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *mutationResolver) AddRandomProof(ctx context.Context) (bool, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *pairwiseResolver) Messages(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.BasicMessageConnection, error) {
 	panic(fmt.Errorf("not implemented"))
 }
