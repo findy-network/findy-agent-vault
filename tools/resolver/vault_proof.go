@@ -6,6 +6,8 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	data "github.com/findy-network/findy-agent-vault/tools/data/model"
+	"github.com/findy-network/findy-agent-vault/tools/faker"
+	"github.com/findy-network/findy-agent-vault/tools/utils"
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
 )
@@ -65,4 +67,27 @@ func (r *pairwiseResolver) Proofs(
 	glog.V(logLevelLow).Infof("Proofs: returning proofs between %d and %d", afterIndex, beforeIndex)
 
 	return items.ProofConnection(afterIndex, beforeIndex), nil
+}
+
+func (r *mutationResolver) AddRandomProof(ctx context.Context) (ok bool, err error) {
+	glog.V(logLevelMedium).Info("mutationResolver:AddRandomProof ")
+	defer err2.Return(&err)
+
+	proofs, err := faker.FakeProofs(1)
+	err2.Check(err)
+
+	proof := proofs[0]
+	r.listener.AddProof(
+		proof.PairwiseID,
+		proof.ID,
+		proof.Role,
+		proof.Attributes,
+		proof.InitiatedByUs,
+	)
+	currentTime := utils.CurrentTimeMs()
+	r.listener.UpdateProof(proof.PairwiseID, proof.ID, &currentTime, &currentTime, nil)
+
+	ok = true
+
+	return
 }

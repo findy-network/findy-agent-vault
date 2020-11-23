@@ -124,7 +124,6 @@ func (r *mutationResolver) AddRandomCredential(ctx context.Context) (ok bool, er
 	currentTime := utils.CurrentTimeMs()
 	r.listener.UpdateCredential(cred.PairwiseID, cred.ID, &currentTime, &currentTime, nil)
 
-	fmt.Println(cred.Role)
 	ok = true
 
 	return
