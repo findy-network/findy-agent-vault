@@ -31,6 +31,14 @@ type Pairwise {
     last: Int
   ): CredentialConnection!
   proofs(after: String, before: String, first: Int, last: Int): ProofConnection!
+  jobs(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    completed: Boolean
+  ): JobConnection!
+  events(after: String, before: String, first: Int, last: Int): EventConnection!
 }
 
 type PairwiseEdge {
