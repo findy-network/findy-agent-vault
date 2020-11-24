@@ -48,13 +48,15 @@ func (l *agencyListener) AddMessage(connectionID, id, message string, sentByMe b
 	state.Messages.Append(&msg)
 	glog.Infof("Added message %s for connection %s", id, connectionID)
 
-	addJob(
+	addJobWithStatus(
 		id,
 		model.ProtocolTypeBasicMessage,
 		&id,
 		sentByMe,
 		&connectionID,
-		desc)
+		desc,
+		model.JobStatusComplete,
+		model.JobResultSuccess)
 }
 
 func (l *agencyListener) UpdateMessage(connectionID, id, delivered bool) {

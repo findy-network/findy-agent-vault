@@ -1,14 +1,10 @@
 package resolver
 
 import (
-	"context"
-	"fmt"
-
 	"github.com/findy-network/findy-agent-vault/tools/data"
 
 	"github.com/findy-network/findy-agent-vault/agency"
 	"github.com/findy-network/findy-agent-vault/graph/generated"
-	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
 const (
@@ -30,14 +26,6 @@ func InitResolver(skipFake bool) *Resolver {
 
 type Resolver struct {
 	listener *agencyListener
-}
-
-func (r *mutationResolver) AcceptOffer(_ context.Context, _ model.Offer) (*model.Response, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *mutationResolver) AcceptRequest(_ context.Context, _ model.Request) (*model.Response, error) {
-	panic(fmt.Errorf("not implemented"))
 }
 
 // BasicMessage returns generated.BasicMessageResolver implementation.

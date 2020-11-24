@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/findy-network/findy-agent-vault/agency"
 	data "github.com/findy-network/findy-agent-vault/tools/data/model"
 	"github.com/findy-network/findy-agent-vault/tools/utils"
 	"github.com/golang/glog"
@@ -107,6 +108,26 @@ func addJob(
 	initiatedByUs bool,
 	pairwiseID *string,
 	description string) {
+	addJobWithStatus(
+		id,
+		protocol,
+		protocolID,
+		initiatedByUs,
+		pairwiseID,
+		description,
+		model.JobStatusWaiting,
+		model.JobResultNone)
+}
+
+func addJobWithStatus(
+	id string,
+	protocol model.ProtocolType,
+	protocolID *string,
+	initiatedByUs bool,
+	pairwiseID *string,
+	description string,
+	status model.JobStatus,
+	result model.JobResult) {
 	timeNow := utils.CurrentTimeMs()
 	items := state.Jobs
 	items.Append(&data.InternalJob{
@@ -118,8 +139,8 @@ func addJob(
 		ProtocolID:    protocolID,
 		InitiatedByUs: initiatedByUs,
 		PairwiseID:    pairwiseID,
-		Status:        model.JobStatusWaiting,
-		Result:        model.JobResultNone,
+		Status:        status,
+		Result:        result,
 		UpdatedMs:     timeNow,
 	})
 	glog.Infof("Added job %s", id)
@@ -131,4 +152,45 @@ func updateJob(id string, protocolID, pairwiseID *string, status model.JobStatus
 	items.UpdateJob(id, protocolID, pairwiseID, status, result)
 	glog.Infof("Updated job %s", id)
 	addEvent(description, pairwiseID, &id)
+}
+
+func (r *mutationResolver) Resume(ctx context.Context, input model.ResumeJobInput) (res *model.Response, err error) {
+	defer err2.Return(&err)
+	glog.V(logLevelMedium).Info("mutationResolver:Resume")
+
+	job := state.Jobs.JobDataForID(input.ID)
+	if job == nil {
+		return nil, fmt.Errorf("job not found with id %s", input.ID)
+	}
+
+	desc := "Accepted"
+	if !input.Accept {
+		desc = "Declined"
+	}
+
+	switch job.ProtocolType {
+	case model.ProtocolTypeCredential:
+		err2.Check(agency.Instance.ResumeCredentialOffer(*job.ProtocolID, input.Accept))
+		desc += " credential"
+	case model.ProtocolTypeProof:
+		err2.Check(agency.Instance.ResumeProofRequest(*job.ProtocolID, input.Accept))
+		desc += " proof"
+	case model.ProtocolTypeBasicMessage:
+	case model.ProtocolTypeConnection:
+	case model.ProtocolTypeNone:
+		// N/A
+		break
+	}
+
+	res = &model.Response{Ok: true}
+
+	updateJob(
+		input.ID,
+		job.ProtocolID,
+		job.PairwiseID,
+		model.JobStatusWaiting,
+		model.JobResultNone,
+		desc)
+
+	return res, nil
 }
