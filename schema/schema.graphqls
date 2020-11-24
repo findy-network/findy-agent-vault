@@ -229,12 +229,7 @@ input MessageInput {
   message: String!
 }
 
-input Offer {
-  id: ID!
-  accept: Boolean!
-}
-
-input Request {
+input ResumeJobInput {
   id: ID!
   accept: Boolean!
 }
@@ -298,8 +293,8 @@ type Mutation {
   invite: InvitationResponse!
   connect(input: ConnectInput!): Response!
   sendMessage(input: MessageInput!): Response!
-  acceptOffer(input: Offer!): Response!
-  acceptRequest(input: Request!): Response!
+
+  resume(input: ResumeJobInput!): Response!
 
   # for testing only
   addRandomEvent: Boolean!

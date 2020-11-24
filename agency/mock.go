@@ -80,3 +80,11 @@ func (m *Mock) SendMessage(connectionID, message string) (id string, err error) 
 
 	return
 }
+
+func (m *Mock) ResumeCredentialOffer(id string, accept bool) (err error) {
+	return
+}
+
+func (m *Mock) ResumeProofRequest(id string, accept bool) (err error) {
+	return
+}
