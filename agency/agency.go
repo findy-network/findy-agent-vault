@@ -23,7 +23,11 @@ type Listener interface {
 
 type Agency interface {
 	Init(l Listener)
+
 	Invite() (string, string, error)
 	Connect(invitation string) (string, error)
 	SendMessage(connectionID, message string) (string, error)
+
+	ResumeCredentialOffer(id string, accept bool) error
+	ResumeProofRequest(id string, accept bool) error
 }

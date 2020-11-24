@@ -48,13 +48,19 @@ type statusPresentProof struct {
 func (f *Findy) findyCallback(pl *mesg.Payload) (while bool, err error) {
 	defer err2.Return(&err) // TODO
 
+	glog.Infof("Received findy callback %s %s", pl.Type)
+
 	currentTime := utils.CurrentTimeMs()
 
 	switch pl.Type {
+	case pltype.CANotifyUserAction:
+		fallthrough
 	case pltype.CANotifyStatus:
 		var status prot.TaskStatus
 
 		err2.Check(mapstructure.Decode(pl.Message.Body, &status))
+
+		glog.Infof("Callback payload status %s", status.Type)
 
 		switch status.Type {
 		case pltype.AriesProtocolConnection:
@@ -68,10 +74,13 @@ func (f *Findy) findyCallback(pl *mesg.Payload) (while bool, err error) {
 			var m statusBasicMessage
 			err2.Check(mapstructure.Decode(status.Payload, &m))
 
-			id := f.taskMapper.read(status.ID)
-			if id != "" {
-				f.listener.AddMessage(m.PwName, id, m.Message, m.SentByMe)
+			id := f.taskMapper.readID(status.ID)
+			sentByMe := true
+			if id == "" {
+				sentByMe = false
+				id = uuid.New().String()
 			}
+			f.listener.AddMessage(status.Name, id, m.Message, sentByMe)
 
 		case pltype.ProtocolIssueCredential:
 			var c statusIssueCredential
@@ -91,7 +100,7 @@ func (f *Findy) findyCallback(pl *mesg.Payload) (while bool, err error) {
 				f.listener.AddCredential(status.Name, id, model.CredentialRoleHolder, c.SchemaID, c.CredDefID, values, false)
 			} else {
 				// if ready -> what if fails
-				id := f.taskMapper.read(status.ID)
+				id := f.taskMapper.readID(status.ID)
 				f.listener.UpdateCredential(status.Name, id, nil, &currentTime, nil)
 			}
 
@@ -108,11 +117,16 @@ func (f *Findy) findyCallback(pl *mesg.Payload) (while bool, err error) {
 						CredDefID: v.CredDefID,
 					})
 				}
-				f.listener.AddProof(status.Name, uuid.New().String(), model.ProofRoleProver, attributes, false)
+				id := uuid.New().String()
+				f.taskMapper.write(status.ID, id)
+				f.listener.AddProof(status.Name, id, model.ProofRoleProver, attributes, false)
 			} else {
-				id := f.taskMapper.read(status.ID)
+				id := f.taskMapper.readID(status.ID)
 				f.listener.UpdateProof(status.Name, id, nil, &currentTime, nil)
 			}
+		default:
+			glog.Warning(dto.ToJSON(pl))
+
 		}
 	default:
 		glog.Warning(dto.ToJSON(pl))

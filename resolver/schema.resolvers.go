@@ -47,11 +47,7 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input model.MessageI
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *mutationResolver) AcceptOffer(ctx context.Context, input model.Offer) (*model.Response, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *mutationResolver) AcceptRequest(ctx context.Context, input model.Request) (*model.Response, error) {
+func (r *mutationResolver) Resume(ctx context.Context, input model.ResumeJobInput) (*model.Response, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 

@@ -22,16 +22,22 @@ func (l *agencyListener) AddProof(connectionID, id string, role model.ProofRole,
 		PairwiseID:    connectionID,
 	}
 	desc := proof.Description()
+	status := model.JobStatusWaiting
+	if !initiatedByUs {
+		status = model.JobStatusPending
+	}
 	state.Proofs().Objects().Append(proof)
 
 	glog.Infof("Added proof %s for connection %s", proof.ID, connectionID)
-	addJob(
+	addJobWithStatus(
 		id,
 		model.ProtocolTypeProof,
 		&id,
 		initiatedByUs,
 		&connectionID,
-		desc)
+		desc,
+		status,
+		model.JobResultNone)
 }
 
 func (l *agencyListener) UpdateProof(connectionID, id string, approvedMs, verifiedMs, failedMs *int64) {

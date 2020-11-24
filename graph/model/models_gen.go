@@ -132,11 +132,6 @@ type MessageInput struct {
 	Message      string `json:"message"`
 }
 
-type Offer struct {
-	ID     string `json:"id"`
-	Accept bool   `json:"accept"`
-}
-
 type PageInfo struct {
 	EndCursor       *string `json:"endCursor"`
 	HasNextPage     bool    `json:"hasNextPage"`
@@ -202,13 +197,13 @@ type ProofEdge struct {
 	Node   *Proof `json:"node"`
 }
 
-type Request struct {
-	ID     string `json:"id"`
-	Accept bool   `json:"accept"`
-}
-
 type Response struct {
 	Ok bool `json:"ok"`
+}
+
+type ResumeJobInput struct {
+	ID     string `json:"id"`
+	Accept bool   `json:"accept"`
 }
 
 type User struct {
