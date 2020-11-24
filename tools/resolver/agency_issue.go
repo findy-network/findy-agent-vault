@@ -29,16 +29,22 @@ func (l *agencyListener) AddCredential(
 		PairwiseID:    connectionID,
 	}
 	desc := cred.Description()
+	status := model.JobStatusWaiting
+	if !initiatedByUs {
+		status = model.JobStatusPending
+	}
 	state.Credentials().Objects().Append(cred)
 
 	glog.Infof("Added credential %s for connection %s", id, connectionID)
-	addJob(
+	addJobWithStatus(
 		id,
 		model.ProtocolTypeCredential,
 		&id,
 		initiatedByUs,
 		&connectionID,
 		desc,
+		status,
+		model.JobResultNone,
 	)
 }
 

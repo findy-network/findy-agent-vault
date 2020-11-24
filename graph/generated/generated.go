@@ -163,8 +163,6 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AcceptOffer         func(childComplexity int, input model.Offer) int
-		AcceptRequest       func(childComplexity int, input model.Request) int
 		AddRandomCredential func(childComplexity int) int
 		AddRandomEvent      func(childComplexity int) int
 		AddRandomMessage    func(childComplexity int) int
@@ -172,6 +170,7 @@ type ComplexityRoot struct {
 		Connect             func(childComplexity int, input model.ConnectInput) int
 		Invite              func(childComplexity int) int
 		MarkEventRead       func(childComplexity int, input model.MarkReadInput) int
+		Resume              func(childComplexity int, input model.ResumeJobInput) int
 		SendMessage         func(childComplexity int, input model.MessageInput) int
 	}
 
@@ -286,8 +285,7 @@ type MutationResolver interface {
 	Invite(ctx context.Context) (*model.InvitationResponse, error)
 	Connect(ctx context.Context, input model.ConnectInput) (*model.Response, error)
 	SendMessage(ctx context.Context, input model.MessageInput) (*model.Response, error)
-	AcceptOffer(ctx context.Context, input model.Offer) (*model.Response, error)
-	AcceptRequest(ctx context.Context, input model.Request) (*model.Response, error)
+	Resume(ctx context.Context, input model.ResumeJobInput) (*model.Response, error)
 	AddRandomEvent(ctx context.Context) (bool, error)
 	AddRandomMessage(ctx context.Context) (bool, error)
 	AddRandomCredential(ctx context.Context) (bool, error)
@@ -776,30 +774,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LoginResponse.Token(childComplexity), true
 
-	case "Mutation.acceptOffer":
-		if e.complexity.Mutation.AcceptOffer == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_acceptOffer_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.AcceptOffer(childComplexity, args["input"].(model.Offer)), true
-
-	case "Mutation.acceptRequest":
-		if e.complexity.Mutation.AcceptRequest == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_acceptRequest_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.AcceptRequest(childComplexity, args["input"].(model.Request)), true
-
 	case "Mutation.addRandomCredential":
 		if e.complexity.Mutation.AddRandomCredential == nil {
 			break
@@ -858,6 +832,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.MarkEventRead(childComplexity, args["input"].(model.MarkReadInput)), true
+
+	case "Mutation.resume":
+		if e.complexity.Mutation.Resume == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_resume_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Resume(childComplexity, args["input"].(model.ResumeJobInput)), true
 
 	case "Mutation.sendMessage":
 		if e.complexity.Mutation.SendMessage == nil {
@@ -1650,12 +1636,7 @@ input MessageInput {
   message: String!
 }
 
-input Offer {
-  id: ID!
-  accept: Boolean!
-}
-
-input Request {
+input ResumeJobInput {
   id: ID!
   accept: Boolean!
 }
@@ -1719,8 +1700,8 @@ type Mutation {
   invite: InvitationResponse!
   connect(input: ConnectInput!): Response!
   sendMessage(input: MessageInput!): Response!
-  acceptOffer(input: Offer!): Response!
-  acceptRequest(input: Request!): Response!
+
+  resume(input: ResumeJobInput!): Response!
 
   # for testing only
   addRandomEvent: Boolean!
@@ -1739,36 +1720,6 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
-
-func (ec *executionContext) field_Mutation_acceptOffer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.Offer
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNOffer2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐOffer(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_acceptRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.Request
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNRequest2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐRequest(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
 
 func (ec *executionContext) field_Mutation_connect_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -1792,6 +1743,21 @@ func (ec *executionContext) field_Mutation_markEventRead_args(ctx context.Contex
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNMarkReadInput2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐMarkReadInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_resume_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.ResumeJobInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNResumeJobInput2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐResumeJobInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4663,7 +4629,7 @@ func (ec *executionContext) _Mutation_sendMessage(ctx context.Context, field gra
 	return ec.marshalNResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐResponse(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_acceptOffer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_resume(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4680,7 +4646,7 @@ func (ec *executionContext) _Mutation_acceptOffer(ctx context.Context, field gra
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_acceptOffer_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_resume_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -4688,49 +4654,7 @@ func (ec *executionContext) _Mutation_acceptOffer(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AcceptOffer(rctx, args["input"].(model.Offer))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.Response)
-	fc.Result = res
-	return ec.marshalNResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐResponse(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_acceptRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_acceptRequest_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AcceptRequest(rctx, args["input"].(model.Request))
+		return ec.resolvers.Mutation().Resume(rctx, args["input"].(model.ResumeJobInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8143,36 +8067,8 @@ func (ec *executionContext) unmarshalInputMessageInput(ctx context.Context, obj 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputOffer(ctx context.Context, obj interface{}) (model.Offer, error) {
-	var it model.Offer
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "accept":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accept"))
-			it.Accept, err = ec.unmarshalNBoolean2bool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputRequest(ctx context.Context, obj interface{}) (model.Request, error) {
-	var it model.Request
+func (ec *executionContext) unmarshalInputResumeJobInput(ctx context.Context, obj interface{}) (model.ResumeJobInput, error) {
+	var it model.ResumeJobInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -8897,13 +8793,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "acceptOffer":
-			out.Values[i] = ec._Mutation_acceptOffer(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "acceptRequest":
-			out.Values[i] = ec._Mutation_acceptRequest(ctx, field)
+		case "resume":
+			out.Values[i] = ec._Mutation_resume(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -10064,11 +9955,6 @@ func (ec *executionContext) unmarshalNMessageInput2githubᚗcomᚋfindyᚑnetwor
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNOffer2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐOffer(ctx context.Context, v interface{}) (model.Offer, error) {
-	res, err := ec.unmarshalInputOffer(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.PageInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -10188,11 +10074,6 @@ func (ec *executionContext) marshalNProtocolType2githubᚗcomᚋfindyᚑnetwork�
 	return v
 }
 
-func (ec *executionContext) unmarshalNRequest2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐRequest(ctx context.Context, v interface{}) (model.Request, error) {
-	res, err := ec.unmarshalInputRequest(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalNResponse2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐResponse(ctx context.Context, sel ast.SelectionSet, v model.Response) graphql.Marshaler {
 	return ec._Response(ctx, sel, &v)
 }
@@ -10205,6 +10086,11 @@ func (ec *executionContext) marshalNResponse2ᚖgithubᚗcomᚋfindyᚑnetwork�
 		return graphql.Null
 	}
 	return ec._Response(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNResumeJobInput2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐResumeJobInput(ctx context.Context, v interface{}) (model.ResumeJobInput, error) {
+	res, err := ec.unmarshalInputResumeJobInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {

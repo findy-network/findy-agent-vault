@@ -88,6 +88,19 @@ func (i *Items) JobForID(id string) (edge *model.JobEdge) {
 	return
 }
 
+func (i *Items) JobDataForID(id string) (job *InternalJob) {
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
+
+	for _, item := range i.items {
+		if item.Identifier() == id {
+			job = item.Job().Copy()
+			break
+		}
+	}
+	return
+}
+
 func (i *Items) JobProtocolForID(id string) (t model.ProtocolType, protocolID *string) {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
