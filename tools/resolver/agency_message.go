@@ -16,7 +16,7 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input model.MessageI
 	defer err2.Return(&err)
 	glog.V(logLevelMedium).Info("mutationResolver:SendMessage")
 
-	id, err := agency.Instance.SendMessage(input.ConnectionID, input.Message)
+	id, err := agency.Instance.SendMessage(ctx, input.ConnectionID, input.Message)
 	err2.Check(err)
 
 	res = &model.Response{Ok: true}
