@@ -17,6 +17,9 @@ build: generate
 build_findy: generate
 	go build -tags findy -v ./...
 
+build_findy_grpc: generate
+	go build -tags findy_grpc -v ./...
+
 test_findy:
 	go test -tags findy -v ./...
 
