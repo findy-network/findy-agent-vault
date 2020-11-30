@@ -1,8 +1,10 @@
 // +build !findy
+// +build !findy_grpc
 
 package agency
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
@@ -30,7 +32,7 @@ func (m *Mock) Init(l Listener) {
 	m.listener = l
 }
 
-func (m *Mock) Invite() (result, id string, err error) {
+func (m *Mock) Invite(ctx context.Context) (result, id string, err error) {
 	defer err2.Return(&err)
 
 	inv := invitation{}
@@ -47,7 +49,7 @@ func (m *Mock) Invite() (result, id string, err error) {
 	return
 }
 
-func (m *Mock) Connect(strInvitation string) (id string, err error) {
+func (m *Mock) Connect(ctx context.Context, strInvitation string) (id string, err error) {
 	defer err2.Return(&err)
 
 	inv := invitation{}
@@ -65,7 +67,7 @@ func (m *Mock) Connect(strInvitation string) (id string, err error) {
 	return
 }
 
-func (m *Mock) SendMessage(connectionID, message string) (id string, err error) {
+func (m *Mock) SendMessage(ctx context.Context, connectionID, message string) (id string, err error) {
 	defer err2.Return(&err)
 
 	id = uuid.New().String()
@@ -81,10 +83,10 @@ func (m *Mock) SendMessage(connectionID, message string) (id string, err error) 
 	return
 }
 
-func (m *Mock) ResumeCredentialOffer(id string, accept bool) (err error) {
+func (m *Mock) ResumeCredentialOffer(ctx context.Context, id string, accept bool) (err error) {
 	return
 }
 
-func (m *Mock) ResumeProofRequest(id string, accept bool) (err error) {
+func (m *Mock) ResumeProofRequest(ctx context.Context, id string, accept bool) (err error) {
 	return
 }

@@ -13,11 +13,11 @@ import (
 	"github.com/lainio/err2"
 )
 
-func (r *mutationResolver) Connect(_ context.Context, input model.ConnectInput) (res *model.Response, err error) {
+func (r *mutationResolver) Connect(ctx context.Context, input model.ConnectInput) (res *model.Response, err error) {
 	defer err2.Return(&err)
 	glog.V(logLevelMedium).Info("mutationResolver:Connect")
 
-	id, err := agency.Instance.Connect(input.Invitation)
+	id, err := agency.Instance.Connect(ctx, input.Invitation)
 	err2.Check(err)
 
 	res = &model.Response{Ok: true}

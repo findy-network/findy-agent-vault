@@ -16,7 +16,7 @@ func (r *mutationResolver) Invite(ctx context.Context) (resp *model.InvitationRe
 	defer err2.Return(&err)
 	glog.V(logLevelMedium).Info("mutationResolver:Invite")
 
-	str, id, err := agency.Instance.Invite()
+	str, id, err := agency.Instance.Invite(ctx)
 	err2.Check(err)
 
 	img, err := utils.StrToQRCode(str)

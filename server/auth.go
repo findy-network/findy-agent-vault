@@ -27,7 +27,7 @@ type JSONPayload struct {
 }
 
 const (
-	jwtSecret       = "supersecret"
+	jwtSecret       = "mySuperSecretKeyLol"
 	unauthenticated = "UNAUTHENTICATED"
 	hoursInDay      = 24
 	hoursForTest    = 2

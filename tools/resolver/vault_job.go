@@ -170,10 +170,10 @@ func (r *mutationResolver) Resume(ctx context.Context, input model.ResumeJobInpu
 
 	switch job.ProtocolType {
 	case model.ProtocolTypeCredential:
-		err2.Check(agency.Instance.ResumeCredentialOffer(*job.ProtocolID, input.Accept))
+		err2.Check(agency.Instance.ResumeCredentialOffer(ctx, *job.ProtocolID, input.Accept))
 		desc += " credential"
 	case model.ProtocolTypeProof:
-		err2.Check(agency.Instance.ResumeProofRequest(*job.ProtocolID, input.Accept))
+		err2.Check(agency.Instance.ResumeProofRequest(ctx, *job.ProtocolID, input.Accept))
 		desc += " proof"
 	case model.ProtocolTypeBasicMessage:
 	case model.ProtocolTypeConnection:

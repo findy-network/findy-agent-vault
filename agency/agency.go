@@ -1,6 +1,10 @@
 package agency
 
-import "github.com/findy-network/findy-agent-vault/graph/model"
+import (
+	"context"
+
+	"github.com/findy-network/findy-agent-vault/graph/model"
+)
 
 type Listener interface {
 	AddConnection(id, ourDID, theirDID, theirEndpoint, theirLabel string)
@@ -24,10 +28,10 @@ type Listener interface {
 type Agency interface {
 	Init(l Listener)
 
-	Invite() (string, string, error)
-	Connect(invitation string) (string, error)
-	SendMessage(connectionID, message string) (string, error)
+	Invite(ctx context.Context) (string, string, error)
+	Connect(ctx context.Context, invitation string) (string, error)
+	SendMessage(ctx context.Context, connectionID, message string) (string, error)
 
-	ResumeCredentialOffer(id string, accept bool) error
-	ResumeProofRequest(id string, accept bool) error
+	ResumeCredentialOffer(ctx context.Context, id string, accept bool) error
+	ResumeProofRequest(ctx context.Context, id string, accept bool) error
 }
