@@ -75,3 +75,6 @@ db:
 
 db_client:
 	docker run -it --rm --network host jbergknoff/postgresql-client postgres://postgres:$(POSTGRES_PASSWORD)@localhost:5432/vault?sslmode=disable
+
+db_client_test:
+	docker run -it --rm --network host jbergknoff/postgresql-client postgres://postgres:$(POSTGRES_PASSWORD)@localhost:5433/vault?sslmode=disable
