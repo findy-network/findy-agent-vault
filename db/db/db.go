@@ -8,9 +8,10 @@ type Db interface {
 	AddAgent(a *model.Agent) error
 	GetAgent(id, agentID *string) (*model.Agent, error)
 
-	/*AddConnection(id, ourDID, theirDID, theirEndpoint, theirLabel string)
+	AddConnection(c *model.Connection) (*model.Connection, error)
+	GetConnection(id string) (*model.Connection, error)
 
-	AddMessage(connectionID, id, message string, sentByMe bool)
+	/*AddMessage(connectionID, id, message string, sentByMe bool)
 	UpdateMessage(connectionID, id, delivered bool)
 
 	AddCredential(
