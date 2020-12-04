@@ -36,23 +36,15 @@ func (p *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
 		queryID = agentID
 	}
 
-	fmt.Println("Haaa1")
-
 	rows, err := p.db.Query(query, *queryID)
 	err2.Check(err)
 	defer rows.Close()
 
-	fmt.Println("Haaa2", query, *queryID)
-
-	a = &model.Agent{}
+	a = model.NewAgent()
 	if rows.Next() {
-		fmt.Println("Haaa4")
 		err = rows.Scan(&a.ID, &a.AgentID, &a.Label, &a.Created)
 		err2.Check(err)
-		fmt.Println("Haaa5")
 	}
-
-	fmt.Println("Haaa3")
 
 	err = rows.Err()
 	err2.Check(err)
