@@ -18,7 +18,7 @@ func InitResolver() *Resolver {
 	//listener := &agencyListener{}
 	//agency.Instance.Init(listener)
 
-	pg.InitDb("file://db/migrations", "5432", false)
+	pg.InitDB("file://db/migrations", "5432", false)
 
 	return &Resolver{}
 }

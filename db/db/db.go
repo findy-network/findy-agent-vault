@@ -5,7 +5,7 @@ import "github.com/findy-network/findy-agent-vault/db/model"
 type Db interface {
 	Close()
 
-	AddAgent(agentId, label string) error
+	AddAgent(a *model.Agent) error
 	GetAgent(id, agentID *string) (*model.Agent, error)
 
 	/*AddConnection(id, ourDID, theirDID, theirEndpoint, theirLabel string)
