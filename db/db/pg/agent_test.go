@@ -10,25 +10,6 @@ import (
 func TestAddAgent(t *testing.T) {
 	testAgent := &model.Agent{AgentID: "agentID", Label: "agentLabel"}
 
-	// Add data
-	if err := pgDB.AddAgent(testAgent); err != nil {
-		t.Errorf("Failed to add agent %s", err.Error())
-	}
-
-	// Error with duplicate id
-	err := pgDB.AddAgent(testAgent)
-	if err == nil {
-		t.Errorf("Expecting duplicate key error")
-	}
-
-	if pgErr, ok := err.(*PgError); ok {
-		if pgErr.code != PgErrorUniqueViolation {
-			t.Errorf("Expecting duplicate key error %s", pgErr.code)
-		}
-	} else {
-		t.Errorf("Expecting pg error %v", err)
-	}
-
 	var validateAgent = func(a *model.Agent) {
 		if a == nil {
 			t.Errorf("Expecting result, agent is nil")
@@ -48,19 +29,41 @@ func TestAddAgent(t *testing.T) {
 		}
 	}
 
-	// Get data for agent id
-	a1, err := pgDB.GetAgent(nil, &testAgent.AgentID)
+	// Add data
+	a, err := pgDB.AddAgent(testAgent)
+	if err != nil {
+		t.Errorf("Failed to add agent %s", err.Error())
+	} else {
+		validateAgent(a)
+	}
+
+	// Error with duplicate id
+	if _, err := pgDB.AddAgent(testAgent); err == nil {
+		t.Errorf("Expecting duplicate key error")
+	} else {
+		if pgErr, ok := err.(*PgError); ok {
+			if pgErr.code != PgErrorUniqueViolation {
+				t.Errorf("Expecting duplicate key error %s", pgErr.code)
+			}
+		} else {
+			t.Errorf("Expecting pg error %v", err)
+		}
+	}
+
+	// Get data for id
+	a1, err := pgDB.GetAgent(&a.ID, nil)
 	if err != nil {
 		t.Errorf("Error fetching agent %s", err.Error())
 	} else {
 		validateAgent(a1)
 	}
 
-	// Get data for id
-	a2, err := pgDB.GetAgent(&a1.ID, nil)
+	// Get data for agent id
+	a2, err := pgDB.GetAgent(nil, &a.AgentID)
 	if err != nil {
 		t.Errorf("Error fetching agent %s", err.Error())
 	} else {
 		validateAgent(a2)
 	}
+
 }
