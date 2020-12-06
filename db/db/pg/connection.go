@@ -57,6 +57,7 @@ func (p *Database) GetConnection(id string) (c *model.Connection, err error) {
 			&c.TheirEndpoint,
 			&c.TheirLabel,
 			&c.Invited,
+			&c.Created,
 			&c.Approved,
 			&c.Cursor,
 		)

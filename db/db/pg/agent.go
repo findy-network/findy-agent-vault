@@ -8,16 +8,29 @@ import (
 )
 
 const (
-	sqlAgentInsert          = "INSERT INTO agent (agent_id, label) VALUES ($1, $2)"
+	sqlAgentInsert          = "INSERT INTO agent (agent_id, label) VALUES ($1, $2) RETURNING id, created"
 	sqlAgentSelect          = "SELECT id, agent_id, label, created FROM agent"
 	sqlAgentSelectByID      = sqlAgentSelect + " WHERE id=$1"
 	sqlAgentSelectByAgentID = sqlAgentSelect + " WHERE agent_id=$1"
 )
 
-func (p *Database) AddAgent(a *model.Agent) (err error) {
+func (p *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
 	defer returnErr("AddAgent", &err)
 
-	_, err = p.db.Exec(sqlAgentInsert, a.AgentID, a.Label)
+	rows, err := p.db.Query(
+		sqlAgentInsert,
+		a.AgentID,
+		a.Label,
+	)
+	err2.Check(err)
+
+	n = a.Copy()
+	if rows.Next() {
+		err = rows.Scan(&n.ID, &n.Created)
+		err2.Check(err)
+	}
+
+	err = rows.Err()
 	err2.Check(err)
 
 	return

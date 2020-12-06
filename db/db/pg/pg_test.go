@@ -22,12 +22,7 @@ func setup() {
 
 	testAgent := &model.Agent{AgentID: "testAgentID", Label: "testAgent"}
 
-	err := pgDB.AddAgent(testAgent)
-	if err != nil {
-		panic(err)
-	}
-
-	a, err := pgDB.GetAgent(nil, &testAgent.AgentID)
+	a, err := pgDB.AddAgent(testAgent)
 	if err != nil {
 		panic(err)
 	}

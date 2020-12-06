@@ -15,6 +15,13 @@ type Agent struct {
 
 func NewAgent() *Agent { return &Agent{base: &base{}} }
 
+func (a *Agent) Copy() (n *Agent) {
+	n = NewAgent()
+	n.AgentID = a.AgentID
+	n.Label = a.Label
+	return n
+}
+
 type Connection struct {
 	*base
 	TenantID      string
