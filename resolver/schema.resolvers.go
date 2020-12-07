@@ -99,7 +99,9 @@ func (r *queryResolver) Connections(ctx context.Context, after *string, before *
 func (r *queryResolver) Connection(ctx context.Context, id string) (*model.Pairwise, error) {
 	utils.LogMed().Info("queryResolver:Connection, id: ", id)
 
-	conn, err := r.db.GetConnection(id)
+	agentID, _ := utils.ParseUser(ctx)
+
+	conn, err := r.db.GetConnection(id, agentID)
 	if err != nil {
 		return nil, err
 	}
