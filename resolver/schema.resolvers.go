@@ -92,7 +92,16 @@ func (r *proofResolver) Connection(ctx context.Context, obj *model.Proof) (*mode
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Connections(ctx context.Context, after *string, before *string, first *int, last *int) (*model.PairwiseConnection, error) {
+func (r *queryResolver) Connections(ctx context.Context, after, before *string, first, last *int) (*model.PairwiseConnection, error) {
+	/*agentID, _ := utils.ParseUser(ctx)
+
+	batch, err := paginator.Validate("queryResolver:Connections", &paginator.Params{
+		First:  first,
+		Last:   last,
+		After:  after,
+		Before: before,
+	})*/
+
 	panic(fmt.Errorf("not implemented"))
 }
 

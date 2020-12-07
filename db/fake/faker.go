@@ -18,7 +18,7 @@ func random(n int) int {
 	return int(val.Int64())
 }
 
-func addProviders(agent *model.Agent) {
+func addProviders(agentID string) {
 	_ = faker.AddProvider("organisationLabel", func(v reflect.Value) (interface{}, error) {
 		orgs := []string{"Bank", "Ltd", "Agency", "Company", "United"}
 		index := random(len(orgs))
@@ -26,11 +26,13 @@ func addProviders(agent *model.Agent) {
 	})
 
 	_ = faker.AddProvider("tenantId", func(v reflect.Value) (interface{}, error) {
-		return agent.ID, nil
+		return agentID, nil
 	})
 }
 
-func fakeConnections(count int) []*model.Connection {
+func AddConnections(db db.Db, agentID string, count int) []*model.Connection {
+	addProviders(agentID)
+
 	connections := make([]*model.Connection, count)
 	for i := 0; i < count; i++ {
 		connection := &model.Connection{}
@@ -40,7 +42,17 @@ func fakeConnections(count int) []*model.Connection {
 		}
 		connections[i] = connection
 	}
-	return connections
+
+	newConnections := make([]*model.Connection, count)
+	for index, connection := range connections {
+		c, err := db.AddConnection(connection)
+		if err != nil {
+			panic(err)
+		}
+		newConnections[index] = c
+	}
+
+	return newConnections
 }
 
 func AddData(db db.Db) {
@@ -52,12 +64,5 @@ func AddData(db db.Db) {
 		panic(err)
 	}
 
-	addProviders(agent)
-
-	connections := fakeConnections(5)
-	for _, connection := range connections {
-		if _, err = db.AddConnection(connection); err != nil {
-			panic(err)
-		}
-	}
+	AddConnections(db, agent.ID, 5)
 }

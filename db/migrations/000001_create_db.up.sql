@@ -19,7 +19,7 @@ CREATE TABLE "connection"(
   invited BOOLEAN NOT NULL DEFAULT FALSE,
   created timestamptz NOT NULL DEFAULT now(),
   approved timestamptz,
-  cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC')) STORED,
+  cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC') * 1000) STORED,
   CONSTRAINT fk_connection_agent
     FOREIGN KEY(tenant_id) REFERENCES agent(id)
 );
@@ -40,7 +40,7 @@ CREATE TABLE "credential"(
   approved timestamptz,
   issued timestamptz,
   failed timestamptz,
-  cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC')) STORED,
+  cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC') * 1000) STORED,
   CONSTRAINT fk_credential_agent
     FOREIGN KEY(tenant_id) REFERENCES agent(id),
   CONSTRAINT fk_credential_connection
@@ -71,7 +71,7 @@ CREATE TABLE "proof"(
   approved timestamptz,
   verified timestamptz,
   failed timestamptz,
-  cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC')) STORED,
+  cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC') * 1000) STORED,
   CONSTRAINT fk_proof_agent
     FOREIGN KEY(tenant_id) REFERENCES agent(id),
   CONSTRAINT fk_proof_connection
@@ -98,7 +98,7 @@ CREATE TABLE "message"(
   sent_by_me BOOLEAN NOT NULL DEFAULT FALSE,
   delivered BOOLEAN DEFAULT NULL,
   created timestamptz NOT NULL DEFAULT now(),
-  cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC')) STORED,
+  cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC') * 1000) STORED,
   CONSTRAINT fk_message_agent
     FOREIGN KEY(tenant_id) REFERENCES agent(id),
   CONSTRAINT fk_message_connection
@@ -124,7 +124,7 @@ CREATE TABLE "job"(
   initiated_by_us BOOLEAN NOT NULL DEFAULT FALSE,
   updated timestamptz NOT NULL DEFAULT now(),
   created timestamptz NOT NULL DEFAULT now(),
-  cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC')) STORED,
+  cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC') * 1000) STORED,
   CONSTRAINT fk_job_agent
     FOREIGN KEY(tenant_id) REFERENCES agent(id),
   CONSTRAINT fk_job_connection
@@ -141,7 +141,7 @@ CREATE TABLE "event"(
   "description" VARCHAR(4096) NOT NULL,
   "read" BOOLEAN NOT NULL DEFAULT FALSE,
   created timestamptz NOT NULL DEFAULT now(),
-  cursor BIGINT NOT NULL DEFAULT extract(epoch from now()),
+  cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC') * 1000) STORED,
   CONSTRAINT fk_event_agent
     FOREIGN KEY(tenant_id) REFERENCES agent(id),
   CONSTRAINT fk_event_connection
