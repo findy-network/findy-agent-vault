@@ -1,6 +1,18 @@
 package model
 
-import "time"
+import (
+	"encoding/base64"
+	"reflect"
+	"strconv"
+	"time"
+)
+
+func CreateCursor(created uint64, object interface{}) string {
+	typeName := reflect.TypeOf(object).Name()
+	return base64.StdEncoding.EncodeToString(
+		[]byte(typeName + ":" + strconv.FormatUint(created, 10)),
+	)
+}
 
 type base struct {
 	ID      string `faker:"uuid_hyphenated"`
@@ -19,30 +31,5 @@ func (a *Agent) Copy() (n *Agent) {
 	n = NewAgent()
 	n.AgentID = a.AgentID
 	n.Label = a.Label
-	return n
-}
-
-type Connection struct {
-	*base
-	TenantID      string
-	OurDid        string
-	TheirDid      string
-	TheirEndpoint string `faker:"url"`
-	TheirLabel    string `faker:"organisationLabel"`
-	Invited       bool
-	Approved      *time.Time
-	Cursor        uint64
-}
-
-func NewConnection() *Connection { return &Connection{base: &base{}} }
-
-func (c *Connection) Copy() (n *Connection) {
-	n = NewConnection()
-	n.TenantID = c.TenantID
-	n.OurDid = c.OurDid
-	n.TheirDid = c.TheirDid
-	n.TheirEndpoint = c.TheirEndpoint
-	n.TheirLabel = c.TheirLabel
-	n.Invited = c.Invited
 	return n
 }

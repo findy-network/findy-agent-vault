@@ -3,7 +3,7 @@ package resolver
 import (
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	data "github.com/findy-network/findy-agent-vault/tools/data/model"
-	"github.com/findy-network/findy-agent-vault/tools/utils"
+	"github.com/findy-network/findy-agent-vault/tools/tools"
 	"github.com/golang/glog"
 )
 
@@ -17,7 +17,7 @@ func (l *agencyListener) AddCredential(
 	cred := &data.InternalCredential{
 		BaseObject: &data.BaseObject{
 			ID:        id,
-			CreatedMs: utils.CurrentTimeMs(),
+			CreatedMs: tools.CurrentTimeMs(),
 		},
 		Role:          role,
 		SchemaID:      schemaID,

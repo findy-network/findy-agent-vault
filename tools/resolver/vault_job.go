@@ -6,7 +6,8 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/agency"
 	data "github.com/findy-network/findy-agent-vault/tools/data/model"
-	"github.com/findy-network/findy-agent-vault/tools/utils"
+	"github.com/findy-network/findy-agent-vault/tools/tools"
+	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
 
@@ -40,13 +41,13 @@ func (r *queryResolver) Jobs(
 	afterIndex, beforeIndex, err := pick(items, pagination)
 	err2.Check(err)
 
-	glog.V(logLevelLow).Infof("Jobs: returning jobs between %d and %d", afterIndex, beforeIndex)
+	utils.LogLow().Infof("Jobs: returning jobs between %d and %d", afterIndex, beforeIndex)
 
 	return items.JobConnection(afterIndex, beforeIndex), nil
 }
 
 func (r *queryResolver) Job(ctx context.Context, id string) (node *model.Job, err error) {
-	glog.V(logLevelMedium).Info("queryResolver:Job, id: ", id)
+	utils.LogMed().Info("queryResolver:Job, id: ", id)
 
 	items := state.Jobs
 	edge := items.JobForID(id)
@@ -59,7 +60,7 @@ func (r *queryResolver) Job(ctx context.Context, id string) (node *model.Job, er
 }
 
 func (r *jobResolver) Output(ctx context.Context, obj *model.Job) (output *model.JobOutput, err error) {
-	glog.V(logLevelMedium).Info("jobResolver:Output, id: ", obj.ID)
+	utils.LogMed().Info("jobResolver:Output, id: ", obj.ID)
 	defer err2.Return(&err)
 
 	output = state.OutputForJob(obj.ID)
@@ -96,7 +97,7 @@ func (r *pairwiseResolver) Jobs(
 	afterIndex, beforeIndex, err := pick(items, pagination)
 	err2.Check(err)
 
-	glog.V(logLevelLow).Infof("Jobs: returning jobs between %d and %d", afterIndex, beforeIndex)
+	utils.LogLow().Infof("Jobs: returning jobs between %d and %d", afterIndex, beforeIndex)
 
 	return items.JobConnection(afterIndex, beforeIndex), nil
 }
@@ -128,7 +129,7 @@ func addJobWithStatus(
 	description string,
 	status model.JobStatus,
 	result model.JobResult) {
-	timeNow := utils.CurrentTimeMs()
+	timeNow := tools.CurrentTimeMs()
 	items := state.Jobs
 	items.Append(&data.InternalJob{
 		BaseObject: &data.BaseObject{
@@ -156,7 +157,7 @@ func updateJob(id string, protocolID, pairwiseID *string, status model.JobStatus
 
 func (r *mutationResolver) Resume(ctx context.Context, input model.ResumeJobInput) (res *model.Response, err error) {
 	defer err2.Return(&err)
-	glog.V(logLevelMedium).Info("mutationResolver:Resume")
+	utils.LogMed().Info("mutationResolver:Resume")
 
 	job := state.Jobs.JobDataForID(input.ID)
 	if job == nil {

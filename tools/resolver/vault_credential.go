@@ -7,13 +7,13 @@ import (
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	data "github.com/findy-network/findy-agent-vault/tools/data/model"
 	"github.com/findy-network/findy-agent-vault/tools/faker"
-	"github.com/findy-network/findy-agent-vault/tools/utils"
-	"github.com/golang/glog"
+	"github.com/findy-network/findy-agent-vault/tools/tools"
+	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
 )
 
 func (r *credentialResolver) Connection(ctx context.Context, obj *model.Credential) (c *model.Pairwise, err error) {
-	glog.V(logLevelMedium).Info("credentialResolver:Connection, id: ", obj.ID)
+	utils.LogMed().Info("credentialResolver:Connection, id: ", obj.ID)
 	defer err2.Return(&err)
 
 	if connectionID := state.Credentials().CredentialPairwiseID(obj.ID); connectionID != nil {
@@ -25,7 +25,7 @@ func (r *credentialResolver) Connection(ctx context.Context, obj *model.Credenti
 }
 
 func (r *queryResolver) Credential(ctx context.Context, id string) (node *model.Credential, err error) {
-	glog.V(logLevelMedium).Info("queryResolver:Credential, id: ", id)
+	utils.LogMed().Info("queryResolver:Credential, id: ", id)
 
 	items := state.Credentials()
 	edge := items.CredentialForID(id)
@@ -65,7 +65,7 @@ func (r *queryResolver) Credentials(
 	afterIndex, beforeIndex, err := pick(items.Objects(), pagination)
 	err2.Check(err)
 
-	glog.V(logLevelLow).Infof("Credentials: returning connections between %d and %d", afterIndex, beforeIndex)
+	utils.LogLow().Infof("Credentials: returning connections between %d and %d", afterIndex, beforeIndex)
 	c = items.CredentialConnection(afterIndex, beforeIndex)
 
 	return c, err
@@ -99,13 +99,13 @@ func (r *pairwiseResolver) Credentials(
 	afterIndex, beforeIndex, err := pick(items.Objects(), pagination)
 	err2.Check(err)
 
-	glog.V(logLevelLow).Infof("Credentials: returning credentials between %d and %d", afterIndex, beforeIndex)
+	utils.LogLow().Infof("Credentials: returning credentials between %d and %d", afterIndex, beforeIndex)
 
 	return items.CredentialConnection(afterIndex, beforeIndex), nil
 }
 
 func (r *mutationResolver) AddRandomCredential(ctx context.Context) (ok bool, err error) {
-	glog.V(logLevelMedium).Info("mutationResolver:AddRandomCredential ")
+	utils.LogMed().Info("mutationResolver:AddRandomCredential ")
 	defer err2.Return(&err)
 
 	creds, err := faker.FakeCredentials(1)
@@ -121,7 +121,7 @@ func (r *mutationResolver) AddRandomCredential(ctx context.Context) (ok bool, er
 		cred.Attributes,
 		cred.InitiatedByUs,
 	)
-	currentTime := utils.CurrentTimeMs()
+	currentTime := tools.CurrentTimeMs()
 	r.listener.UpdateCredential(cred.PairwiseID, cred.ID, &currentTime, &currentTime, nil)
 
 	ok = true

@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/findy-network/findy-agent-vault/tools/utils"
+	"github.com/findy-network/findy-agent-vault/tools/tools"
+	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/google/uuid"
-
-	"github.com/golang/glog"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	data "github.com/findy-network/findy-agent-vault/tools/data/model"
@@ -23,7 +22,7 @@ func initEvents() {
 }
 
 func (r *mutationResolver) MarkEventRead(ctx context.Context, input model.MarkReadInput) (node *model.Event, err error) {
-	glog.V(logLevelMedium).Info("queryResolver:MarkEventRead, id: ", input.ID)
+	utils.LogMed().Info("queryResolver:MarkEventRead, id: ", input.ID)
 
 	if state.Events.MarkEventRead(input.ID) {
 		edge := state.Events.EventForID(input.ID)
@@ -51,14 +50,14 @@ func (r *queryResolver) Events(
 	afterIndex, beforeIndex, err := pick(items, pagination)
 	err2.Check(err)
 
-	glog.V(logLevelLow).Infof("Events: returning events between %d and %d", afterIndex, beforeIndex)
+	utils.LogLow().Infof("Events: returning events between %d and %d", afterIndex, beforeIndex)
 	c = items.EventConnection(afterIndex, beforeIndex)
 
 	return
 }
 
 func (r *queryResolver) Event(ctx context.Context, id string) (node *model.Event, err error) {
-	glog.V(logLevelMedium).Info("queryResolver:Event, id: ", id)
+	utils.LogMed().Info("queryResolver:Event, id: ", id)
 
 	items := state.Events
 	edge := items.EventForID(id)
@@ -71,7 +70,7 @@ func (r *queryResolver) Event(ctx context.Context, id string) (node *model.Event
 }
 
 func (r *eventResolver) Job(ctx context.Context, obj *model.Event) (edge *model.JobEdge, err error) {
-	glog.V(logLevelMedium).Info("eventResolver:Job, id: ", obj.ID)
+	utils.LogMed().Info("eventResolver:Job, id: ", obj.ID)
 	defer err2.Return(&err)
 
 	if jobID := state.Events.EventJobID(obj.ID); jobID != nil {
@@ -82,7 +81,7 @@ func (r *eventResolver) Job(ctx context.Context, obj *model.Event) (edge *model.
 }
 
 func (r *eventResolver) Connection(ctx context.Context, obj *model.Event) (pw *model.Pairwise, err error) {
-	glog.V(logLevelMedium).Info("eventResolver:Connection, id: ", obj.ID)
+	utils.LogMed().Info("eventResolver:Connection, id: ", obj.ID)
 	defer err2.Return(&err)
 
 	if cID := state.Events.EventConnectionID(obj.ID); cID != nil {
@@ -119,14 +118,14 @@ func (r *pairwiseResolver) Events(
 	afterIndex, beforeIndex, err := pick(items, pagination)
 	err2.Check(err)
 
-	glog.V(logLevelLow).Infof("Events: returning events between %d and %d", afterIndex, beforeIndex)
+	utils.LogLow().Infof("Events: returning events between %d and %d", afterIndex, beforeIndex)
 
 	return items.EventConnection(afterIndex, beforeIndex), nil
 }
 
 func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.EventEdge, error) {
-	id := "tenantId-" + strconv.FormatInt(utils.CurrentTimeMs(), 10)
-	glog.V(logLevelMedium).Info("subscriptionResolver:EventAdded, id: ", id)
+	id := "tenantId-" + strconv.FormatInt(tools.CurrentTimeMs(), 10)
+	utils.LogMed().Info("subscriptionResolver:EventAdded, id: ", id)
 
 	// access user object: user := ctx.Value("user")
 
@@ -134,7 +133,7 @@ func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.Ev
 
 	go func() {
 		<-ctx.Done()
-		glog.V(logLevelMedium).Info("subscriptionResolver: event observer removed, id: ", id)
+		utils.LogMed().Info("subscriptionResolver: event observer removed, id: ", id)
 		delete(eventAddedObserver, id)
 	}()
 
@@ -154,7 +153,7 @@ func doAddEvent(event *data.InternalEvent) {
 	if event.JobID != nil {
 		jobID = *event.JobID
 	}
-	glog.V(logLevelLow).Infof(
+	utils.LogLow().Infof(
 		"doAddEvent: id %s, description: %s, pairwiseID: %v, jobId: %v",
 		event.ID,
 		event.Description,
@@ -162,7 +161,7 @@ func doAddEvent(event *data.InternalEvent) {
 		jobID,
 	)
 	items := state.Events
-	event.CreatedMs = utils.CurrentTimeMs()
+	event.CreatedMs = tools.CurrentTimeMs()
 	items.Append(event)
 	for _, observer := range eventAddedObserver {
 		observer <- event.ToEdge()
@@ -182,7 +181,7 @@ func addEvent(description string, pairwiseID, jobID *string) {
 }
 
 func (r *mutationResolver) AddRandomEvent(_ context.Context) (ok bool, err error) {
-	glog.V(logLevelMedium).Info("mutationResolver:AddRandomEvent ")
+	utils.LogMed().Info("mutationResolver:AddRandomEvent ")
 	defer err2.Return(&err)
 
 	events, err := faker.FakeEvents(1)

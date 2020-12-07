@@ -6,7 +6,6 @@ import (
 	"github.com/findy-network/findy-agent-vault/utils"
 
 	"github.com/findy-network/findy-agent-vault/agency"
-	"github.com/golang/glog"
 	"github.com/lainio/err2"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
@@ -14,7 +13,7 @@ import (
 
 func (r *mutationResolver) Invite(ctx context.Context) (resp *model.InvitationResponse, err error) {
 	defer err2.Return(&err)
-	glog.V(logLevelMedium).Info("mutationResolver:Invite")
+	utils.LogMed().Info("mutationResolver:Invite")
 
 	str, id, err := agency.Instance.Invite(ctx)
 	err2.Check(err)

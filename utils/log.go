@@ -4,8 +4,17 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/golang/glog"
 	"github.com/lainio/err2"
 )
+
+const (
+	logLevelMedium = 2
+	logLevelLow    = 3
+)
+
+func LogMed() glog.Verbose { return glog.V(logLevelMedium) }
+func LogLow() glog.Verbose { return glog.V(logLevelLow) }
 
 func SetLogDefaults() {
 	defer err2.Catch(func(err error) {

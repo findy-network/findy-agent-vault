@@ -4,7 +4,8 @@ import (
 	"context"
 
 	data "github.com/findy-network/findy-agent-vault/tools/data/model"
-	"github.com/findy-network/findy-agent-vault/tools/utils"
+	"github.com/findy-network/findy-agent-vault/tools/tools"
+	"github.com/findy-network/findy-agent-vault/utils"
 
 	"github.com/findy-network/findy-agent-vault/agency"
 	"github.com/findy-network/findy-agent-vault/graph/model"
@@ -14,7 +15,7 @@ import (
 
 func (r *mutationResolver) SendMessage(ctx context.Context, input model.MessageInput) (res *model.Response, err error) {
 	defer err2.Return(&err)
-	glog.V(logLevelMedium).Info("mutationResolver:SendMessage")
+	utils.LogMed().Info("mutationResolver:SendMessage")
 
 	id, err := agency.Instance.SendMessage(ctx, input.ConnectionID, input.Message)
 	err2.Check(err)
@@ -33,7 +34,7 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input model.MessageI
 }
 
 func (l *agencyListener) AddMessage(connectionID, id, message string, sentByMe bool) {
-	currentTime := utils.CurrentTimeMs()
+	currentTime := tools.CurrentTimeMs()
 	msg := data.InternalMessage{
 		BaseObject: &data.BaseObject{
 			ID:        id,

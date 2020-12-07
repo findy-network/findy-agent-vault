@@ -9,6 +9,7 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/graph/generated"
 	"github.com/findy-network/findy-agent-vault/graph/model"
+	"github.com/findy-network/findy-agent-vault/utils"
 )
 
 func (r *basicMessageResolver) Connection(ctx context.Context, obj *model.BasicMessage) (*model.Pairwise, error) {
@@ -96,7 +97,13 @@ func (r *queryResolver) Connections(ctx context.Context, after *string, before *
 }
 
 func (r *queryResolver) Connection(ctx context.Context, id string) (*model.Pairwise, error) {
-	panic(fmt.Errorf("not implemented"))
+	utils.LogMed().Info("queryResolver:Connection, id: ", id)
+
+	conn, err := r.db.GetConnection(id)
+	if err != nil {
+		return nil, err
+	}
+	return conn.ToNode(), nil
 }
 
 func (r *queryResolver) Message(ctx context.Context, id string) (*model.BasicMessage, error) {

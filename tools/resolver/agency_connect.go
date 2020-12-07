@@ -4,7 +4,8 @@ import (
 	"context"
 
 	data "github.com/findy-network/findy-agent-vault/tools/data/model"
-	"github.com/findy-network/findy-agent-vault/tools/utils"
+	"github.com/findy-network/findy-agent-vault/tools/tools"
+	"github.com/findy-network/findy-agent-vault/utils"
 
 	"github.com/findy-network/findy-agent-vault/agency"
 
@@ -15,7 +16,7 @@ import (
 
 func (r *mutationResolver) Connect(ctx context.Context, input model.ConnectInput) (res *model.Response, err error) {
 	defer err2.Return(&err)
-	glog.V(logLevelMedium).Info("mutationResolver:Connect")
+	utils.LogMed().Info("mutationResolver:Connect")
 
 	id, err := agency.Instance.Connect(ctx, input.Invitation)
 	err2.Check(err)
@@ -34,7 +35,7 @@ func (r *mutationResolver) Connect(ctx context.Context, input model.ConnectInput
 }
 
 func (l *agencyListener) AddConnection(id, ourDID, theirDID, theirEndpoint, theirLabel string) {
-	currentTime := utils.CurrentTimeMs()
+	currentTime := tools.CurrentTimeMs()
 	doAddConnection(&data.InternalPairwise{
 		BaseObject: &data.BaseObject{
 			ID:        id,
@@ -50,7 +51,7 @@ func (l *agencyListener) AddConnection(id, ourDID, theirDID, theirEndpoint, thei
 
 func doAddConnection(connection *data.InternalPairwise) {
 	items := state.Connections().Objects()
-	connection.CreatedMs = utils.CurrentTimeMs()
+	connection.CreatedMs = tools.CurrentTimeMs()
 	initiatedByUs := state.Jobs.IsJobInitiatedByUs(connection.ID)
 	if initiatedByUs != nil {
 		connection.Invited = *initiatedByUs

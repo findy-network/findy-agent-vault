@@ -1,6 +1,7 @@
 package resolver
 
 import (
+	"github.com/findy-network/findy-agent-vault/db/db"
 	"github.com/findy-network/findy-agent-vault/db/db/pg"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -12,13 +13,15 @@ import (
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
 
-type Resolver struct{}
+type Resolver struct {
+	db db.Db
+}
 
 func InitResolver() *Resolver {
 	//listener := &agencyListener{}
 	//agency.Instance.Init(listener)
 
-	pg.InitDB("file://db/migrations", "5432", false)
+	db := pg.InitDB("file://db/migrations", "5432", false)
 
-	return &Resolver{}
+	return &Resolver{db}
 }
