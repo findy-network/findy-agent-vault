@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/findy-network/findy-agent-vault/tools/utils"
-
 	"github.com/lainio/err2"
 
 	"github.com/rs/cors"
@@ -18,6 +16,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/findy-network/findy-agent-vault/server"
 	"github.com/findy-network/findy-agent-vault/tools/resolver"
+	"github.com/findy-network/findy-agent-vault/utils"
 )
 
 const defaultPort = "8085"

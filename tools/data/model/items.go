@@ -4,7 +4,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/findy-network/findy-agent-vault/tools/utils"
+	utils "github.com/findy-network/findy-agent-vault/tools/tools"
 )
 
 type Items struct {

@@ -8,8 +8,7 @@ import (
 	"strings"
 
 	"github.com/findy-network/findy-agent-vault/tools/data/model"
-
-	"github.com/golang/glog"
+	"github.com/findy-network/findy-agent-vault/utils"
 
 	"github.com/findy-network/findy-agent-vault/resolver"
 	"github.com/lainio/err2"
@@ -41,7 +40,7 @@ func logPaginationRequest(prefix string, params *PaginationParams) {
 	if params.after != nil {
 		after = fmt.Sprintf(", after: %s", *params.after)
 	}
-	glog.V(logLevelMedium).Infof("%s%s%s%s%s", prefix, after, before, first, last)
+	utils.LogMed().Infof("%s%s%s%s%s", prefix, after, before, first, last)
 }
 
 func parseCursor(cursor string) (int64, error) {

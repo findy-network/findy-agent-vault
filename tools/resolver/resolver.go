@@ -7,11 +7,6 @@ import (
 	"github.com/findy-network/findy-agent-vault/graph/generated"
 )
 
-const (
-	logLevelMedium = 2
-	logLevelLow    = 3
-)
-
 type agencyListener struct{}
 
 var state *data.Data

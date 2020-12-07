@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
-	"github.com/findy-network/findy-agent-vault/tools/utils"
 	"github.com/google/uuid"
 )
 
@@ -82,7 +81,7 @@ func TestGetProofs(t *testing.T) {
 
 	// add new connection
 	listener := &agencyListener{}
-	currentTime := utils.CurrentTimeMs()
+	currentTime := tools.CurrentTimeMs()
 
 	connID := uuid.New().String()
 	listener.AddConnection(connID, "ourDID", "theirDID", "theirEndpoint", "theirLabel")

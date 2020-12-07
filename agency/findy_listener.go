@@ -8,7 +8,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
-	"github.com/findy-network/findy-agent-vault/tools/utils"
+	"github.com/findy-network/findy-agent-vault/tools/tools"
 	"github.com/findy-network/findy-agent/agent/didcomm"
 	"github.com/findy-network/findy-agent/agent/prot"
 
@@ -50,7 +50,7 @@ func (f *Findy) findyCallback(pl *mesg.Payload) (while bool, err error) {
 
 	glog.Infof("Received findy callback %s %s", pl.Type)
 
-	currentTime := utils.CurrentTimeMs()
+	currentTime := tools.CurrentTimeMs()
 
 	switch pl.Type {
 	case pltype.CANotifyUserAction:

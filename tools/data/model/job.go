@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
-	"github.com/findy-network/findy-agent-vault/tools/utils"
+	"github.com/findy-network/findy-agent-vault/tools/tools"
 )
 
 type InternalJob struct {
@@ -171,7 +171,7 @@ func (i *Items) UpdateJob(id string, protocolID, pairwiseID *string, status mode
 			continue
 		}
 		job := item.Job()
-		job.UpdatedMs = utils.CurrentTimeMs()
+		job.UpdatedMs = tools.CurrentTimeMs()
 		job.Status = status
 		job.Result = result
 		job.ProtocolID = protocolID

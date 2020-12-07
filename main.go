@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/findy-network/findy-agent-vault/resolver"
-	"github.com/findy-network/findy-agent-vault/tools/utils"
+	"github.com/findy-network/findy-agent-vault/utils"
 
 	"github.com/golang/glog"
 

@@ -4,11 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/golang/glog"
-
 	"github.com/lainio/err2"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
+	"github.com/findy-network/findy-agent-vault/utils"
 )
 
 /*
@@ -46,14 +45,14 @@ func (r *queryResolver) Connections(
 	afterIndex, beforeIndex, err := pick(items.Objects(), pagination)
 	err2.Check(err)
 
-	glog.V(logLevelLow).Infof("Connections: returning connections between %d and %d", afterIndex, beforeIndex)
+	utils.LogLow().Infof("Connections: returning connections between %d and %d", afterIndex, beforeIndex)
 	c = items.PairwiseConnection(afterIndex, beforeIndex)
 
 	return
 }
 
 func (r *queryResolver) Connection(_ context.Context, id string) (node *model.Pairwise, err error) {
-	glog.V(logLevelMedium).Info("queryResolver:Connection, id: ", id)
+	utils.LogMed().Info("queryResolver:Connection, id: ", id)
 
 	items := state.Connections()
 	edge := items.PairwiseForID(id)

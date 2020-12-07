@@ -6,15 +6,15 @@ import (
 
 	data "github.com/findy-network/findy-agent-vault/tools/data/model"
 	"github.com/findy-network/findy-agent-vault/tools/faker"
+	"github.com/findy-network/findy-agent-vault/utils"
 
-	"github.com/golang/glog"
 	"github.com/lainio/err2"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
 func (r *basicMessageResolver) Connection(ctx context.Context, obj *model.BasicMessage) (pw *model.Pairwise, err error) {
-	glog.V(logLevelMedium).Info("basicMessageResolver:Connection, id: ", obj.ID)
+	utils.LogMed().Info("basicMessageResolver:Connection, id: ", obj.ID)
 	defer err2.Return(&err)
 
 	if connectionID := state.Messages.MessagePairwiseID(obj.ID); connectionID != nil {
@@ -51,13 +51,13 @@ func (r *pairwiseResolver) Messages(
 	afterIndex, beforeIndex, err := pick(items, pagination)
 	err2.Check(err)
 
-	glog.V(logLevelLow).Infof("Messages: returning messages between %d and %d", afterIndex, beforeIndex)
+	utils.LogLow().Infof("Messages: returning messages between %d and %d", afterIndex, beforeIndex)
 
 	return items.MessageConnection(afterIndex, beforeIndex), nil
 }
 
 func (r *queryResolver) Message(ctx context.Context, id string) (node *model.BasicMessage, err error) {
-	glog.V(logLevelMedium).Info("queryResolver:Message, id: ", id)
+	utils.LogMed().Info("queryResolver:Message, id: ", id)
 
 	items := state.Messages
 	edge := items.MessageForID(id)
@@ -70,7 +70,7 @@ func (r *queryResolver) Message(ctx context.Context, id string) (node *model.Bas
 }
 
 func (r *mutationResolver) AddRandomMessage(ctx context.Context) (ok bool, err error) {
-	glog.V(logLevelMedium).Info("mutationResolver:AddRandomMessage ")
+	utils.LogMed().Info("mutationResolver:AddRandomMessage ")
 	defer err2.Return(&err)
 
 	msgs, err := faker.FakeMessages(1)

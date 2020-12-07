@@ -7,13 +7,13 @@ import (
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	data "github.com/findy-network/findy-agent-vault/tools/data/model"
 	"github.com/findy-network/findy-agent-vault/tools/faker"
-	"github.com/findy-network/findy-agent-vault/tools/utils"
-	"github.com/golang/glog"
+	"github.com/findy-network/findy-agent-vault/tools/tools"
+	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
 )
 
 func (r *proofResolver) Connection(ctx context.Context, obj *model.Proof) (p *model.Pairwise, err error) {
-	glog.V(logLevelMedium).Info("proofResolver:Connection, id: ", obj.ID)
+	utils.LogMed().Info("proofResolver:Connection, id: ", obj.ID)
 	defer err2.Return(&err)
 
 	if connectionID := state.Proofs().ProofPairwiseID(obj.ID); connectionID != nil {
@@ -25,7 +25,7 @@ func (r *proofResolver) Connection(ctx context.Context, obj *model.Proof) (p *mo
 }
 
 func (r *queryResolver) Proof(ctx context.Context, id string) (node *model.Proof, err error) {
-	glog.V(logLevelMedium).Info("queryResolver:Proof, id: ", id)
+	utils.LogMed().Info("queryResolver:Proof, id: ", id)
 
 	items := state.Proofs()
 	edge := items.ProofForID(id)
@@ -64,13 +64,13 @@ func (r *pairwiseResolver) Proofs(
 	afterIndex, beforeIndex, err := pick(items.Objects(), pagination)
 	err2.Check(err)
 
-	glog.V(logLevelLow).Infof("Proofs: returning proofs between %d and %d", afterIndex, beforeIndex)
+	utils.LogLow().Infof("Proofs: returning proofs between %d and %d", afterIndex, beforeIndex)
 
 	return items.ProofConnection(afterIndex, beforeIndex), nil
 }
 
 func (r *mutationResolver) AddRandomProof(ctx context.Context) (ok bool, err error) {
-	glog.V(logLevelMedium).Info("mutationResolver:AddRandomProof ")
+	utils.LogMed().Info("mutationResolver:AddRandomProof ")
 	defer err2.Return(&err)
 
 	proofs, err := faker.FakeProofs(1)
@@ -84,7 +84,7 @@ func (r *mutationResolver) AddRandomProof(ctx context.Context) (ok bool, err err
 		proof.Attributes,
 		proof.InitiatedByUs,
 	)
-	currentTime := utils.CurrentTimeMs()
+	currentTime := tools.CurrentTimeMs()
 	r.listener.UpdateProof(proof.PairwiseID, proof.ID, &currentTime, &currentTime, nil)
 
 	ok = true

@@ -6,7 +6,7 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/db/db"
 	"github.com/findy-network/findy-agent-vault/db/model"
-	"github.com/findy-network/findy-agent-vault/tools/utils"
+	"github.com/findy-network/findy-agent-vault/tools/tools"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
