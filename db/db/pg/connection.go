@@ -10,8 +10,9 @@ const (
 	sqlConnectionInsert = "INSERT INTO connection " +
 		"(" + sqlConnectionFields + ") " +
 		"VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created, cursor"
-	sqlConnectionSelect     = "SELECT id, " + sqlConnectionFields + ", created, approved, cursor FROM connection"
-	sqlConnectionSelectByID = sqlConnectionSelect + " WHERE id=$1"
+	sqlConnectionSelect     = "SELECT connection.id, " + sqlConnectionFields + ", connection.created, approved, cursor FROM connection"
+	sqlConnectionSelectByID = sqlConnectionSelect +
+		" INNER JOIN agent ON tenant_id = agent.id WHERE connection.id=$1 AND agent.agent_id=$2"
 )
 
 func (p *Database) AddConnection(c *model.Connection) (n *model.Connection, err error) {
@@ -40,10 +41,10 @@ func (p *Database) AddConnection(c *model.Connection) (n *model.Connection, err 
 	return
 }
 
-func (p *Database) GetConnection(id string) (c *model.Connection, err error) {
+func (p *Database) GetConnection(id, agentID string) (c *model.Connection, err error) {
 	defer returnErr("GetConnection", &err)
 
-	rows, err := p.db.Query(sqlConnectionSelectByID, id)
+	rows, err := p.db.Query(sqlConnectionSelectByID, id, agentID)
 	err2.Check(err)
 	defer rows.Close()
 

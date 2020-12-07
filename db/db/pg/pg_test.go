@@ -1,20 +1,25 @@
 package pg
 
 import (
+	"math"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/findy-network/findy-agent-vault/db/db"
 	"github.com/findy-network/findy-agent-vault/db/model"
-	"github.com/findy-network/findy-agent-vault/tools/tools"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/findy-network/findy-agent-vault/utils"
 )
 
 var (
 	pgDB         db.Db
-	testTenantId string
+	testTenantID string
+	testAgentID  string
 )
+
+func ceilTimestamp(ts *time.Time) uint64 {
+	return uint64(math.Ceil(float64(ts.UnixNano()) / float64(time.Second.Nanoseconds())))
+}
 
 func setup() {
 	utils.SetLogDefaults()
@@ -26,7 +31,8 @@ func setup() {
 	if err != nil {
 		panic(err)
 	}
-	testTenantId = a.ID
+	testTenantID = a.ID
+	testAgentID = a.AgentID
 }
 
 func teardown() {

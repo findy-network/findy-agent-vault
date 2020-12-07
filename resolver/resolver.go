@@ -3,8 +3,7 @@ package resolver
 import (
 	"github.com/findy-network/findy-agent-vault/db/db"
 	"github.com/findy-network/findy-agent-vault/db/db/pg"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/findy-network/findy-agent-vault/db/fake"
 )
 
 //go:generate go run github.com/99designs/gqlgen
@@ -23,5 +22,8 @@ func InitResolver() *Resolver {
 
 	db := pg.InitDB("file://db/migrations", "5432", false)
 
-	return &Resolver{db}
+	r := &Resolver{db}
+	fake.AddData(db)
+
+	return r
 }

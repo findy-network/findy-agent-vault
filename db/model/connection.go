@@ -9,7 +9,7 @@ import (
 
 type Connection struct {
 	*base
-	TenantID      string
+	TenantID      string `faker:"tenantId"`
 	OurDid        string
 	TheirDid      string
 	TheirEndpoint string `faker:"url"`

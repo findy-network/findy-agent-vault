@@ -9,7 +9,7 @@ type Db interface {
 	GetAgent(id, agentID *string) (*model.Agent, error)
 
 	AddConnection(c *model.Connection) (*model.Connection, error)
-	GetConnection(id string) (*model.Connection, error)
+	GetConnection(id string, agentID string) (*model.Connection, error)
 
 	/*AddMessage(connectionID, id, message string, sentByMe bool)
 	UpdateMessage(connectionID, id, delivered bool)

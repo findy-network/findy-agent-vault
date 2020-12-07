@@ -10,7 +10,7 @@ import (
 
 func TestAddConnection(t *testing.T) {
 	testConnection := &model.Connection{
-		TenantID:      testTenantId,
+		TenantID:      testTenantID,
 		OurDid:        "ourDid",
 		TheirDid:      "theirDid",
 		TheirEndpoint: "theirEndpoint",
@@ -47,8 +47,8 @@ func TestAddConnection(t *testing.T) {
 		if time.Since(c.Created) > time.Second {
 			t.Errorf("Timestamp not in threshold %v", c.Created)
 		}
-		if c.Cursor != uint64(c.Created.Unix()) {
-			t.Errorf("Cursor mismatch %v %v", c.Cursor, c.Created.Unix())
+		if c.Cursor != ceilTimestamp(&c.Created) {
+			t.Errorf("Cursor mismatch %v %v", c.Cursor, ceilTimestamp(&c.Created))
 		}
 	}
 
@@ -61,7 +61,7 @@ func TestAddConnection(t *testing.T) {
 	}
 
 	// Get data for id
-	got, err := pgDB.GetConnection(c.ID)
+	got, err := pgDB.GetConnection(c.ID, testAgentID)
 	if err != nil {
 		t.Errorf("Error fetching connection %s", err.Error())
 	} else if !reflect.DeepEqual(&c, &got) {
