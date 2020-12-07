@@ -10,7 +10,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/tools/data/model"
 	"github.com/findy-network/findy-agent-vault/utils"
 
-	"github.com/findy-network/findy-agent-vault/resolver"
+	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/lainio/err2"
 )
 
@@ -46,17 +46,17 @@ func logPaginationRequest(prefix string, params *PaginationParams) {
 func parseCursor(cursor string) (int64, error) {
 	plain, err := base64.StdEncoding.DecodeString(cursor)
 	if err != nil {
-		return 0, errors.New(resolver.ErrorCursorInvalid)
+		return 0, errors.New(paginator.ErrorCursorInvalid)
 	}
 
 	parts := strings.Split(string(plain), ":")
 	if len(parts) != cursorPartsCount {
-		return 0, errors.New(resolver.ErrorCursorInvalid)
+		return 0, errors.New(paginator.ErrorCursorInvalid)
 	}
 
 	value, err := strconv.ParseInt(parts[1], 10, 64)
 	if err != nil {
-		return 0, errors.New(resolver.ErrorCursorInvalid)
+		return 0, errors.New(paginator.ErrorCursorInvalid)
 	}
 
 	return value, nil
@@ -64,11 +64,11 @@ func parseCursor(cursor string) (int64, error) {
 
 func validateFirstAndLast(first, last *int) error {
 	if first == nil && last == nil {
-		return errors.New(resolver.ErrorFirstLastMissing)
+		return errors.New(paginator.ErrorFirstLastMissing)
 	}
 	if (first != nil && (*first < 1 || *first > maxPatchSize)) ||
 		(last != nil && (*last < 1 || *last > maxPatchSize)) {
-		return errors.New(resolver.ErrorFirstLastInvalid)
+		return errors.New(paginator.ErrorFirstLastInvalid)
 	}
 	return nil
 }

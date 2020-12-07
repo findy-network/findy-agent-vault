@@ -1,6 +1,9 @@
 package db
 
-import "github.com/findy-network/findy-agent-vault/db/model"
+import (
+	"github.com/findy-network/findy-agent-vault/db/model"
+	"github.com/findy-network/findy-agent-vault/paginator"
+)
 
 type Db interface {
 	Close()
@@ -10,6 +13,7 @@ type Db interface {
 
 	AddConnection(c *model.Connection) (*model.Connection, error)
 	GetConnection(id string, agentID string) (*model.Connection, error)
+	GetConnections(info *paginator.BatchInfo, agentID string) (connections *model.Connections, err error)
 
 	/*AddMessage(connectionID, id, message string, sentByMe bool)
 	UpdateMessage(connectionID, id, delivered bool)

@@ -1,18 +1,8 @@
 package model
 
 import (
-	"encoding/base64"
-	"reflect"
-	"strconv"
 	"time"
 )
-
-func CreateCursor(created uint64, object interface{}) string {
-	typeName := reflect.TypeOf(object).Name()
-	return base64.StdEncoding.EncodeToString(
-		[]byte(typeName + ":" + strconv.FormatUint(created, 10)),
-	)
-}
 
 type base struct {
 	ID      string `faker:"uuid_hyphenated"`
