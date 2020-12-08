@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/findy-network/findy-agent-vault/db/fake"
+
 	"github.com/golang/glog"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware"
@@ -80,6 +82,8 @@ func CreateToken(id string) (string, error) {
 func createToken(id string, duration time.Duration) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["id"] = id
+	claims["un"] = fake.FakeCloudDID
+	claims["label"] = "minnie mouse"
 	claims["exp"] = time.Now().Add(duration).Unix()
 	signer := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return signer.SignedString([]byte(jwtSecret))

@@ -11,8 +11,9 @@ type base struct {
 
 type Agent struct {
 	*base
-	AgentID string
-	Label   string `faker:"first_name"`
+	AgentID      string `faker:"agentId"`
+	Label        string `faker:"first_name"`
+	LastAccessed time.Time
 }
 
 func NewAgent() *Agent { return &Agent{base: &base{}} }

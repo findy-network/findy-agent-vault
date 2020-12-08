@@ -7,9 +7,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/findy-network/findy-agent-vault/db/db"
 	"github.com/findy-network/findy-agent-vault/graph/generated"
 	"github.com/findy-network/findy-agent-vault/graph/model"
+	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
+	"github.com/lainio/err2"
 )
 
 func (r *basicMessageResolver) Connection(ctx context.Context, obj *model.BasicMessage) (*model.Pairwise, error) {
@@ -92,25 +95,37 @@ func (r *proofResolver) Connection(ctx context.Context, obj *model.Proof) (*mode
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Connections(ctx context.Context, after, before *string, first, last *int) (*model.PairwiseConnection, error) {
-	/*agentID, _ := utils.ParseUser(ctx)
+func (r *queryResolver) Connections(ctx context.Context, after, before *string, first, last *int) (c *model.PairwiseConnection, err error) {
+	defer err2.Return(&err)
+
+	agent, err := db.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	utils.LogMed().Info("queryResolver:Connections for tenant: ", agent.ID)
 
 	batch, err := paginator.Validate("queryResolver:Connections", &paginator.Params{
 		First:  first,
 		Last:   last,
 		After:  after,
 		Before: before,
-	})*/
+	})
+	err2.Check(err)
 
-	panic(fmt.Errorf("not implemented"))
+	res, err := r.db.GetConnections(batch, agent.ID)
+	err2.Check(err)
+
+	return res.ToConnection(), nil
 }
 
-func (r *queryResolver) Connection(ctx context.Context, id string) (*model.Pairwise, error) {
-	utils.LogMed().Info("queryResolver:Connection, id: ", id)
+func (r *queryResolver) Connection(ctx context.Context, id string) (c *model.Pairwise, err error) {
+	defer err2.Return(&err)
 
-	agentID, _ := utils.ParseUser(ctx)
+	agent, err := db.GetAgent(ctx, r.db)
+	err2.Check(err)
 
-	conn, err := r.db.GetConnection(id, agentID)
+	utils.LogMed().Infof("queryResolver:Connection id: %s for tenant %s", id, agent.ID)
+
+	conn, err := r.db.GetConnection(id, agent.ID)
 	if err != nil {
 		return nil, err
 	}

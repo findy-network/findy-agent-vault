@@ -65,12 +65,12 @@ func (c *Connection) ToNode() *graph.Pairwise {
 	}
 }
 
-func ConnectionsToBatch(hasNextPage, hasPreviousPage bool, connections []*Connection) *graph.PairwiseConnection {
-	totalCount := len(connections)
+func (c *Connections) ToConnection() *graph.PairwiseConnection {
+	totalCount := len(c.Connections)
 
 	edges := make([]*graph.PairwiseEdge, totalCount)
 	nodes := make([]*graph.Pairwise, totalCount)
-	for index, connection := range connections {
+	for index, connection := range c.Connections {
 		edge := connection.ToEdge()
 		edges[index] = edge
 		nodes[index] = edge.Node
@@ -86,8 +86,8 @@ func ConnectionsToBatch(hasNextPage, hasPreviousPage bool, connections []*Connec
 		Nodes: nodes,
 		PageInfo: &model.PageInfo{
 			EndCursor:       endCursor,
-			HasNextPage:     hasNextPage,
-			HasPreviousPage: hasPreviousPage,
+			HasNextPage:     c.HasNextPage,
+			HasPreviousPage: c.HasPreviousPage,
 			StartCursor:     startCursor,
 		},
 		TotalCount: totalCount, // TODO: total total count
