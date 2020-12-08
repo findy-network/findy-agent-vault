@@ -93,26 +93,71 @@ func TestGetConnections(t *testing.T) {
 		return all[i].Created.Sub(all[j].Created) < 0
 	})
 
-	// First 5
-	c, err := pgDB.GetConnections(&paginator.BatchInfo{
-		Count: size,
-		Tail:  false,
-	}, a.AgentID)
-	if err != nil {
-		t.Errorf("Error fetching connections %s", err.Error())
-	} else {
-		if len(c.Connections) != 5 {
-			t.Errorf("Mismatch in connection count: %v  got: %v", len(c.Connections), size)
+	t.Run("get connections", func(t *testing.T) {
+		tests := []struct {
+			name   string
+			args   *paginator.BatchInfo
+			result *model.Connections
+		}{
+			{
+				"first 5",
+				&paginator.BatchInfo{Count: size, Tail: false},
+				&model.Connections{HasNextPage: true, HasPreviousPage: false, Connections: all[:size]},
+			},
+			{
+				"first next 5",
+				&paginator.BatchInfo{Count: size, Tail: false, After: all[size-1].Cursor},
+				&model.Connections{HasNextPage: true, HasPreviousPage: true, Connections: all[size : size*2]},
+			},
+			{
+				"first last 5",
+				&paginator.BatchInfo{Count: size, Tail: false, After: all[(size*2)-1].Cursor},
+				&model.Connections{HasNextPage: false, HasPreviousPage: true, Connections: all[size*2:]},
+			},
+			{
+				"last 5",
+				&paginator.BatchInfo{Count: size, Tail: true},
+				&model.Connections{HasNextPage: false, HasPreviousPage: true, Connections: all[size*2:]},
+			},
+			{
+				"last next 5",
+				&paginator.BatchInfo{Count: size, Tail: true, Before: all[size*2].Cursor},
+				&model.Connections{HasNextPage: true, HasPreviousPage: true, Connections: all[size : size*2]},
+			},
+			{
+				"last first 5",
+				&paginator.BatchInfo{Count: size, Tail: true, Before: all[size].Cursor},
+				&model.Connections{HasNextPage: true, HasPreviousPage: false, Connections: all[:size]},
+			},
+			{
+				"all",
+				&paginator.BatchInfo{Count: size * 3, Tail: false},
+				&model.Connections{HasNextPage: false, HasPreviousPage: false, Connections: all},
+			},
 		}
-		if !c.HasNextPage {
-			t.Errorf("Batch should have next page")
+
+		for _, testCase := range tests {
+			tc := testCase
+			t.Run(tc.name, func(t *testing.T) {
+				c, err := pgDB.GetConnections(tc.args, a.AgentID)
+				if err != nil {
+					t.Errorf("Error fetching connections %s", err.Error())
+				} else {
+					if len(c.Connections) != tc.args.Count {
+						t.Errorf("Mismatch in connection count: %v  got: %v", len(c.Connections), tc.args.Count)
+					}
+					if c.HasNextPage != tc.result.HasNextPage {
+						t.Errorf("Batch next page mismatch %v got: %v", c.HasNextPage, tc.result.HasNextPage)
+					}
+					if c.HasPreviousPage != tc.result.HasPreviousPage {
+						t.Errorf("Batch previous page mismatch %v got: %v", c.HasPreviousPage, tc.result.HasPreviousPage)
+					}
+					for index, connection := range c.Connections {
+						validateConnection(t, tc.result.Connections[index], connection)
+					}
+				}
+			})
 		}
-		if c.HasPreviousPage {
-			t.Errorf("Batch should not have previous page")
-		}
-		for index, connection := range c.Connections {
-			validateConnection(t, all[index], connection)
-		}
-	}
+	})
 
 }
