@@ -4,7 +4,8 @@ CREATE TABLE "agent" (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
   agent_id VARCHAR(256) UNIQUE NOT NULL,
   label VARCHAR(1024),
-  created timestamptz NOT NULL DEFAULT now()
+  created timestamptz NOT NULL DEFAULT now(),
+  last_accessed timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE INDEX "agent_external_id_index" ON agent (agent_id);

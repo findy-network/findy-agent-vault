@@ -1,9 +1,17 @@
 package db
 
 import (
+	"context"
+
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/findy-network/findy-agent-vault/utils"
 )
+
+func GetAgent(ctx context.Context, db Db) (*model.Agent, error) {
+	token := utils.ParseToken(ctx)
+	return db.AddAgent(&model.Agent{AgentID: token.AgentID, Label: token.Label})
+}
 
 type Db interface {
 	Close()
@@ -12,8 +20,8 @@ type Db interface {
 	GetAgent(id, agentID *string) (*model.Agent, error)
 
 	AddConnection(c *model.Connection) (*model.Connection, error)
-	GetConnection(id string, agentID string) (*model.Connection, error)
-	GetConnections(info *paginator.BatchInfo, agentID string) (connections *model.Connections, err error)
+	GetConnection(id string, tenantID string) (*model.Connection, error)
+	GetConnections(info *paginator.BatchInfo, tenantID string) (connections *model.Connections, err error)
 
 	/*AddMessage(connectionID, id, message string, sentByMe bool)
 	UpdateMessage(connectionID, id, delivered bool)

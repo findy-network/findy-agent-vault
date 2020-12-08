@@ -8,8 +8,10 @@ import (
 )
 
 const (
-	sqlAgentInsert          = "INSERT INTO agent (agent_id, label) VALUES ($1, $2) RETURNING id, created"
-	sqlAgentSelect          = "SELECT id, agent_id, label, created FROM agent"
+	sqlAgentFields = "id, agent_id, label, created, last_accessed"
+	sqlAgentInsert = "INSERT INTO agent (agent_id, label) VALUES ($1, $2) " +
+		"ON CONFLICT (agent_id) DO UPDATE SET last_accessed = now() RETURNING " + sqlAgentFields
+	sqlAgentSelect          = "SELECT " + sqlAgentFields + " FROM agent"
 	sqlAgentSelectByID      = sqlAgentSelect + " WHERE id=$1"
 	sqlAgentSelectByAgentID = sqlAgentSelect + " WHERE agent_id=$1"
 )
@@ -26,7 +28,7 @@ func (p *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
 
 	n = a.Copy()
 	if rows.Next() {
-		err = rows.Scan(&n.ID, &n.Created)
+		err = rows.Scan(&n.ID, &n.AgentID, &n.Label, &n.Created, &n.LastAccessed)
 		err2.Check(err)
 	}
 
