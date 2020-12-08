@@ -2,6 +2,7 @@ package pg
 
 import (
 	"database/sql"
+	"sort"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
@@ -20,7 +21,7 @@ const (
 	sqlConnectionSelectByID = sqlConnectionSelect +
 		" WHERE connection.id=$1 AND agent.agent_id=$2"
 	sqlConnectionOrderByAsc  = " ORDER BY cursor ASC LIMIT"
-	sqlConnectionOrderByDesc = " ORDER BY cursor ASC LIMIT"
+	sqlConnectionOrderByDesc = " ORDER BY cursor DESC LIMIT"
 	sqlConnectionSelectBatch = sqlConnectionSelect +
 		" WHERE agent.agent_id=$1 " + sqlConnectionOrderByAsc + " $2"
 	sqlConnectionSelectBatchTail = sqlConnectionSelect +
@@ -176,6 +177,13 @@ func (p *Database) GetConnections(info *paginator.BatchInfo, agentID string) (c 
 	}
 	if info.Before > 0 {
 		c.HasNextPage = true
+	}
+
+	// Reverse order for tail first
+	if info.Tail {
+		sort.Slice(c.Connections, func(i, j int) bool {
+			return c.Connections[i].Created.Sub(c.Connections[j].Created) < 0
+		})
 	}
 
 	return
