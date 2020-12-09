@@ -67,7 +67,7 @@ func TestAddConnection(t *testing.T) {
 	}
 
 	// Get data for id
-	got, err := pgDB.GetConnection(c.ID, testAgentID)
+	got, err := pgDB.GetConnection(c.ID, testTenantID)
 	if err != nil {
 		t.Errorf("Error fetching connection %s", err.Error())
 	} else if !reflect.DeepEqual(&c, &got) {
@@ -139,7 +139,7 @@ func TestGetConnections(t *testing.T) {
 		for _, testCase := range tests {
 			tc := testCase
 			t.Run(tc.name, func(t *testing.T) {
-				c, err := pgDB.GetConnections(tc.args, a.AgentID)
+				c, err := pgDB.GetConnections(tc.args, a.ID)
 				if err != nil {
 					t.Errorf("Error fetching connections %s", err.Error())
 				} else {
@@ -159,5 +159,4 @@ func TestGetConnections(t *testing.T) {
 			})
 		}
 	})
-
 }

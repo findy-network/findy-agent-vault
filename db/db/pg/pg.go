@@ -8,12 +8,11 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/db"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/golang-migrate/migrate/v4/source/file" // blank for migrate driver
 
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
 	"github.com/lib/pq"
-	_ "github.com/lib/pq"
 )
 
 const (
@@ -22,15 +21,15 @@ const (
 	dbName = "vault"
 )
 
-type PgErrorCode string
+type PostgresErrorCode string
 
 const (
-	PgErrorUniqueViolation PgErrorCode = "unique_violation"
+	PostgresErrorUniqueViolation PostgresErrorCode = "unique_violation"
 )
 
-type PgError struct {
+type PostgresError struct {
 	operation string
-	code      PgErrorCode
+	code      PostgresErrorCode
 	error     *pq.Error
 }
 
@@ -44,11 +43,11 @@ func returnErr(op string, err *error) {
 	}
 
 	if pgErr, ok := (*err).(*pq.Error); ok {
-		*err = &PgError{operation: op, code: PgErrorCode(pgErr.Code.Name()), error: pgErr}
+		*err = &PostgresError{operation: op, code: PostgresErrorCode(pgErr.Code.Name()), error: pgErr}
 	}
 }
 
-func (e *PgError) Error() string {
+func (e *PostgresError) Error() string {
 	return e.error.Error()
 }
 
@@ -56,7 +55,7 @@ type Database struct {
 	db *sql.DB
 }
 
-func InitDB(migratePath, port string, reset bool) db.Db {
+func InitDB(migratePath, port string, reset bool) db.DB {
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, os.Getenv("POSTGRES_PASSWORD"), dbName)
@@ -64,6 +63,8 @@ func InitDB(migratePath, port string, reset bool) db.Db {
 	err2.Check(err)
 
 	driver, err := postgres.WithInstance(sqlDB, &postgres.Config{})
+	err2.Check(err)
+
 	m, err := migrate.NewWithDatabaseInstance(
 		migratePath, "postgres", driver,
 	)

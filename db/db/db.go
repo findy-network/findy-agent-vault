@@ -8,12 +8,12 @@ import (
 	"github.com/findy-network/findy-agent-vault/utils"
 )
 
-func GetAgent(ctx context.Context, db Db) (*model.Agent, error) {
+func GetAgent(ctx context.Context, db DB) (*model.Agent, error) {
 	token := utils.ParseToken(ctx)
 	return db.AddAgent(&model.Agent{AgentID: token.AgentID, Label: token.Label})
 }
 
-type Db interface {
+type DB interface {
 	Close()
 
 	AddAgent(a *model.Agent) (*model.Agent, error)

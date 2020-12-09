@@ -37,16 +37,13 @@ func TestAddAgent(t *testing.T) {
 		validateAgent(a)
 	}
 
-	// Error with duplicate id
-	if _, err := pgDB.AddAgent(testAgent); err == nil {
-		t.Errorf("Expecting duplicate key error")
-	} else {
-		if pgErr, ok := err.(*PgError); ok {
-			if pgErr.code != PgErrorUniqueViolation {
-				t.Errorf("Expecting duplicate key error %s", pgErr.code)
-			}
-		} else {
-			t.Errorf("Expecting pg error %v", err)
+	// Only update timestamp if already exists
+	var updatedAgent *model.Agent
+	if updatedAgent, err = pgDB.AddAgent(a); err != nil {
+		t.Errorf("Failed to update agent %s", err.Error())
+	} else if err == nil {
+		if updatedAgent.LastAccessed.Sub(a.LastAccessed) == 0 {
+			t.Errorf("Timestamp not updated %v", updatedAgent.LastAccessed)
 		}
 	}
 
@@ -65,5 +62,4 @@ func TestAddAgent(t *testing.T) {
 	} else {
 		validateAgent(a2)
 	}
-
 }

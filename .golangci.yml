@@ -100,6 +100,9 @@ issues:
       linters:
         - gocritic
         - lll
+    - path: db/db/pg/pg.go
+      linters:
+        - gocritic
     - linters:
         - gocritic
       text: "unnecessaryDefer:"

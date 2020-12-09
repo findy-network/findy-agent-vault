@@ -168,5 +168,5 @@ func (p *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (c
 		})
 	}
 
-	return
+	return c, err
 }

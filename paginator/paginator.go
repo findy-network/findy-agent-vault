@@ -85,7 +85,7 @@ func ParseCursor(cursor string, object interface{}) (uint64, error) {
 	return value, nil
 }
 
-func ValidateFirstAndLast(first, last *int) (int, bool, error) {
+func ValidateFirstAndLast(first, last *int) (count int, valid bool, err error) {
 	if first == nil && last == nil {
 		return 0, false, errors.New(ErrorFirstLastMissing)
 	}
@@ -105,7 +105,7 @@ func Validate(prefix string, params *Params) (info *BatchInfo, err error) {
 	defer err2.Return(&err)
 	LogRequest(prefix, params)
 
-	count := maxPatchSize
+	var count int
 	tail := false
 	var before, after uint64
 
