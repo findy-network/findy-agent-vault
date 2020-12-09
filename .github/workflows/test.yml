@@ -12,3 +12,13 @@ jobs:
         uses: actions/checkout@v2
       - name: test
         run: make test
+    env:
+      POSTGRES_PASSWORD: password
+    services:
+      postgres:
+        image: postgres:13.1-alpine
+          ports:
+            - 5433:5432
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: vault
