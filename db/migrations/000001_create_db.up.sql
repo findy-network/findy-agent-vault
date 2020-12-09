@@ -55,6 +55,7 @@ CREATE TABLE "credential_attribute"(
   credential_id uuid NOT NULL,
   "name" VARCHAR(1024) NOT NULL,
   "value" VARCHAR(4096) NOT NULL,
+  index SMALLINT NOT NULL,
   CONSTRAINT fk_credential_attribute_credential
     FOREIGN KEY(credential_id) REFERENCES "credential"(id)
 );

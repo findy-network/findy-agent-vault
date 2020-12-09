@@ -59,6 +59,7 @@ type CredentialEdge struct {
 }
 
 type CredentialValue struct {
+	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }

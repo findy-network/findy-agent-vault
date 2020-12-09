@@ -95,7 +95,8 @@ func (r *proofResolver) Connection(ctx context.Context, obj *model.Proof) (*mode
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Connections(ctx context.Context, after, before *string, first, last *int) (c *model.PairwiseConnection, err error) {
+func (r *queryResolver) Connections(ctx context.Context, after *string, before *string, first *int, last *int) (*model.PairwiseConnection, error) {
+	var err error
 	defer err2.Return(&err)
 
 	agent, err := db.GetAgent(ctx, r.db)
@@ -117,7 +118,8 @@ func (r *queryResolver) Connections(ctx context.Context, after, before *string, 
 	return res.ToConnection(), nil
 }
 
-func (r *queryResolver) Connection(ctx context.Context, id string) (c *model.Pairwise, err error) {
+func (r *queryResolver) Connection(ctx context.Context, id string) (*model.Pairwise, error) {
+	var err error
 	defer err2.Return(&err)
 
 	agent, err := db.GetAgent(ctx, r.db)

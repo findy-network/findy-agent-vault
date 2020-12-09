@@ -9,30 +9,18 @@ import (
 	"github.com/lainio/err2"
 )
 
-const (
+var (
 	sqlConnectionFields = "tenant_id, our_did, their_did, their_endpoint, their_label, invited"
-	sqlConnectionInsert = "INSERT INTO connection " +
-		"(" + sqlConnectionFields + ") " +
+	sqlConnectionInsert = "INSERT INTO connection " + "(" + sqlConnectionFields + ") " +
 		"VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created, cursor"
-	sqlConnectionSelect = "SELECT connection.id, " +
-		sqlConnectionFields +
-		", connection.created, approved, cursor FROM connection"
-	sqlConnectionSelectByID = sqlConnectionSelect +
-		" WHERE connection.id=$1 AND tenant_id=$2"
-	sqlConnectionOrderByAsc  = " ORDER BY cursor ASC LIMIT"
-	sqlConnectionOrderByDesc = " ORDER BY cursor DESC LIMIT"
-	sqlConnectionSelectBatch = sqlConnectionSelect +
-		" WHERE tenant_id=$1 " + sqlConnectionOrderByAsc + " $2"
-	sqlConnectionSelectBatchTail = sqlConnectionSelect +
-		" WHERE tenant_id=$1" + sqlConnectionOrderByDesc + " $2"
-	sqlConnectionSelectBatchAfter = sqlConnectionSelect +
-		" WHERE tenant_id=$1 AND connection.cursor > $2" + sqlConnectionOrderByAsc + " $3"
-	sqlConnectionSelectBatchAfterTail = sqlConnectionSelect +
-		" WHERE tenant_id=$1 AND connection.cursor > $2" + sqlConnectionOrderByDesc + " $3"
-	sqlConnectionSelectBatchBefore = sqlConnectionSelect +
-		" WHERE tenant_id=$1 AND connection.cursor < $2" + sqlConnectionOrderByAsc + " $3"
-	sqlConnectionSelectBatchBeforeTail = sqlConnectionSelect +
-		" WHERE tenant_id=$1 AND connection.cursor < $2" + sqlConnectionOrderByDesc + " $3"
+	sqlConnectionSelect                = "SELECT id, " + sqlConnectionFields + ", created, approved, cursor FROM connection"
+	sqlConnectionSelectByID            = sqlConnectionSelect + " WHERE id=$1 AND tenant_id=$2"
+	sqlConnectionSelectBatch           = sqlConnectionSelect + sqlWhereTenantAsc("") + " $2"
+	sqlConnectionSelectBatchTail       = sqlConnectionSelect + sqlWhereTenantDesc("") + " $2"
+	sqlConnectionSelectBatchAfter      = sqlConnectionSelect + sqlWhereTenantAscAfter("") + " $3"
+	sqlConnectionSelectBatchAfterTail  = sqlConnectionSelect + sqlWhereTenantDescAfter("") + " $3"
+	sqlConnectionSelectBatchBefore     = sqlConnectionSelect + sqlWhereTenantAscBefore("") + " $3"
+	sqlConnectionSelectBatchBeforeTail = sqlConnectionSelect + sqlWhereTenantDescBefore("") + " $3"
 )
 
 func (p *Database) AddConnection(c *model.Connection) (n *model.Connection, err error) {
