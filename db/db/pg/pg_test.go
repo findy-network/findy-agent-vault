@@ -10,9 +10,17 @@ import (
 )
 
 var (
-	pgDB         db.DB
-	testTenantID string
-	testAgentID  string
+	pgDB             db.DB
+	testTenantID     string
+	testAgentID      string
+	testConnectionID string
+	testConnection   *model.Connection = &model.Connection{
+		OurDid:        "ourDid",
+		TheirDid:      "theirDid",
+		TheirEndpoint: "theirEndpoint",
+		TheirLabel:    "theirLabel",
+		Invited:       false,
+	}
 )
 
 func setup() {
@@ -27,6 +35,13 @@ func setup() {
 	}
 	testTenantID = a.ID
 	testAgentID = a.AgentID
+	testConnection.TenantID = testTenantID
+
+	c, err := pgDB.AddConnection(testConnection)
+	if err != nil {
+		panic(err)
+	}
+	testConnectionID = c.ID
 }
 
 func teardown() {

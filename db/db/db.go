@@ -23,6 +23,10 @@ type DB interface {
 	GetConnection(id string, tenantID string) (*model.Connection, error)
 	GetConnections(info *paginator.BatchInfo, tenantID string) (connections *model.Connections, err error)
 
+	AddCredential(c *model.Credential) (*model.Credential, error)
+	GetCredential(id string, tenantID string) (*model.Credential, error)
+	GetCredentials(info *paginator.BatchInfo, tenantID string) (connections *model.Credentials, err error)
+
 	/*AddMessage(connectionID, id, message string, sentByMe bool)
 	UpdateMessage(connectionID, id, delivered bool)
 

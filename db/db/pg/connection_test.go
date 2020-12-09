@@ -49,15 +49,6 @@ func validateConnection(t *testing.T, exp, got *model.Connection) {
 }
 
 func TestAddConnection(t *testing.T) {
-	testConnection := &model.Connection{
-		TenantID:      testTenantID,
-		OurDid:        "ourDid",
-		TheirDid:      "theirDid",
-		TheirEndpoint: "theirEndpoint",
-		TheirLabel:    "theirLabel",
-		Invited:       false,
-	}
-
 	// Add data
 	c, err := pgDB.AddConnection(testConnection)
 	if err != nil {

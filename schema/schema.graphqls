@@ -80,6 +80,7 @@ enum CredentialRole {
 }
 
 type CredentialValue {
+  id: ID!
   name: String!
   value: String!
 }

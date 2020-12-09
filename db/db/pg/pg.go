@@ -51,6 +51,44 @@ func (e *PostgresError) Error() string {
 	return e.error.Error()
 }
 
+func sqlOrderByAsc(orderBy string) string {
+	if orderBy != "" {
+		orderBy = ", " + orderBy
+	}
+	return fmt.Sprintf(" ORDER BY cursor ASC %s LIMIT", orderBy)
+}
+
+func sqlOrderByDesc(orderBy string) string {
+	if orderBy != "" {
+		orderBy = ", " + orderBy
+	}
+	return fmt.Sprintf(" ORDER BY cursor DESC %s LIMIT", orderBy)
+}
+
+func sqlWhereTenantAsc(orderBy string) string {
+	return " WHERE tenant_id=$1 " + sqlOrderByAsc(orderBy)
+}
+
+func sqlWhereTenantDesc(orderBy string) string {
+	return " WHERE tenant_id=$1 " + sqlOrderByDesc(orderBy)
+}
+
+func sqlWhereTenantAscAfter(orderBy string) string {
+	return " WHERE tenant_id=$1 AND cursor > $2" + sqlOrderByAsc(orderBy)
+}
+
+func sqlWhereTenantDescAfter(orderBy string) string {
+	return " WHERE tenant_id=$1 AND cursor > $2" + sqlOrderByDesc(orderBy)
+}
+
+func sqlWhereTenantAscBefore(orderBy string) string {
+	return " WHERE tenant_id=$1 AND cursor < $2" + sqlOrderByAsc(orderBy)
+}
+
+func sqlWhereTenantDescBefore(orderBy string) string {
+	return " WHERE tenant_id=$1 AND cursor < $2" + sqlOrderByDesc(orderBy)
+}
+
 type Database struct {
 	db *sql.DB
 }
