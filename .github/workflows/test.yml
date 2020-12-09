@@ -17,8 +17,8 @@ jobs:
     services:
       postgres:
         image: postgres:13.1-alpine
-          ports:
-            - 5433:5432
+        ports:
+          - 5433:5432
         env:
           POSTGRES_PASSWORD: password
           POSTGRES_DB: vault
