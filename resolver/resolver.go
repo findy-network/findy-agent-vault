@@ -13,17 +13,14 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	db db.Db
+	db db.DB
 }
 
 func InitResolver() *Resolver {
-	//listener := &agencyListener{}
-	//agency.Instance.Init(listener)
+	store := pg.InitDB("file://db/migrations", "5432", false)
 
-	db := pg.InitDB("file://db/migrations", "5432", false)
-
-	r := &Resolver{db}
-	fake.AddData(db)
+	r := &Resolver{db: store}
+	fake.AddData(store)
 
 	return r
 }

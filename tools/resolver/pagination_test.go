@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/findy-network/findy-agent-vault/resolver"
+	"github.com/findy-network/findy-agent-vault/paginator"
 )
 
 type executor func(ctx context.Context, after *string, before *string, first *int, last *int) error
@@ -19,9 +19,9 @@ func testPaginationErrors(t *testing.T, objName string, ex executor) {
 			tooLow             = 0
 			tooHigh            = 101
 			invalidCursor      = "1"
-			missingError       = errors.New(resolver.ErrorFirstLastMissing)
-			invalidCountError  = errors.New(resolver.ErrorFirstLastInvalid)
-			invalidCursorError = errors.New(resolver.ErrorCursorInvalid)
+			missingError       = errors.New(paginator.ErrorFirstLastMissing)
+			invalidCountError  = errors.New(paginator.ErrorFirstLastInvalid)
+			invalidCursorError = errors.New(paginator.ErrorCursorInvalid)
 		)
 		tests := []struct {
 			name string

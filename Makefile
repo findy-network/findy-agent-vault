@@ -52,12 +52,13 @@ init-test:
 		-v $(PWD)/.db/test:/var/lib/postgresql/data \
 		-p 5433:5432 \
 		-d postgres:13.1-alpine
+	sleep 30
 
 
-test: init-test
+test:
 	go test -v ./...
 
-test_cov: init-test
+test_cov:
 	go test -v -coverprofile=c.out ./... && go tool cover -html=c.out
 
 check: check_fmt vet shadow

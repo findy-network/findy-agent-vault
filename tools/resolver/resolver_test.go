@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	utils "github.com/findy-network/findy-agent-vault/tools/tools"
+	"github.com/findy-network/findy-agent-vault/utils"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
 )

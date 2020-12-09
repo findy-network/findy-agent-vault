@@ -9,6 +9,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/db"
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/utils"
+	"github.com/lainio/err2"
 )
 
 const FakeCloudDID = "cloudDID"
@@ -33,25 +34,20 @@ func addProviders(tenantID string) {
 	})
 }
 
-func AddConnections(db db.Db, tenantID string, count int) []*model.Connection {
+func AddConnections(store db.DB, tenantID string, count int) []*model.Connection {
 	addProviders(tenantID)
 
 	connections := make([]*model.Connection, count)
 	for i := 0; i < count; i++ {
 		connection := &model.Connection{}
-		err := faker.FakeData(connection)
-		if err != nil {
-			panic(err)
-		}
+		err2.Check(faker.FakeData(connection))
 		connections[i] = connection
 	}
 
 	newConnections := make([]*model.Connection, count)
 	for index, connection := range connections {
-		c, err := db.AddConnection(connection)
-		if err != nil {
-			panic(err)
-		}
+		c, err := store.AddConnection(connection)
+		err2.Check(err)
 		newConnections[index] = c
 	}
 
@@ -60,22 +56,23 @@ func AddConnections(db db.Db, tenantID string, count int) []*model.Connection {
 	return newConnections
 }
 
-func AddAgent(db db.Db) *model.Agent {
+func AddAgent(store db.DB) *model.Agent {
 	_ = faker.AddProvider("agentId", func(v reflect.Value) (interface{}, error) {
 		return FakeCloudDID, nil
 	})
 	var err error
 	agent := &model.Agent{}
-	faker.FakeData(&agent)
-	if agent, err = db.AddAgent(agent); err != nil {
-		panic(err)
-	}
+	err2.Check(faker.FakeData(&agent))
+
+	agent, err = store.AddAgent(agent)
+	err2.Check(err)
+
 	utils.LogMed().Infof("Generated tenant %s with agent id %s", agent.ID, agent.AgentID)
 	return agent
 }
 
-func AddData(db db.Db) {
-	agent := AddAgent(db)
+func AddData(store db.DB) {
+	agent := AddAgent(store)
 
-	AddConnections(db, agent.ID, 5)
+	AddConnections(store, agent.ID, 5)
 }

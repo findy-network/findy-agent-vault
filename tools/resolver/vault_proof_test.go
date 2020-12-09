@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
+	"github.com/findy-network/findy-agent-vault/tools/tools"
 	"github.com/google/uuid"
 )
 

@@ -57,7 +57,7 @@ func (p *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
 
 	a = model.NewAgent()
 	if rows.Next() {
-		err = rows.Scan(&a.ID, &a.AgentID, &a.Label, &a.Created)
+		err = rows.Scan(&a.ID, &a.AgentID, &a.Label, &a.Created, &a.LastAccessed)
 		err2.Check(err)
 	}
 

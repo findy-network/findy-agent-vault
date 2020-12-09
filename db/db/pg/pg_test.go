@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	pgDB         db.Db
+	pgDB         db.DB
 	testTenantID string
 	testAgentID  string
 )

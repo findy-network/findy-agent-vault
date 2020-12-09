@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
-	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 )
 
@@ -40,20 +39,20 @@ func (c *Connection) Copy() (n *Connection) {
 	return n
 }
 
-func (c *Connection) ToEdge() *graph.PairwiseEdge {
-	cursor := paginator.CreateCursor(c.Cursor, graph.Pairwise{})
-	return &graph.PairwiseEdge{
+func (c *Connection) ToEdge() *model.PairwiseEdge {
+	cursor := paginator.CreateCursor(c.Cursor, model.Pairwise{})
+	return &model.PairwiseEdge{
 		Cursor: cursor,
 		Node:   c.ToNode(),
 	}
 }
 
-func (c *Connection) ToNode() *graph.Pairwise {
+func (c *Connection) ToNode() *model.Pairwise {
 	approvedMs := ""
 	if c.Approved != nil {
 		approvedMs = strconv.FormatInt(c.Approved.UnixNano()/time.Millisecond.Nanoseconds(), 10)
 	}
-	return &graph.Pairwise{
+	return &model.Pairwise{
 		ID:            c.ID,
 		OurDid:        c.OurDid,
 		TheirDid:      c.TheirDid,
@@ -65,11 +64,11 @@ func (c *Connection) ToNode() *graph.Pairwise {
 	}
 }
 
-func (c *Connections) ToConnection() *graph.PairwiseConnection {
+func (c *Connections) ToConnection() *model.PairwiseConnection {
 	totalCount := len(c.Connections)
 
-	edges := make([]*graph.PairwiseEdge, totalCount)
-	nodes := make([]*graph.Pairwise, totalCount)
+	edges := make([]*model.PairwiseEdge, totalCount)
+	nodes := make([]*model.Pairwise, totalCount)
 	for index, connection := range c.Connections {
 		edge := connection.ToEdge()
 		edges[index] = edge
@@ -81,7 +80,7 @@ func (c *Connections) ToConnection() *graph.PairwiseConnection {
 		startCursor = &edges[0].Cursor
 		endCursor = &edges[len(edges)-1].Cursor
 	}
-	return &graph.PairwiseConnection{
+	return &model.PairwiseConnection{
 		Edges: edges,
 		Nodes: nodes,
 		PageInfo: &model.PageInfo{
