@@ -1,8 +1,13 @@
 package model
 
 import (
+	"strconv"
 	"time"
 )
+
+func timeToString(t *time.Time) string {
+	return strconv.FormatInt(t.UnixNano()/time.Millisecond.Nanoseconds(), 10)
+}
 
 type base struct {
 	ID      string `faker:"uuid_hyphenated"`

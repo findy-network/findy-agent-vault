@@ -25,6 +25,7 @@ func (p *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
 		a.Label,
 	)
 	err2.Check(err)
+	defer rows.Close()
 
 	n = a.Copy()
 	if rows.Next() {

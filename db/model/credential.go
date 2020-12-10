@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
+	"github.com/findy-network/findy-agent-vault/paginator"
 )
 
 type Credentials struct {
@@ -46,7 +47,7 @@ func (c *Credential) Copy() (n *Credential) {
 	return n
 }
 
-/*func (c *Credential) ToEdge() *model.CredentialEdge {
+func (c *Credential) ToEdge() *model.CredentialEdge {
 	cursor := paginator.CreateCursor(c.Cursor, model.Credential{})
 	return &model.CredentialEdge{
 		Cursor: cursor,
@@ -56,18 +57,23 @@ func (c *Credential) Copy() (n *Credential) {
 
 func (c *Credential) ToNode() *model.Credential {
 	approvedMs := ""
+	issuedMs := ""
 	if c.Approved != nil {
-		approvedMs = strconv.FormatInt(c.Approved.UnixNano()/time.Millisecond.Nanoseconds(), 10)
+		approvedMs = timeToString(c.Approved)
+	}
+	if c.Issued != nil {
+		issuedMs = timeToString(c.Issued)
 	}
 	return &model.Credential{
 		ID:            c.ID,
-		OurDid:        c.OurDid,
-		TheirDid:      c.TheirDid,
-		TheirEndpoint: c.TheirEndpoint,
-		TheirLabel:    c.TheirLabel,
-		CreatedMs:     strconv.FormatInt(c.Created.UnixNano()/time.Millisecond.Nanoseconds(), 10),
-		ApprovedMs:    approvedMs,
-		Invited:       c.Invited,
+		Role:          c.Role,
+		SchemaID:      c.SchemaID,
+		CredDefID:     c.CredDefID,
+		Attributes:    c.Attributes,
+		InitiatedByUs: c.InitiatedByUs,
+		ApprovedMs:    &approvedMs,
+		IssuedMs:      &issuedMs,
+		CreatedMs:     timeToString(&c.Created),
 	}
 }
 
@@ -99,4 +105,3 @@ func (c *Credentials) ToConnection() *model.CredentialConnection {
 		TotalCount: totalCount, // TODO: total total count
 	}
 }
-*/

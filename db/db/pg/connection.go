@@ -36,6 +36,7 @@ func (p *Database) AddConnection(c *model.Connection) (n *model.Connection, err 
 		c.Invited,
 	)
 	err2.Check(err)
+	defer rows.Close()
 
 	n = c.Copy()
 	if rows.Next() {

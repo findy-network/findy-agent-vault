@@ -4,6 +4,7 @@ import (
 	crand "crypto/rand"
 	"math/big"
 	"reflect"
+	"time"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/findy-network/findy-agent-vault/db/db"
@@ -46,8 +47,16 @@ func AddCredentials(store db.DB, tenantID, connectionID string, count int) []*mo
 
 	newCredentials := make([]*model.Credential, count)
 	for index, credential := range credentials {
+
 		c, err := store.AddCredential(credential)
 		err2.Check(err)
+
+		now := time.Now().UTC()
+		c.Approved = &now
+		c.Issued = &now
+		_, err = store.UpdateCredential(c)
+		err2.Check(err)
+
 		newCredentials[index] = c
 	}
 
