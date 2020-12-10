@@ -9,8 +9,39 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/db/fake"
 	"github.com/findy-network/findy-agent-vault/db/model"
+	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 )
+
+func validateTimestap(t *testing.T, exp, got *time.Time, name string) {
+	fail := false
+	if got != exp {
+		fail = true
+		if got != nil && exp != nil && got.Sub(*exp) == 0 {
+			fail = false
+		}
+	}
+	if fail {
+		t.Errorf("Credential %s mismatch expected %s got %s", name, exp, got)
+	}
+}
+
+func validateAttributes(t *testing.T, exp, got []*graph.CredentialValue) {
+	if len(got) == 0 {
+		t.Errorf("No attributes found")
+	}
+	for index, a := range got {
+		if a.ID == "" {
+			t.Errorf("Credential attribute id invalid.")
+		}
+		if a.Name != exp[index].Name {
+			t.Errorf("Credential attribute name mismatch: expected %s got %s.", exp[index].Name, a.Name)
+		}
+		if a.Value != exp[index].Value {
+			t.Errorf("Credential attribute value mismatch: expected %s got %s.", exp[index].Value, a.Value)
+		}
+	}
+}
 
 func validateCredential(t *testing.T, exp, got *model.Credential) {
 	if got == nil {
@@ -41,47 +72,14 @@ func validateCredential(t *testing.T, exp, got *model.Credential) {
 	if time.Since(got.Created) > time.Second {
 		t.Errorf("Timestamp not in threshold %v", got.Created)
 	}
-	// TODO:
-	if got.Approved != exp.Approved {
-		if got.Approved != nil && exp.Approved != nil {
-			if got.Approved.Sub(*exp.Approved) != 0 {
-				t.Errorf("Credential Approved mismatch expected %s got %s", exp.Approved, got.Approved)
-			}
-		} else {
-			t.Errorf("Credential Approved mismatch expected %s got %s", exp.Approved, got.Approved)
-		}
-	}
-	// TODO:
-	if got.Issued != exp.Issued {
-		if got.Issued != nil && exp.Issued != nil {
-			if got.Issued.Sub(*exp.Issued) != 0 {
-				t.Errorf("Credential Issued mismatch expected %s got %s", exp.Issued, got.Issued)
-			}
-		} else {
-			t.Errorf("Credential Issued mismatch expected %s got %s", exp.Issued, got.Issued)
-		}
-	}
-	if got.Failed != exp.Failed {
-		t.Errorf("Credential Issued mismatch expected %s got %s", exp.Failed, got.Failed)
-	}
+	validateTimestap(t, exp.Approved, got.Approved, "Approved")
+	validateTimestap(t, exp.Issued, got.Issued, "Issued")
+	validateTimestap(t, exp.Failed, got.Failed, "Failed")
 	created := uint64(math.Round(float64(got.Created.UnixNano()) / float64(time.Millisecond.Nanoseconds())))
 	if got.Cursor != created {
 		t.Errorf("Cursor mismatch %v %v", got.Cursor, created)
 	}
-	if len(got.Attributes) == 0 {
-		t.Errorf("No attributes found")
-	}
-	for index, a := range got.Attributes {
-		if a.ID == "" {
-			t.Errorf("Credential attribute id invalid.")
-		}
-		if a.Name != exp.Attributes[index].Name {
-			t.Errorf("Credential attribute name mismatch: expected %s got %s.", exp.Attributes[index].Name, a.Name)
-		}
-		if a.Value != exp.Attributes[index].Value {
-			t.Errorf("Credential attribute value mismatch: expected %s got %s.", exp.Attributes[index].Value, a.Value)
-		}
-	}
+	validateAttributes(t, exp.Attributes, got.Attributes)
 }
 
 func TestAddCredential(t *testing.T) {
@@ -155,6 +153,53 @@ func addAgentAndConnections(agentID string) (*model.Agent, []*model.Connection) 
 	return a, connections
 }
 
+type credTest struct {
+	name   string
+	args   *paginator.BatchInfo
+	result *model.Credentials
+}
+
+func getCredTests(size int, all []*model.Credential) []*credTest {
+	var credTests = []*credTest{
+		{
+			"first 5",
+			&paginator.BatchInfo{Count: size, Tail: false},
+			&model.Credentials{HasNextPage: true, HasPreviousPage: false, Credentials: all[:size]},
+		},
+		{
+			"first next 5",
+			&paginator.BatchInfo{Count: size, Tail: false, After: all[size-1].Cursor},
+			&model.Credentials{HasNextPage: true, HasPreviousPage: true, Credentials: all[size : size*2]},
+		},
+		{
+			"first last 5",
+			&paginator.BatchInfo{Count: size, Tail: false, After: all[(size*2)-1].Cursor},
+			&model.Credentials{HasNextPage: false, HasPreviousPage: true, Credentials: all[size*2:]},
+		},
+		{
+			"last 5",
+			&paginator.BatchInfo{Count: size, Tail: true},
+			&model.Credentials{HasNextPage: false, HasPreviousPage: true, Credentials: all[size*2:]},
+		},
+		{
+			"last next 5",
+			&paginator.BatchInfo{Count: size, Tail: true, Before: all[size*2].Cursor},
+			&model.Credentials{HasNextPage: true, HasPreviousPage: true, Credentials: all[size : size*2]},
+		},
+		{
+			"last first 5",
+			&paginator.BatchInfo{Count: size, Tail: true, Before: all[size].Cursor},
+			&model.Credentials{HasNextPage: true, HasPreviousPage: false, Credentials: all[:size]},
+		},
+		{
+			"all",
+			&paginator.BatchInfo{Count: size * 3, Tail: false},
+			&model.Credentials{HasNextPage: false, HasPreviousPage: false, Credentials: all},
+		},
+	}
+	return credTests
+}
+
 func TestGetTenantCredentials(t *testing.T) {
 	// add new agent with no pre-existing credentials
 	a, connections := addAgentAndConnections("TestGetTenantCredentials")
@@ -169,47 +214,7 @@ func TestGetTenantCredentials(t *testing.T) {
 	})
 
 	t.Run("get credentials", func(t *testing.T) {
-		tests := []struct {
-			name   string
-			args   *paginator.BatchInfo
-			result *model.Credentials
-		}{
-			{
-				"first 5",
-				&paginator.BatchInfo{Count: size, Tail: false},
-				&model.Credentials{HasNextPage: true, HasPreviousPage: false, Credentials: all[:size]},
-			},
-			{
-				"first next 5",
-				&paginator.BatchInfo{Count: size, Tail: false, After: all[size-1].Cursor},
-				&model.Credentials{HasNextPage: true, HasPreviousPage: true, Credentials: all[size : size*2]},
-			},
-			{
-				"first last 5",
-				&paginator.BatchInfo{Count: size, Tail: false, After: all[(size*2)-1].Cursor},
-				&model.Credentials{HasNextPage: false, HasPreviousPage: true, Credentials: all[size*2:]},
-			},
-			{
-				"last 5",
-				&paginator.BatchInfo{Count: size, Tail: true},
-				&model.Credentials{HasNextPage: false, HasPreviousPage: true, Credentials: all[size*2:]},
-			},
-			{
-				"last next 5",
-				&paginator.BatchInfo{Count: size, Tail: true, Before: all[size*2].Cursor},
-				&model.Credentials{HasNextPage: true, HasPreviousPage: true, Credentials: all[size : size*2]},
-			},
-			{
-				"last first 5",
-				&paginator.BatchInfo{Count: size, Tail: true, Before: all[size].Cursor},
-				&model.Credentials{HasNextPage: true, HasPreviousPage: false, Credentials: all[:size]},
-			},
-			{
-				"all",
-				&paginator.BatchInfo{Count: size * 3, Tail: false},
-				&model.Credentials{HasNextPage: false, HasPreviousPage: false, Credentials: all},
-			},
-		}
+		tests := getCredTests(size, all)
 
 		for _, testCase := range tests {
 			tc := testCase
@@ -237,7 +242,6 @@ func TestGetTenantCredentials(t *testing.T) {
 }
 
 func TestGetConnectionCredentials(t *testing.T) {
-
 	// add new agent with no pre-existing credentials
 	a, connections := addAgentAndConnections("TestGetConnectionCredentials")
 
@@ -252,47 +256,7 @@ func TestGetConnectionCredentials(t *testing.T) {
 	})
 
 	t.Run("get credentials", func(t *testing.T) {
-		tests := []struct {
-			name   string
-			args   *paginator.BatchInfo
-			result *model.Credentials
-		}{
-			{
-				"first 5",
-				&paginator.BatchInfo{Count: size, Tail: false},
-				&model.Credentials{HasNextPage: true, HasPreviousPage: false, Credentials: all[:size]},
-			},
-			{
-				"first next 5",
-				&paginator.BatchInfo{Count: size, Tail: false, After: all[size-1].Cursor},
-				&model.Credentials{HasNextPage: true, HasPreviousPage: true, Credentials: all[size : size*2]},
-			},
-			{
-				"first last 5",
-				&paginator.BatchInfo{Count: size, Tail: false, After: all[(size*2)-1].Cursor},
-				&model.Credentials{HasNextPage: false, HasPreviousPage: true, Credentials: all[size*2:]},
-			},
-			{
-				"last 5",
-				&paginator.BatchInfo{Count: size, Tail: true},
-				&model.Credentials{HasNextPage: false, HasPreviousPage: true, Credentials: all[size*2:]},
-			},
-			{
-				"last next 5",
-				&paginator.BatchInfo{Count: size, Tail: true, Before: all[size*2].Cursor},
-				&model.Credentials{HasNextPage: true, HasPreviousPage: true, Credentials: all[size : size*2]},
-			},
-			{
-				"last first 5",
-				&paginator.BatchInfo{Count: size, Tail: true, Before: all[size].Cursor},
-				&model.Credentials{HasNextPage: true, HasPreviousPage: false, Credentials: all[:size]},
-			},
-			{
-				"all",
-				&paginator.BatchInfo{Count: size * 3, Tail: false},
-				&model.Credentials{HasNextPage: false, HasPreviousPage: false, Credentials: all},
-			},
-		}
+		tests := getCredTests(size, all)
 
 		for _, testCase := range tests {
 			tc := testCase
