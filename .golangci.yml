@@ -98,11 +98,15 @@ issues:
         - dupl
     - path: resolver/schema.resolvers.go
       linters:
+        - dupl
         - gocritic
         - lll
     - path: db/db/pg/pg.go
       linters:
         - gocritic
+    - path: db/model
+      linters:
+        - dupl
     - linters:
         - gocritic
       text: "unnecessaryDefer:"

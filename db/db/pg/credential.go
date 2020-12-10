@@ -126,7 +126,7 @@ func (p *Database) AddCredential(c *model.Credential) (n *model.Credential, err 
 func (p *Database) UpdateCredential(c *model.Credential) (n *model.Credential, err error) {
 	defer returnErr("UpdateCredential", &err)
 
-	_, err = p.db.Query(
+	_, err = p.db.Exec(
 		sqlCredentialUpdate,
 		c.Approved,
 		c.Issued,
@@ -203,11 +203,12 @@ func (p *Database) GetCredential(id, tenantID string) (c *model.Credential, err 
 	return
 }
 
-func (p *Database) getCredentialsForQuery(queries *queryInfo, batch *paginator.BatchInfo, initialArgs []interface{}) (c *model.Credentials, err error) {
-	defer returnErr("GetCredentials", &err)
-
-	query := ""
-	args := make([]interface{}, 0)
+func getCredentialQuery(
+	queries *queryInfo,
+	batch *paginator.BatchInfo,
+	initialArgs []interface{},
+) (query string, args []interface{}) {
+	args = make([]interface{}, 0)
 	args = append(args, initialArgs...)
 	if batch.Tail {
 		query = queries.Desc
@@ -231,7 +232,17 @@ func (p *Database) getCredentialsForQuery(queries *queryInfo, batch *paginator.B
 	}
 
 	args = append(args, batch.Count+1)
+	return query, args
+}
 
+func (p *Database) getCredentialsForQuery(
+	queries *queryInfo,
+	batch *paginator.BatchInfo,
+	initialArgs []interface{},
+) (c *model.Credentials, err error) {
+	defer returnErr("GetCredentials", &err)
+
+	query, args := getCredentialQuery(queries, batch, initialArgs)
 	rows, err := p.db.Query(query, args...)
 	err2.Check(err)
 	defer rows.Close()
@@ -300,7 +311,11 @@ func (p *Database) GetCredentials(info *paginator.BatchInfo, tenantID string) (c
 	)
 }
 
-func (p *Database) GetConnectionCredentials(info *paginator.BatchInfo, tenantID, connectionID string) (connections *model.Credentials, err error) {
+func (p *Database) GetConnectionCredentials(
+	info *paginator.BatchInfo,
+	tenantID,
+	connectionID string,
+) (connections *model.Credentials, err error) {
 	return p.getCredentialsForQuery(&queryInfo{
 		Asc:        sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+sqlOrderByAsc(""), "$3", "ASC"),
 		Desc:       sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+sqlOrderByDesc(""), "$3", "DESC"),

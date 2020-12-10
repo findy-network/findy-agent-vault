@@ -47,7 +47,6 @@ func AddCredentials(store db.DB, tenantID, connectionID string, count int) []*mo
 
 	newCredentials := make([]*model.Credential, count)
 	for index, credential := range credentials {
-
 		c, err := store.AddCredential(credential)
 		err2.Check(err)
 
