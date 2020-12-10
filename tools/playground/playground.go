@@ -47,8 +47,8 @@ func main() {
 	if os.Getenv("PLAYGROUND_POSTGRES") != "" {
 		srv = server.Server(real.InitResolver())
 	} else {
-		gqlResolver = resolver.InitResolver(false)
-		srv = server.Server(gqlResolver)
+		//gqlResolver = resolver.InitResolver(false)
+		//srv = server.Server(gqlResolver)
 	}
 
 	port := os.Getenv("PORT")

@@ -11,16 +11,9 @@ import (
 	"github.com/lainio/err2"
 )
 
-type queryInfo struct {
-	Asc        string
-	Desc       string
-	AfterAsc   string
-	AfterDesc  string
-	BeforeAsc  string
-	BeforeDesc string
-}
-
 func constructCredentialAttributeInsert(count int) string {
+	const sqlCredentialAttributeInsert = "INSERT INTO credential_attribute (credential_id, name, value, index) VALUES "
+
 	result := sqlCredentialAttributeInsert
 	paramCount := 4
 	for i := 0; i < count; i++ {
@@ -46,21 +39,16 @@ func sqlCredentialSelectBatchFor(tenantOrder, limit, cursorOrder string) string 
 		sqlCredentialJoin + " ORDER BY cursor " + cursorOrder + ", credential_attribute.index"
 }
 
-var (
+const (
 	sqlCredentialBatchWhere           = " WHERE tenant_id=$1 AND issued IS NOT NULL "
 	sqlCredentialBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2 AND issued IS NOT NULL "
-	sqlCredentialAttributeInsert      = "INSERT INTO credential_attribute (credential_id, name, value, index) VALUES "
 
 	sqlCredentialFields = "tenant_id, connection_id, role, schema_id, cred_def_id, initiated_by_us"
 	sqlCredentialInsert = "INSERT INTO credential " + "(" + sqlCredentialFields + ") " +
 		"VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created, cursor"
-	sqlCredentialUpdate = "UPDATE credential SET approved=$1, issued=$2, failed=$3 WHERE id = $4" // TODO: tenant_id, connection_id?
 	sqlCredentialSelect = "SELECT credential.id, " + sqlCredentialFields +
 		", created, approved, issued, failed, cursor, credential_attribute.id, name, value FROM"
-	sqlCredentialJoin       = " INNER JOIN credential_attribute on credential_id = credential.id"
-	sqlCredentialSelectByID = sqlCredentialSelect + " credential" + sqlCredentialJoin +
-		" WHERE credential.id=$1 AND tenant_id=$2" +
-		" ORDER BY credential_attribute.index"
+	sqlCredentialJoin = " INNER JOIN credential_attribute on credential_id = credential.id"
 )
 
 func (p *Database) addCredentialAttributes(id string, attributes []*graph.CredentialValue) (a []*graph.CredentialValue, err error) {
@@ -126,6 +114,8 @@ func (p *Database) AddCredential(c *model.Credential) (n *model.Credential, err 
 func (p *Database) UpdateCredential(c *model.Credential) (n *model.Credential, err error) {
 	defer returnErr("UpdateCredential", &err)
 
+	const sqlCredentialUpdate = "UPDATE credential SET approved=$1, issued=$2, failed=$3 WHERE id = $4" // TODO: tenant_id, connection_id?
+
 	_, err = p.db.Exec(
 		sqlCredentialUpdate,
 		c.Approved,
@@ -187,6 +177,10 @@ func readRowToCredential(rows *sql.Rows, previous *model.Credential) (*model.Cre
 func (p *Database) GetCredential(id, tenantID string) (c *model.Credential, err error) {
 	defer returnErr("GetCredential", &err)
 
+	const sqlCredentialSelectByID = sqlCredentialSelect + " credential" + sqlCredentialJoin +
+		" WHERE credential.id=$1 AND tenant_id=$2" +
+		" ORDER BY credential_attribute.index"
+
 	rows, err := p.db.Query(sqlCredentialSelectByID, id, tenantID)
 	err2.Check(err)
 	defer rows.Close()
@@ -203,38 +197,6 @@ func (p *Database) GetCredential(id, tenantID string) (c *model.Credential, err 
 	return
 }
 
-func getCredentialQuery(
-	queries *queryInfo,
-	batch *paginator.BatchInfo,
-	initialArgs []interface{},
-) (query string, args []interface{}) {
-	args = make([]interface{}, 0)
-	args = append(args, initialArgs...)
-	if batch.Tail {
-		query = queries.Desc
-		if batch.After > 0 {
-			query = queries.AfterDesc
-		} else if batch.Before > 0 {
-			query = queries.BeforeDesc
-		}
-	} else {
-		query = queries.Asc
-		if batch.After > 0 {
-			query = queries.AfterAsc
-		} else if batch.Before > 0 {
-			query = queries.BeforeAsc
-		}
-	}
-	if batch.After > 0 {
-		args = append(args, batch.After)
-	} else if batch.Before > 0 {
-		args = append(args, batch.Before)
-	}
-
-	args = append(args, batch.Count+1)
-	return query, args
-}
-
 func (p *Database) getCredentialsForQuery(
 	queries *queryInfo,
 	batch *paginator.BatchInfo,
@@ -242,7 +204,7 @@ func (p *Database) getCredentialsForQuery(
 ) (c *model.Credentials, err error) {
 	defer returnErr("GetCredentials", &err)
 
-	query, args := getCredentialQuery(queries, batch, initialArgs)
+	query, args := getBatchQuery(queries, batch, initialArgs)
 	rows, err := p.db.Query(query, args...)
 	err2.Check(err)
 	defer rows.Close()
@@ -311,6 +273,26 @@ func (p *Database) GetCredentials(info *paginator.BatchInfo, tenantID string) (c
 	)
 }
 
+func (p *Database) GetCredentialCount(tenantID string) (count int, err error) {
+	defer returnErr("GetCredentialCount", &err)
+
+	const sqlCredentialSelectCount = "SELECT count(id) FROM credential " + sqlCredentialBatchWhere
+
+	rows, err := p.db.Query(sqlCredentialSelectCount, tenantID)
+	err2.Check(err)
+	defer rows.Close()
+
+	if rows.Next() {
+		err = rows.Scan(&count)
+		err2.Check(err)
+	}
+
+	err = rows.Err()
+	err2.Check(err)
+
+	return
+}
+
 func (p *Database) GetConnectionCredentials(
 	info *paginator.BatchInfo,
 	tenantID,
@@ -327,4 +309,24 @@ func (p *Database) GetConnectionCredentials(
 		info,
 		[]interface{}{tenantID, connectionID},
 	)
+}
+
+func (p *Database) GetConnectionCredentialCount(tenantID, connectionID string) (count int, err error) {
+	defer returnErr("GetCredentialCount", &err)
+
+	const sqlCredentialSelectCount = "SELECT count(id) FROM credential " + sqlCredentialBatchWhereConnection
+
+	rows, err := p.db.Query(sqlCredentialSelectCount, tenantID, connectionID)
+	err2.Check(err)
+	defer rows.Close()
+
+	if rows.Next() {
+		err = rows.Scan(&count)
+		err2.Check(err)
+	}
+
+	err = rows.Err()
+	err2.Check(err)
+
+	return
 }

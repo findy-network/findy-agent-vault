@@ -282,3 +282,40 @@ func TestGetConnectionCredentials(t *testing.T) {
 		}
 	})
 }
+
+func TestGetCredentialCount(t *testing.T) {
+	// add new agent with no pre-existing credentials
+	a, connections := addAgentAndConnections("TestGetCredentialCount")
+	size := 5
+	fake.AddCredentials(pgDB, a.ID, connections[0].ID, size)
+
+	// Get count
+	got, err := pgDB.GetCredentialCount(a.ID)
+	if err != nil {
+		t.Errorf("Error fetching count %s", err.Error())
+	} else if got != size {
+		t.Errorf("Mismatch in fetched credential count expected: %v  got: %v", size, got)
+	}
+}
+
+func TestGetConnectionCredentialCount(t *testing.T) {
+	// add new agent with no pre-existing credentials
+	a, connections := addAgentAndConnections("TestGetCredentialCount")
+	size := 5
+	index := 0
+	fake.AddCredentials(pgDB, a.ID, connections[index].ID, (index+1)*size)
+	index++
+	fake.AddCredentials(pgDB, a.ID, connections[index].ID, (index+1)*size)
+	index++
+	fake.AddCredentials(pgDB, a.ID, connections[index].ID, index*size)
+
+	// Get count
+	expected := index * size
+	got, err := pgDB.GetConnectionCredentialCount(a.ID, connections[index].ID)
+	if err != nil {
+		t.Errorf("Error fetching count %s", err.Error())
+	} else if got != expected {
+		t.Errorf("Mismatch in fetched credential count expected: %v  got: %v", expected, got)
+	}
+
+}

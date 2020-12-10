@@ -47,10 +47,11 @@ type Credential struct {
 }
 
 type CredentialConnection struct {
-	Edges      []*CredentialEdge `json:"edges"`
-	Nodes      []*Credential     `json:"nodes"`
-	PageInfo   *PageInfo         `json:"pageInfo"`
-	TotalCount int               `json:"totalCount"`
+	ConnectionID *string           `json:"connectionId"`
+	Edges        []*CredentialEdge `json:"edges"`
+	Nodes        []*Credential     `json:"nodes"`
+	PageInfo     *PageInfo         `json:"pageInfo"`
+	TotalCount   int               `json:"totalCount"`
 }
 
 type CredentialEdge struct {

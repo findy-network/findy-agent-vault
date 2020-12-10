@@ -71,14 +71,11 @@ func AddConnections(store db.DB, tenantID string, count int) []*model.Connection
 		return faker.LastName() + " " + orgs[index], nil
 	})
 
-	_ = faker.AddProvider("tenantId", func(v reflect.Value) (interface{}, error) {
-		return tenantID, nil
-	})
-
 	connections := make([]*model.Connection, count)
 	for i := 0; i < count; i++ {
 		connection := &model.Connection{}
 		err2.Check(faker.FakeData(connection))
+		connection.TenantID = tenantID
 		connections[i] = connection
 	}
 

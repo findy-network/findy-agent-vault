@@ -23,6 +23,22 @@ func (r *credentialResolver) Connection(ctx context.Context, obj *model.Credenti
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *credentialConnectionResolver) TotalCount(ctx context.Context, obj *model.CredentialConnection) (int, error) {
+	var err error
+	defer err2.Return(&err)
+
+	// TODO: store agent data to context?
+	agent, err := db.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	utils.LogMed().Infof("credentialConnectionResolver:TotalCount for tenant %s", agent.ID)
+
+	count, err := r.db.GetCredentialCount(agent.ID)
+	err2.Check(err)
+
+	return count, nil
+}
+
 func (r *eventResolver) Job(ctx context.Context, obj *model.Event) (*model.JobEdge, error) {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -95,7 +111,7 @@ func (r *pairwiseResolver) Credentials(ctx context.Context, obj *model.Pairwise,
 	res, err := r.db.GetConnectionCredentials(batch, agent.ID, obj.ID)
 	err2.Check(err)
 
-	return res.ToConnection(), nil
+	return res.ToConnection(&obj.ID), nil
 }
 
 func (r *pairwiseResolver) Proofs(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.ProofConnection, error) {
@@ -108,6 +124,22 @@ func (r *pairwiseResolver) Jobs(ctx context.Context, obj *model.Pairwise, after 
 
 func (r *pairwiseResolver) Events(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.EventConnection, error) {
 	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *pairwiseConnectionResolver) TotalCount(ctx context.Context, obj *model.PairwiseConnection) (int, error) {
+	var err error
+	defer err2.Return(&err)
+
+	// TODO: store agent data to context?
+	agent, err := db.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	utils.LogMed().Infof("pairwiseConnectionResolver:TotalCount for tenant %s", agent.ID)
+
+	count, err := r.db.GetConnectionCount(agent.ID)
+	err2.Check(err)
+
+	return count, nil
 }
 
 func (r *proofResolver) Connection(ctx context.Context, obj *model.Proof) (*model.Pairwise, error) {
@@ -191,7 +223,7 @@ func (r *queryResolver) Credentials(ctx context.Context, after *string, before *
 	res, err := r.db.GetCredentials(batch, agent.ID)
 	err2.Check(err)
 
-	return res.ToConnection(), nil
+	return res.ToConnection(nil), nil
 }
 
 func (r *queryResolver) Proof(ctx context.Context, id string) (*model.Proof, error) {
@@ -228,6 +260,11 @@ func (r *Resolver) BasicMessage() generated.BasicMessageResolver { return &basic
 // Credential returns generated.CredentialResolver implementation.
 func (r *Resolver) Credential() generated.CredentialResolver { return &credentialResolver{r} }
 
+// CredentialConnection returns generated.CredentialConnectionResolver implementation.
+func (r *Resolver) CredentialConnection() generated.CredentialConnectionResolver {
+	return &credentialConnectionResolver{r}
+}
+
 // Event returns generated.EventResolver implementation.
 func (r *Resolver) Event() generated.EventResolver { return &eventResolver{r} }
 
@@ -240,6 +277,11 @@ func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResol
 // Pairwise returns generated.PairwiseResolver implementation.
 func (r *Resolver) Pairwise() generated.PairwiseResolver { return &pairwiseResolver{r} }
 
+// PairwiseConnection returns generated.PairwiseConnectionResolver implementation.
+func (r *Resolver) PairwiseConnection() generated.PairwiseConnectionResolver {
+	return &pairwiseConnectionResolver{r}
+}
+
 // Proof returns generated.ProofResolver implementation.
 func (r *Resolver) Proof() generated.ProofResolver { return &proofResolver{r} }
 
@@ -251,10 +293,12 @@ func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subsc
 
 type basicMessageResolver struct{ *Resolver }
 type credentialResolver struct{ *Resolver }
+type credentialConnectionResolver struct{ *Resolver }
 type eventResolver struct{ *Resolver }
 type jobResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type pairwiseResolver struct{ *Resolver }
+type pairwiseConnectionResolver struct{ *Resolver }
 type proofResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }

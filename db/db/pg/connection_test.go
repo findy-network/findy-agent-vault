@@ -69,7 +69,7 @@ func TestAddConnection(t *testing.T) {
 
 func TestGetConnections(t *testing.T) {
 	// add new agent with no pre-existing connections
-	ctAgent := &model.Agent{AgentID: "connectionsTestAgentID", Label: "testAgent"}
+	ctAgent := &model.Agent{AgentID: "TestGetConnections", Label: "testAgent"}
 	a, err := pgDB.AddAgent(ctAgent)
 	if err != nil {
 		panic(err)
@@ -150,4 +150,24 @@ func TestGetConnections(t *testing.T) {
 			})
 		}
 	})
+}
+
+func TestGetConnectionCount(t *testing.T) {
+	// add new agent with no pre-existing connections
+	ctAgent := &model.Agent{AgentID: "TestGetConnectionCount", Label: "testAgent"}
+	a, err := pgDB.AddAgent(ctAgent)
+	if err != nil {
+		panic(err)
+	}
+
+	size := 5
+	fake.AddConnections(pgDB, a.ID, size)
+
+	// Get count
+	got, err := pgDB.GetConnectionCount(a.ID)
+	if err != nil {
+		t.Errorf("Error fetching connection %s", err.Error())
+	} else if got != size {
+		t.Errorf("Mismatch in fetched connection count expected: %v  got: %v", size, got)
+	}
 }
