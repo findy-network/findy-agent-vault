@@ -15,7 +15,7 @@ type Credentials struct {
 
 type Credential struct {
 	*base
-	TenantID      string `faker:"tenantId"`
+	TenantID      string
 	ConnectionID  string
 	Role          model.CredentialRole `faker:"oneof: HOLDER, HOLDER"`
 	SchemaID      string
@@ -77,7 +77,7 @@ func (c *Credential) ToNode() *model.Credential {
 	}
 }
 
-func (c *Credentials) ToConnection() *model.CredentialConnection {
+func (c *Credentials) ToConnection(id *string) *model.CredentialConnection {
 	totalCount := len(c.Credentials)
 
 	edges := make([]*model.CredentialEdge, totalCount)
@@ -94,14 +94,14 @@ func (c *Credentials) ToConnection() *model.CredentialConnection {
 		endCursor = &edges[len(edges)-1].Cursor
 	}
 	return &model.CredentialConnection{
-		Edges: edges,
-		Nodes: nodes,
+		ConnectionID: id,
+		Edges:        edges,
+		Nodes:        nodes,
 		PageInfo: &model.PageInfo{
 			EndCursor:       endCursor,
 			HasNextPage:     c.HasNextPage,
 			HasPreviousPage: c.HasPreviousPage,
 			StartCursor:     startCursor,
 		},
-		TotalCount: totalCount, // TODO: total total count
 	}
 }

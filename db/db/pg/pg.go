@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/findy-network/findy-agent-vault/db/db"
+	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // blank for migrate driver
@@ -51,6 +52,47 @@ func (e *PostgresError) Error() string {
 	return e.error.Error()
 }
 
+type queryInfo struct {
+	Asc        string
+	Desc       string
+	AfterAsc   string
+	AfterDesc  string
+	BeforeAsc  string
+	BeforeDesc string
+}
+
+func getBatchQuery(
+	queries *queryInfo,
+	batch *paginator.BatchInfo,
+	initialArgs []interface{},
+) (query string, args []interface{}) {
+	args = make([]interface{}, 0)
+	args = append(args, initialArgs...)
+	if batch.Tail {
+		query = queries.Desc
+		if batch.After > 0 {
+			query = queries.AfterDesc
+		} else if batch.Before > 0 {
+			query = queries.BeforeDesc
+		}
+	} else {
+		query = queries.Asc
+		if batch.After > 0 {
+			query = queries.AfterAsc
+		} else if batch.Before > 0 {
+			query = queries.BeforeAsc
+		}
+	}
+	if batch.After > 0 {
+		args = append(args, batch.After)
+	} else if batch.Before > 0 {
+		args = append(args, batch.Before)
+	}
+
+	args = append(args, batch.Count+1)
+	return query, args
+}
+
 func sqlOrderByAsc(orderBy string) string {
 	if orderBy != "" {
 		orderBy = ", " + orderBy
@@ -63,30 +105,6 @@ func sqlOrderByDesc(orderBy string) string {
 		orderBy = ", " + orderBy
 	}
 	return fmt.Sprintf(" ORDER BY cursor DESC %s LIMIT", orderBy)
-}
-
-func sqlWhereTenantAsc(orderBy string) string {
-	return " WHERE tenant_id=$1 " + sqlOrderByAsc(orderBy)
-}
-
-func sqlWhereTenantDesc(orderBy string) string {
-	return " WHERE tenant_id=$1 " + sqlOrderByDesc(orderBy)
-}
-
-func sqlWhereTenantAscAfter(orderBy string) string {
-	return " WHERE tenant_id=$1 AND cursor > $2" + sqlOrderByAsc(orderBy)
-}
-
-func sqlWhereTenantDescAfter(orderBy string) string {
-	return " WHERE tenant_id=$1 AND cursor > $2" + sqlOrderByDesc(orderBy)
-}
-
-func sqlWhereTenantAscBefore(orderBy string) string {
-	return " WHERE tenant_id=$1 AND cursor < $2" + sqlOrderByAsc(orderBy)
-}
-
-func sqlWhereTenantDescBefore(orderBy string) string {
-	return " WHERE tenant_id=$1 AND cursor < $2" + sqlOrderByDesc(orderBy)
 }
 
 type Database struct {

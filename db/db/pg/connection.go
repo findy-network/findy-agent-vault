@@ -9,18 +9,35 @@ import (
 	"github.com/lainio/err2"
 )
 
-var (
+func sqlWhereTenantAsc(orderBy string) string {
+	return " WHERE tenant_id=$1 " + sqlOrderByAsc(orderBy)
+}
+
+func sqlWhereTenantDesc(orderBy string) string {
+	return " WHERE tenant_id=$1 " + sqlOrderByDesc(orderBy)
+}
+
+func sqlWhereTenantAscAfter(orderBy string) string {
+	return " WHERE tenant_id=$1 AND cursor > $2" + sqlOrderByAsc(orderBy)
+}
+
+func sqlWhereTenantDescAfter(orderBy string) string {
+	return " WHERE tenant_id=$1 AND cursor > $2" + sqlOrderByDesc(orderBy)
+}
+
+func sqlWhereTenantAscBefore(orderBy string) string {
+	return " WHERE tenant_id=$1 AND cursor < $2" + sqlOrderByAsc(orderBy)
+}
+
+func sqlWhereTenantDescBefore(orderBy string) string {
+	return " WHERE tenant_id=$1 AND cursor < $2" + sqlOrderByDesc(orderBy)
+}
+
+const (
 	sqlConnectionFields = "tenant_id, our_did, their_did, their_endpoint, their_label, invited"
 	sqlConnectionInsert = "INSERT INTO connection " + "(" + sqlConnectionFields + ") " +
 		"VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created, cursor"
-	sqlConnectionSelect                = "SELECT id, " + sqlConnectionFields + ", created, approved, cursor FROM connection"
-	sqlConnectionSelectByID            = sqlConnectionSelect + " WHERE id=$1 AND tenant_id=$2"
-	sqlConnectionSelectBatch           = sqlConnectionSelect + sqlWhereTenantAsc("") + " $2"
-	sqlConnectionSelectBatchTail       = sqlConnectionSelect + sqlWhereTenantDesc("") + " $2"
-	sqlConnectionSelectBatchAfter      = sqlConnectionSelect + sqlWhereTenantAscAfter("") + " $3"
-	sqlConnectionSelectBatchAfterTail  = sqlConnectionSelect + sqlWhereTenantDescAfter("") + " $3"
-	sqlConnectionSelectBatchBefore     = sqlConnectionSelect + sqlWhereTenantAscBefore("") + " $3"
-	sqlConnectionSelectBatchBeforeTail = sqlConnectionSelect + sqlWhereTenantDescBefore("") + " $3"
+	sqlConnectionSelect = "SELECT id, " + sqlConnectionFields + ", created, approved, cursor FROM connection"
 )
 
 func (p *Database) AddConnection(c *model.Connection) (n *model.Connection, err error) {
@@ -70,6 +87,8 @@ func readRowToConnection(rows *sql.Rows) (c *model.Connection, err error) {
 func (p *Database) GetConnection(id, tenantID string) (c *model.Connection, err error) {
 	defer returnErr("GetConnection", &err)
 
+	const sqlConnectionSelectByID = sqlConnectionSelect + " WHERE id=$1 AND tenant_id=$2"
+
 	rows, err := p.db.Query(sqlConnectionSelectByID, id, tenantID)
 	err2.Check(err)
 	defer rows.Close()
@@ -88,32 +107,17 @@ func (p *Database) GetConnection(id, tenantID string) (c *model.Connection, err 
 func (p *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (c *model.Connections, err error) {
 	defer returnErr("GetConnections", &err)
 
-	query := ""
-	args := make([]interface{}, 0)
-	args = append(args, tenantID)
-
-	if info.Tail {
-		query = sqlConnectionSelectBatchTail
-		if info.After > 0 {
-			query = sqlConnectionSelectBatchAfterTail
-		} else if info.Before > 0 {
-			query = sqlConnectionSelectBatchBeforeTail
-		}
-	} else {
-		query = sqlConnectionSelectBatch
-		if info.After > 0 {
-			query = sqlConnectionSelectBatchAfter
-		} else if info.Before > 0 {
-			query = sqlConnectionSelectBatchBefore
-		}
-	}
-	if info.After > 0 {
-		args = append(args, info.After)
-	} else if info.Before > 0 {
-		args = append(args, info.Before)
-	}
-
-	args = append(args, info.Count+1)
+	query, args := getBatchQuery(&queryInfo{
+		Asc:        sqlConnectionSelect + sqlWhereTenantAsc("") + " $2",
+		Desc:       sqlConnectionSelect + sqlWhereTenantDesc("") + " $2",
+		AfterAsc:   sqlConnectionSelect + sqlWhereTenantAscAfter("") + " $3",
+		AfterDesc:  sqlConnectionSelect + sqlWhereTenantDescAfter("") + " $3",
+		BeforeAsc:  sqlConnectionSelect + sqlWhereTenantAscBefore("") + " $3",
+		BeforeDesc: sqlConnectionSelect + sqlWhereTenantDescBefore("") + " $3",
+	},
+		info,
+		[]interface{}{tenantID},
+	)
 
 	rows, err := p.db.Query(query, args...)
 	err2.Check(err)
@@ -158,4 +162,24 @@ func (p *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (c
 	}
 
 	return c, err
+}
+
+func (p *Database) GetConnectionCount(tenantID string) (count int, err error) {
+	defer returnErr("GetConnectionCount", &err)
+
+	const sqlConnectionSelectCount = "SELECT count(id) FROM connection WHERE tenant_id=$1"
+
+	rows, err := p.db.Query(sqlConnectionSelectCount, tenantID)
+	err2.Check(err)
+	defer rows.Close()
+
+	if rows.Next() {
+		err = rows.Scan(&count)
+		err2.Check(err)
+	}
+
+	err = rows.Err()
+	err2.Check(err)
+
+	return
 }

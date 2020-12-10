@@ -104,6 +104,7 @@ type CredentialEdge {
 }
 
 type CredentialConnection {
+  connectionId: ID
   edges: [CredentialEdge]
   nodes: [Credential]
   pageInfo: PageInfo!

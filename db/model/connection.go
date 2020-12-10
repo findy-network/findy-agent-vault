@@ -15,7 +15,7 @@ type Connections struct {
 
 type Connection struct {
 	*base
-	TenantID      string `faker:"tenantId"`
+	TenantID      string
 	OurDid        string
 	TheirDid      string
 	TheirEndpoint string `faker:"url"`
