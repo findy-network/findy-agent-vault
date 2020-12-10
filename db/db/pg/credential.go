@@ -11,6 +11,15 @@ import (
 	"github.com/lainio/err2"
 )
 
+type queryInfo struct {
+	Asc        string
+	Desc       string
+	AfterAsc   string
+	AfterDesc  string
+	BeforeAsc  string
+	BeforeDesc string
+}
+
 func constructCredentialAttributeInsert(count int) string {
 	result := sqlCredentialAttributeInsert
 	paramCount := 4
@@ -37,33 +46,10 @@ func sqlCredentialSelectBatchFor(tenantOrder, limit, cursorOrder string) string 
 		sqlCredentialJoin + " ORDER BY cursor " + cursorOrder + ", credential_attribute.index"
 }
 
-func sqlCredentialWhereTenantAsc(orderBy string) string {
-	return sqlCredentialBatchWhere + sqlOrderByAsc(orderBy)
-}
-
-func sqlCredentialWhereTenantDesc(orderBy string) string {
-	return sqlCredentialBatchWhere + sqlOrderByDesc(orderBy)
-}
-
-func sqlCredentialWhereTenantAscAfter(orderBy string) string {
-	return sqlCredentialBatchWhere + " AND cursor > $2" + sqlOrderByAsc(orderBy)
-}
-
-func sqlCredentialWhereTenantDescAfter(orderBy string) string {
-	return sqlCredentialBatchWhere + " AND cursor > $2" + sqlOrderByDesc(orderBy)
-}
-
-func sqlCredentialWhereTenantAscBefore(orderBy string) string {
-	return sqlCredentialBatchWhere + " AND cursor < $2" + sqlOrderByAsc(orderBy)
-}
-
-func sqlCredentialWhereTenantDescBefore(orderBy string) string {
-	return sqlCredentialBatchWhere + " AND cursor < $2" + sqlOrderByDesc(orderBy)
-}
-
 var (
-	sqlCredentialBatchWhere      = " WHERE tenant_id=$1 AND issued IS NOT NULL "
-	sqlCredentialAttributeInsert = "INSERT INTO credential_attribute (credential_id, name, value, index) VALUES "
+	sqlCredentialBatchWhere           = " WHERE tenant_id=$1 AND issued IS NOT NULL "
+	sqlCredentialBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2 AND issued IS NOT NULL "
+	sqlCredentialAttributeInsert      = "INSERT INTO credential_attribute (credential_id, name, value, index) VALUES "
 
 	sqlCredentialFields = "tenant_id, connection_id, role, schema_id, cred_def_id, initiated_by_us"
 	sqlCredentialInsert = "INSERT INTO credential " + "(" + sqlCredentialFields + ") " +
@@ -75,12 +61,6 @@ var (
 	sqlCredentialSelectByID = sqlCredentialSelect + " credential" + sqlCredentialJoin +
 		" WHERE credential.id=$1 AND tenant_id=$2" +
 		" ORDER BY credential_attribute.index"
-	sqlCredentialSelectBatch           = sqlCredentialSelectBatchFor(sqlCredentialWhereTenantAsc(""), "$2", "ASC")
-	sqlCredentialSelectBatchTail       = sqlCredentialSelectBatchFor(sqlCredentialWhereTenantDesc(""), "$2", "DESC")
-	sqlCredentialSelectBatchAfter      = sqlCredentialSelectBatchFor(sqlCredentialWhereTenantAscAfter(""), "$3", "ASC")
-	sqlCredentialSelectBatchAfterTail  = sqlCredentialSelectBatchFor(sqlCredentialWhereTenantDescAfter(""), "$3", "DESC")
-	sqlCredentialSelectBatchBefore     = sqlCredentialSelectBatchFor(sqlCredentialWhereTenantAscBefore(""), "$3", "ASC")
-	sqlCredentialSelectBatchBeforeTail = sqlCredentialSelectBatchFor(sqlCredentialWhereTenantDescBefore(""), "$3", "DESC")
 )
 
 func (p *Database) addCredentialAttributes(id string, attributes []*graph.CredentialValue) (a []*graph.CredentialValue, err error) {
@@ -223,34 +203,34 @@ func (p *Database) GetCredential(id, tenantID string) (c *model.Credential, err 
 	return
 }
 
-func (p *Database) GetCredentials(info *paginator.BatchInfo, tenantID string) (c *model.Credentials, err error) {
+func (p *Database) getCredentialsForQuery(queries *queryInfo, batch *paginator.BatchInfo, initialArgs []interface{}) (c *model.Credentials, err error) {
 	defer returnErr("GetCredentials", &err)
 
 	query := ""
 	args := make([]interface{}, 0)
-	args = append(args, tenantID)
-	if info.Tail {
-		query = sqlCredentialSelectBatchTail
-		if info.After > 0 {
-			query = sqlCredentialSelectBatchAfterTail
-		} else if info.Before > 0 {
-			query = sqlCredentialSelectBatchBeforeTail
+	args = append(args, initialArgs...)
+	if batch.Tail {
+		query = queries.Desc
+		if batch.After > 0 {
+			query = queries.AfterDesc
+		} else if batch.Before > 0 {
+			query = queries.BeforeDesc
 		}
 	} else {
-		query = sqlCredentialSelectBatch
-		if info.After > 0 {
-			query = sqlCredentialSelectBatchAfter
-		} else if info.Before > 0 {
-			query = sqlCredentialSelectBatchBefore
+		query = queries.Asc
+		if batch.After > 0 {
+			query = queries.AfterAsc
+		} else if batch.Before > 0 {
+			query = queries.BeforeAsc
 		}
 	}
-	if info.After > 0 {
-		args = append(args, info.After)
-	} else if info.Before > 0 {
-		args = append(args, info.Before)
+	if batch.After > 0 {
+		args = append(args, batch.After)
+	} else if batch.Before > 0 {
+		args = append(args, batch.Before)
 	}
 
-	args = append(args, info.Count+1)
+	args = append(args, batch.Count+1)
 
 	rows, err := p.db.Query(query, args...)
 	err2.Check(err)
@@ -280,28 +260,56 @@ func (p *Database) GetCredentials(info *paginator.BatchInfo, tenantID string) (c
 	err = rows.Err()
 	err2.Check(err)
 
-	if info.Count < len(c.Credentials) {
-		c.Credentials = c.Credentials[:info.Count]
-		if info.Tail {
+	if batch.Count < len(c.Credentials) {
+		c.Credentials = c.Credentials[:batch.Count]
+		if batch.Tail {
 			c.HasPreviousPage = true
 		} else {
 			c.HasNextPage = true
 		}
 	}
 
-	if info.After > 0 {
+	if batch.After > 0 {
 		c.HasPreviousPage = true
 	}
-	if info.Before > 0 {
+	if batch.Before > 0 {
 		c.HasNextPage = true
 	}
 
 	// Reverse order for tail first
-	if info.Tail {
+	if batch.Tail {
 		sort.Slice(c.Credentials, func(i, j int) bool {
 			return c.Credentials[i].Created.Sub(c.Credentials[j].Created) < 0
 		})
 	}
 
 	return c, err
+}
+
+func (p *Database) GetCredentials(info *paginator.BatchInfo, tenantID string) (c *model.Credentials, err error) {
+	return p.getCredentialsForQuery(&queryInfo{
+		Asc:        sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+sqlOrderByAsc(""), "$2", "ASC"),
+		Desc:       sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+sqlOrderByDesc(""), "$2", "DESC"),
+		AfterAsc:   sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+" AND cursor > $2"+sqlOrderByAsc(""), "$3", "ASC"),
+		AfterDesc:  sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+" AND cursor > $2"+sqlOrderByDesc(""), "$3", "DESC"),
+		BeforeAsc:  sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+" AND cursor < $2"+sqlOrderByAsc(""), "$3", "ASC"),
+		BeforeDesc: sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+" AND cursor < $2"+sqlOrderByDesc(""), "$3", "DESC"),
+	},
+		info,
+		[]interface{}{tenantID},
+	)
+}
+
+func (p *Database) GetConnectionCredentials(info *paginator.BatchInfo, tenantID, connectionID string) (connections *model.Credentials, err error) {
+	return p.getCredentialsForQuery(&queryInfo{
+		Asc:        sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+sqlOrderByAsc(""), "$3", "ASC"),
+		Desc:       sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+sqlOrderByDesc(""), "$3", "DESC"),
+		AfterAsc:   sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+" AND cursor > $3"+sqlOrderByAsc(""), "$4", "ASC"),
+		AfterDesc:  sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+" AND cursor > $3"+sqlOrderByDesc(""), "$4", "DESC"),
+		BeforeAsc:  sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+" AND cursor < $3"+sqlOrderByAsc(""), "$4", "ASC"),
+		BeforeDesc: sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+" AND cursor < $3"+sqlOrderByDesc(""), "$4", "DESC"),
+	},
+		info,
+		[]interface{}{tenantID, connectionID},
+	)
 }

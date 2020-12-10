@@ -134,23 +134,35 @@ func TestUpdateCredential(t *testing.T) {
 	}
 	validateCredential(t, c, got)
 }
-func TestGetCredentials(t *testing.T) {
+
+func addAgentAndConnections(agentID string) (*model.Agent, []*model.Connection) {
 	// add new agent with no pre-existing credentials
-	ctAgent := &model.Agent{AgentID: "credentialsTestAgentID", Label: "testAgent"}
+	ctAgent := &model.Agent{AgentID: agentID, Label: "testAgent"}
 	a, err := pgDB.AddAgent(ctAgent)
 	if err != nil {
 		panic(err)
 	}
-	// add new connection
-	c, err := pgDB.AddConnection(testConnection)
-	if err != nil {
-		panic(err)
+	// add new connections
+	connCount := 3
+	connections := make([]*model.Connection, connCount)
+	for i := 0; i < connCount; i++ {
+		c, err := pgDB.AddConnection(testConnection)
+		if err != nil {
+			panic(err)
+		}
+		connections[i] = c
 	}
+	return a, connections
+}
+
+func TestGetTenantCredentials(t *testing.T) {
+	// add new agent with no pre-existing credentials
+	a, connections := addAgentAndConnections("TestGetTenantCredentials")
 
 	size := 5
-	all := fake.AddCredentials(pgDB, a.ID, c.ID, size)
-	all = append(all, fake.AddCredentials(pgDB, a.ID, c.ID, size)...)
-	all = append(all, fake.AddCredentials(pgDB, a.ID, c.ID, size)...)
+	all := fake.AddCredentials(pgDB, a.ID, connections[0].ID, size)
+	all = append(all, fake.AddCredentials(pgDB, a.ID, connections[1].ID, size)...)
+	all = append(all, fake.AddCredentials(pgDB, a.ID, connections[2].ID, size)...)
 
 	sort.Slice(all, func(i, j int) bool {
 		return all[i].Created.Sub(all[j].Created) < 0
@@ -203,6 +215,89 @@ func TestGetCredentials(t *testing.T) {
 			tc := testCase
 			t.Run(tc.name, func(t *testing.T) {
 				c, err := pgDB.GetCredentials(tc.args, a.ID)
+				if err != nil {
+					t.Errorf("Error fetching credentials %s", err.Error())
+				} else {
+					if len(c.Credentials) != tc.args.Count {
+						t.Errorf("Mismatch in credential count: %v  got: %v", len(c.Credentials), tc.args.Count)
+					}
+					if c.HasNextPage != tc.result.HasNextPage {
+						t.Errorf("Batch next page mismatch %v got: %v", c.HasNextPage, tc.result.HasNextPage)
+					}
+					if c.HasPreviousPage != tc.result.HasPreviousPage {
+						t.Errorf("Batch previous page mismatch %v got: %v", c.HasPreviousPage, tc.result.HasPreviousPage)
+					}
+					for index, credential := range c.Credentials {
+						validateCredential(t, tc.result.Credentials[index], credential)
+					}
+				}
+			})
+		}
+	})
+}
+
+func TestGetConnectionCredentials(t *testing.T) {
+
+	// add new agent with no pre-existing credentials
+	a, connections := addAgentAndConnections("TestGetConnectionCredentials")
+
+	size := 5
+	countPerConnection := size * 3
+	fake.AddCredentials(pgDB, a.ID, connections[0].ID, countPerConnection)
+	fake.AddCredentials(pgDB, a.ID, connections[1].ID, countPerConnection)
+	all := fake.AddCredentials(pgDB, a.ID, connections[2].ID, countPerConnection)
+
+	sort.Slice(all, func(i, j int) bool {
+		return all[i].Created.Sub(all[j].Created) < 0
+	})
+
+	t.Run("get credentials", func(t *testing.T) {
+		tests := []struct {
+			name   string
+			args   *paginator.BatchInfo
+			result *model.Credentials
+		}{
+			{
+				"first 5",
+				&paginator.BatchInfo{Count: size, Tail: false},
+				&model.Credentials{HasNextPage: true, HasPreviousPage: false, Credentials: all[:size]},
+			},
+			{
+				"first next 5",
+				&paginator.BatchInfo{Count: size, Tail: false, After: all[size-1].Cursor},
+				&model.Credentials{HasNextPage: true, HasPreviousPage: true, Credentials: all[size : size*2]},
+			},
+			{
+				"first last 5",
+				&paginator.BatchInfo{Count: size, Tail: false, After: all[(size*2)-1].Cursor},
+				&model.Credentials{HasNextPage: false, HasPreviousPage: true, Credentials: all[size*2:]},
+			},
+			{
+				"last 5",
+				&paginator.BatchInfo{Count: size, Tail: true},
+				&model.Credentials{HasNextPage: false, HasPreviousPage: true, Credentials: all[size*2:]},
+			},
+			{
+				"last next 5",
+				&paginator.BatchInfo{Count: size, Tail: true, Before: all[size*2].Cursor},
+				&model.Credentials{HasNextPage: true, HasPreviousPage: true, Credentials: all[size : size*2]},
+			},
+			{
+				"last first 5",
+				&paginator.BatchInfo{Count: size, Tail: true, Before: all[size].Cursor},
+				&model.Credentials{HasNextPage: true, HasPreviousPage: false, Credentials: all[:size]},
+			},
+			{
+				"all",
+				&paginator.BatchInfo{Count: size * 3, Tail: false},
+				&model.Credentials{HasNextPage: false, HasPreviousPage: false, Credentials: all},
+			},
+		}
+
+		for _, testCase := range tests {
+			tc := testCase
+			t.Run(tc.name, func(t *testing.T) {
+				c, err := pgDB.GetConnectionCredentials(tc.args, a.ID, connections[2].ID)
 				if err != nil {
 					t.Errorf("Error fetching credentials %s", err.Error())
 				} else {

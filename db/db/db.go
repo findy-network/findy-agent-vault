@@ -27,6 +27,7 @@ type DB interface {
 	UpdateCredential(c *model.Credential) (*model.Credential, error)
 	GetCredential(id string, tenantID string) (*model.Credential, error)
 	GetCredentials(info *paginator.BatchInfo, tenantID string) (connections *model.Credentials, err error)
+	GetConnectionCredentials(info *paginator.BatchInfo, tenantID, connectionID string) (connections *model.Credentials, err error)
 
 	/*AddMessage(connectionID, id, message string, sentByMe bool)
 	UpdateMessage(connectionID, id, delivered bool)

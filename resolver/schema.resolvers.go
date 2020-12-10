@@ -76,7 +76,26 @@ func (r *pairwiseResolver) Messages(ctx context.Context, obj *model.Pairwise, af
 }
 
 func (r *pairwiseResolver) Credentials(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.CredentialConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	var err error
+	defer err2.Return(&err)
+
+	agent, err := db.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	utils.LogMed().Infof("pairwiseResolver:Credentials for tenant: %s, connection %s", agent.ID, obj.ID)
+
+	batch, err := paginator.Validate("pairwiseResolver:Credentials", &paginator.Params{
+		First:  first,
+		Last:   last,
+		After:  after,
+		Before: before,
+	})
+	err2.Check(err)
+
+	res, err := r.db.GetConnectionCredentials(batch, agent.ID, obj.ID)
+	err2.Check(err)
+
+	return res.ToConnection(), nil
 }
 
 func (r *pairwiseResolver) Proofs(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.ProofConnection, error) {
@@ -128,9 +147,8 @@ func (r *queryResolver) Connection(ctx context.Context, id string) (*model.Pairw
 	utils.LogMed().Infof("queryResolver:Connection id: %s for tenant %s", id, agent.ID)
 
 	conn, err := r.db.GetConnection(id, agent.ID)
-	if err != nil {
-		return nil, err
-	}
+	err2.Check(err)
+
 	return conn.ToNode(), nil
 }
 
@@ -139,11 +157,41 @@ func (r *queryResolver) Message(ctx context.Context, id string) (*model.BasicMes
 }
 
 func (r *queryResolver) Credential(ctx context.Context, id string) (*model.Credential, error) {
-	panic(fmt.Errorf("not implemented"))
+	var err error
+	defer err2.Return(&err)
+
+	agent, err := db.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	utils.LogMed().Infof("queryResolver:Credential id: %s for tenant %s", id, agent.ID)
+
+	cred, err := r.db.GetCredential(id, agent.ID)
+	err2.Check(err)
+
+	return cred.ToNode(), nil
 }
 
 func (r *queryResolver) Credentials(ctx context.Context, after *string, before *string, first *int, last *int) (*model.CredentialConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	var err error
+	defer err2.Return(&err)
+
+	agent, err := db.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	utils.LogMed().Info("queryResolver:Credentials for tenant: ", agent.ID)
+
+	batch, err := paginator.Validate("queryResolver:Credentials", &paginator.Params{
+		First:  first,
+		Last:   last,
+		After:  after,
+		Before: before,
+	})
+	err2.Check(err)
+
+	res, err := r.db.GetCredentials(batch, agent.ID)
+	err2.Check(err)
+
+	return res.ToConnection(), nil
 }
 
 func (r *queryResolver) Proof(ctx context.Context, id string) (*model.Proof, error) {
