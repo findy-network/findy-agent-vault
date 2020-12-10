@@ -1,7 +1,6 @@
 package model
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
@@ -50,7 +49,7 @@ func (c *Connection) ToEdge() *model.PairwiseEdge {
 func (c *Connection) ToNode() *model.Pairwise {
 	approvedMs := ""
 	if c.Approved != nil {
-		approvedMs = strconv.FormatInt(c.Approved.UnixNano()/time.Millisecond.Nanoseconds(), 10)
+		approvedMs = timeToString(c.Approved)
 	}
 	return &model.Pairwise{
 		ID:            c.ID,
@@ -58,7 +57,7 @@ func (c *Connection) ToNode() *model.Pairwise {
 		TheirDid:      c.TheirDid,
 		TheirEndpoint: c.TheirEndpoint,
 		TheirLabel:    c.TheirLabel,
-		CreatedMs:     strconv.FormatInt(c.Created.UnixNano()/time.Millisecond.Nanoseconds(), 10),
+		CreatedMs:     timeToString(&c.Created),
 		ApprovedMs:    approvedMs,
 		Invited:       c.Invited,
 	}

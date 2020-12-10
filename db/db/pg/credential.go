@@ -37,24 +37,50 @@ func sqlCredentialSelectBatchFor(tenantOrder, limit, cursorOrder string) string 
 		sqlCredentialJoin + " ORDER BY cursor " + cursorOrder + ", credential_attribute.index"
 }
 
+func sqlCredentialWhereTenantAsc(orderBy string) string {
+	return sqlCredentialBatchWhere + sqlOrderByAsc(orderBy)
+}
+
+func sqlCredentialWhereTenantDesc(orderBy string) string {
+	return sqlCredentialBatchWhere + sqlOrderByDesc(orderBy)
+}
+
+func sqlCredentialWhereTenantAscAfter(orderBy string) string {
+	return sqlCredentialBatchWhere + " AND cursor > $2" + sqlOrderByAsc(orderBy)
+}
+
+func sqlCredentialWhereTenantDescAfter(orderBy string) string {
+	return sqlCredentialBatchWhere + " AND cursor > $2" + sqlOrderByDesc(orderBy)
+}
+
+func sqlCredentialWhereTenantAscBefore(orderBy string) string {
+	return sqlCredentialBatchWhere + " AND cursor < $2" + sqlOrderByAsc(orderBy)
+}
+
+func sqlCredentialWhereTenantDescBefore(orderBy string) string {
+	return sqlCredentialBatchWhere + " AND cursor < $2" + sqlOrderByDesc(orderBy)
+}
+
 var (
+	sqlCredentialBatchWhere      = " WHERE tenant_id=$1 AND issued IS NOT NULL "
 	sqlCredentialAttributeInsert = "INSERT INTO credential_attribute (credential_id, name, value, index) VALUES "
 
 	sqlCredentialFields = "tenant_id, connection_id, role, schema_id, cred_def_id, initiated_by_us"
 	sqlCredentialInsert = "INSERT INTO credential " + "(" + sqlCredentialFields + ") " +
 		"VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created, cursor"
+	sqlCredentialUpdate = "UPDATE credential SET approved=$1, issued=$2, failed=$3 WHERE id = $4" // TODO: tenant_id, connection_id?
 	sqlCredentialSelect = "SELECT credential.id, " + sqlCredentialFields +
 		", created, approved, issued, failed, cursor, credential_attribute.id, name, value FROM"
 	sqlCredentialJoin       = " INNER JOIN credential_attribute on credential_id = credential.id"
 	sqlCredentialSelectByID = sqlCredentialSelect + " credential" + sqlCredentialJoin +
 		" WHERE credential.id=$1 AND tenant_id=$2" +
 		" ORDER BY credential_attribute.index"
-	sqlCredentialSelectBatch           = sqlCredentialSelectBatchFor(sqlWhereTenantAsc(""), "$2", "ASC")
-	sqlCredentialSelectBatchTail       = sqlCredentialSelectBatchFor(sqlWhereTenantDesc(""), "$2", "DESC")
-	sqlCredentialSelectBatchAfter      = sqlCredentialSelectBatchFor(sqlWhereTenantAscAfter(""), "$3", "ASC")
-	sqlCredentialSelectBatchAfterTail  = sqlCredentialSelectBatchFor(sqlWhereTenantDescAfter(""), "$3", "DESC")
-	sqlCredentialSelectBatchBefore     = sqlCredentialSelectBatchFor(sqlWhereTenantAscBefore(""), "$3", "ASC")
-	sqlCredentialSelectBatchBeforeTail = sqlCredentialSelectBatchFor(sqlWhereTenantDescBefore(""), "$3", "DESC")
+	sqlCredentialSelectBatch           = sqlCredentialSelectBatchFor(sqlCredentialWhereTenantAsc(""), "$2", "ASC")
+	sqlCredentialSelectBatchTail       = sqlCredentialSelectBatchFor(sqlCredentialWhereTenantDesc(""), "$2", "DESC")
+	sqlCredentialSelectBatchAfter      = sqlCredentialSelectBatchFor(sqlCredentialWhereTenantAscAfter(""), "$3", "ASC")
+	sqlCredentialSelectBatchAfterTail  = sqlCredentialSelectBatchFor(sqlCredentialWhereTenantDescAfter(""), "$3", "DESC")
+	sqlCredentialSelectBatchBefore     = sqlCredentialSelectBatchFor(sqlCredentialWhereTenantAscBefore(""), "$3", "ASC")
+	sqlCredentialSelectBatchBeforeTail = sqlCredentialSelectBatchFor(sqlCredentialWhereTenantDescBefore(""), "$3", "DESC")
 )
 
 func (p *Database) addCredentialAttributes(id string, attributes []*graph.CredentialValue) (a []*graph.CredentialValue, err error) {
@@ -68,6 +94,7 @@ func (p *Database) addCredentialAttributes(id string, attributes []*graph.Creden
 
 	rows, err := p.db.Query(query, args...)
 	err2.Check(err)
+	defer rows.Close()
 
 	index := 0
 	for rows.Next() {
@@ -98,6 +125,7 @@ func (p *Database) AddCredential(c *model.Credential) (n *model.Credential, err 
 		c.InitiatedByUs,
 	)
 	err2.Check(err)
+	defer rows.Close()
 
 	n = c.Copy()
 	if rows.Next() {
@@ -113,6 +141,20 @@ func (p *Database) AddCredential(c *model.Credential) (n *model.Credential, err 
 
 	n.Attributes = attributes
 	return n, err
+}
+
+func (p *Database) UpdateCredential(c *model.Credential) (n *model.Credential, err error) {
+	defer returnErr("UpdateCredential", &err)
+
+	_, err = p.db.Query(
+		sqlCredentialUpdate,
+		c.Approved,
+		c.Issued,
+		c.Failed,
+		c.ID,
+	)
+	err2.Check(err)
+	return c, err
 }
 
 func readRowToCredential(rows *sql.Rows, previous *model.Credential) (*model.Credential, error) {

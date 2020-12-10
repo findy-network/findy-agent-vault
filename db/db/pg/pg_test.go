@@ -6,6 +6,7 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/db/db"
 	"github.com/findy-network/findy-agent-vault/db/model"
+	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/utils"
 )
 
@@ -20,6 +21,16 @@ var (
 		TheirEndpoint: "theirEndpoint",
 		TheirLabel:    "theirLabel",
 		Invited:       false,
+	}
+	testCredential *model.Credential = &model.Credential{
+		Role:          graph.CredentialRoleHolder,
+		SchemaID:      "schemaId",
+		CredDefID:     "credDefId",
+		InitiatedByUs: false,
+		Attributes: []*graph.CredentialValue{
+			{Name: "name1", Value: "value1"},
+			{Name: "name2", Value: "value2"},
+		},
 	}
 )
 

@@ -9,7 +9,6 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/db/fake"
 	"github.com/findy-network/findy-agent-vault/db/model"
-	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 )
 
@@ -42,11 +41,25 @@ func validateCredential(t *testing.T, exp, got *model.Credential) {
 	if time.Since(got.Created) > time.Second {
 		t.Errorf("Timestamp not in threshold %v", got.Created)
 	}
+	// TODO:
 	if got.Approved != exp.Approved {
-		t.Errorf("Credential Approved mismatch expected %s got %s", exp.Approved, got.Approved)
+		if got.Approved != nil && exp.Approved != nil {
+			if got.Approved.Sub(*exp.Approved) != 0 {
+				t.Errorf("Credential Approved mismatch expected %s got %s", exp.Approved, got.Approved)
+			}
+		} else {
+			t.Errorf("Credential Approved mismatch expected %s got %s", exp.Approved, got.Approved)
+		}
 	}
+	// TODO:
 	if got.Issued != exp.Issued {
-		t.Errorf("Credential Issued mismatch expected %s got %s", exp.Issued, got.Issued)
+		if got.Issued != nil && exp.Issued != nil {
+			if got.Issued.Sub(*exp.Issued) != 0 {
+				t.Errorf("Credential Issued mismatch expected %s got %s", exp.Issued, got.Issued)
+			}
+		} else {
+			t.Errorf("Credential Issued mismatch expected %s got %s", exp.Issued, got.Issued)
+		}
 	}
 	if got.Failed != exp.Failed {
 		t.Errorf("Credential Issued mismatch expected %s got %s", exp.Failed, got.Failed)
@@ -72,18 +85,8 @@ func validateCredential(t *testing.T, exp, got *model.Credential) {
 }
 
 func TestAddCredential(t *testing.T) {
-	testCredential := &model.Credential{
-		TenantID:      testTenantID,
-		ConnectionID:  testConnectionID,
-		Role:          graph.CredentialRoleHolder,
-		SchemaID:      "schemaId",
-		CredDefID:     "credDefId",
-		InitiatedByUs: false,
-		Attributes: []*graph.CredentialValue{
-			{Name: "name1", Value: "value1"},
-			{Name: "name2", Value: "value2"},
-		},
-	}
+	testCredential.TenantID = testTenantID
+	testCredential.ConnectionID = testConnectionID
 
 	// Add data
 	c, err := pgDB.AddCredential(testCredential)
@@ -103,6 +106,34 @@ func TestAddCredential(t *testing.T) {
 	validateCredential(t, c, got)
 }
 
+func TestUpdateCredential(t *testing.T) {
+	testCredential.TenantID = testTenantID
+	testCredential.ConnectionID = testConnectionID
+
+	// Add data
+	c, err := pgDB.AddCredential(testCredential)
+	if err != nil {
+		t.Errorf("Failed to add credential %s", err.Error())
+	}
+
+	// Update data
+	now := time.Now().UTC()
+	c.Approved = &now
+	c.Issued = &now
+	_, err = pgDB.UpdateCredential(c)
+	if err != nil {
+		t.Errorf("Failed to update credential %s", err.Error())
+	}
+
+	// Get data for id
+	got, err := pgDB.GetCredential(c.ID, testTenantID)
+	if err != nil {
+		t.Errorf("Error fetching credential %s", err.Error())
+	} else if !reflect.DeepEqual(&c, &got) {
+		t.Errorf("Mismatch in fetched credential expected: %v  got: %v", c, got)
+	}
+	validateCredential(t, c, got)
+}
 func TestGetCredentials(t *testing.T) {
 	// add new agent with no pre-existing credentials
 	ctAgent := &model.Agent{AgentID: "credentialsTestAgentID", Label: "testAgent"}
