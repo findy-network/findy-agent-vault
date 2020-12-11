@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/findy-network/findy-agent-vault/db/db"
+	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/graph/generated"
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
@@ -28,7 +28,7 @@ func (r *credentialConnectionResolver) TotalCount(ctx context.Context, obj *mode
 	defer err2.Return(&err)
 
 	// TODO: store agent data to context?
-	agent, err := db.GetAgent(ctx, r.db)
+	agent, err := store.GetAgent(ctx, r.db)
 	err2.Check(err)
 
 	utils.LogMed().Infof("credentialConnectionResolver:TotalCount for tenant %s", agent.ID)
@@ -95,7 +95,7 @@ func (r *pairwiseResolver) Credentials(ctx context.Context, obj *model.Pairwise,
 	var err error
 	defer err2.Return(&err)
 
-	agent, err := db.GetAgent(ctx, r.db)
+	agent, err := store.GetAgent(ctx, r.db)
 	err2.Check(err)
 
 	utils.LogMed().Infof("pairwiseResolver:Credentials for tenant: %s, connection %s", agent.ID, obj.ID)
@@ -131,7 +131,7 @@ func (r *pairwiseConnectionResolver) TotalCount(ctx context.Context, obj *model.
 	defer err2.Return(&err)
 
 	// TODO: store agent data to context?
-	agent, err := db.GetAgent(ctx, r.db)
+	agent, err := store.GetAgent(ctx, r.db)
 	err2.Check(err)
 
 	utils.LogMed().Infof("pairwiseConnectionResolver:TotalCount for tenant %s", agent.ID)
@@ -150,7 +150,7 @@ func (r *queryResolver) Connections(ctx context.Context, after *string, before *
 	var err error
 	defer err2.Return(&err)
 
-	agent, err := db.GetAgent(ctx, r.db)
+	agent, err := store.GetAgent(ctx, r.db)
 	err2.Check(err)
 
 	utils.LogMed().Info("queryResolver:Connections for tenant: ", agent.ID)
@@ -173,7 +173,7 @@ func (r *queryResolver) Connection(ctx context.Context, id string) (*model.Pairw
 	var err error
 	defer err2.Return(&err)
 
-	agent, err := db.GetAgent(ctx, r.db)
+	agent, err := store.GetAgent(ctx, r.db)
 	err2.Check(err)
 
 	utils.LogMed().Infof("queryResolver:Connection id: %s for tenant %s", id, agent.ID)
@@ -192,7 +192,7 @@ func (r *queryResolver) Credential(ctx context.Context, id string) (*model.Crede
 	var err error
 	defer err2.Return(&err)
 
-	agent, err := db.GetAgent(ctx, r.db)
+	agent, err := store.GetAgent(ctx, r.db)
 	err2.Check(err)
 
 	utils.LogMed().Infof("queryResolver:Credential id: %s for tenant %s", id, agent.ID)
@@ -207,7 +207,7 @@ func (r *queryResolver) Credentials(ctx context.Context, after *string, before *
 	var err error
 	defer err2.Return(&err)
 
-	agent, err := db.GetAgent(ctx, r.db)
+	agent, err := store.GetAgent(ctx, r.db)
 	err2.Check(err)
 
 	utils.LogMed().Info("queryResolver:Credentials for tenant: ", agent.ID)

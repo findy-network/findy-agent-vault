@@ -1,9 +1,9 @@
 package resolver
 
 import (
-	"github.com/findy-network/findy-agent-vault/db/db"
-	"github.com/findy-network/findy-agent-vault/db/db/pg"
 	"github.com/findy-network/findy-agent-vault/db/fake"
+	"github.com/findy-network/findy-agent-vault/db/store"
+	"github.com/findy-network/findy-agent-vault/db/store/pg"
 )
 
 //go:generate go run github.com/99designs/gqlgen
@@ -13,14 +13,14 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	db db.DB
+	db store.DB
 }
 
 func InitResolver() *Resolver {
-	store := pg.InitDB("file://db/migrations", "5432", false)
+	db := pg.InitDB("file://db/migrations", "5432", false)
 
-	r := &Resolver{db: store}
-	fake.AddData(store)
+	r := &Resolver{db: db}
+	fake.AddData(db)
 
 	return r
 }

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/bxcodec/faker/v3"
-	"github.com/findy-network/findy-agent-vault/db/db"
 	"github.com/findy-network/findy-agent-vault/db/model"
+	"github.com/findy-network/findy-agent-vault/db/store"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
@@ -24,7 +24,7 @@ func random(n int) int {
 	return int(val.Int64())
 }
 
-func AddCredentials(store db.DB, tenantID, connectionID string, count int) []*model.Credential {
+func AddCredentials(db store.DB, tenantID, connectionID string, count int) []*model.Credential {
 	_ = faker.AddProvider("nil", func(v reflect.Value) (interface{}, error) {
 		return nil, nil
 	})
@@ -47,13 +47,13 @@ func AddCredentials(store db.DB, tenantID, connectionID string, count int) []*mo
 
 	newCredentials := make([]*model.Credential, count)
 	for index, credential := range credentials {
-		c, err := store.AddCredential(credential)
+		c, err := db.AddCredential(credential)
 		err2.Check(err)
 
 		now := time.Now().UTC()
 		c.Approved = &now
 		c.Issued = &now
-		_, err = store.UpdateCredential(c)
+		_, err = db.UpdateCredential(c)
 		err2.Check(err)
 
 		newCredentials[index] = c
@@ -64,7 +64,7 @@ func AddCredentials(store db.DB, tenantID, connectionID string, count int) []*mo
 	return newCredentials
 }
 
-func AddConnections(store db.DB, tenantID string, count int) []*model.Connection {
+func AddConnections(db store.DB, tenantID string, count int) []*model.Connection {
 	_ = faker.AddProvider("organisationLabel", func(v reflect.Value) (interface{}, error) {
 		orgs := []string{"Bank", "Ltd", "Agency", "Company", "United"}
 		index := random(len(orgs))
@@ -81,7 +81,7 @@ func AddConnections(store db.DB, tenantID string, count int) []*model.Connection
 
 	newConnections := make([]*model.Connection, count)
 	for index, connection := range connections {
-		c, err := store.AddConnection(connection)
+		c, err := db.AddConnection(connection)
 		err2.Check(err)
 		newConnections[index] = c
 	}
@@ -91,7 +91,7 @@ func AddConnections(store db.DB, tenantID string, count int) []*model.Connection
 	return newConnections
 }
 
-func AddAgent(store db.DB) *model.Agent {
+func AddAgent(db store.DB) *model.Agent {
 	_ = faker.AddProvider("agentId", func(v reflect.Value) (interface{}, error) {
 		return FakeCloudDID, nil
 	})
@@ -99,15 +99,15 @@ func AddAgent(store db.DB) *model.Agent {
 	agent := &model.Agent{}
 	err2.Check(faker.FakeData(&agent))
 
-	agent, err = store.AddAgent(agent)
+	agent, err = db.AddAgent(agent)
 	err2.Check(err)
 
 	utils.LogMed().Infof("Generated tenant %s with agent id %s", agent.ID, agent.AgentID)
 	return agent
 }
 
-func AddData(store db.DB) {
-	agent := AddAgent(store)
+func AddData(db store.DB) {
+	agent := AddAgent(db)
 
-	AddConnections(store, agent.ID, 5)
+	AddConnections(db, agent.ID, 5)
 }
