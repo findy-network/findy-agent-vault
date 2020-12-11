@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/findy-network/findy-agent-vault/db/db"
+	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -111,7 +111,7 @@ type Database struct {
 	db *sql.DB
 }
 
-func InitDB(migratePath, port string, reset bool) db.DB {
+func InitDB(migratePath, port string, reset bool) store.DB {
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, os.Getenv("POSTGRES_PASSWORD"), dbName)
