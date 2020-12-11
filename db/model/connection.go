@@ -29,12 +29,18 @@ func NewConnection() *Connection { return &Connection{base: &base{}} }
 
 func (c *Connection) Copy() (n *Connection) {
 	n = NewConnection()
+	if c.base != nil {
+		n.base = c.base.Copy()
+	}
+
 	n.TenantID = c.TenantID
 	n.OurDid = c.OurDid
 	n.TheirDid = c.TheirDid
 	n.TheirEndpoint = c.TheirEndpoint
 	n.TheirLabel = c.TheirLabel
 	n.Invited = c.Invited
+	n.Approved = copyTime(c.Approved)
+	n.Cursor = c.Cursor
 	return n
 }
 

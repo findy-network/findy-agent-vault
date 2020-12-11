@@ -1,6 +1,7 @@
 package model
 
 import (
+	"math"
 	"strconv"
 	"time"
 )
@@ -14,6 +15,11 @@ type base struct {
 	Created time.Time
 }
 
+func (b *base) Copy() *base {
+	copy := *b
+	return &copy
+}
+
 type Agent struct {
 	*base
 	AgentID      string `faker:"agentId"`
@@ -25,7 +31,23 @@ func NewAgent() *Agent { return &Agent{base: &base{}} }
 
 func (a *Agent) Copy() (n *Agent) {
 	n = NewAgent()
+	if a.base != nil {
+		n.base = a.base.Copy()
+	}
 	n.AgentID = a.AgentID
 	n.Label = a.Label
 	return n
+}
+
+func copyTime(t *time.Time) *time.Time {
+	var res *time.Time
+	if t != nil {
+		ts := *t
+		res = &ts
+	}
+	return res
+}
+
+func TimeToCursor(t *time.Time) uint64 {
+	return uint64(math.Round(float64(t.UnixNano()) / float64(time.Millisecond.Nanoseconds())))
 }

@@ -30,19 +30,32 @@ type Credential struct {
 
 func NewCredential() *Credential { return &Credential{base: &base{}} }
 
-// Note: not deep copy!
 func (c *Credential) Copy() (n *Credential) {
 	n = NewCredential()
+
+	attributes := make([]*model.CredentialValue, len(c.Attributes))
+	for index := range c.Attributes {
+		attributes[index] = &model.CredentialValue{
+			ID:    c.Attributes[index].ID,
+			Name:  c.Attributes[index].Name,
+			Value: c.Attributes[index].Value,
+		}
+	}
+
+	if c.base != nil {
+		n.base = c.base.Copy()
+	}
 	n.TenantID = c.TenantID
 	n.ConnectionID = c.ConnectionID
 	n.Role = c.Role
 	n.SchemaID = c.SchemaID
 	n.CredDefID = c.CredDefID
 	n.InitiatedByUs = c.InitiatedByUs
-	n.Approved = c.Approved
-	n.Issued = c.Issued
-	n.Failed = c.Failed
-	n.Attributes = c.Attributes
+	n.Approved = copyTime(c.Approved)
+	n.Issued = copyTime(c.Issued)
+	n.Failed = copyTime(c.Failed)
+	n.Attributes = attributes
+	n.Cursor = c.Cursor
 
 	return n
 }

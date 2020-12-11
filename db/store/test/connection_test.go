@@ -1,7 +1,6 @@
-package pg
+package test
 
 import (
-	"math"
 	"reflect"
 	"sort"
 	"testing"
@@ -42,43 +41,50 @@ func validateConnection(t *testing.T, exp, got *model.Connection) {
 	if time.Since(got.Created) > time.Second {
 		t.Errorf("Timestamp not in threshold %v", got.Created)
 	}
-	created := uint64(math.Round(float64(got.Created.UnixNano()) / float64(time.Millisecond.Nanoseconds())))
+	created := model.TimeToCursor(&got.Created)
 	if got.Cursor != created {
 		t.Errorf("Cursor mismatch %v %v", got.Cursor, created)
 	}
 }
 
-func TestAddConnection(t *testing.T) {
+func testAddConnection(t *testing.T, s *testableDB) {
 	// Add data
-	c, err := pgDB.AddConnection(testConnection)
+	c, err := s.db.AddConnection(s.testConnection)
 	if err != nil {
 		t.Errorf("Failed to add connection %s", err.Error())
 	} else {
-		validateConnection(t, testConnection, c)
+		validateConnection(t, s.testConnection, c)
 	}
 
 	// Get data for id
-	got, err := pgDB.GetConnection(c.ID, testTenantID)
+	got, err := s.db.GetConnection(c.ID, s.testTenantID)
 	if err != nil {
 		t.Errorf("Error fetching connection %s", err.Error())
 	} else if !reflect.DeepEqual(&c, &got) {
 		t.Errorf("Mismatch in fetched connection expected: %v  got: %v", c, got)
 	}
-	validateConnection(t, c, got)
 }
 
-func TestGetConnections(t *testing.T) {
+func TestAddConnection(t *testing.T) {
+	for _, s := range DBs {
+		t.Run("add connection "+s.name, func(t *testing.T) {
+			testAddConnection(t, s)
+		})
+	}
+}
+
+func testGetConnections(t *testing.T, s *testableDB) {
 	// add new agent with no pre-existing connections
 	ctAgent := &model.Agent{AgentID: "TestGetConnections", Label: "testAgent"}
-	a, err := pgDB.AddAgent(ctAgent)
+	a, err := s.db.AddAgent(ctAgent)
 	if err != nil {
 		panic(err)
 	}
 
 	size := 5
-	all := fake.AddConnections(pgDB, a.ID, size)
-	all = append(all, fake.AddConnections(pgDB, a.ID, size)...)
-	all = append(all, fake.AddConnections(pgDB, a.ID, size)...)
+	all := fake.AddConnections(s.db, a.ID, size)
+	all = append(all, fake.AddConnections(s.db, a.ID, size)...)
+	all = append(all, fake.AddConnections(s.db, a.ID, size)...)
 
 	sort.Slice(all, func(i, j int) bool {
 		return all[i].Created.Sub(all[j].Created) < 0
@@ -130,18 +136,18 @@ func TestGetConnections(t *testing.T) {
 		for _, testCase := range tests {
 			tc := testCase
 			t.Run(tc.name, func(t *testing.T) {
-				c, err := pgDB.GetConnections(tc.args, a.ID)
+				c, err := s.db.GetConnections(tc.args, a.ID)
 				if err != nil {
 					t.Errorf("Error fetching connections %s", err.Error())
 				} else {
 					if len(c.Connections) != tc.args.Count {
-						t.Errorf("Mismatch in connection count: %v  got: %v", len(c.Connections), tc.args.Count)
+						t.Errorf("Mismatch in connection count: %v  expected: %v", len(c.Connections), tc.args.Count)
 					}
 					if c.HasNextPage != tc.result.HasNextPage {
-						t.Errorf("Batch next page mismatch %v got: %v", c.HasNextPage, tc.result.HasNextPage)
+						t.Errorf("Batch next page mismatch %v expected: %v", c.HasNextPage, tc.result.HasNextPage)
 					}
 					if c.HasPreviousPage != tc.result.HasPreviousPage {
-						t.Errorf("Batch previous page mismatch %v got: %v", c.HasPreviousPage, tc.result.HasPreviousPage)
+						t.Errorf("Batch previous page mismatch %v expected: %v", c.HasPreviousPage, tc.result.HasPreviousPage)
 					}
 					for index, connection := range c.Connections {
 						validateConnection(t, tc.result.Connections[index], connection)
@@ -152,22 +158,38 @@ func TestGetConnections(t *testing.T) {
 	})
 }
 
-func TestGetConnectionCount(t *testing.T) {
+func TestGetConnections(t *testing.T) {
+	for _, s := range DBs {
+		t.Run("get connections "+s.name, func(t *testing.T) {
+			testGetConnections(t, s)
+		})
+	}
+}
+
+func testGetConnectionCount(t *testing.T, s *testableDB) {
 	// add new agent with no pre-existing connections
 	ctAgent := &model.Agent{AgentID: "TestGetConnectionCount", Label: "testAgent"}
-	a, err := pgDB.AddAgent(ctAgent)
+	a, err := s.db.AddAgent(ctAgent)
 	if err != nil {
 		panic(err)
 	}
 
 	size := 5
-	fake.AddConnections(pgDB, a.ID, size)
+	fake.AddConnections(s.db, a.ID, size)
 
 	// Get count
-	got, err := pgDB.GetConnectionCount(a.ID)
+	got, err := s.db.GetConnectionCount(a.ID)
 	if err != nil {
 		t.Errorf("Error fetching connection %s", err.Error())
 	} else if got != size {
 		t.Errorf("Mismatch in fetched connection count expected: %v  got: %v", size, got)
+	}
+}
+
+func TestGetConnectionCount(t *testing.T) {
+	for _, s := range DBs {
+		t.Run("get connection count "+s.name, func(t *testing.T) {
+			testGetConnectionCount(t, s)
+		})
 	}
 }
