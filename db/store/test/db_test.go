@@ -19,7 +19,6 @@ type testableDB struct {
 	testAgentID      string
 	testConnectionID string
 	testConnection   *model.Connection
-	testCredential   *model.Credential
 }
 
 var (
@@ -48,18 +47,16 @@ func setup() {
 		Invited:       false,
 	}
 
-	DBs = append(DBs, &testableDB{
+	DBs = append(DBs, []*testableDB{{
 		db:             pg.InitDB("file://../../migrations", "5433", true),
 		name:           "pg",
 		testConnection: testConnection,
-		testCredential: testCredential,
-	})
-	DBs = append(DBs, &testableDB{
+	}, {
 		db:             mock.InitState(),
 		name:           "mock",
 		testConnection: testConnection,
-		testCredential: testCredential,
-	})
+	},
+	}...)
 
 	for index := range DBs {
 		s := DBs[index]
@@ -79,7 +76,6 @@ func setup() {
 		s.testConnectionID = c.ID
 		s.testConnection = c
 	}
-
 }
 
 func teardown() {

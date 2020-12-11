@@ -16,8 +16,8 @@ type base struct {
 }
 
 func (b *base) Copy() *base {
-	copy := *b
-	return &copy
+	baseCopy := *b
+	return &baseCopy
 }
 
 type Agent struct {

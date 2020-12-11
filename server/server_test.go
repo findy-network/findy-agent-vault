@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	tools "github.com/findy-network/findy-agent-vault/tools/resolver"
+	"github.com/findy-network/findy-agent-vault/resolver"
 )
 
 var testToken string = createTestToken()
@@ -32,7 +32,7 @@ func doQuery(query string, auth bool) (payload JSONPayload) {
 	}
 	response := httptest.NewRecorder()
 
-	Server(&tools.Resolver{}).ServeHTTP(response, request)
+	Server(&resolver.Resolver{}).ServeHTTP(response, request)
 
 	bytes := response.Body.Bytes()
 	fmt.Println(string(bytes))

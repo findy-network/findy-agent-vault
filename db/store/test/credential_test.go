@@ -165,7 +165,8 @@ func getCredTests(size int, all []*model.Credential) []*credTest {
 }
 
 func TestAddCredential(t *testing.T) {
-	for _, s := range DBs {
+	for index := range DBs {
+		s := DBs[index]
 		t.Run("add credential "+s.name, func(t *testing.T) {
 			testCredential.TenantID = s.testTenantID
 			testCredential.ConnectionID = s.testConnectionID
@@ -191,7 +192,8 @@ func TestAddCredential(t *testing.T) {
 }
 
 func TestUpdateCredential(t *testing.T) {
-	for _, s := range DBs {
+	for index := range DBs {
+		s := DBs[index]
 		t.Run("update credential "+s.name, func(t *testing.T) {
 			testCredential.TenantID = s.testTenantID
 			testCredential.ConnectionID = s.testConnectionID
@@ -224,7 +226,8 @@ func TestUpdateCredential(t *testing.T) {
 }
 
 func TestGetTenantCredentials(t *testing.T) {
-	for _, s := range DBs {
+	for index := range DBs {
+		s := DBs[index]
 		t.Run("get credentials "+s.name, func(t *testing.T) {
 			// add new agent with no pre-existing credentials
 			a, connections := addAgentAndConnections("TestGetTenantCredentials", s)
@@ -258,7 +261,8 @@ func TestGetTenantCredentials(t *testing.T) {
 }
 
 func TestGetConnectionCredentials(t *testing.T) {
-	for _, s := range DBs {
+	for index := range DBs {
+		s := DBs[index]
 		t.Run("get connection credentials "+s.name, func(t *testing.T) {
 			// add new agent with no pre-existing credentials
 			a, connections := addAgentAndConnections("TestGetConnectionCredentials", s)
@@ -293,7 +297,8 @@ func TestGetConnectionCredentials(t *testing.T) {
 }
 
 func TestGetCredentialCount(t *testing.T) {
-	for _, s := range DBs {
+	for index := range DBs {
+		s := DBs[index]
 		t.Run("get credentials count "+s.name, func(t *testing.T) {
 			// add new agent with no pre-existing credentials
 			a, connections := addAgentAndConnections("TestGetCredentialCount", s)
@@ -312,7 +317,8 @@ func TestGetCredentialCount(t *testing.T) {
 }
 
 func TestGetConnectionCredentialCount(t *testing.T) {
-	for _, s := range DBs {
+	for index := range DBs {
+		s := DBs[index]
 		t.Run("get connection credentials count "+s.name, func(t *testing.T) {
 			// add new agent with no pre-existing credentials
 			a, connections := addAgentAndConnections("TestGetConnectionCredentialCount", s)
@@ -332,7 +338,6 @@ func TestGetConnectionCredentialCount(t *testing.T) {
 			} else if got != expected {
 				t.Errorf("Mismatch in fetched credential count expected: %v  got: %v", expected, got)
 			}
-
 		})
 	}
 }
