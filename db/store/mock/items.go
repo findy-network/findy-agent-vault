@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/findy-network/findy-agent-vault/paginator"
-	utils "github.com/findy-network/findy-agent-vault/tools/tools"
 )
 
 type items struct {
@@ -45,6 +44,7 @@ func (i *items) count(filter func(item apiObject) bool) (count int) {
 	return
 }
 
+/*
 func (i *items) randomID() *string {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
@@ -52,7 +52,7 @@ func (i *items) randomID() *string {
 	index := utils.Random(max)
 	id := i.objects[index].Identifier()
 	return &id
-}
+}*/
 
 func (i *items) firstID() (id string) {
 	i.mutex.RLock()
@@ -72,20 +72,6 @@ func (i *items) createdForIndex(index int) (created uint64) {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 	created = i.objects[index].Created()
-	return
-}
-
-func (i *items) minCreated() (created uint64) {
-	i.mutex.RLock()
-	defer i.mutex.RUnlock()
-	created = i.objects[0].Created()
-	return
-}
-
-func (i *items) maxCreated() (created uint64) {
-	i.mutex.RLock()
-	defer i.mutex.RUnlock()
-	created = i.objects[len(i.objects)-1].Created()
 	return
 }
 

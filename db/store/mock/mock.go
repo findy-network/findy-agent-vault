@@ -27,9 +27,9 @@ func InitState() store.DB {
 	return newData()
 }
 
-func (state *mockItems) sort() {
-	state.connections.sort()
-	state.credentials.sort()
+func (m *mockItems) sort() {
+	m.connections.sort()
+	m.credentials.sort()
 }
 
 type apiObject interface {
@@ -52,6 +52,8 @@ func newData() *mockData {
 	}
 }
 
-func (d *mockData) Close() {
-	d = newData()
+func (m *mockData) Close() {
+	n := newData()
+	m.agents = n.agents
+	m.agentsByAgentID = n.agentsByAgentID
 }

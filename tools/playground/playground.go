@@ -46,10 +46,10 @@ func main() {
 	var srv http.Handler
 	if os.Getenv("PLAYGROUND_POSTGRES") != "" {
 		srv = server.Server(real.InitResolver())
-	} else {
-		//gqlResolver = resolver.InitResolver(false)
-		//srv = server.Server(gqlResolver)
-	}
+	} /*else {
+		gqlResolver = resolver.InitResolver(false)
+		srv = server.Server(gqlResolver)
+	}*/
 
 	port := os.Getenv("PORT")
 	if port == "" {

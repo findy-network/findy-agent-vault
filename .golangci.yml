@@ -101,7 +101,7 @@ issues:
         - dupl
         - gocritic
         - lll
-    - path: db/db/pg/pg.go
+    - path: db/store/pg/pg.go
       linters:
         - gocritic
     - path: db/model

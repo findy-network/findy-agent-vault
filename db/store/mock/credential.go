@@ -70,7 +70,7 @@ func (m *mockData) UpdateCredential(c *model.Credential) (*model.Credential, err
 	return updated.Credential(), nil
 }
 
-func (m *mockData) GetCredential(id string, tenantID string) (*model.Credential, error) {
+func (m *mockData) GetCredential(id, tenantID string) (*model.Credential, error) {
 	agent := m.agents[tenantID]
 
 	c := agent.credentials.objectForID(id)
@@ -82,14 +82,13 @@ func (m *mockData) GetCredential(id string, tenantID string) (*model.Credential,
 
 func filterCredential(item apiObject) bool {
 	c := item.Credential()
-	if c.Issued != nil {
-		return true
-	}
-	return false
+	return c.Issued != nil
 }
 
-func (m *mockItems) getCredentials(info *paginator.BatchInfo, filter func(item apiObject) bool) (connections *model.Credentials, err error) {
-
+func (m *mockItems) getCredentials(
+	info *paginator.BatchInfo,
+	filter func(item apiObject) bool,
+) (connections *model.Credentials, err error) {
 	state, hasNextPage, hasPreviousPage := m.credentials.getObjects(info, filter)
 	res := make([]*model.Credential, len(state.objects))
 	for i := range state.objects {
@@ -124,17 +123,18 @@ func credentialConnectionFilter(id string) func(item apiObject) bool {
 		}
 		return false
 	}
-
 }
 
-func (m *mockData) GetConnectionCredentials(info *paginator.BatchInfo, tenantID, connectionID string) (connections *model.Credentials, err error) {
+func (m *mockData) GetConnectionCredentials(
+	info *paginator.BatchInfo,
+	tenantID,
+	connectionID string,
+) (connections *model.Credentials, err error) {
 	agent := m.agents[tenantID]
-
 	return agent.getCredentials(info, credentialConnectionFilter(connectionID))
 }
 
 func (m *mockData) GetConnectionCredentialCount(tenantID, connectionID string) (int, error) {
 	agent := m.agents[tenantID]
-
 	return agent.credentials.count(credentialConnectionFilter(connectionID)), nil
 }

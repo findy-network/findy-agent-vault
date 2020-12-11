@@ -49,7 +49,7 @@ func (m *mockData) AddConnection(c *model.Connection) (*model.Connection, error)
 	return n, nil
 }
 
-func (m *mockData) GetConnection(id string, tenantID string) (*model.Connection, error) {
+func (m *mockData) GetConnection(id, tenantID string) (*model.Connection, error) {
 	agent := m.agents[tenantID]
 
 	c := agent.connections.objectForID(id)
