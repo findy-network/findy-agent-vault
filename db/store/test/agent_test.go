@@ -1,4 +1,4 @@
-package pg
+package test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/model"
 )
 
-func TestAddAgent(t *testing.T) {
+func testAddAgent(t *testing.T, s *testableDB) {
 	testAgent := &model.Agent{AgentID: "agentID", Label: "agentLabel"}
 
 	var validateAgent = func(a *model.Agent) {
@@ -30,25 +30,26 @@ func TestAddAgent(t *testing.T) {
 	}
 
 	// Add data
-	a, err := pgDB.AddAgent(testAgent)
+	a, err := s.db.AddAgent(testAgent)
 	if err != nil {
 		t.Errorf("Failed to add agent %s", err.Error())
 	} else {
 		validateAgent(a)
 	}
+	time.Sleep(time.Nanosecond)
 
 	// Only update timestamp if already exists
 	var updatedAgent *model.Agent
-	if updatedAgent, err = pgDB.AddAgent(a); err != nil {
+	if updatedAgent, err = s.db.AddAgent(a); err != nil {
 		t.Errorf("Failed to update agent %s", err.Error())
 	} else if err == nil {
 		if updatedAgent.LastAccessed.Sub(a.LastAccessed) == 0 {
-			t.Errorf("Timestamp not updated %v", updatedAgent.LastAccessed)
+			t.Errorf("Timestamp not updated %v from %v", updatedAgent.LastAccessed, a.LastAccessed)
 		}
 	}
 
 	// Get data for id
-	a1, err := pgDB.GetAgent(&a.ID, nil)
+	a1, err := s.db.GetAgent(&a.ID, nil)
 	if err != nil {
 		t.Errorf("Error fetching agent %s", err.Error())
 	} else {
@@ -56,10 +57,18 @@ func TestAddAgent(t *testing.T) {
 	}
 
 	// Get data for agent id
-	a2, err := pgDB.GetAgent(nil, &a.AgentID)
+	a2, err := s.db.GetAgent(nil, &a.AgentID)
 	if err != nil {
 		t.Errorf("Error fetching agent %s", err.Error())
 	} else {
 		validateAgent(a2)
+	}
+}
+
+func TestAddAgent(t *testing.T) {
+	for _, s := range DBs {
+		t.Run("add agent "+s.name, func(t *testing.T) {
+			testAddAgent(t, s)
+		})
 	}
 }
