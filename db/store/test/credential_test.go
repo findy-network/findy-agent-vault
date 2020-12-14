@@ -228,7 +228,7 @@ func TestGetTenantCredentials(t *testing.T) {
 				for _, testCase := range tests {
 					tc := testCase
 					t.Run(tc.name, func(t *testing.T) {
-						c, err := s.db.GetCredentials(tc.args, a.ID)
+						c, err := s.db.GetCredentials(tc.args, a.ID, nil)
 						if err != nil {
 							t.Errorf("Error fetching credentials %s", err.Error())
 						} else {
@@ -264,7 +264,7 @@ func TestGetConnectionCredentials(t *testing.T) {
 				for _, testCase := range tests {
 					tc := testCase
 					t.Run(tc.name, func(t *testing.T) {
-						c, err := s.db.GetConnectionCredentials(tc.args, a.ID, connections[2].ID)
+						c, err := s.db.GetCredentials(tc.args, a.ID, &connections[2].ID)
 						if err != nil {
 							t.Errorf("Error fetching connection credentials %s", err.Error())
 						} else {
@@ -287,7 +287,7 @@ func TestGetCredentialCount(t *testing.T) {
 			fake.AddCredentials(s.db, a.ID, connections[0].ID, size)
 
 			// Get count
-			got, err := s.db.GetCredentialCount(a.ID)
+			got, err := s.db.GetCredentialCount(a.ID, nil)
 			if err != nil {
 				t.Errorf("Error fetching count %s", err.Error())
 			} else if got != size {
@@ -313,7 +313,7 @@ func TestGetConnectionCredentialCount(t *testing.T) {
 
 			// Get count
 			expected := index * size
-			got, err := s.db.GetConnectionCredentialCount(a.ID, connections[index].ID)
+			got, err := s.db.GetCredentialCount(a.ID, &connections[index].ID)
 			if err != nil {
 				t.Errorf("Error fetching count %s", err.Error())
 			} else if got != expected {

@@ -31,9 +31,13 @@ func (r *credentialConnectionResolver) TotalCount(ctx context.Context, obj *mode
 	agent, err := store.GetAgent(ctx, r.db)
 	err2.Check(err)
 
-	utils.LogMed().Infof("credentialConnectionResolver:TotalCount for tenant %s", agent.ID)
+	utils.LogMed().Infof(
+		"credentialConnectionResolver:TotalCount for tenant %s, connection: %v",
+		agent.ID,
+		obj.ConnectionID,
+	)
 
-	count, err := r.db.GetCredentialCount(agent.ID)
+	count, err := r.db.GetCredentialCount(agent.ID, obj.ConnectionID)
 	err2.Check(err)
 
 	return count, nil
@@ -48,7 +52,22 @@ func (r *eventResolver) Connection(ctx context.Context, obj *model.Event) (*mode
 }
 
 func (r *eventConnectionResolver) TotalCount(ctx context.Context, obj *model.EventConnection) (int, error) {
-	panic(fmt.Errorf("not implemented"))
+	var err error
+	defer err2.Return(&err)
+
+	// TODO: store agent data to context?
+	agent, err := store.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	utils.LogMed().Infof(
+		"eventConnectionResolver:TotalCount for tenant %s, connection: %v",
+		agent.ID,
+		obj.ConnectionID,
+	)
+	count, err := r.db.GetEventCount(agent.ID, obj.ConnectionID)
+	err2.Check(err)
+
+	return count, nil
 }
 
 func (r *jobResolver) Output(ctx context.Context, obj *model.Job) (*model.JobOutput, error) {
@@ -112,7 +131,7 @@ func (r *pairwiseResolver) Credentials(ctx context.Context, obj *model.Pairwise,
 	})
 	err2.Check(err)
 
-	res, err := r.db.GetConnectionCredentials(batch, agent.ID, obj.ID)
+	res, err := r.db.GetCredentials(batch, agent.ID, &obj.ID)
 	err2.Check(err)
 
 	return res.ToConnection(&obj.ID), nil
@@ -127,7 +146,26 @@ func (r *pairwiseResolver) Jobs(ctx context.Context, obj *model.Pairwise, after 
 }
 
 func (r *pairwiseResolver) Events(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.EventConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	var err error
+	defer err2.Return(&err)
+
+	agent, err := store.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	utils.LogMed().Infof("pairwiseResolver:Events for tenant: %s, connection %s", agent.ID, obj.ID)
+
+	batch, err := paginator.Validate("pairwiseResolver:Events", &paginator.Params{
+		First:  first,
+		Last:   last,
+		After:  after,
+		Before: before,
+	})
+	err2.Check(err)
+
+	res, err := r.db.GetEvents(batch, agent.ID, &obj.ID)
+	err2.Check(err)
+
+	return res.ToConnection(&obj.ID), nil
 }
 
 func (r *pairwiseConnectionResolver) TotalCount(ctx context.Context, obj *model.PairwiseConnection) (int, error) {
@@ -224,7 +262,7 @@ func (r *queryResolver) Credentials(ctx context.Context, after *string, before *
 	})
 	err2.Check(err)
 
-	res, err := r.db.GetCredentials(batch, agent.ID)
+	res, err := r.db.GetCredentials(batch, agent.ID, nil)
 	err2.Check(err)
 
 	return res.ToConnection(nil), nil
@@ -235,11 +273,41 @@ func (r *queryResolver) Proof(ctx context.Context, id string) (*model.Proof, err
 }
 
 func (r *queryResolver) Events(ctx context.Context, after *string, before *string, first *int, last *int) (*model.EventConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	var err error
+	defer err2.Return(&err)
+
+	agent, err := store.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	utils.LogMed().Info("queryResolver:Events for tenant: ", agent.ID)
+
+	batch, err := paginator.Validate("queryResolver:Events", &paginator.Params{
+		First:  first,
+		Last:   last,
+		After:  after,
+		Before: before,
+	})
+	err2.Check(err)
+
+	res, err := r.db.GetEvents(batch, agent.ID, nil)
+	err2.Check(err)
+
+	return res.ToConnection(nil), nil
 }
 
 func (r *queryResolver) Event(ctx context.Context, id string) (*model.Event, error) {
-	panic(fmt.Errorf("not implemented"))
+	var err error
+	defer err2.Return(&err)
+
+	agent, err := store.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	utils.LogMed().Infof("queryResolver:Event id: %s for tenant %s", id, agent.ID)
+
+	event, err := r.db.GetEvent(id, agent.ID)
+	err2.Check(err)
+
+	return event.ToNode(), nil
 }
 
 func (r *queryResolver) Jobs(ctx context.Context, after *string, before *string, first *int, last *int, completed *bool) (*model.JobConnection, error) {

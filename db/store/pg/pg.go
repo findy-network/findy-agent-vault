@@ -156,3 +156,34 @@ func InitDB(migratePath, port string, reset bool) store.DB {
 func (p *Database) Close() {
 	p.db.Close()
 }
+
+func (p *Database) getCount(
+	tableName, batchWhere, batchWhereConnection, tenantID string,
+	connectionID *string,
+) (count int, err error) {
+	defer err2.Return(&err)
+
+	query := "SELECT count(id) FROM " + tableName
+	args := make([]interface{}, 0)
+	args = append(args, tenantID)
+	if connectionID == nil {
+		query += batchWhere
+	} else {
+		query += batchWhereConnection
+		args = append(args, *connectionID)
+	}
+
+	rows, err := p.db.Query(query, args...)
+	err2.Check(err)
+	defer rows.Close()
+
+	if rows.Next() {
+		err = rows.Scan(&count)
+		err2.Check(err)
+	}
+
+	err = rows.Err()
+	err2.Check(err)
+
+	return
+}

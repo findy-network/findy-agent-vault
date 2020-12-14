@@ -259,45 +259,20 @@ func (p *Database) getCredentialsForQuery(
 	return c, err
 }
 
-func (p *Database) GetCredentials(info *paginator.BatchInfo, tenantID string) (c *model.Credentials, err error) {
-	return p.getCredentialsForQuery(&queryInfo{
-		Asc:        sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+sqlOrderByAsc(""), "$2", "ASC"),
-		Desc:       sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+sqlOrderByDesc(""), "$2", "DESC"),
-		AfterAsc:   sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+" AND cursor > $2"+sqlOrderByAsc(""), "$3", "ASC"),
-		AfterDesc:  sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+" AND cursor > $2"+sqlOrderByDesc(""), "$3", "DESC"),
-		BeforeAsc:  sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+" AND cursor < $2"+sqlOrderByAsc(""), "$3", "ASC"),
-		BeforeDesc: sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+" AND cursor < $2"+sqlOrderByDesc(""), "$3", "DESC"),
-	},
-		info,
-		[]interface{}{tenantID},
-	)
-}
-
-func (p *Database) GetCredentialCount(tenantID string) (count int, err error) {
-	defer returnErr("GetCredentialCount", &err)
-
-	const sqlCredentialSelectCount = "SELECT count(id) FROM credential " + sqlCredentialBatchWhere
-
-	rows, err := p.db.Query(sqlCredentialSelectCount, tenantID)
-	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		err = rows.Scan(&count)
-		err2.Check(err)
+func (p *Database) GetCredentials(info *paginator.BatchInfo, tenantID string, connectionID *string) (c *model.Credentials, err error) {
+	if connectionID == nil {
+		return p.getCredentialsForQuery(&queryInfo{
+			Asc:        sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+sqlOrderByAsc(""), "$2", "ASC"),
+			Desc:       sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+sqlOrderByDesc(""), "$2", "DESC"),
+			AfterAsc:   sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+" AND cursor > $2"+sqlOrderByAsc(""), "$3", "ASC"),
+			AfterDesc:  sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+" AND cursor > $2"+sqlOrderByDesc(""), "$3", "DESC"),
+			BeforeAsc:  sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+" AND cursor < $2"+sqlOrderByAsc(""), "$3", "ASC"),
+			BeforeDesc: sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+" AND cursor < $2"+sqlOrderByDesc(""), "$3", "DESC"),
+		},
+			info,
+			[]interface{}{tenantID},
+		)
 	}
-
-	err = rows.Err()
-	err2.Check(err)
-
-	return
-}
-
-func (p *Database) GetConnectionCredentials(
-	info *paginator.BatchInfo,
-	tenantID,
-	connectionID string,
-) (connections *model.Credentials, err error) {
 	return p.getCredentialsForQuery(&queryInfo{
 		Asc:        sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+sqlOrderByAsc(""), "$3", "ASC"),
 		Desc:       sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+sqlOrderByDesc(""), "$3", "DESC"),
@@ -307,26 +282,19 @@ func (p *Database) GetConnectionCredentials(
 		BeforeDesc: sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+" AND cursor < $3"+sqlOrderByDesc(""), "$4", "DESC"),
 	},
 		info,
-		[]interface{}{tenantID, connectionID},
+		[]interface{}{tenantID, *connectionID},
 	)
 }
 
-func (p *Database) GetConnectionCredentialCount(tenantID, connectionID string) (count int, err error) {
+func (p *Database) GetCredentialCount(tenantID string, connectionID *string) (count int, err error) {
 	defer returnErr("GetCredentialCount", &err)
-
-	const sqlCredentialSelectCount = "SELECT count(id) FROM credential " + sqlCredentialBatchWhereConnection
-
-	rows, err := p.db.Query(sqlCredentialSelectCount, tenantID, connectionID)
+	count, err = p.getCount(
+		"credential",
+		sqlCredentialBatchWhere,
+		sqlCredentialBatchWhereConnection,
+		tenantID,
+		connectionID,
+	)
 	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		err = rows.Scan(&count)
-		err2.Check(err)
-	}
-
-	err = rows.Err()
-	err2.Check(err)
-
 	return
 }

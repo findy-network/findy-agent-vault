@@ -165,45 +165,20 @@ func (p *Database) getEventsForQuery(
 	return e, err
 }
 
-func (p *Database) GetEvents(info *paginator.BatchInfo, tenantID string) (c *model.Events, err error) {
-	return p.getEventsForQuery(&queryInfo{
-		Asc:        sqlEventSelectBatchFor(sqlEventBatchWhere+sqlOrderByAsc(""), "$2"),
-		Desc:       sqlEventSelectBatchFor(sqlEventBatchWhere+sqlOrderByDesc(""), "$2"),
-		AfterAsc:   sqlEventSelectBatchFor(sqlEventBatchWhere+" AND cursor > $2"+sqlOrderByAsc(""), "$3"),
-		AfterDesc:  sqlEventSelectBatchFor(sqlEventBatchWhere+" AND cursor > $2"+sqlOrderByDesc(""), "$3"),
-		BeforeAsc:  sqlEventSelectBatchFor(sqlEventBatchWhere+" AND cursor < $2"+sqlOrderByAsc(""), "$3"),
-		BeforeDesc: sqlEventSelectBatchFor(sqlEventBatchWhere+" AND cursor < $2"+sqlOrderByDesc(""), "$3"),
-	},
-		info,
-		[]interface{}{tenantID},
-	)
-}
-
-func (p *Database) GetEventCount(tenantID string) (count int, err error) {
-	defer returnErr("GetEventCount", &err)
-
-	const sqlEventSelectCount = "SELECT count(id) FROM event " + sqlEventBatchWhere
-
-	rows, err := p.db.Query(sqlEventSelectCount, tenantID)
-	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		err = rows.Scan(&count)
-		err2.Check(err)
+func (p *Database) GetEvents(info *paginator.BatchInfo, tenantID string, connectionID *string) (c *model.Events, err error) {
+	if connectionID == nil {
+		return p.getEventsForQuery(&queryInfo{
+			Asc:        sqlEventSelectBatchFor(sqlEventBatchWhere+sqlOrderByAsc(""), "$2"),
+			Desc:       sqlEventSelectBatchFor(sqlEventBatchWhere+sqlOrderByDesc(""), "$2"),
+			AfterAsc:   sqlEventSelectBatchFor(sqlEventBatchWhere+" AND cursor > $2"+sqlOrderByAsc(""), "$3"),
+			AfterDesc:  sqlEventSelectBatchFor(sqlEventBatchWhere+" AND cursor > $2"+sqlOrderByDesc(""), "$3"),
+			BeforeAsc:  sqlEventSelectBatchFor(sqlEventBatchWhere+" AND cursor < $2"+sqlOrderByAsc(""), "$3"),
+			BeforeDesc: sqlEventSelectBatchFor(sqlEventBatchWhere+" AND cursor < $2"+sqlOrderByDesc(""), "$3"),
+		},
+			info,
+			[]interface{}{tenantID},
+		)
 	}
-
-	err = rows.Err()
-	err2.Check(err)
-
-	return
-}
-
-func (p *Database) GetConnectionEvents(
-	info *paginator.BatchInfo,
-	tenantID,
-	connectionID string,
-) (connections *model.Events, err error) {
 	return p.getEventsForQuery(&queryInfo{
 		Asc:        sqlEventSelectBatchFor(sqlEventBatchWhereConnection+sqlOrderByAsc(""), "$3"),
 		Desc:       sqlEventSelectBatchFor(sqlEventBatchWhereConnection+sqlOrderByDesc(""), "$3"),
@@ -213,26 +188,19 @@ func (p *Database) GetConnectionEvents(
 		BeforeDesc: sqlEventSelectBatchFor(sqlEventBatchWhereConnection+" AND cursor < $3"+sqlOrderByDesc(""), "$4"),
 	},
 		info,
-		[]interface{}{tenantID, connectionID},
+		[]interface{}{tenantID, *connectionID},
 	)
 }
 
-func (p *Database) GetConnectionEventCount(tenantID, connectionID string) (count int, err error) {
+func (p *Database) GetEventCount(tenantID string, connectionID *string) (count int, err error) {
 	defer returnErr("GetEventCount", &err)
-
-	const sqlEventSelectCount = "SELECT count(id) FROM event " + sqlEventBatchWhereConnection
-
-	rows, err := p.db.Query(sqlEventSelectCount, tenantID, connectionID)
+	count, err = p.getCount(
+		"event",
+		sqlEventBatchWhere,
+		sqlEventBatchWhereConnection,
+		tenantID,
+		connectionID,
+	)
 	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		err = rows.Scan(&count)
-		err2.Check(err)
-	}
-
-	err = rows.Err()
-	err2.Check(err)
-
 	return
 }

@@ -30,22 +30,14 @@ type DB interface {
 	AddCredential(c *model.Credential) (*model.Credential, error)
 	UpdateCredential(c *model.Credential) (*model.Credential, error)
 	GetCredential(id string, tenantID string) (*model.Credential, error)
-	GetCredentials(info *paginator.BatchInfo, tenantID string) (connections *model.Credentials, err error)
-	GetCredentialCount(tenantID string) (int, error)
-	GetConnectionCredentials(info *paginator.BatchInfo, tenantID, connectionID string) (connections *model.Credentials, err error)
-	GetConnectionCredentialCount(tenantID, connectionID string) (int, error)
+	GetCredentials(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Credentials, err error)
+	GetCredentialCount(tenantID string, connectionID *string) (int, error)
 
 	AddEvent(e *model.Event) (*model.Event, error)
 	MarkEventRead(id, tenantID string) (*model.Event, error)
 	GetEvent(id, tenantID string) (*model.Event, error)
-	GetEvents(info *paginator.BatchInfo, tenantID string) (connections *model.Events, err error)
-	GetEventCount(tenantID string) (int, error)
-	GetConnectionEvents(
-		info *paginator.BatchInfo,
-		tenantID,
-		connectionID string,
-	) (connections *model.Events, err error)
-	GetConnectionEventCount(tenantID, connectionID string) (int, error)
+	GetEvents(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Events, err error)
+	GetEventCount(tenantID string, connectionID *string) (int, error)
 
 	/*AddMessage(connectionID, id, message string, sentByMe bool)
 	UpdateMessage(connectionID, id, delivered bool)

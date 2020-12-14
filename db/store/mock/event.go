@@ -98,18 +98,6 @@ func (m *mockItems) getEvents(
 	return c, nil
 }
 
-func (m *mockData) GetEvents(info *paginator.BatchInfo, tenantID string) (connections *model.Events, err error) {
-	agent := m.agents[tenantID]
-
-	return agent.getEvents(info, nil)
-}
-
-func (m *mockData) GetEventCount(tenantID string) (int, error) {
-	agent := m.agents[tenantID]
-
-	return agent.events.count(nil), nil
-}
-
 func eventConnectionFilter(id string) func(item apiObject) bool {
 	return func(item apiObject) bool {
 		e := item.Event()
@@ -120,16 +108,20 @@ func eventConnectionFilter(id string) func(item apiObject) bool {
 	}
 }
 
-func (m *mockData) GetConnectionEvents(
-	info *paginator.BatchInfo,
-	tenantID,
-	connectionID string,
-) (connections *model.Events, err error) {
+func (m *mockData) GetEvents(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Events, err error) {
 	agent := m.agents[tenantID]
-	return agent.getEvents(info, eventConnectionFilter(connectionID))
+
+	if connectionID == nil {
+		return agent.getEvents(info, nil)
+	}
+	return agent.getEvents(info, eventConnectionFilter(*connectionID))
 }
 
-func (m *mockData) GetConnectionEventCount(tenantID, connectionID string) (int, error) {
+func (m *mockData) GetEventCount(tenantID string, connectionID *string) (int, error) {
 	agent := m.agents[tenantID]
-	return agent.events.count(eventConnectionFilter(connectionID)), nil
+
+	if connectionID == nil {
+		return agent.events.count(nil), nil
+	}
+	return agent.events.count(eventConnectionFilter(*connectionID)), nil
 }

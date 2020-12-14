@@ -161,6 +161,7 @@ type EventEdge {
 }
 
 type EventConnection {
+  connectionId: ID
   edges: [EventEdge]
   nodes: [Event]
   pageInfo: PageInfo!

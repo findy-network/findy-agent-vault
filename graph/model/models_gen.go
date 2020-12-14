@@ -75,10 +75,11 @@ type Event struct {
 }
 
 type EventConnection struct {
-	Edges      []*EventEdge `json:"edges"`
-	Nodes      []*Event     `json:"nodes"`
-	PageInfo   *PageInfo    `json:"pageInfo"`
-	TotalCount int          `json:"totalCount"`
+	ConnectionID *string      `json:"connectionId"`
+	Edges        []*EventEdge `json:"edges"`
+	Nodes        []*Event     `json:"nodes"`
+	PageInfo     *PageInfo    `json:"pageInfo"`
+	TotalCount   int          `json:"totalCount"`
 }
 
 type EventEdge struct {

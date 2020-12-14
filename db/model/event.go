@@ -61,7 +61,7 @@ func (e *Event) ToNode() *model.Event {
 	}
 }
 
-func (e *Events) ToConnection() *model.EventConnection {
+func (e *Events) ToConnection(id *string) *model.EventConnection {
 	totalCount := len(e.Events)
 
 	edges := make([]*model.EventEdge, totalCount)
@@ -78,8 +78,9 @@ func (e *Events) ToConnection() *model.EventConnection {
 		endCursor = &edges[len(edges)-1].Cursor
 	}
 	return &model.EventConnection{
-		Edges: edges,
-		Nodes: nodes,
+		ConnectionID: id,
+		Edges:        edges,
+		Nodes:        nodes,
 		PageInfo: &model.PageInfo{
 			EndCursor:       endCursor,
 			HasNextPage:     e.HasNextPage,
