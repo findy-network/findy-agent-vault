@@ -2,7 +2,6 @@ package test
 
 import (
 	"math"
-	"reflect"
 	"sort"
 	"testing"
 	"time"
@@ -17,7 +16,7 @@ func validateTimestap(t *testing.T, exp, got *time.Time, name string) {
 	fail := false
 	if got != exp {
 		fail = true
-		if got != nil && exp != nil && got.Sub(*exp) == 0 {
+		if got != nil && exp != nil && got.Round(0).Sub(*exp) == 0 {
 			fail = false
 		}
 	}
@@ -164,10 +163,9 @@ func TestAddCredential(t *testing.T) {
 			got, err := s.db.GetCredential(c.ID, s.testTenantID)
 			if err != nil {
 				t.Errorf("Error fetching credential %s", err.Error())
-			} else if !reflect.DeepEqual(&c, &got) {
-				t.Errorf("Mismatch in fetched credential expected: %v  got: %v", c, got)
+			} else {
+				validateCredential(t, c, got)
 			}
-			validateCredential(t, c, got)
 		})
 	}
 }
@@ -198,10 +196,9 @@ func TestUpdateCredential(t *testing.T) {
 			got, err := s.db.GetCredential(c.ID, s.testTenantID)
 			if err != nil {
 				t.Errorf("Error fetching credential %s", err.Error())
-			} else if !reflect.DeepEqual(&c, &got) {
-				t.Errorf("Mismatch in fetched credential expected: %v  got: %v", c, got)
+			} else {
+				validateCredential(t, c, got)
 			}
-			validateCredential(t, c, got)
 		})
 	}
 }

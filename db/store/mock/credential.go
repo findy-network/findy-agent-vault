@@ -49,10 +49,6 @@ func (m *mockData) AddCredential(c *model.Credential) (*model.Credential, error)
 		n.Attributes[index].ID = faker.UUIDHyphenated()
 	}
 	agent.credentials.append(newCredential(n))
-
-	// generate different timestamps for items
-	time.Sleep(time.Millisecond)
-
 	return n, nil
 }
 

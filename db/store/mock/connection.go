@@ -47,10 +47,6 @@ func (m *mockData) AddConnection(c *model.Connection) (*model.Connection, error)
 	n.Cursor = model.TimeToCursor(&n.Created)
 	object := newConnection(n)
 	agent.connections.append(object)
-
-	// generate different timestamps for items
-	time.Sleep(time.Millisecond)
-
 	return n, nil
 }
 

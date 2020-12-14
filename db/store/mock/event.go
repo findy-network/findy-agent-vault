@@ -47,9 +47,6 @@ func (m *mockData) AddEvent(e *model.Event) (*model.Event, error) {
 	n.Cursor = model.TimeToCursor(&n.Created)
 	agent.events.append(newEvent(n))
 
-	// generate different timestamps for items
-	time.Sleep(time.Millisecond)
-
 	return n, nil
 }
 

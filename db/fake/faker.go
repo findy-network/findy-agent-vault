@@ -35,6 +35,8 @@ func AddEvents(db store.DB, tenantID, connectionID string, count int) []*model.E
 	for index, event := range events {
 		c, err := db.AddEvent(event)
 		err2.Check(err)
+		time.Sleep(time.Millisecond) // generate different timestamps for items
+
 		newEvents[index] = c
 	}
 
@@ -62,6 +64,7 @@ func AddCredentials(db store.DB, tenantID, connectionID string, count int) []*mo
 	for index, credential := range credentials {
 		c, err := db.AddCredential(credential)
 		err2.Check(err)
+		time.Sleep(time.Millisecond) // generate different timestamps for items
 
 		now := time.Now().UTC()
 		c.Approved = &now
@@ -94,6 +97,7 @@ func AddConnections(db store.DB, tenantID string, count int) []*model.Connection
 	for index, connection := range connections {
 		c, err := db.AddConnection(connection)
 		err2.Check(err)
+		time.Sleep(time.Millisecond) // generate different timestamps for items
 		newConnections[index] = c
 	}
 
