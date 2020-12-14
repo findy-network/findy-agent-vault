@@ -53,7 +53,7 @@ func (m *mockData) AddEvent(e *model.Event) (*model.Event, error) {
 	return n, nil
 }
 
-func (m *mockData) MarkEventRead(tenantID, id string) (*model.Event, error) {
+func (m *mockData) MarkEventRead(id, tenantID string) (*model.Event, error) {
 	agent := m.agents[tenantID]
 
 	object := agent.events.objectForID(id)

@@ -97,28 +97,6 @@ func validateCredentials(t *testing.T, expCount int, exp, got *model.Credentials
 	}
 }
 
-func addAgentAndConnections(agentID string, s *testableDB) (*model.Agent, []*model.Connection) {
-	// add new agent with no pre-existing credentials
-	ctAgent := model.NewAgent()
-	ctAgent.AgentID = agentID
-	ctAgent.Label = "testAgent"
-	a, err := s.db.AddAgent(ctAgent)
-	if err != nil {
-		panic(err)
-	}
-	// add new connections
-	connCount := 3
-	connections := make([]*model.Connection, connCount)
-	for i := 0; i < connCount; i++ {
-		c, err := s.db.AddConnection(s.testConnection)
-		if err != nil {
-			panic(err)
-		}
-		connections[i] = c
-	}
-	return a, connections
-}
-
 type credTest struct {
 	name   string
 	args   *paginator.BatchInfo
@@ -170,7 +148,7 @@ func TestAddCredential(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("add credential "+s.name, func(t *testing.T) {
-			testCredential = testCredential.Copy()
+			testCredential = model.NewCredential(testCredential)
 			testCredential.TenantID = s.testTenantID
 			testCredential.ConnectionID = s.testConnectionID
 

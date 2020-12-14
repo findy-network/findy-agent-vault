@@ -61,7 +61,7 @@ func (e *Event) ToNode() *model.Event {
 	}
 }
 
-func (e *Events) ToEvent() *model.EventConnection {
+func (e *Events) ToConnection() *model.EventConnection {
 	totalCount := len(e.Events)
 
 	edges := make([]*model.EventEdge, totalCount)
