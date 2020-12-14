@@ -12,6 +12,8 @@ import (
 	"github.com/findy-network/findy-agent-vault/utils"
 )
 
+const testAgentLabel = "testAgent"
+
 type testableDB struct {
 	db               store.DB
 	name             string
@@ -44,7 +46,7 @@ func setup() {
 
 	testAgent := model.NewAgent()
 	testAgent.AgentID = "testAgentID"
-	testAgent.Label = "testAgent"
+	testAgent.Label = testAgentLabel
 
 	testConnection := model.NewConnection(nil)
 	testConnection.OurDid = "ourDid"
@@ -101,7 +103,7 @@ func addAgentAndConnections(agentID string, s *testableDB) (*model.Agent, []*mod
 	// add new agent with no pre-existing event s
 	ctAgent := model.NewAgent()
 	ctAgent.AgentID = agentID
-	ctAgent.Label = "testAgent"
+	ctAgent.Label = testAgentLabel
 	a, err := s.db.AddAgent(ctAgent)
 	if err != nil {
 		panic(err)
