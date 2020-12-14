@@ -165,21 +165,14 @@ func (p *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (c
 }
 
 func (p *Database) GetConnectionCount(tenantID string) (count int, err error) {
-	defer returnErr("GetConnectionCount", &err)
-
-	const sqlConnectionSelectCount = "SELECT count(id) FROM connection WHERE tenant_id=$1"
-
-	rows, err := p.db.Query(sqlConnectionSelectCount, tenantID)
+	defer returnErr("GetCredentialCount", &err)
+	count, err = p.getCount(
+		"connection",
+		" WHERE tenant_id=$1 ",
+		"",
+		tenantID,
+		nil,
+	)
 	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		err = rows.Scan(&count)
-		err2.Check(err)
-	}
-
-	err = rows.Err()
-	err2.Check(err)
-
 	return
 }
