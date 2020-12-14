@@ -15,7 +15,6 @@ type Credentials struct {
 
 type Credential struct {
 	*base
-	TenantID      string
 	ConnectionID  string
 	Role          model.CredentialRole `faker:"oneof: HOLDER, HOLDER"`
 	SchemaID      string
@@ -25,7 +24,6 @@ type Credential struct {
 	Approved      *time.Time `faker:"-"`
 	Issued        *time.Time `faker:"-"`
 	Failed        *time.Time `faker:"-"`
-	Cursor        uint64
 }
 
 func NewCredential() *Credential { return &Credential{base: &base{}} }
@@ -45,7 +43,6 @@ func (c *Credential) Copy() (n *Credential) {
 	if c.base != nil {
 		n.base = c.base.Copy()
 	}
-	n.TenantID = c.TenantID
 	n.ConnectionID = c.ConnectionID
 	n.Role = c.Role
 	n.SchemaID = c.SchemaID
@@ -55,7 +52,6 @@ func (c *Credential) Copy() (n *Credential) {
 	n.Issued = copyTime(c.Issued)
 	n.Failed = copyTime(c.Failed)
 	n.Attributes = attributes
-	n.Cursor = c.Cursor
 
 	return n
 }

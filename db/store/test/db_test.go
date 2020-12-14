@@ -38,14 +38,16 @@ var (
 func setup() {
 	utils.SetLogDefaults()
 
-	testAgent := &model.Agent{AgentID: "testAgentID", Label: "testAgent"}
-	testConnection := &model.Connection{
-		OurDid:        "ourDid",
-		TheirDid:      "theirDid",
-		TheirEndpoint: "theirEndpoint",
-		TheirLabel:    "theirLabel",
-		Invited:       false,
-	}
+	testAgent := model.NewAgent()
+	testAgent.AgentID = "testAgentID"
+	testAgent.Label = "testAgent"
+
+	testConnection := model.NewConnection()
+	testConnection.OurDid = "ourDid"
+	testConnection.TheirDid = "theirDid"
+	testConnection.TheirEndpoint = "theirEndpoint"
+	testConnection.TheirLabel = "theirLabel"
+	testConnection.Invited = false
 
 	DBs = append(DBs, []*testableDB{{
 		db:             pg.InitDB("file://../../migrations", "5433", true),

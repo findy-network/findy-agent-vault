@@ -99,7 +99,9 @@ func validateCredentials(t *testing.T, expCount int, exp, got *model.Credentials
 
 func addAgentAndConnections(agentID string, s *testableDB) (*model.Agent, []*model.Connection) {
 	// add new agent with no pre-existing credentials
-	ctAgent := &model.Agent{AgentID: agentID, Label: "testAgent"}
+	ctAgent := model.NewAgent()
+	ctAgent.AgentID = agentID
+	ctAgent.Label = "testAgent"
 	a, err := s.db.AddAgent(ctAgent)
 	if err != nil {
 		panic(err)
@@ -168,6 +170,7 @@ func TestAddCredential(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("add credential "+s.name, func(t *testing.T) {
+			testCredential = testCredential.Copy()
 			testCredential.TenantID = s.testTenantID
 			testCredential.ConnectionID = s.testConnectionID
 
