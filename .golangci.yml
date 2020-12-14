@@ -104,6 +104,9 @@ issues:
     - path: db/store/pg/pg.go
       linters:
         - gocritic
+    - path: db/store/mock
+      linters:
+        - dupl
     - path: db/model
       linters:
         - dupl
