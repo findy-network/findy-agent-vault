@@ -196,7 +196,7 @@ func TestGetTenantEvents(t *testing.T) {
 				for _, testCase := range tests {
 					tc := testCase
 					t.Run(tc.name, func(t *testing.T) {
-						c, err := s.db.GetEvents(tc.args, a.ID)
+						c, err := s.db.GetEvents(tc.args, a.ID, nil)
 						if err != nil {
 							t.Errorf("Error fetching event s %s", err.Error())
 						} else {
@@ -232,7 +232,7 @@ func TestGetConnectionEvents(t *testing.T) {
 				for _, testCase := range tests {
 					tc := testCase
 					t.Run(tc.name, func(t *testing.T) {
-						c, err := s.db.GetConnectionEvents(tc.args, a.ID, connections[2].ID)
+						c, err := s.db.GetEvents(tc.args, a.ID, &connections[2].ID)
 						if err != nil {
 							t.Errorf("Error fetching connection event s %s", err.Error())
 						} else {
@@ -255,7 +255,7 @@ func TestGetEventCount(t *testing.T) {
 			fake.AddEvents(s.db, a.ID, connections[0].ID, size)
 
 			// Get count
-			got, err := s.db.GetEventCount(a.ID)
+			got, err := s.db.GetEventCount(a.ID, nil)
 			if err != nil {
 				t.Errorf("Error fetching count %s", err.Error())
 			} else if got != size {
@@ -281,7 +281,7 @@ func TestGetConnectionEventCount(t *testing.T) {
 
 			// Get count
 			expected := index * size
-			got, err := s.db.GetConnectionEventCount(a.ID, connections[index].ID)
+			got, err := s.db.GetEventCount(a.ID, &connections[index].ID)
 			if err != nil {
 				t.Errorf("Error fetching count %s", err.Error())
 			} else if got != expected {

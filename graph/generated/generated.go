@@ -117,10 +117,11 @@ type ComplexityRoot struct {
 	}
 
 	EventConnection struct {
-		Edges      func(childComplexity int) int
-		Nodes      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		ConnectionID func(childComplexity int) int
+		Edges        func(childComplexity int) int
+		Nodes        func(childComplexity int) int
+		PageInfo     func(childComplexity int) int
+		TotalCount   func(childComplexity int) int
 	}
 
 	EventEdge struct {
@@ -612,6 +613,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Event.Read(childComplexity), true
+
+	case "EventConnection.connectionId":
+		if e.complexity.EventConnection.ConnectionID == nil {
+			break
+		}
+
+		return e.complexity.EventConnection.ConnectionID(childComplexity), true
 
 	case "EventConnection.edges":
 		if e.complexity.EventConnection.Edges == nil {
@@ -1596,6 +1604,7 @@ type EventEdge {
 }
 
 type EventConnection {
+  connectionId: ID
   edges: [EventEdge]
   nodes: [Event]
   pageInfo: PageInfo!
@@ -3645,6 +3654,38 @@ func (ec *executionContext) _Event_connection(ctx context.Context, field graphql
 	res := resTmp.(*model.Pairwise)
 	fc.Result = res
 	return ec.marshalOPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EventConnection_connectionId(ctx context.Context, field graphql.CollectedField, obj *model.EventConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "EventConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ConnectionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EventConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.EventConnection) (ret graphql.Marshaler) {
@@ -8589,6 +8630,8 @@ func (ec *executionContext) _EventConnection(ctx context.Context, sel ast.Select
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("EventConnection")
+		case "connectionId":
+			out.Values[i] = ec._EventConnection_connectionId(ctx, field, obj)
 		case "edges":
 			out.Values[i] = ec._EventConnection_edges(ctx, field, obj)
 		case "nodes":

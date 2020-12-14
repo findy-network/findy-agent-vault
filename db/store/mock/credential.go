@@ -90,6 +90,16 @@ func filterCredential(item apiObject) bool {
 	return c.Issued != nil
 }
 
+func credentialConnectionFilter(id string) func(item apiObject) bool {
+	return func(item apiObject) bool {
+		c := item.Credential()
+		if c.Issued != nil && c.ConnectionID == id {
+			return true
+		}
+		return false
+	}
+}
+
 func (m *mockItems) getCredentials(
 	info *paginator.BatchInfo,
 	filter func(item apiObject) bool,
@@ -108,38 +118,24 @@ func (m *mockItems) getCredentials(
 	return c, nil
 }
 
-func (m *mockData) GetCredentials(info *paginator.BatchInfo, tenantID string) (connections *model.Credentials, err error) {
-	agent := m.agents[tenantID]
-
-	return agent.getCredentials(info, filterCredential)
-}
-
-func (m *mockData) GetCredentialCount(tenantID string) (int, error) {
-	agent := m.agents[tenantID]
-
-	return agent.credentials.count(filterCredential), nil
-}
-
-func credentialConnectionFilter(id string) func(item apiObject) bool {
-	return func(item apiObject) bool {
-		c := item.Credential()
-		if c.Issued != nil && c.ConnectionID == id {
-			return true
-		}
-		return false
-	}
-}
-
-func (m *mockData) GetConnectionCredentials(
+func (m *mockData) GetCredentials(
 	info *paginator.BatchInfo,
-	tenantID,
-	connectionID string,
+	tenantID string,
+	connectionID *string,
 ) (connections *model.Credentials, err error) {
 	agent := m.agents[tenantID]
-	return agent.getCredentials(info, credentialConnectionFilter(connectionID))
+
+	if connectionID == nil {
+		return agent.getCredentials(info, filterCredential)
+	}
+	return agent.getCredentials(info, credentialConnectionFilter(*connectionID))
 }
 
-func (m *mockData) GetConnectionCredentialCount(tenantID, connectionID string) (int, error) {
+func (m *mockData) GetCredentialCount(tenantID string, connectionID *string) (int, error) {
 	agent := m.agents[tenantID]
-	return agent.credentials.count(credentialConnectionFilter(connectionID)), nil
+
+	if connectionID == nil {
+		return agent.credentials.count(filterCredential), nil
+	}
+	return agent.credentials.count(credentialConnectionFilter(*connectionID)), nil
 }
