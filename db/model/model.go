@@ -11,8 +11,10 @@ func timeToString(t *time.Time) string {
 }
 
 type base struct {
-	ID      string `faker:"uuid_hyphenated"`
-	Created time.Time
+	ID       string `faker:"uuid_hyphenated"`
+	TenantID string
+	Cursor   uint64
+	Created  time.Time
 }
 
 func (b *base) Copy() *base {

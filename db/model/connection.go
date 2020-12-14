@@ -15,14 +15,12 @@ type Connections struct {
 
 type Connection struct {
 	*base
-	TenantID      string
 	OurDid        string
 	TheirDid      string
 	TheirEndpoint string `faker:"url"`
 	TheirLabel    string `faker:"organisationLabel"`
 	Invited       bool
 	Approved      *time.Time
-	Cursor        uint64
 }
 
 func NewConnection() *Connection { return &Connection{base: &base{}} }
@@ -33,14 +31,12 @@ func (c *Connection) Copy() (n *Connection) {
 		n.base = c.base.Copy()
 	}
 
-	n.TenantID = c.TenantID
 	n.OurDid = c.OurDid
 	n.TheirDid = c.TheirDid
 	n.TheirEndpoint = c.TheirEndpoint
 	n.TheirLabel = c.TheirLabel
 	n.Invited = c.Invited
 	n.Approved = copyTime(c.Approved)
-	n.Cursor = c.Cursor
 	return n
 }
 

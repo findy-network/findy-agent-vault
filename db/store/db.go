@@ -10,7 +10,10 @@ import (
 
 func GetAgent(ctx context.Context, db DB) (*model.Agent, error) {
 	token := utils.ParseToken(ctx)
-	return db.AddAgent(&model.Agent{AgentID: token.AgentID, Label: token.Label})
+	a := model.NewAgent()
+	a.AgentID = token.AgentID
+	a.Label = token.Label
+	return db.AddAgent(a)
 }
 
 type DB interface {

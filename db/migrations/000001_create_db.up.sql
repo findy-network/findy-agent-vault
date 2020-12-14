@@ -5,10 +5,13 @@ CREATE TABLE "agent" (
   agent_id VARCHAR(256) UNIQUE NOT NULL,
   label VARCHAR(1024),
   created timestamptz NOT NULL DEFAULT now(),
+  cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC') * 1000) STORED,
   last_accessed timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX "agent_external_id_index" ON agent (agent_id);
+CREATE INDEX "agent_id_index" ON agent (agent_id);
+
+CREATE INDEX "agent_cursor_index" ON agent (cursor);
 
 CREATE TABLE "connection"(
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),

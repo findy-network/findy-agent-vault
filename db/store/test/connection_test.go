@@ -75,7 +75,9 @@ func TestGetConnections(t *testing.T) {
 		s := DBs[index]
 		t.Run("get connections "+s.name, func(t *testing.T) {
 			// add new agent with no pre-existing connections
-			ctAgent := &model.Agent{AgentID: "TestGetConnections", Label: "testAgent"}
+			ctAgent := model.NewAgent()
+			ctAgent.AgentID = "TestGetConnections"
+			ctAgent.Label = "testAgent"
 			a, err := s.db.AddAgent(ctAgent)
 			if err != nil {
 				panic(err)
@@ -165,7 +167,9 @@ func TestGetConnectionCount(t *testing.T) {
 		s := DBs[index]
 		t.Run("get connection count "+s.name, func(t *testing.T) {
 			// add new agent with no pre-existing connections
-			ctAgent := &model.Agent{AgentID: "TestGetConnectionCount", Label: "testAgent"}
+			ctAgent := model.NewAgent()
+			ctAgent.AgentID = "TestGetConnectionCount"
+			ctAgent.Label = "testAgent"
 			a, err := s.db.AddAgent(ctAgent)
 			if err != nil {
 				panic(err)

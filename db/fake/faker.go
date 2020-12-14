@@ -25,9 +25,6 @@ func random(n int) int {
 }
 
 func AddCredentials(db store.DB, tenantID, connectionID string, count int) []*model.Credential {
-	_ = faker.AddProvider("nil", func(v reflect.Value) (interface{}, error) {
-		return nil, nil
-	})
 	_ = faker.AddProvider("credentialAttributes", func(v reflect.Value) (interface{}, error) {
 		return []*graph.CredentialValue{
 			{Name: "name1", Value: "value1"},
@@ -38,10 +35,7 @@ func AddCredentials(db store.DB, tenantID, connectionID string, count int) []*mo
 
 	credentials := make([]*model.Credential, count)
 	for i := 0; i < count; i++ {
-		credential := &model.Credential{}
-		err2.Check(faker.FakeData(credential))
-		credential.TenantID = tenantID
-		credential.ConnectionID = connectionID
+		credential := fakeCredential(tenantID, connectionID)
 		credentials[i] = credential
 	}
 
@@ -73,9 +67,7 @@ func AddConnections(db store.DB, tenantID string, count int) []*model.Connection
 
 	connections := make([]*model.Connection, count)
 	for i := 0; i < count; i++ {
-		connection := &model.Connection{}
-		err2.Check(faker.FakeData(connection))
-		connection.TenantID = tenantID
+		connection := fakeConnection(tenantID)
 		connections[i] = connection
 	}
 
@@ -96,8 +88,7 @@ func AddAgent(db store.DB) *model.Agent {
 		return FakeCloudDID, nil
 	})
 	var err error
-	agent := &model.Agent{}
-	err2.Check(faker.FakeData(&agent))
+	agent := fakeAgent()
 
 	agent, err = db.AddAgent(agent)
 	err2.Check(err)
@@ -110,4 +101,27 @@ func AddData(db store.DB) {
 	agent := AddAgent(db)
 
 	AddConnections(db, agent.ID, 5)
+}
+
+func fakeAgent() *model.Agent {
+	agent := model.NewAgent()
+	err2.Check(faker.FakeData(&agent))
+	return agent.Copy()
+}
+
+func fakeConnection(tenantID string) *model.Connection {
+	connection := model.NewConnection()
+	err2.Check(faker.FakeData(connection))
+	connection = connection.Copy()
+	connection.TenantID = tenantID
+	return connection
+}
+
+func fakeCredential(tenantID, connectionID string) *model.Credential {
+	credential := model.NewCredential()
+	err2.Check(faker.FakeData(credential))
+	credential = credential.Copy()
+	credential.TenantID = tenantID
+	credential.ConnectionID = connectionID
+	return credential
 }
