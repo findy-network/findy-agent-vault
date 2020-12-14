@@ -40,6 +40,7 @@ type ResolverRoot interface {
 	Credential() CredentialResolver
 	CredentialConnection() CredentialConnectionResolver
 	Event() EventResolver
+	EventConnection() EventConnectionResolver
 	Job() JobResolver
 	Mutation() MutationResolver
 	Pairwise() PairwiseResolver
@@ -283,6 +284,9 @@ type CredentialConnectionResolver interface {
 type EventResolver interface {
 	Job(ctx context.Context, obj *model.Event) (*model.JobEdge, error)
 	Connection(ctx context.Context, obj *model.Event) (*model.Pairwise, error)
+}
+type EventConnectionResolver interface {
+	TotalCount(ctx context.Context, obj *model.EventConnection) (int, error)
 }
 type JobResolver interface {
 	Output(ctx context.Context, obj *model.Job) (*model.JobOutput, error)
@@ -3753,14 +3757,14 @@ func (ec *executionContext) _EventConnection_totalCount(ctx context.Context, fie
 		Object:     "EventConnection",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
+		return ec.resolvers.EventConnection().TotalCount(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8592,13 +8596,22 @@ func (ec *executionContext) _EventConnection(ctx context.Context, sel ast.Select
 		case "pageInfo":
 			out.Values[i] = ec._EventConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "totalCount":
-			out.Values[i] = ec._EventConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._EventConnection_totalCount(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

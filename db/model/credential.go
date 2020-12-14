@@ -26,10 +26,15 @@ type Credential struct {
 	Failed        *time.Time `faker:"-"`
 }
 
-func NewCredential() *Credential { return &Credential{base: &base{}} }
+func NewCredential(c *Credential) *Credential {
+	if c != nil {
+		return c.copy()
+	}
+	return &Credential{base: &base{}}
+}
 
-func (c *Credential) Copy() (n *Credential) {
-	n = NewCredential()
+func (c *Credential) copy() (n *Credential) {
+	n = NewCredential(nil)
 
 	attributes := make([]*model.CredentialValue, len(c.Attributes))
 	for index := range c.Attributes {

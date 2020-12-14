@@ -96,3 +96,7 @@ models:
     fields:
       totalCount:
         resolver: true
+  EventConnection:
+    fields:
+      totalCount:
+        resolver: true

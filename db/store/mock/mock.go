@@ -11,13 +11,15 @@ type mockItems struct {
 	agent       *model.Agent
 	connections *items
 	credentials *items
+	events      *items
 }
 
 func newState() *mockItems {
 	state := &mockItems{
+		agent:       nil,
 		connections: newItems(reflect.TypeOf(model.Connection{}).Name()),
 		credentials: newItems(reflect.TypeOf(model.Credential{}).Name()),
-		agent:       nil,
+		events:      newItems(reflect.TypeOf(model.Event{}).Name()),
 	}
 	state.sort()
 	return state
@@ -37,7 +39,22 @@ type apiObject interface {
 	Created() uint64
 	Connection() *model.Connection
 	Credential() *model.Credential
+	Event() *model.Event
 	Copy() apiObject
+}
+
+type base struct{}
+
+func (b *base) Connection() *model.Connection {
+	panic("Object is not connection")
+}
+
+func (b *base) Credential() *model.Credential {
+	panic("Object is not connection")
+}
+
+func (b *base) Event() *model.Event {
+	panic("Object is not event")
 }
 
 type mockData struct {

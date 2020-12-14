@@ -55,7 +55,7 @@ func (p *Database) AddConnection(c *model.Connection) (n *model.Connection, err 
 	err2.Check(err)
 	defer rows.Close()
 
-	n = c.Copy()
+	n = model.NewConnection(c)
 	if rows.Next() {
 		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
 		err2.Check(err)
@@ -68,7 +68,7 @@ func (p *Database) AddConnection(c *model.Connection) (n *model.Connection, err 
 }
 
 func readRowToConnection(rows *sql.Rows) (c *model.Connection, err error) {
-	c = model.NewConnection()
+	c = model.NewConnection(nil)
 	err = rows.Scan(
 		&c.ID,
 		&c.TenantID,

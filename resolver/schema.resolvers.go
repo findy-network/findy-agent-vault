@@ -47,6 +47,10 @@ func (r *eventResolver) Connection(ctx context.Context, obj *model.Event) (*mode
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *eventConnectionResolver) TotalCount(ctx context.Context, obj *model.EventConnection) (int, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *jobResolver) Output(ctx context.Context, obj *model.Job) (*model.JobOutput, error) {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -268,6 +272,11 @@ func (r *Resolver) CredentialConnection() generated.CredentialConnectionResolver
 // Event returns generated.EventResolver implementation.
 func (r *Resolver) Event() generated.EventResolver { return &eventResolver{r} }
 
+// EventConnection returns generated.EventConnectionResolver implementation.
+func (r *Resolver) EventConnection() generated.EventConnectionResolver {
+	return &eventConnectionResolver{r}
+}
+
 // Job returns generated.JobResolver implementation.
 func (r *Resolver) Job() generated.JobResolver { return &jobResolver{r} }
 
@@ -295,6 +304,7 @@ type basicMessageResolver struct{ *Resolver }
 type credentialResolver struct{ *Resolver }
 type credentialConnectionResolver struct{ *Resolver }
 type eventResolver struct{ *Resolver }
+type eventConnectionResolver struct{ *Resolver }
 type jobResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type pairwiseResolver struct{ *Resolver }
