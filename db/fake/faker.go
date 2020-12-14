@@ -110,17 +110,17 @@ func fakeAgent() *model.Agent {
 }
 
 func fakeConnection(tenantID string) *model.Connection {
-	connection := model.NewConnection()
+	connection := model.NewConnection(nil)
 	err2.Check(faker.FakeData(connection))
-	connection = connection.Copy()
+	connection = model.NewConnection(connection)
 	connection.TenantID = tenantID
 	return connection
 }
 
 func fakeCredential(tenantID, connectionID string) *model.Credential {
-	credential := model.NewCredential()
+	credential := model.NewCredential(nil)
 	err2.Check(faker.FakeData(credential))
-	credential = credential.Copy()
+	credential = model.NewCredential(credential)
 	credential.TenantID = tenantID
 	credential.ConnectionID = connectionID
 	return credential

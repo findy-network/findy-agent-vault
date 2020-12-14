@@ -10,6 +10,7 @@ import (
 )
 
 type mockCredential struct {
+	*base
 	credential *model.Credential
 }
 
@@ -21,12 +22,16 @@ func (c *mockCredential) Identifier() string {
 	return c.credential.ID
 }
 
-func (c *mockCredential) Copy() apiObject {
-	return &mockCredential{c.credential.Copy()}
+func newCredential(c *model.Credential) *mockCredential {
+	var credential *model.Credential
+	if c != nil {
+		credential = model.NewCredential(c)
+	}
+	return &mockCredential{base: &base{}, credential: credential}
 }
 
-func (c *mockCredential) Connection() *model.Connection {
-	panic("Object is not connection")
+func (c *mockCredential) Copy() apiObject {
+	return newCredential(c.credential)
 }
 
 func (c *mockCredential) Credential() *model.Credential {
@@ -36,14 +41,14 @@ func (c *mockCredential) Credential() *model.Credential {
 func (m *mockData) AddCredential(c *model.Credential) (*model.Credential, error) {
 	agent := m.agents[c.TenantID]
 
-	n := c.Copy()
+	n := model.NewCredential(c)
 	n.ID = faker.UUIDHyphenated()
 	n.Created = time.Now().UTC()
 	n.Cursor = model.TimeToCursor(&n.Created)
 	for index := range n.Attributes {
 		n.Attributes[index].ID = faker.UUIDHyphenated()
 	}
-	agent.credentials.append(&mockCredential{n})
+	agent.credentials.append(newCredential(n))
 
 	// generate different timestamps for items
 	time.Sleep(time.Millisecond)

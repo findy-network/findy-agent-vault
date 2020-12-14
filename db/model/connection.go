@@ -23,10 +23,15 @@ type Connection struct {
 	Approved      *time.Time
 }
 
-func NewConnection() *Connection { return &Connection{base: &base{}} }
+func NewConnection(c *Connection) *Connection {
+	if c != nil {
+		return c.copy()
+	}
+	return &Connection{base: &base{}}
+}
 
-func (c *Connection) Copy() (n *Connection) {
-	n = NewConnection()
+func (c *Connection) copy() (n *Connection) {
+	n = NewConnection(nil)
 	if c.base != nil {
 		n.base = c.base.Copy()
 	}
@@ -90,6 +95,5 @@ func (c *Connections) ToConnection() *model.PairwiseConnection {
 			HasPreviousPage: c.HasPreviousPage,
 			StartCursor:     startCursor,
 		},
-		TotalCount: totalCount, // TODO: total total count
 	}
 }

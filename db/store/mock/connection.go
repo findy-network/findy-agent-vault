@@ -10,6 +10,7 @@ import (
 )
 
 type mockConnection struct {
+	*base
 	connection *model.Connection
 }
 
@@ -21,26 +22,30 @@ func (c *mockConnection) Identifier() string {
 	return c.connection.ID
 }
 
+func newConnection(c *model.Connection) *mockConnection {
+	var connection *model.Connection
+	if c != nil {
+		connection = model.NewConnection(c)
+	}
+	return &mockConnection{base: &base{}, connection: connection}
+}
+
 func (c *mockConnection) Copy() apiObject {
-	return &mockConnection{c.connection.Copy()}
+	return newConnection(c.connection)
 }
 
 func (c *mockConnection) Connection() *model.Connection {
 	return c.connection
 }
 
-func (c *mockConnection) Credential() *model.Credential {
-	panic("Object is not credential")
-}
-
 func (m *mockData) AddConnection(c *model.Connection) (*model.Connection, error) {
 	agent := m.agents[c.TenantID]
 
-	n := c.Copy()
+	n := model.NewConnection(c)
 	n.ID = faker.UUIDHyphenated()
 	n.Created = time.Now().UTC()
 	n.Cursor = model.TimeToCursor(&n.Created)
-	object := &mockConnection{n}
+	object := newConnection(n)
 	agent.connections.append(object)
 
 	// generate different timestamps for items
