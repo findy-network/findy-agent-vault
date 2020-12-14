@@ -59,7 +59,7 @@ test:
 	go test -v ./...
 
 test_cov:
-	go test -v -coverprofile=c.out ./... && go tool cover -html=c.out
+	go test -coverprofile=c.out ./... -coverpkg=./... && go tool cover -html=c.out
 
 check: check_fmt vet shadow
 

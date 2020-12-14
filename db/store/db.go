@@ -35,6 +35,18 @@ type DB interface {
 	GetConnectionCredentials(info *paginator.BatchInfo, tenantID, connectionID string) (connections *model.Credentials, err error)
 	GetConnectionCredentialCount(tenantID, connectionID string) (int, error)
 
+	AddEvent(e *model.Event) (*model.Event, error)
+	MarkEventRead(id, tenantID string) (*model.Event, error)
+	GetEvent(id, tenantID string) (*model.Event, error)
+	GetEvents(info *paginator.BatchInfo, tenantID string) (connections *model.Events, err error)
+	GetEventCount(tenantID string) (int, error)
+	GetConnectionEvents(
+		info *paginator.BatchInfo,
+		tenantID,
+		connectionID string,
+	) (connections *model.Events, err error)
+	GetConnectionEventCount(tenantID, connectionID string) (int, error)
+
 	/*AddMessage(connectionID, id, message string, sentByMe bool)
 	UpdateMessage(connectionID, id, delivered bool)
 

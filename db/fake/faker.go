@@ -24,6 +24,25 @@ func random(n int) int {
 	return int(val.Int64())
 }
 
+func AddEvents(db store.DB, tenantID, connectionID string, count int) []*model.Event {
+	events := make([]*model.Event, count)
+	for i := 0; i < count; i++ {
+		event := fakeEvent(tenantID, connectionID)
+		events[i] = event
+	}
+
+	newEvents := make([]*model.Event, count)
+	for index, event := range events {
+		c, err := db.AddEvent(event)
+		err2.Check(err)
+		newEvents[index] = c
+	}
+
+	utils.LogMed().Infof("Generated %d events for tenant %s", len(newEvents), tenantID)
+
+	return newEvents
+}
+
 func AddCredentials(db store.DB, tenantID, connectionID string, count int) []*model.Credential {
 	_ = faker.AddProvider("credentialAttributes", func(v reflect.Value) (interface{}, error) {
 		return []*graph.CredentialValue{
@@ -124,4 +143,13 @@ func fakeCredential(tenantID, connectionID string) *model.Credential {
 	credential.TenantID = tenantID
 	credential.ConnectionID = connectionID
 	return credential
+}
+
+func fakeEvent(tenantID, connectionID string) *model.Event {
+	event := model.NewEvent(nil)
+	err2.Check(faker.FakeData(event))
+	event = model.NewEvent(event)
+	event.TenantID = tenantID
+	event.ConnectionID = &connectionID
+	return event
 }

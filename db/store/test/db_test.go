@@ -33,6 +33,10 @@ var (
 			{Name: "name2", Value: "value2"},
 		},
 	}
+	testEvent *model.Event = &model.Event{
+		Description: "event desc",
+		Read:        false,
+	}
 )
 
 func setup() {
@@ -42,7 +46,7 @@ func setup() {
 	testAgent.AgentID = "testAgentID"
 	testAgent.Label = "testAgent"
 
-	testConnection := model.NewConnection()
+	testConnection := model.NewConnection(nil)
 	testConnection.OurDid = "ourDid"
 	testConnection.TheirDid = "theirDid"
 	testConnection.TheirEndpoint = "theirEndpoint"
@@ -91,4 +95,26 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 	teardown()
 	os.Exit(code)
+}
+
+func addAgentAndConnections(agentID string, s *testableDB) (*model.Agent, []*model.Connection) {
+	// add new agent with no pre-existing event s
+	ctAgent := model.NewAgent()
+	ctAgent.AgentID = agentID
+	ctAgent.Label = "testAgent"
+	a, err := s.db.AddAgent(ctAgent)
+	if err != nil {
+		panic(err)
+	}
+	// add new connections
+	connCount := 3
+	connections := make([]*model.Connection, connCount)
+	for i := 0; i < connCount; i++ {
+		c, err := s.db.AddConnection(s.testConnection)
+		if err != nil {
+			panic(err)
+		}
+		connections[i] = c
+	}
+	return a, connections
 }
