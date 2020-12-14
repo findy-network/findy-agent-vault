@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/findy-network/findy-agent-vault/db/fake"
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/db/store/mock"
@@ -110,13 +111,6 @@ func addAgentAndConnections(agentID string, s *testableDB) (*model.Agent, []*mod
 	}
 	// add new connections
 	connCount := 3
-	connections := make([]*model.Connection, connCount)
-	for i := 0; i < connCount; i++ {
-		c, err := s.db.AddConnection(s.testConnection)
-		if err != nil {
-			panic(err)
-		}
-		connections[i] = c
-	}
+	connections := fake.AddConnections(s.db, a.ID, connCount)
 	return a, connections
 }
