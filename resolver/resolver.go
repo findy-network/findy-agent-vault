@@ -3,6 +3,7 @@ package resolver
 import (
 	"github.com/findy-network/findy-agent-vault/db/fake"
 	"github.com/findy-network/findy-agent-vault/db/store"
+	"github.com/findy-network/findy-agent-vault/db/store/mock"
 	"github.com/findy-network/findy-agent-vault/db/store/pg"
 )
 
@@ -16,8 +17,13 @@ type Resolver struct {
 	db store.DB
 }
 
-func InitResolver() *Resolver {
-	db := pg.InitDB("file://db/migrations", "5432", false)
+func InitResolver(mockDB bool) *Resolver {
+	var db store.DB
+	if mockDB {
+		db = mock.InitState()
+	} else {
+		db = pg.InitDB("file://db/migrations", "5432", false)
+	}
 
 	r := &Resolver{db: db}
 	fake.AddData(db)

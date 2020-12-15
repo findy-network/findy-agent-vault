@@ -12,9 +12,10 @@ func (m *mockData) AddAgent(a *model.Agent) (*model.Agent, error) {
 	if !ok {
 		agent = newState()
 	}
+	n := agent.agent
 
-	n := a.Copy()
-	if n.ID == "" {
+	if !ok {
+		n = a.Copy()
 		n.ID = faker.UUIDHyphenated()
 		n.Created = time.Now().UTC()
 		n.LastAccessed = time.Now().UTC()
