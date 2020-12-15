@@ -213,41 +213,11 @@ func (r *queryResolver) Proof(ctx context.Context, id string) (*model.Proof, err
 }
 
 func (r *queryResolver) Events(ctx context.Context, after *string, before *string, first *int, last *int) (*model.EventConnection, error) {
-	var err error
-	defer err2.Return(&err)
-
-	agent, err := store.GetAgent(ctx, r.db)
-	err2.Check(err)
-
-	utils.LogMed().Info("queryResolver:Events for tenant: ", agent.ID)
-
-	batch, err := paginator.Validate("queryResolver:Events", &paginator.Params{
-		First:  first,
-		Last:   last,
-		After:  after,
-		Before: before,
-	})
-	err2.Check(err)
-
-	res, err := r.db.GetEvents(batch, agent.ID, nil)
-	err2.Check(err)
-
-	return res.ToConnection(nil), nil
+	return r.events(ctx, after, before, first, last)
 }
 
 func (r *queryResolver) Event(ctx context.Context, id string) (*model.Event, error) {
-	var err error
-	defer err2.Return(&err)
-
-	agent, err := store.GetAgent(ctx, r.db)
-	err2.Check(err)
-
-	utils.LogMed().Infof("queryResolver:Event id: %s for tenant %s", id, agent.ID)
-
-	event, err := r.db.GetEvent(id, agent.ID)
-	err2.Check(err)
-
-	return event.ToNode(), nil
+	return r.event(ctx, id)
 }
 
 func (r *queryResolver) Jobs(ctx context.Context, after *string, before *string, first *int, last *int, completed *bool) (*model.JobConnection, error) {

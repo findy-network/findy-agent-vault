@@ -112,3 +112,32 @@ func TestGetCredential(t *testing.T) {
 		t.Errorf("Expecting result, received %v", c)
 	}
 }
+
+func TestPaginationErrorsGetEvents(t *testing.T) {
+	testPaginationErrors(t, "connections", func(ctx context.Context, after, before *string, first, last *int) error {
+		r := InitResolver(true)
+		_, err := r.Query().Events(ctx, after, before, first, last)
+		return err
+	})
+}
+
+func TestResolverGetEvents(t *testing.T) {
+	first := 1
+	c, err := r.Query().Events(testContext(), nil, nil, &first, nil)
+	if err != nil {
+		t.Errorf("Received unexpected error %s", err)
+	}
+	if c == nil || len(c.Edges) == 0 {
+		t.Errorf("Expecting result, received %v", c)
+	}
+}
+
+func TestGetEvent(t *testing.T) {
+	c, err := r.Query().Event(testContext(), testEventID)
+	if err != nil {
+		t.Errorf("Received unexpected error %s", err)
+	}
+	if c == nil {
+		t.Errorf("Expecting result, received %v", c)
+	}
+}

@@ -14,6 +14,7 @@ var (
 	r                *Resolver
 	testConnectionID string
 	testCredentialID string
+	testEventID      string
 )
 
 func setup() {
@@ -26,6 +27,8 @@ func setup() {
 	cr := fake.AddCredentials(r.db, a.ID, c[0].ID, size)
 	testCredentialID = cr[0].ID
 
+	ev := fake.AddEvents(r.db, a.ID, c[0].ID, size)
+	testEventID = ev[0].ID
 }
 
 func teardown() {
