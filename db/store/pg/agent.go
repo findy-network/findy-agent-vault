@@ -16,10 +16,10 @@ const (
 	sqlAgentSelectByAgentID = sqlAgentSelect + " WHERE agent_id=$1"
 )
 
-func (p *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
+func (pg *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
 	defer returnErr("AddAgent", &err)
 
-	rows, err := p.db.Query(
+	rows, err := pg.db.Query(
 		sqlAgentInsert,
 		a.AgentID,
 		a.Label,
@@ -39,7 +39,7 @@ func (p *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
 	return
 }
 
-func (p *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
+func (pg *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
 	defer returnErr("GetAgent", &err)
 
 	if id == nil && agentID == nil {
@@ -52,7 +52,7 @@ func (p *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
 		queryID = agentID
 	}
 
-	rows, err := p.db.Query(query, *queryID)
+	rows, err := pg.db.Query(query, *queryID)
 	err2.Check(err)
 	defer rows.Close()
 

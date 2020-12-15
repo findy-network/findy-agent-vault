@@ -39,10 +39,10 @@ func readRowToMessage(rows *sql.Rows) (*model.Message, error) {
 	return n, err
 }
 
-func (p *Database) AddMessage(arg *model.Message) (n *model.Message, err error) {
+func (pg *Database) AddMessage(arg *model.Message) (n *model.Message, err error) {
 	defer returnErr("AddMessage", &err)
 
-	rows, err := p.db.Query(
+	rows, err := pg.db.Query(
 		sqlMessageInsert,
 		arg.TenantID,
 		arg.ConnectionID,
@@ -65,13 +65,13 @@ func (p *Database) AddMessage(arg *model.Message) (n *model.Message, err error) 
 	return n, err
 }
 
-func (p *Database) UpdateMessage(arg *model.Message) (m *model.Message, err error) {
+func (pg *Database) UpdateMessage(arg *model.Message) (m *model.Message, err error) {
 	defer returnErr("UpdateMessage", &err)
 
 	const sqlMessageUpdate = "UPDATE message SET delivered=$1 WHERE id = $2 AND tenant_id = $3" +
 		" RETURNING id," + sqlMessageFields + ", created, cursor"
 
-	rows, err := p.db.Query(
+	rows, err := pg.db.Query(
 		sqlMessageUpdate,
 		arg.Delivered,
 		arg.ID,
@@ -91,13 +91,13 @@ func (p *Database) UpdateMessage(arg *model.Message) (m *model.Message, err erro
 	return m, err
 }
 
-func (p *Database) GetMessage(id, tenantID string) (m *model.Message, err error) {
+func (pg *Database) GetMessage(id, tenantID string) (m *model.Message, err error) {
 	defer returnErr("GetMessage", &err)
 
 	const sqlMessageSelectByID = sqlMessageSelect + " message" +
 		" WHERE id=$1 AND tenant_id=$2"
 
-	rows, err := p.db.Query(sqlMessageSelectByID, id, tenantID)
+	rows, err := pg.db.Query(sqlMessageSelectByID, id, tenantID)
 	err2.Check(err)
 	defer rows.Close()
 
@@ -113,7 +113,7 @@ func (p *Database) GetMessage(id, tenantID string) (m *model.Message, err error)
 	return
 }
 
-func (p *Database) getMessagesForQuery(
+func (pg *Database) getMessagesForQuery(
 	queries *queryInfo,
 	batch *paginator.BatchInfo,
 	initialArgs []interface{},
@@ -121,7 +121,7 @@ func (p *Database) getMessagesForQuery(
 	defer returnErr("GetMessages", &err)
 
 	query, args := getBatchQuery(queries, batch, initialArgs)
-	rows, err := p.db.Query(query, args...)
+	rows, err := pg.db.Query(query, args...)
 	err2.Check(err)
 	defer rows.Close()
 
@@ -166,9 +166,9 @@ func (p *Database) getMessagesForQuery(
 	return m, err
 }
 
-func (p *Database) GetMessages(info *paginator.BatchInfo, tenantID string, connectionID *string) (m *model.Messages, err error) {
+func (pg *Database) GetMessages(info *paginator.BatchInfo, tenantID string, connectionID *string) (m *model.Messages, err error) {
 	if connectionID == nil {
-		return p.getMessagesForQuery(&queryInfo{
+		return pg.getMessagesForQuery(&queryInfo{
 			Asc:        sqlMessageSelectBatchFor(sqlMessageBatchWhere+sqlOrderByAsc(""), "$2"),
 			Desc:       sqlMessageSelectBatchFor(sqlMessageBatchWhere+sqlOrderByDesc(""), "$2"),
 			AfterAsc:   sqlMessageSelectBatchFor(sqlMessageBatchWhere+" AND cursor > $2"+sqlOrderByAsc(""), "$3"),
@@ -180,7 +180,7 @@ func (p *Database) GetMessages(info *paginator.BatchInfo, tenantID string, conne
 			[]interface{}{tenantID},
 		)
 	}
-	return p.getMessagesForQuery(&queryInfo{
+	return pg.getMessagesForQuery(&queryInfo{
 		Asc:        sqlMessageSelectBatchFor(sqlMessageBatchWhereConnection+sqlOrderByAsc(""), "$3"),
 		Desc:       sqlMessageSelectBatchFor(sqlMessageBatchWhereConnection+sqlOrderByDesc(""), "$3"),
 		AfterAsc:   sqlMessageSelectBatchFor(sqlMessageBatchWhereConnection+" AND cursor > $3"+sqlOrderByAsc(""), "$4"),
@@ -193,9 +193,9 @@ func (p *Database) GetMessages(info *paginator.BatchInfo, tenantID string, conne
 	)
 }
 
-func (p *Database) GetMessageCount(tenantID string, connectionID *string) (count int, err error) {
+func (pg *Database) GetMessageCount(tenantID string, connectionID *string) (count int, err error) {
 	defer returnErr("GetMessageCount", &err)
-	count, err = p.getCount(
+	count, err = pg.getCount(
 		"message",
 		sqlMessageBatchWhere,
 		sqlMessageBatchWhereConnection,

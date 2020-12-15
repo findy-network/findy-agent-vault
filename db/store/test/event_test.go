@@ -12,23 +12,6 @@ import (
 	"github.com/findy-network/findy-agent-vault/paginator"
 )
 
-func validateStrPtr(t *testing.T, exp, got *string, name string) {
-	fail := false
-	if got != exp {
-		fail = true
-		if got != nil && exp != nil {
-			if *got != *exp {
-				t.Errorf("Event %s mismatch expected %s got %s", name, *exp, *got)
-			} else {
-				fail = false
-			}
-		}
-	}
-	if fail {
-		t.Errorf("Event %s mismatch expected %v got %v", name, exp, got)
-	}
-}
-
 func validateEvent(t *testing.T, exp, got *model.Event) {
 	if got == nil {
 		t.Errorf("Expecting result, event  is nil")

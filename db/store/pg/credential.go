@@ -51,7 +51,7 @@ const (
 	sqlCredentialJoin = " INNER JOIN credential_attribute on credential_id = credential.id"
 )
 
-func (p *Database) addCredentialAttributes(id string, attributes []*graph.CredentialValue) (a []*graph.CredentialValue, err error) {
+func (pg *Database) addCredentialAttributes(id string, attributes []*graph.CredentialValue) (a []*graph.CredentialValue, err error) {
 	defer returnErr("addCredentialAttributes", &err)
 
 	query := constructCredentialAttributeInsert(len(attributes))
@@ -60,7 +60,7 @@ func (p *Database) addCredentialAttributes(id string, attributes []*graph.Creden
 		args = append(args, []interface{}{id, a.Name, a.Value, index}...)
 	}
 
-	rows, err := p.db.Query(query, args...)
+	rows, err := pg.db.Query(query, args...)
 	err2.Check(err)
 	defer rows.Close()
 
@@ -77,13 +77,13 @@ func (p *Database) addCredentialAttributes(id string, attributes []*graph.Creden
 	return attributes, nil
 }
 
-func (p *Database) AddCredential(c *model.Credential) (n *model.Credential, err error) {
+func (pg *Database) AddCredential(c *model.Credential) (n *model.Credential, err error) {
 	defer returnErr("AddCredential", &err)
 
 	if len(c.Attributes) == 0 {
 		panic("Attributes are always required for credential.")
 	}
-	rows, err := p.db.Query(
+	rows, err := pg.db.Query(
 		sqlCredentialInsert,
 		c.TenantID,
 		c.ConnectionID,
@@ -104,19 +104,19 @@ func (p *Database) AddCredential(c *model.Credential) (n *model.Credential, err 
 	err = rows.Err()
 	err2.Check(err)
 
-	attributes, err := p.addCredentialAttributes(n.ID, n.Attributes)
+	attributes, err := pg.addCredentialAttributes(n.ID, n.Attributes)
 	err2.Check(err)
 
 	n.Attributes = attributes
 	return n, err
 }
 
-func (p *Database) UpdateCredential(c *model.Credential) (n *model.Credential, err error) {
+func (pg *Database) UpdateCredential(c *model.Credential) (n *model.Credential, err error) {
 	defer returnErr("UpdateCredential", &err)
 
 	const sqlCredentialUpdate = "UPDATE credential SET approved=$1, issued=$2, failed=$3 WHERE id = $4" // TODO: tenant_id, connection_id?
 
-	_, err = p.db.Exec(
+	_, err = pg.db.Exec(
 		sqlCredentialUpdate,
 		c.Approved,
 		c.Issued,
@@ -174,14 +174,14 @@ func readRowToCredential(rows *sql.Rows, previous *model.Credential) (*model.Cre
 	return n, err
 }
 
-func (p *Database) GetCredential(id, tenantID string) (c *model.Credential, err error) {
+func (pg *Database) GetCredential(id, tenantID string) (c *model.Credential, err error) {
 	defer returnErr("GetCredential", &err)
 
 	const sqlCredentialSelectByID = sqlCredentialSelect + " credential" + sqlCredentialJoin +
 		" WHERE credential.id=$1 AND tenant_id=$2" +
 		" ORDER BY credential_attribute.index"
 
-	rows, err := p.db.Query(sqlCredentialSelectByID, id, tenantID)
+	rows, err := pg.db.Query(sqlCredentialSelectByID, id, tenantID)
 	err2.Check(err)
 	defer rows.Close()
 
@@ -197,7 +197,7 @@ func (p *Database) GetCredential(id, tenantID string) (c *model.Credential, err 
 	return
 }
 
-func (p *Database) getCredentialsForQuery(
+func (pg *Database) getCredentialsForQuery(
 	queries *queryInfo,
 	batch *paginator.BatchInfo,
 	initialArgs []interface{},
@@ -205,7 +205,7 @@ func (p *Database) getCredentialsForQuery(
 	defer returnErr("GetCredentials", &err)
 
 	query, args := getBatchQuery(queries, batch, initialArgs)
-	rows, err := p.db.Query(query, args...)
+	rows, err := pg.db.Query(query, args...)
 	err2.Check(err)
 	defer rows.Close()
 
@@ -259,9 +259,9 @@ func (p *Database) getCredentialsForQuery(
 	return c, err
 }
 
-func (p *Database) GetCredentials(info *paginator.BatchInfo, tenantID string, connectionID *string) (c *model.Credentials, err error) {
+func (pg *Database) GetCredentials(info *paginator.BatchInfo, tenantID string, connectionID *string) (c *model.Credentials, err error) {
 	if connectionID == nil {
-		return p.getCredentialsForQuery(&queryInfo{
+		return pg.getCredentialsForQuery(&queryInfo{
 			Asc:        sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+sqlOrderByAsc(""), "$2", "ASC"),
 			Desc:       sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+sqlOrderByDesc(""), "$2", "DESC"),
 			AfterAsc:   sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+" AND cursor > $2"+sqlOrderByAsc(""), "$3", "ASC"),
@@ -273,7 +273,7 @@ func (p *Database) GetCredentials(info *paginator.BatchInfo, tenantID string, co
 			[]interface{}{tenantID},
 		)
 	}
-	return p.getCredentialsForQuery(&queryInfo{
+	return pg.getCredentialsForQuery(&queryInfo{
 		Asc:        sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+sqlOrderByAsc(""), "$3", "ASC"),
 		Desc:       sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+sqlOrderByDesc(""), "$3", "DESC"),
 		AfterAsc:   sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+" AND cursor > $3"+sqlOrderByAsc(""), "$4", "ASC"),
@@ -286,9 +286,9 @@ func (p *Database) GetCredentials(info *paginator.BatchInfo, tenantID string, co
 	)
 }
 
-func (p *Database) GetCredentialCount(tenantID string, connectionID *string) (count int, err error) {
+func (pg *Database) GetCredentialCount(tenantID string, connectionID *string) (count int, err error) {
 	defer returnErr("GetCredentialCount", &err)
-	count, err = p.getCount(
+	count, err = pg.getCount(
 		"credential",
 		sqlCredentialBatchWhere,
 		sqlCredentialBatchWhereConnection,

@@ -153,11 +153,11 @@ func InitDB(migratePath, port string, reset bool) store.DB {
 	return &Database{db: sqlDB}
 }
 
-func (p *Database) Close() {
-	p.db.Close()
+func (pg *Database) Close() {
+	pg.db.Close()
 }
 
-func (p *Database) getCount(
+func (pg *Database) getCount(
 	tableName, batchWhere, batchWhereConnection, tenantID string,
 	connectionID *string,
 ) (count int, err error) {
@@ -173,7 +173,7 @@ func (p *Database) getCount(
 		args = append(args, *connectionID)
 	}
 
-	rows, err := p.db.Query(query, args...)
+	rows, err := pg.db.Query(query, args...)
 	err2.Check(err)
 	defer rows.Close()
 

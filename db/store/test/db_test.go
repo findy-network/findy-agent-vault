@@ -3,6 +3,7 @@ package test
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/db/store"
@@ -35,6 +36,15 @@ var (
 			{Name: "name2", Value: "value2"},
 		},
 	}
+	testProof *model.Proof = &model.Proof{
+		Role:          graph.ProofRoleProver,
+		InitiatedByUs: false,
+		Result:        true,
+		Attributes: []*graph.ProofAttribute{
+			{Name: "name1", Value: nil, CredDefID: "cred_def_id"},
+			{Name: "name2", Value: nil, CredDefID: "cred_def_id"},
+		},
+	}
 	testEvent *model.Event = &model.Event{
 		Description: "event desc",
 		Read:        false,
@@ -45,6 +55,36 @@ var (
 		Delivered: nil,
 	}
 )
+
+func validateTimestap(t *testing.T, exp, got *time.Time, name string) {
+	fail := false
+	if got != exp {
+		fail = true
+		if got != nil && exp != nil && got.Sub(*exp) < time.Microsecond {
+			fail = false
+		}
+	}
+	if fail {
+		t.Errorf("Object %s mismatch expected %s got %s", name, exp, got)
+	}
+}
+
+func validateStrPtr(t *testing.T, exp, got *string, name string) {
+	fail := false
+	if got != exp {
+		fail = true
+		if got != nil && exp != nil {
+			if *got != *exp {
+				t.Errorf("Object %s mismatch expected %s got %s", name, *exp, *got)
+			} else {
+				fail = false
+			}
+		}
+	}
+	if fail {
+		t.Errorf("Object %s mismatch expected %v got %v", name, exp, got)
+	}
+}
 
 func setup() {
 	utils.SetLogDefaults()

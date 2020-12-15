@@ -118,6 +118,7 @@ enum ProofRole {
 }
 
 type ProofAttribute {
+  id: ID!
   name: String!
   value: String
   credDefId: String!
@@ -141,6 +142,7 @@ type ProofEdge {
 }
 
 type ProofConnection {
+  connectionId: ID
   edges: [ProofEdge]
   nodes: [Proof]
   pageInfo: PageInfo!

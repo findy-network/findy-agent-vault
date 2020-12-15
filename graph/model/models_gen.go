@@ -184,16 +184,18 @@ type Proof struct {
 }
 
 type ProofAttribute struct {
+	ID        string  `json:"id"`
 	Name      string  `json:"name"`
 	Value     *string `json:"value"`
 	CredDefID string  `json:"credDefId"`
 }
 
 type ProofConnection struct {
-	Edges      []*ProofEdge `json:"edges"`
-	Nodes      []*Proof     `json:"nodes"`
-	PageInfo   *PageInfo    `json:"pageInfo"`
-	TotalCount int          `json:"totalCount"`
+	ConnectionID *string      `json:"connectionId"`
+	Edges        []*ProofEdge `json:"edges"`
+	Nodes        []*Proof     `json:"nodes"`
+	PageInfo     *PageInfo    `json:"pageInfo"`
+	TotalCount   int          `json:"totalCount"`
 }
 
 type ProofEdge struct {

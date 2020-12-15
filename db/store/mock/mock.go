@@ -11,6 +11,7 @@ type mockItems struct {
 	agent       *model.Agent
 	connections *items
 	credentials *items
+	proofs      *items
 	events      *items
 	messages    *items
 }
@@ -20,6 +21,7 @@ func newState() *mockItems {
 		agent:       nil,
 		connections: newItems(reflect.TypeOf(model.Connection{}).Name()),
 		credentials: newItems(reflect.TypeOf(model.Credential{}).Name()),
+		proofs:      newItems(reflect.TypeOf(model.Proof{}).Name()),
 		events:      newItems(reflect.TypeOf(model.Event{}).Name()),
 		messages:    newItems(reflect.TypeOf(model.Message{}).Name()),
 	}
@@ -42,6 +44,7 @@ type apiObject interface {
 	Created() uint64
 	Connection() *model.Connection
 	Credential() *model.Credential
+	Proof() *model.Proof
 	Event() *model.Event
 	Message() *model.Message
 	Copy() apiObject
@@ -55,6 +58,10 @@ func (b *base) Connection() *model.Connection {
 
 func (b *base) Credential() *model.Credential {
 	panic("Object is not connection")
+}
+
+func (b *base) Proof() *model.Proof {
+	panic("Object is not proof")
 }
 
 func (b *base) Event() *model.Event {

@@ -20,6 +20,7 @@ var (
 	r                *Resolver
 	testConnectionID string
 	testCredentialID string
+	testProofID      string
 	testEventID      string
 	testMessageID    string
 	totalCount       = 5
@@ -78,6 +79,9 @@ func setup() {
 
 	cr := fake.AddCredentials(r.db, a.ID, c[0].ID, size)
 	testCredentialID = cr[0].ID
+
+	pr := fake.AddProofs(r.db, a.ID, c[0].ID, size)
+	testProofID = pr[0].ID
 
 	ev := fake.AddEvents(r.db, a.ID, c[0].ID, size)
 	testEventID = ev[0].ID

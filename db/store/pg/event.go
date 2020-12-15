@@ -23,10 +23,10 @@ const (
 	sqlEventSelect = "SELECT id, " + sqlEventFields + ", created, cursor FROM"
 )
 
-func (p *Database) AddEvent(e *model.Event) (n *model.Event, err error) {
+func (pg *Database) AddEvent(e *model.Event) (n *model.Event, err error) {
 	defer returnErr("AddEvent", &err)
 
-	rows, err := p.db.Query(
+	rows, err := pg.db.Query(
 		sqlEventInsert,
 		e.TenantID,
 		e.ConnectionID,
@@ -49,13 +49,13 @@ func (p *Database) AddEvent(e *model.Event) (n *model.Event, err error) {
 	return n, err
 }
 
-func (p *Database) MarkEventRead(id, tenantID string) (e *model.Event, err error) {
+func (pg *Database) MarkEventRead(id, tenantID string) (e *model.Event, err error) {
 	defer returnErr("MarkEventRead", &err)
 
 	const sqlEventUpdate = "UPDATE event SET read=true WHERE id = $1 AND tenant_id = $2" +
 		" RETURNING id," + sqlEventFields + ", created, cursor"
 
-	rows, err := p.db.Query(
+	rows, err := pg.db.Query(
 		sqlEventUpdate,
 		id,
 		tenantID,
@@ -90,13 +90,13 @@ func readRowToEvent(rows *sql.Rows) (*model.Event, error) {
 	return n, err
 }
 
-func (p *Database) GetEvent(id, tenantID string) (e *model.Event, err error) {
+func (pg *Database) GetEvent(id, tenantID string) (e *model.Event, err error) {
 	defer returnErr("GetEvent", &err)
 
 	const sqlEventSelectByID = sqlEventSelect + " event" +
 		" WHERE event.id=$1 AND tenant_id=$2"
 
-	rows, err := p.db.Query(sqlEventSelectByID, id, tenantID)
+	rows, err := pg.db.Query(sqlEventSelectByID, id, tenantID)
 	err2.Check(err)
 	defer rows.Close()
 
@@ -112,7 +112,7 @@ func (p *Database) GetEvent(id, tenantID string) (e *model.Event, err error) {
 	return
 }
 
-func (p *Database) getEventsForQuery(
+func (pg *Database) getEventsForQuery(
 	queries *queryInfo,
 	batch *paginator.BatchInfo,
 	initialArgs []interface{},
@@ -120,7 +120,7 @@ func (p *Database) getEventsForQuery(
 	defer returnErr("GetEvents", &err)
 
 	query, args := getBatchQuery(queries, batch, initialArgs)
-	rows, err := p.db.Query(query, args...)
+	rows, err := pg.db.Query(query, args...)
 	err2.Check(err)
 	defer rows.Close()
 
@@ -165,9 +165,9 @@ func (p *Database) getEventsForQuery(
 	return e, err
 }
 
-func (p *Database) GetEvents(info *paginator.BatchInfo, tenantID string, connectionID *string) (c *model.Events, err error) {
+func (pg *Database) GetEvents(info *paginator.BatchInfo, tenantID string, connectionID *string) (c *model.Events, err error) {
 	if connectionID == nil {
-		return p.getEventsForQuery(&queryInfo{
+		return pg.getEventsForQuery(&queryInfo{
 			Asc:        sqlEventSelectBatchFor(sqlEventBatchWhere+sqlOrderByAsc(""), "$2"),
 			Desc:       sqlEventSelectBatchFor(sqlEventBatchWhere+sqlOrderByDesc(""), "$2"),
 			AfterAsc:   sqlEventSelectBatchFor(sqlEventBatchWhere+" AND cursor > $2"+sqlOrderByAsc(""), "$3"),
@@ -179,7 +179,7 @@ func (p *Database) GetEvents(info *paginator.BatchInfo, tenantID string, connect
 			[]interface{}{tenantID},
 		)
 	}
-	return p.getEventsForQuery(&queryInfo{
+	return pg.getEventsForQuery(&queryInfo{
 		Asc:        sqlEventSelectBatchFor(sqlEventBatchWhereConnection+sqlOrderByAsc(""), "$3"),
 		Desc:       sqlEventSelectBatchFor(sqlEventBatchWhereConnection+sqlOrderByDesc(""), "$3"),
 		AfterAsc:   sqlEventSelectBatchFor(sqlEventBatchWhereConnection+" AND cursor > $3"+sqlOrderByAsc(""), "$4"),
@@ -192,9 +192,9 @@ func (p *Database) GetEvents(info *paginator.BatchInfo, tenantID string, connect
 	)
 }
 
-func (p *Database) GetEventCount(tenantID string, connectionID *string) (count int, err error) {
+func (pg *Database) GetEventCount(tenantID string, connectionID *string) (count int, err error) {
 	defer returnErr("GetEventCount", &err)
-	count, err = p.getCount(
+	count, err = pg.getCount(
 		"event",
 		sqlEventBatchWhere,
 		sqlEventBatchWhereConnection,

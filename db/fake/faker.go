@@ -101,6 +101,42 @@ func AddCredentials(db store.DB, tenantID, connectionID string, count int) []*mo
 	return newCredentials
 }
 
+func AddProofs(db store.DB, tenantID, connectionID string, count int) []*model.Proof {
+	_ = faker.AddProvider("proofAttributes", func(v reflect.Value) (interface{}, error) {
+		value := "value"
+		return []*graph.ProofAttribute{
+			{Name: "name1", Value: &value, CredDefID: "credDefId1"},
+			{Name: "name2", Value: &value, CredDefID: "credDefId2"},
+			{Name: "name3", Value: &value, CredDefID: "credDefId3"},
+		}, nil
+	})
+
+	proofs := make([]*model.Proof, count)
+	for i := 0; i < count; i++ {
+		proof := fakeProof(tenantID, connectionID)
+		proofs[i] = proof
+	}
+
+	newProofs := make([]*model.Proof, count)
+	for index, proof := range proofs {
+		p, err := db.AddProof(proof)
+		err2.Check(err)
+		time.Sleep(time.Millisecond) // generate different timestamps for items
+
+		now := time.Now().UTC()
+		p.Approved = &now
+		p.Verified = &now
+		_, err = db.UpdateProof(p)
+		err2.Check(err)
+
+		newProofs[index] = p
+	}
+
+	utils.LogMed().Infof("Generated %d proofs for tenant %s", len(newProofs), tenantID)
+
+	return newProofs
+}
+
 func AddConnections(db store.DB, tenantID string, count int) []*model.Connection {
 	_ = faker.AddProvider("organisationLabel", func(v reflect.Value) (interface{}, error) {
 		orgs := []string{"Bank", "Ltd", "Agency", "Company", "United"}
@@ -168,6 +204,15 @@ func fakeCredential(tenantID, connectionID string) *model.Credential {
 	credential.TenantID = tenantID
 	credential.ConnectionID = connectionID
 	return credential
+}
+
+func fakeProof(tenantID, connectionID string) *model.Proof {
+	proof := model.NewProof(nil)
+	err2.Check(faker.FakeData(proof))
+	proof = model.NewProof(proof)
+	proof.TenantID = tenantID
+	proof.ConnectionID = connectionID
+	return proof
 }
 
 func fakeEvent(tenantID, connectionID string) *model.Event {
