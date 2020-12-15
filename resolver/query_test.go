@@ -8,16 +8,9 @@ import (
 	"testing"
 
 	"github.com/findy-network/findy-agent-vault/paginator"
-	"github.com/findy-network/findy-agent-vault/server"
 )
 
 type executor func(ctx context.Context, after *string, before *string, first *int, last *int) error
-
-func testContext() context.Context {
-	u := server.CreateTestToken("test")
-	ctx := context.WithValue(context.Background(), "user", u)
-	return ctx
-}
 
 func testPaginationErrors(t *testing.T, objName string, ex executor) {
 	t.Run(fmt.Sprintf("get %s", objName), func(t *testing.T) {
@@ -57,7 +50,6 @@ func testPaginationErrors(t *testing.T, objName string, ex executor) {
 
 func TestPaginationErrorsGetConnections(t *testing.T) {
 	testPaginationErrors(t, "connections", func(ctx context.Context, after, before *string, first, last *int) error {
-		r := InitResolver(true)
 		_, err := r.Query().Connections(ctx, after, before, first, last)
 		return err
 	})
@@ -86,7 +78,6 @@ func TestGetConnection(t *testing.T) {
 
 func TestPaginationErrorsGetCredentials(t *testing.T) {
 	testPaginationErrors(t, "connections", func(ctx context.Context, after, before *string, first, last *int) error {
-		r := InitResolver(true)
 		_, err := r.Query().Credentials(ctx, after, before, first, last)
 		return err
 	})
@@ -115,7 +106,6 @@ func TestGetCredential(t *testing.T) {
 
 func TestPaginationErrorsGetEvents(t *testing.T) {
 	testPaginationErrors(t, "connections", func(ctx context.Context, after, before *string, first, last *int) error {
-		r := InitResolver(true)
 		_, err := r.Query().Events(ctx, after, before, first, last)
 		return err
 	})

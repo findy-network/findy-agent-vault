@@ -24,23 +24,7 @@ func (r *credentialResolver) Connection(ctx context.Context, obj *model.Credenti
 }
 
 func (r *credentialConnectionResolver) TotalCount(ctx context.Context, obj *model.CredentialConnection) (int, error) {
-	var err error
-	defer err2.Return(&err)
-
-	// TODO: store agent data to context?
-	agent, err := store.GetAgent(ctx, r.db)
-	err2.Check(err)
-
-	utils.LogMed().Infof(
-		"credentialConnectionResolver:TotalCount for tenant %s, connection: %v",
-		agent.ID,
-		obj.ConnectionID,
-	)
-
-	count, err := r.db.GetCredentialCount(agent.ID, obj.ConnectionID)
-	err2.Check(err)
-
-	return count, nil
+	return r.totalCount(ctx, obj)
 }
 
 func (r *eventResolver) Job(ctx context.Context, obj *model.Event) (*model.JobEdge, error) {

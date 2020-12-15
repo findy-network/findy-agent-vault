@@ -1,10 +1,12 @@
 package resolver
 
 import (
+	"context"
 	"os"
 	"testing"
 
 	"github.com/findy-network/findy-agent-vault/db/fake"
+	"github.com/findy-network/findy-agent-vault/server"
 
 	"github.com/findy-network/findy-agent-vault/db/store/test"
 	"github.com/findy-network/findy-agent-vault/utils"
@@ -15,12 +17,19 @@ var (
 	testConnectionID string
 	testCredentialID string
 	testEventID      string
+	totalCount       = 5
 )
+
+func testContext() context.Context {
+	u := server.CreateTestToken("test")
+	ctx := context.WithValue(context.Background(), "user", u)
+	return ctx
+}
 
 func setup() {
 	utils.SetLogDefaults()
 	r = InitResolver(true)
-	size := 5
+	size := totalCount
 	a, c := test.AddAgentAndConnections(r.db, fake.FakeCloudDID, size)
 	testConnectionID = c[0].ID
 

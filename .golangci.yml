@@ -101,6 +101,9 @@ issues:
         - dupl
         - gocritic
         - lll
+    - path: resolver/query.go
+      linters:
+        - dupl
     - path: db/store/pg/pg.go
       linters:
         - gocritic
