@@ -81,3 +81,39 @@ func (r *queryResolver) credentials(ctx context.Context, after *string, before *
 
 	return res.ToConnection(nil), nil
 }
+
+func (r *queryResolver) events(ctx context.Context, after *string, before *string, first *int, last *int) (e *model.EventConnection, err error) {
+	defer err2.Return(&err)
+
+	agent, err := store.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	utils.LogMed().Info("queryResolver:Events for tenant: ", agent.ID)
+
+	batch, err := paginator.Validate("queryResolver:Events", &paginator.Params{
+		First:  first,
+		Last:   last,
+		After:  after,
+		Before: before,
+	})
+	err2.Check(err)
+
+	res, err := r.db.GetEvents(batch, agent.ID, nil)
+	err2.Check(err)
+
+	return res.ToConnection(nil), nil
+}
+
+func (r *queryResolver) event(ctx context.Context, id string) (e *model.Event, err error) {
+	defer err2.Return(&err)
+
+	agent, err := store.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	utils.LogMed().Infof("queryResolver:Event id: %s for tenant %s", id, agent.ID)
+
+	event, err := r.db.GetEvent(id, agent.ID)
+	err2.Check(err)
+
+	return event.ToNode(), nil
+}

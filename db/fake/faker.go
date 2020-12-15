@@ -66,7 +66,7 @@ func AddCredentials(db store.DB, tenantID, connectionID string, count int) []*mo
 		err2.Check(err)
 		time.Sleep(time.Millisecond) // generate different timestamps for items
 
-		now := time.Now().UTC().Round(0)
+		now := time.Now().UTC()
 		c.Approved = &now
 		c.Issued = &now
 		_, err = db.UpdateCredential(c)

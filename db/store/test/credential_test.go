@@ -16,7 +16,7 @@ func validateTimestap(t *testing.T, exp, got *time.Time, name string) {
 	fail := false
 	if got != exp {
 		fail = true
-		if got != nil && exp != nil && got.Sub(*exp) == 0 {
+		if got != nil && exp != nil && got.Sub(*exp) < time.Microsecond {
 			fail = false
 		}
 	}
@@ -184,7 +184,7 @@ func TestUpdateCredential(t *testing.T) {
 			}
 
 			// Update data
-			now := time.Now().UTC().Round(0)
+			now := time.Now().UTC()
 			c.Approved = &now
 			c.Issued = &now
 			_, err = s.db.UpdateCredential(c)
