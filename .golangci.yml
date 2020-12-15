@@ -96,6 +96,25 @@ issues:
     - path: _test.go
       linters:
         - dupl
+    - path: db/store/pg/pg.go
+      linters:
+        - gocritic
+    - path: db/fake/
+      linters:
+        - dupl
+    - path: db/store/pg/message.go
+      linters:
+        - dupl
+    - path: db/store/pg/event.go
+      linters:
+        - dupl
+    - path: db/store/mock
+      linters:
+        - dupl
+        - unused
+    - path: db/model
+      linters:
+        - dupl
     - path: resolver/schema.resolvers.go
       linters:
         - dupl
@@ -104,15 +123,12 @@ issues:
     - path: resolver/query.go
       linters:
         - dupl
-    - path: db/store/pg/pg.go
-      linters:
-        - gocritic
-    - path: db/store/mock
+    - path: resolver/pairwise.go
       linters:
         - dupl
-    - path: db/model
+    - path: resolver/pairwise_connection.go
       linters:
-        - dupl
+        - unparam
     - path: resolver/resolver_test.go
       linters:
         - staticcheck

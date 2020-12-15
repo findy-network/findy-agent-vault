@@ -24,6 +24,27 @@ func random(n int) int {
 	return int(val.Int64())
 }
 
+func AddMessages(db store.DB, tenantID, connectionID string, count int) []*model.Message {
+	messages := make([]*model.Message, count)
+	for i := 0; i < count; i++ {
+		message := fakeMessage(tenantID, connectionID)
+		messages[i] = message
+	}
+
+	newMessages := make([]*model.Message, count)
+	for index, message := range messages {
+		c, err := db.AddMessage(message)
+		err2.Check(err)
+		time.Sleep(time.Millisecond) // generate different timestamps for items
+
+		newMessages[index] = c
+	}
+
+	utils.LogMed().Infof("Generated %d messages for tenant %s", len(newMessages), tenantID)
+
+	return newMessages
+}
+
 func AddEvents(db store.DB, tenantID, connectionID string, count int) []*model.Event {
 	events := make([]*model.Event, count)
 	for i := 0; i < count; i++ {
@@ -156,4 +177,13 @@ func fakeEvent(tenantID, connectionID string) *model.Event {
 	event.TenantID = tenantID
 	event.ConnectionID = &connectionID
 	return event
+}
+
+func fakeMessage(tenantID, connectionID string) *model.Message {
+	message := model.NewMessage(nil)
+	err2.Check(faker.FakeData(message))
+	message = model.NewMessage(message)
+	message.TenantID = tenantID
+	message.ConnectionID = connectionID
+	return message
 }

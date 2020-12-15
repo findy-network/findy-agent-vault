@@ -68,6 +68,7 @@ type BasicMessageEdge {
 }
 
 type BasicMessageConnection {
+  ConnectionId: ID
   edges: [BasicMessageEdge]
   nodes: [BasicMessage]
   pageInfo: PageInfo!
