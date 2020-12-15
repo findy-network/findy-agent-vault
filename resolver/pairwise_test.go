@@ -25,6 +25,23 @@ func TestResolverGetConnectionCredentials(t *testing.T) {
 	}
 }
 
+func TestPaginationErrorsGetConnectionProofs(t *testing.T) {
+	testPaginationErrors(t, "connection proofs", func(ctx context.Context, after, before *string, first, last *int) error {
+		_, err := r.Pairwise().Proofs(ctx, &model.Pairwise{ID: testConnectionID}, after, before, first, last)
+		return err
+	})
+}
+
+func TestResolverGetConnectionProofs(t *testing.T) {
+	first := 1
+	c, err := r.Pairwise().Proofs(testContext(), &model.Pairwise{ID: testConnectionID}, nil, nil, &first, nil)
+	if err != nil {
+		t.Errorf("Received unexpected error %s", err)
+	}
+	if c == nil || len(c.Edges) == 0 {
+		t.Errorf("Expecting result, received %v", c)
+	}
+}
 func TestPaginationErrorsGetConnectionEvents(t *testing.T) {
 	testPaginationErrors(t, "connection events", func(ctx context.Context, after, before *string, first, last *int) error {
 		_, err := r.Pairwise().Events(ctx, &model.Pairwise{ID: testConnectionID}, after, before, first, last)

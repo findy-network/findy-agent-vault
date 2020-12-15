@@ -86,6 +86,20 @@ func (r *queryResolver) credentials(
 	return res.ToConnection(nil), nil
 }
 
+func (r *queryResolver) proof(ctx context.Context, id string) (c *model.Proof, err error) {
+	defer err2.Return(&err)
+
+	agent, err := store.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	utils.LogMed().Infof("queryResolver:Proof id: %s for tenant %s", id, agent.ID)
+
+	cred, err := r.db.GetProof(id, agent.ID)
+	err2.Check(err)
+
+	return cred.ToNode(), nil
+}
+
 func (r *queryResolver) events(ctx context.Context, after, before *string, first, last *int) (e *model.EventConnection, err error) {
 	defer err2.Return(&err)
 

@@ -34,7 +34,7 @@ func TestGetConnection(t *testing.T) {
 }
 
 func TestPaginationErrorsGetCredentials(t *testing.T) {
-	testPaginationErrors(t, "connections", func(ctx context.Context, after, before *string, first, last *int) error {
+	testPaginationErrors(t, "credentials", func(ctx context.Context, after, before *string, first, last *int) error {
 		_, err := r.Query().Credentials(ctx, after, before, first, last)
 		return err
 	})
@@ -53,6 +53,16 @@ func TestResolverGetCredentials(t *testing.T) {
 
 func TestGetCredential(t *testing.T) {
 	c, err := r.Query().Credential(testContext(), testCredentialID)
+	if err != nil {
+		t.Errorf("Received unexpected error %s", err)
+	}
+	if c == nil {
+		t.Errorf("Expecting result, received %v", c)
+	}
+}
+
+func TestGetProof(t *testing.T) {
+	c, err := r.Query().Proof(testContext(), testProofID)
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)
 	}
