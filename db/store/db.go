@@ -9,7 +9,10 @@ import (
 )
 
 func GetAgent(ctx context.Context, db DB) (*model.Agent, error) {
-	token := utils.ParseToken(ctx)
+	token, err := utils.ParseToken(ctx)
+	if err != nil {
+		return nil, err
+	}
 	a := model.NewAgent()
 	a.AgentID = token.AgentID
 	a.Label = token.Label
