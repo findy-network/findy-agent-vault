@@ -184,7 +184,7 @@ func TestUpdateCredential(t *testing.T) {
 			}
 
 			// Update data
-			now := time.Now().UTC()
+			now := time.Now().UTC().Round(0)
 			c.Approved = &now
 			c.Issued = &now
 			_, err = s.db.UpdateCredential(c)

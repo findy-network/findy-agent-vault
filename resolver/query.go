@@ -45,3 +45,39 @@ func (r *queryResolver) connection(ctx context.Context, id string) (c *model.Pai
 
 	return conn.ToNode(), nil
 }
+
+func (r *queryResolver) credential(ctx context.Context, id string) (c *model.Credential, err error) {
+	defer err2.Return(&err)
+
+	agent, err := store.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	utils.LogMed().Infof("queryResolver:Credential id: %s for tenant %s", id, agent.ID)
+
+	cred, err := r.db.GetCredential(id, agent.ID)
+	err2.Check(err)
+
+	return cred.ToNode(), nil
+}
+
+func (r *queryResolver) credentials(ctx context.Context, after *string, before *string, first *int, last *int) (c *model.CredentialConnection, err error) {
+	defer err2.Return(&err)
+
+	agent, err := store.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	utils.LogMed().Info("queryResolver:Credentials for tenant: ", agent.ID)
+
+	batch, err := paginator.Validate("queryResolver:Credentials", &paginator.Params{
+		First:  first,
+		Last:   last,
+		After:  after,
+		Before: before,
+	})
+	err2.Check(err)
+
+	res, err := r.db.GetCredentials(batch, agent.ID, nil)
+	err2.Check(err)
+
+	return res.ToConnection(nil), nil
+}
