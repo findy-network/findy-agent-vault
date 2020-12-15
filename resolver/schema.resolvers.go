@@ -88,7 +88,7 @@ func (r *pairwiseResolver) Credentials(ctx context.Context, obj *model.Pairwise,
 }
 
 func (r *pairwiseResolver) Proofs(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.ProofConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.proofs(ctx, obj, after, before, first, last)
 }
 
 func (r *pairwiseResolver) Jobs(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int, completed *bool) (*model.JobConnection, error) {
@@ -132,7 +132,7 @@ func (r *queryResolver) Credentials(ctx context.Context, after *string, before *
 }
 
 func (r *queryResolver) Proof(ctx context.Context, id string) (*model.Proof, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.proof(ctx, id)
 }
 
 func (r *queryResolver) Events(ctx context.Context, after *string, before *string, first *int, last *int) (*model.EventConnection, error) {
