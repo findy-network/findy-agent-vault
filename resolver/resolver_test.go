@@ -4,13 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"reflect"
 	"testing"
 
 	"github.com/findy-network/findy-agent-vault/db/fake"
-	dbModel "github.com/findy-network/findy-agent-vault/db/model"
+
+	"github.com/findy-network/findy-agent-vault/db/store/test"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/server"
+	"github.com/findy-network/findy-agent-vault/utils"
 )
 
 type executor func(ctx context.Context, after *string, before *string, first *int, last *int) error
@@ -57,23 +60,6 @@ func testPaginationErrors(t *testing.T, objName string, ex executor) {
 	})
 }
 
-var testConnectionID = ""
-
-func addTestData(r *Resolver) {
-	ctAgent := dbModel.NewAgent()
-	ctAgent.AgentID = fake.FakeCloudDID
-	ctAgent.Label = "resolverAgent"
-
-	a, err := r.db.AddAgent(ctAgent)
-	if err != nil {
-		panic(err)
-	}
-
-	size := 5
-	c := fake.AddConnections(r.db, a.ID, size)
-	testConnectionID = c[0].ID
-}
-
 func TestPaginationErrorsGetConnections(t *testing.T) {
 	testPaginationErrors(t, "connections", func(ctx context.Context, after, before *string, first, last *int) error {
 		r := InitResolver(true)
@@ -83,8 +69,6 @@ func TestPaginationErrorsGetConnections(t *testing.T) {
 }
 
 func TestResolverGetConnections(t *testing.T) {
-	r := InitResolver(true)
-	addTestData(r)
 	first := 1
 	c, err := r.Query().Connections(testContext(), nil, nil, &first, nil)
 	if err != nil {
@@ -96,8 +80,6 @@ func TestResolverGetConnections(t *testing.T) {
 }
 
 func TestGetConnection(t *testing.T) {
-	r := InitResolver(true)
-	addTestData(r)
 	c, err := r.Query().Connection(testContext(), testConnectionID)
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)
@@ -105,4 +87,27 @@ func TestGetConnection(t *testing.T) {
 	if c == nil {
 		t.Errorf("Expecting result, received %v", c)
 	}
+}
+
+var (
+	r                *Resolver
+	testConnectionID string
+)
+
+func setup() {
+	utils.SetLogDefaults()
+	r = InitResolver(true)
+	size := 5
+	_, c := test.AddAgentAndConnections(r.db, fake.FakeCloudDID, size)
+	testConnectionID = c[0].ID
+}
+
+func teardown() {
+}
+
+func TestMain(m *testing.M) {
+	setup()
+	code := m.Run()
+	teardown()
+	os.Exit(code)
 }

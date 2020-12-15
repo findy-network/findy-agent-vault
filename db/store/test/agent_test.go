@@ -11,7 +11,7 @@ func TestAddAgent(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("add agent "+s.name, func(t *testing.T) {
-			testAgent := model.NewAgent()
+			testAgent := model.NewAgent(nil)
 			testAgent.AgentID = "agentID"
 			testAgent.Label = "agentLabel"
 

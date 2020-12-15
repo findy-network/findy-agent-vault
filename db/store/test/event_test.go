@@ -179,7 +179,7 @@ func TestGetTenantEvents(t *testing.T) {
 		s := DBs[index]
 		t.Run("get event s "+s.name, func(t *testing.T) {
 			// add new agent with no pre-existing events
-			a, connections := addAgentAndConnections("TestGetTenantEvents", s)
+			a, connections := AddAgentAndConnections(s.db, "TestGetTenantEvents", 3)
 
 			size := 5
 			all := fake.AddEvents(s.db, a.ID, connections[0].ID, size)
@@ -214,7 +214,7 @@ func TestGetConnectionEvents(t *testing.T) {
 		s := DBs[index]
 		t.Run("get connection event s "+s.name, func(t *testing.T) {
 			// add new agent with no pre-existing event s
-			a, connections := addAgentAndConnections("TestGetConnectionEvents", s)
+			a, connections := AddAgentAndConnections(s.db, "TestGetConnectionEvents", 3)
 
 			size := 5
 			countPerConnection := size * 3
@@ -250,7 +250,7 @@ func TestGetEventCount(t *testing.T) {
 		s := DBs[index]
 		t.Run("get event s count "+s.name, func(t *testing.T) {
 			// add new agent with no pre-existing event s
-			a, connections := addAgentAndConnections("TestGetEventCount", s)
+			a, connections := AddAgentAndConnections(s.db, "TestGetEventCount", 3)
 			size := 5
 			fake.AddEvents(s.db, a.ID, connections[0].ID, size)
 
@@ -270,7 +270,7 @@ func TestGetConnectionEventCount(t *testing.T) {
 		s := DBs[index]
 		t.Run("get connection event s count "+s.name, func(t *testing.T) {
 			// add new agent with no pre-existing event s
-			a, connections := addAgentAndConnections("TestGetConnectionEventCount", s)
+			a, connections := AddAgentAndConnections(s.db, "TestGetConnectionEventCount", 3)
 			size := 5
 			index := 0
 			fake.AddEvents(s.db, a.ID, connections[index].ID, (index+1)*size)

@@ -14,20 +14,19 @@ func (m *mockData) AddAgent(a *model.Agent) (*model.Agent, error) {
 	}
 	n := agent.agent
 
+	now := time.Now().UTC()
 	if !ok {
-		n = a.Copy()
+		n = model.NewAgent(a)
 		n.ID = faker.UUIDHyphenated()
-		n.Created = time.Now().UTC()
-		n.LastAccessed = time.Now().UTC()
+		n.Created = now
 	} else {
-		n.LastAccessed = time.Now().UTC()
+		n = model.NewAgent(n)
 	}
+	n.LastAccessed = now
 	agent.agent = n
 
-	if !ok {
-		m.agents[n.ID] = agent
-		m.agentsByAgentID[n.AgentID] = agent
-	}
+	m.agents[n.ID] = agent
+	m.agentsByAgentID[n.AgentID] = agent
 
 	return n, nil
 }

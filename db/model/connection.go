@@ -33,7 +33,7 @@ func NewConnection(c *Connection) *Connection {
 func (c *Connection) copy() (n *Connection) {
 	n = NewConnection(nil)
 	if c.base != nil {
-		n.base = c.base.Copy()
+		n.base = c.base.copy()
 	}
 
 	n.OurDid = c.OurDid

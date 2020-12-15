@@ -66,7 +66,7 @@ func AddCredentials(db store.DB, tenantID, connectionID string, count int) []*mo
 		err2.Check(err)
 		time.Sleep(time.Millisecond) // generate different timestamps for items
 
-		now := time.Now().UTC()
+		now := time.Now().UTC().Round(0)
 		c.Approved = &now
 		c.Issued = &now
 		_, err = db.UpdateCredential(c)
@@ -127,9 +127,9 @@ func AddData(db store.DB) {
 }
 
 func fakeAgent() *model.Agent {
-	agent := model.NewAgent()
+	agent := model.NewAgent(nil)
 	err2.Check(faker.FakeData(&agent))
-	return agent.Copy()
+	return model.NewAgent(agent)
 }
 
 func fakeConnection(tenantID string) *model.Connection {

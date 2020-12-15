@@ -46,7 +46,7 @@ func (c *Credential) copy() (n *Credential) {
 	}
 
 	if c.base != nil {
-		n.base = c.base.Copy()
+		n.base = c.base.copy()
 	}
 	n.ConnectionID = c.ConnectionID
 	n.Role = c.Role

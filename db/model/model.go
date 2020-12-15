@@ -17,7 +17,7 @@ type base struct {
 	Created  time.Time
 }
 
-func (b *base) Copy() *base {
+func (b *base) copy() *base {
 	baseCopy := *b
 	return &baseCopy
 }
@@ -29,12 +29,17 @@ type Agent struct {
 	LastAccessed time.Time
 }
 
-func NewAgent() *Agent { return &Agent{base: &base{}} }
+func NewAgent(a *Agent) *Agent {
+	if a != nil {
+		return a.copy()
+	}
+	return &Agent{base: &base{}}
+}
 
-func (a *Agent) Copy() (n *Agent) {
-	n = NewAgent()
+func (a *Agent) copy() (n *Agent) {
+	n = NewAgent(nil)
 	if a.base != nil {
-		n.base = a.base.Copy()
+		n.base = a.base.copy()
 	}
 	n.AgentID = a.AgentID
 	n.Label = a.Label

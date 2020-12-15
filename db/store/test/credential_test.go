@@ -16,7 +16,7 @@ func validateTimestap(t *testing.T, exp, got *time.Time, name string) {
 	fail := false
 	if got != exp {
 		fail = true
-		if got != nil && exp != nil && got.Round(0).Sub(*exp) == 0 {
+		if got != nil && exp != nil && got.Sub(*exp) == 0 {
 			fail = false
 		}
 	}
@@ -207,8 +207,7 @@ func TestGetTenantCredentials(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("get credentials "+s.name, func(t *testing.T) {
-			// add new agent with no pre-existing credentials
-			a, connections := addAgentAndConnections("TestGetTenantCredentials", s)
+			a, connections := AddAgentAndConnections(s.db, "TestGetTenantCredentials", 3)
 
 			size := 5
 			all := fake.AddCredentials(s.db, a.ID, connections[0].ID, size)
@@ -243,7 +242,7 @@ func TestGetConnectionCredentials(t *testing.T) {
 		s := DBs[index]
 		t.Run("get connection credentials "+s.name, func(t *testing.T) {
 			// add new agent with no pre-existing credentials
-			a, connections := addAgentAndConnections("TestGetConnectionCredentials", s)
+			a, connections := AddAgentAndConnections(s.db, "TestGetConnectionCredentials", 3)
 
 			size := 5
 			countPerConnection := size * 3
@@ -279,7 +278,7 @@ func TestGetCredentialCount(t *testing.T) {
 		s := DBs[index]
 		t.Run("get credentials count "+s.name, func(t *testing.T) {
 			// add new agent with no pre-existing credentials
-			a, connections := addAgentAndConnections("TestGetCredentialCount", s)
+			a, connections := AddAgentAndConnections(s.db, "TestGetCredentialCount", 3)
 			size := 5
 			fake.AddCredentials(s.db, a.ID, connections[0].ID, size)
 
@@ -299,7 +298,7 @@ func TestGetConnectionCredentialCount(t *testing.T) {
 		s := DBs[index]
 		t.Run("get connection credentials count "+s.name, func(t *testing.T) {
 			// add new agent with no pre-existing credentials
-			a, connections := addAgentAndConnections("TestGetConnectionCredentialCount", s)
+			a, connections := AddAgentAndConnections(s.db, "TestGetConnectionCredentialCount", 3)
 			size := 5
 			index := 0
 			fake.AddCredentials(s.db, a.ID, connections[index].ID, (index+1)*size)
