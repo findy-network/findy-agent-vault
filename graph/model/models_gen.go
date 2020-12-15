@@ -18,10 +18,11 @@ type BasicMessage struct {
 }
 
 type BasicMessageConnection struct {
-	Edges      []*BasicMessageEdge `json:"edges"`
-	Nodes      []*BasicMessage     `json:"nodes"`
-	PageInfo   *PageInfo           `json:"pageInfo"`
-	TotalCount int                 `json:"totalCount"`
+	ConnectionID *string             `json:"ConnectionId"`
+	Edges        []*BasicMessageEdge `json:"edges"`
+	Nodes        []*BasicMessage     `json:"nodes"`
+	PageInfo     *PageInfo           `json:"pageInfo"`
+	TotalCount   int                 `json:"totalCount"`
 }
 
 type BasicMessageEdge struct {

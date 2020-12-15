@@ -17,7 +17,7 @@ type Resolver struct {
 	db store.DB
 }
 
-func InitResolver(mockDB bool, fakeData bool) *Resolver {
+func InitResolver(mockDB, fakeData bool) *Resolver {
 	var db store.DB
 	if mockDB {
 		db = mock.InitState()

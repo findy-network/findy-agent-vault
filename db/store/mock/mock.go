@@ -12,6 +12,7 @@ type mockItems struct {
 	connections *items
 	credentials *items
 	events      *items
+	messages    *items
 }
 
 func newState() *mockItems {
@@ -20,8 +21,8 @@ func newState() *mockItems {
 		connections: newItems(reflect.TypeOf(model.Connection{}).Name()),
 		credentials: newItems(reflect.TypeOf(model.Credential{}).Name()),
 		events:      newItems(reflect.TypeOf(model.Event{}).Name()),
+		messages:    newItems(reflect.TypeOf(model.Message{}).Name()),
 	}
-	state.sort()
 	return state
 }
 
@@ -32,6 +33,8 @@ func InitState() store.DB {
 func (m *mockItems) sort() {
 	m.connections.sort()
 	m.credentials.sort()
+	m.events.sort()
+	m.messages.sort()
 }
 
 type apiObject interface {
@@ -40,6 +43,7 @@ type apiObject interface {
 	Connection() *model.Connection
 	Credential() *model.Credential
 	Event() *model.Event
+	Message() *model.Message
 	Copy() apiObject
 }
 
@@ -55,6 +59,10 @@ func (b *base) Credential() *model.Credential {
 
 func (b *base) Event() *model.Event {
 	panic("Object is not event")
+}
+
+func (b *base) Message() *model.Message {
+	panic("Object is not message")
 }
 
 type mockData struct {

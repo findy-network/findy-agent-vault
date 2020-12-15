@@ -100,3 +100,7 @@ models:
     fields:
       totalCount:
         resolver: true
+  BasicMessageConnection:
+    fields:
+      totalCount:
+        resolver: true

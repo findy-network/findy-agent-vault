@@ -39,6 +39,11 @@ var (
 		Description: "event desc",
 		Read:        false,
 	}
+	testMessage *model.Message = &model.Message{
+		Message:   "msg content",
+		SentByMe:  false,
+		Delivered: nil,
+	}
 )
 
 func setup() {

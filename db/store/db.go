@@ -42,18 +42,9 @@ type DB interface {
 	GetEvents(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Events, err error)
 	GetEventCount(tenantID string, connectionID *string) (int, error)
 
-	/*AddMessage(connectionID, id, message string, sentByMe bool)
-	UpdateMessage(connectionID, id, delivered bool)
-
-	AddCredential(
-		connectionID, id string,
-		role model.CredentialRole,
-		schemaID, credDefID string,
-		attributes []*model.CredentialValue,
-		initiatedByUs bool,
-	)
-	UpdateCredential(connectionID, id string, approvedMs, issuedMs, failedMs *int64)
-
-	AddProof(connectionID, id string, role model.ProofRole, attributes []*model.ProofAttribute, initiatedByUs bool)
-	UpdateProof(connectionID, id string, approvedMs, verifiedMs, failedMs *int64)*/
+	AddMessage(c *model.Message) (*model.Message, error)
+	UpdateMessage(c *model.Message) (*model.Message, error)
+	GetMessage(id string, tenantID string) (*model.Message, error)
+	GetMessages(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Messages, err error)
+	GetMessageCount(tenantID string, connectionID *string) (int, error)
 }

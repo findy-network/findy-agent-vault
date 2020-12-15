@@ -64,10 +64,11 @@ type ComplexityRoot struct {
 	}
 
 	BasicMessageConnection struct {
-		Edges      func(childComplexity int) int
-		Nodes      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		ConnectionID func(childComplexity int) int
+		Edges        func(childComplexity int) int
+		Nodes        func(childComplexity int) int
+		PageInfo     func(childComplexity int) int
+		TotalCount   func(childComplexity int) int
 	}
 
 	BasicMessageEdge struct {
@@ -389,6 +390,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.BasicMessage.SentByMe(childComplexity), true
+
+	case "BasicMessageConnection.ConnectionId":
+		if e.complexity.BasicMessageConnection.ConnectionID == nil {
+			break
+		}
+
+		return e.complexity.BasicMessageConnection.ConnectionID(childComplexity), true
 
 	case "BasicMessageConnection.edges":
 		if e.complexity.BasicMessageConnection.Edges == nil {
@@ -1511,6 +1519,7 @@ type BasicMessageEdge {
 }
 
 type BasicMessageConnection {
+  ConnectionId: ID
   edges: [BasicMessageEdge]
   nodes: [BasicMessage]
   pageInfo: PageInfo!
@@ -2564,6 +2573,38 @@ func (ec *executionContext) _BasicMessage_connection(ctx context.Context, field 
 	res := resTmp.(*model.Pairwise)
 	fc.Result = res
 	return ec.marshalNPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BasicMessageConnection_ConnectionId(ctx context.Context, field graphql.CollectedField, obj *model.BasicMessageConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BasicMessageConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ConnectionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _BasicMessageConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.BasicMessageConnection) (ret graphql.Marshaler) {
@@ -8310,6 +8351,8 @@ func (ec *executionContext) _BasicMessageConnection(ctx context.Context, sel ast
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("BasicMessageConnection")
+		case "ConnectionId":
+			out.Values[i] = ec._BasicMessageConnection_ConnectionId(ctx, field, obj)
 		case "edges":
 			out.Values[i] = ec._BasicMessageConnection_edges(ctx, field, obj)
 		case "nodes":

@@ -121,3 +121,17 @@ func (r *queryResolver) event(ctx context.Context, id string) (e *model.Event, e
 
 	return event.ToNode(), nil
 }
+
+func (r *queryResolver) message(ctx context.Context, id string) (c *model.BasicMessage, err error) {
+	defer err2.Return(&err)
+
+	agent, err := store.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	utils.LogMed().Infof("queryResolver:Message id: %s for tenant %s", id, agent.ID)
+
+	msg, err := r.db.GetMessage(id, agent.ID)
+	err2.Check(err)
+
+	return msg.ToNode(), nil
+}

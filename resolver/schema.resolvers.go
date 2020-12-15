@@ -76,7 +76,7 @@ func (r *mutationResolver) AddRandomProof(ctx context.Context) (bool, error) {
 }
 
 func (r *pairwiseResolver) Messages(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.BasicMessageConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.messages(ctx, obj, after, before, first, last)
 }
 
 func (r *pairwiseResolver) Credentials(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.CredentialConnection, error) {
@@ -103,7 +103,7 @@ func (r *proofResolver) Connection(ctx context.Context, obj *model.Proof) (*mode
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Connections(ctx context.Context, after *string, before *string, first *int, last *int) (c *model.PairwiseConnection, err error) {
+func (r *queryResolver) Connections(ctx context.Context, after *string, before *string, first *int, last *int) (*model.PairwiseConnection, error) {
 	return r.connections(ctx, after, before, first, last)
 }
 
@@ -112,7 +112,7 @@ func (r *queryResolver) Connection(ctx context.Context, id string) (*model.Pairw
 }
 
 func (r *queryResolver) Message(ctx context.Context, id string) (*model.BasicMessage, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.message(ctx, id)
 }
 
 func (r *queryResolver) Credential(ctx context.Context, id string) (*model.Credential, error) {
