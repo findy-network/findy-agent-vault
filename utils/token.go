@@ -36,7 +36,7 @@ func ParseToken(ctx context.Context) (*UserToken, error) {
 	}
 
 	if jwtToken.Raw == "" {
-		return nil, errors.New(fmt.Sprintf("no raw token found for user %s", caDID))
+		return nil, fmt.Errorf("no raw token found for user %s", caDID)
 	}
 
 	label := "n/a"

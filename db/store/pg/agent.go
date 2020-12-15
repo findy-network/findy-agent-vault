@@ -27,7 +27,7 @@ func (p *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
 	err2.Check(err)
 	defer rows.Close()
 
-	n = a.Copy()
+	n = model.NewAgent(a)
 	if rows.Next() {
 		err = rows.Scan(&n.ID, &n.AgentID, &n.Label, &n.Created, &n.LastAccessed)
 		err2.Check(err)
@@ -56,7 +56,7 @@ func (p *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
 	err2.Check(err)
 	defer rows.Close()
 
-	a = model.NewAgent()
+	a = model.NewAgent(nil)
 	if rows.Next() {
 		err = rows.Scan(&a.ID, &a.AgentID, &a.Label, &a.Created, &a.LastAccessed)
 		err2.Check(err)

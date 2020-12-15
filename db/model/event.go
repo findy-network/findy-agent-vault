@@ -29,7 +29,7 @@ func NewEvent(e *Event) *Event {
 func (e *Event) copy() (n *Event) {
 	n = NewEvent(nil)
 	if e.base != nil {
-		n.base = e.base.Copy()
+		n.base = e.base.copy()
 	}
 	n.Read = e.Read
 	n.Description = e.Description

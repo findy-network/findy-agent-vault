@@ -8,7 +8,6 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/paginator"
 
-	"github.com/findy-network/findy-agent-vault/db/fake"
 	"github.com/findy-network/findy-agent-vault/db/model"
 )
 
@@ -74,19 +73,8 @@ func TestGetConnections(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("get connections "+s.name, func(t *testing.T) {
-			// add new agent with no pre-existing connections
-			ctAgent := model.NewAgent()
-			ctAgent.AgentID = "TestGetConnections"
-			ctAgent.Label = testAgentLabel
-			a, err := s.db.AddAgent(ctAgent)
-			if err != nil {
-				panic(err)
-			}
-
 			size := 5
-			all := fake.AddConnections(s.db, a.ID, size)
-			all = append(all, fake.AddConnections(s.db, a.ID, size)...)
-			all = append(all, fake.AddConnections(s.db, a.ID, size)...)
+			a, all := AddAgentAndConnections(s.db, "TestGetConnections", size*3)
 
 			sort.Slice(all, func(i, j int) bool {
 				return all[i].Created.Sub(all[j].Created) < 0
@@ -166,17 +154,8 @@ func TestGetConnectionCount(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("get connection count "+s.name, func(t *testing.T) {
-			// add new agent with no pre-existing connections
-			ctAgent := model.NewAgent()
-			ctAgent.AgentID = "TestGetConnectionCount"
-			ctAgent.Label = testAgentLabel
-			a, err := s.db.AddAgent(ctAgent)
-			if err != nil {
-				panic(err)
-			}
-
 			size := 5
-			fake.AddConnections(s.db, a.ID, size)
+			a, _ := AddAgentAndConnections(s.db, "TestGetConnectionCount", size)
 
 			// Get count
 			got, err := s.db.GetConnectionCount(a.ID)

@@ -110,6 +110,10 @@ issues:
     - path: db/model
       linters:
         - dupl
+    - path: resolver/resolver_test.go
+      linters:
+        - staticcheck
+        - golint
     - linters:
         - gocritic
       text: "unnecessaryDefer:"

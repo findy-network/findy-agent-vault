@@ -4,7 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/findy-network/findy-agent-vault/db/fake"
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/db/store/mock"
@@ -45,7 +44,7 @@ var (
 func setup() {
 	utils.SetLogDefaults()
 
-	testAgent := model.NewAgent()
+	testAgent := model.NewAgent(nil)
 	testAgent.AgentID = "testAgentID"
 	testAgent.Label = testAgentLabel
 
@@ -98,19 +97,4 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 	teardown()
 	os.Exit(code)
-}
-
-func addAgentAndConnections(agentID string, s *testableDB) (*model.Agent, []*model.Connection) {
-	// add new agent with no pre-existing event s
-	ctAgent := model.NewAgent()
-	ctAgent.AgentID = agentID
-	ctAgent.Label = testAgentLabel
-	a, err := s.db.AddAgent(ctAgent)
-	if err != nil {
-		panic(err)
-	}
-	// add new connections
-	connCount := 3
-	connections := fake.AddConnections(s.db, a.ID, connCount)
-	return a, connections
 }
