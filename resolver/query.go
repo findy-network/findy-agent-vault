@@ -60,7 +60,11 @@ func (r *queryResolver) credential(ctx context.Context, id string) (c *model.Cre
 	return cred.ToNode(), nil
 }
 
-func (r *queryResolver) credentials(ctx context.Context, after *string, before *string, first *int, last *int) (c *model.CredentialConnection, err error) {
+func (r *queryResolver) credentials(
+	ctx context.Context,
+	after, before *string,
+	first, last *int,
+) (c *model.CredentialConnection, err error) {
 	defer err2.Return(&err)
 
 	agent, err := store.GetAgent(ctx, r.db)
@@ -82,7 +86,7 @@ func (r *queryResolver) credentials(ctx context.Context, after *string, before *
 	return res.ToConnection(nil), nil
 }
 
-func (r *queryResolver) events(ctx context.Context, after *string, before *string, first *int, last *int) (e *model.EventConnection, err error) {
+func (r *queryResolver) events(ctx context.Context, after, before *string, first, last *int) (e *model.EventConnection, err error) {
 	defer err2.Return(&err)
 
 	agent, err := store.GetAgent(ctx, r.db)
