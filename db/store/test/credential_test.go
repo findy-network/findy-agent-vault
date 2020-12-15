@@ -12,19 +12,6 @@ import (
 	"github.com/findy-network/findy-agent-vault/paginator"
 )
 
-func validateTimestap(t *testing.T, exp, got *time.Time, name string) {
-	fail := false
-	if got != exp {
-		fail = true
-		if got != nil && exp != nil && got.Sub(*exp) < time.Microsecond {
-			fail = false
-		}
-	}
-	if fail {
-		t.Errorf("Credential %s mismatch expected %s got %s", name, exp, got)
-	}
-}
-
 func validateAttributes(t *testing.T, exp, got []*graph.CredentialValue) {
 	if len(got) == 0 {
 		t.Errorf("No attributes found")

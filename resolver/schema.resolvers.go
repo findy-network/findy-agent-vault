@@ -15,6 +15,10 @@ func (r *basicMessageResolver) Connection(ctx context.Context, obj *model.BasicM
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *basicMessageConnectionResolver) TotalCount(ctx context.Context, obj *model.BasicMessageConnection) (int, error) {
+	return r.totalCount(ctx, obj)
+}
+
 func (r *credentialResolver) Connection(ctx context.Context, obj *model.Credential) (*model.Pairwise, error) {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -103,6 +107,10 @@ func (r *proofResolver) Connection(ctx context.Context, obj *model.Proof) (*mode
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *proofConnectionResolver) TotalCount(ctx context.Context, obj *model.ProofConnection) (int, error) {
+	return r.totalCount(ctx, obj)
+}
+
 func (r *queryResolver) Connections(ctx context.Context, after *string, before *string, first *int, last *int) (*model.PairwiseConnection, error) {
 	return r.connections(ctx, after, before, first, last)
 }
@@ -154,6 +162,11 @@ func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.Ev
 // BasicMessage returns generated.BasicMessageResolver implementation.
 func (r *Resolver) BasicMessage() generated.BasicMessageResolver { return &basicMessageResolver{r} }
 
+// BasicMessageConnection returns generated.BasicMessageConnectionResolver implementation.
+func (r *Resolver) BasicMessageConnection() generated.BasicMessageConnectionResolver {
+	return &basicMessageConnectionResolver{r}
+}
+
 // Credential returns generated.CredentialResolver implementation.
 func (r *Resolver) Credential() generated.CredentialResolver { return &credentialResolver{r} }
 
@@ -187,6 +200,11 @@ func (r *Resolver) PairwiseConnection() generated.PairwiseConnectionResolver {
 // Proof returns generated.ProofResolver implementation.
 func (r *Resolver) Proof() generated.ProofResolver { return &proofResolver{r} }
 
+// ProofConnection returns generated.ProofConnectionResolver implementation.
+func (r *Resolver) ProofConnection() generated.ProofConnectionResolver {
+	return &proofConnectionResolver{r}
+}
+
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
@@ -194,6 +212,7 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
 type basicMessageResolver struct{ *Resolver }
+type basicMessageConnectionResolver struct{ *Resolver }
 type credentialResolver struct{ *Resolver }
 type credentialConnectionResolver struct{ *Resolver }
 type eventResolver struct{ *Resolver }
@@ -203,5 +222,6 @@ type mutationResolver struct{ *Resolver }
 type pairwiseResolver struct{ *Resolver }
 type pairwiseConnectionResolver struct{ *Resolver }
 type proofResolver struct{ *Resolver }
+type proofConnectionResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }

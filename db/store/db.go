@@ -36,14 +36,20 @@ type DB interface {
 	GetCredentials(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Credentials, err error)
 	GetCredentialCount(tenantID string, connectionID *string) (int, error)
 
+	AddProof(p *model.Proof) (*model.Proof, error)
+	UpdateProof(p *model.Proof) (*model.Proof, error)
+	GetProof(id string, tenantID string) (*model.Proof, error)
+	GetProofs(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Proofs, err error)
+	GetProofCount(tenantID string, connectionID *string) (int, error)
+
 	AddEvent(e *model.Event) (*model.Event, error)
 	MarkEventRead(id, tenantID string) (*model.Event, error)
 	GetEvent(id, tenantID string) (*model.Event, error)
 	GetEvents(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Events, err error)
 	GetEventCount(tenantID string, connectionID *string) (int, error)
 
-	AddMessage(c *model.Message) (*model.Message, error)
-	UpdateMessage(c *model.Message) (*model.Message, error)
+	AddMessage(m *model.Message) (*model.Message, error)
+	UpdateMessage(m *model.Message) (*model.Message, error)
 	GetMessage(id string, tenantID string) (*model.Message, error)
 	GetMessages(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Messages, err error)
 	GetMessageCount(tenantID string, connectionID *string) (int, error)

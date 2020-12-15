@@ -102,10 +102,7 @@ issues:
     - path: db/fake/
       linters:
         - dupl
-    - path: db/store/pg/message.go
-      linters:
-        - dupl
-    - path: db/store/pg/event.go
+    - path: db/store/pg/
       linters:
         - dupl
     - path: db/store/mock

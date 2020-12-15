@@ -40,10 +40,10 @@ const (
 	sqlConnectionSelect = "SELECT id, " + sqlConnectionFields + ", created, approved, cursor FROM connection"
 )
 
-func (p *Database) AddConnection(c *model.Connection) (n *model.Connection, err error) {
+func (pg *Database) AddConnection(c *model.Connection) (n *model.Connection, err error) {
 	defer returnErr("AddConnection", &err)
 
-	rows, err := p.db.Query(
+	rows, err := pg.db.Query(
 		sqlConnectionInsert,
 		c.TenantID,
 		c.OurDid,
@@ -84,12 +84,12 @@ func readRowToConnection(rows *sql.Rows) (c *model.Connection, err error) {
 	return
 }
 
-func (p *Database) GetConnection(id, tenantID string) (c *model.Connection, err error) {
+func (pg *Database) GetConnection(id, tenantID string) (c *model.Connection, err error) {
 	defer returnErr("GetConnection", &err)
 
 	const sqlConnectionSelectByID = sqlConnectionSelect + " WHERE id=$1 AND tenant_id=$2"
 
-	rows, err := p.db.Query(sqlConnectionSelectByID, id, tenantID)
+	rows, err := pg.db.Query(sqlConnectionSelectByID, id, tenantID)
 	err2.Check(err)
 	defer rows.Close()
 
@@ -104,7 +104,7 @@ func (p *Database) GetConnection(id, tenantID string) (c *model.Connection, err 
 	return
 }
 
-func (p *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (c *model.Connections, err error) {
+func (pg *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (c *model.Connections, err error) {
 	defer returnErr("GetConnections", &err)
 
 	query, args := getBatchQuery(&queryInfo{
@@ -119,7 +119,7 @@ func (p *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (c
 		[]interface{}{tenantID},
 	)
 
-	rows, err := p.db.Query(query, args...)
+	rows, err := pg.db.Query(query, args...)
 	err2.Check(err)
 	defer rows.Close()
 
@@ -164,9 +164,9 @@ func (p *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (c
 	return c, err
 }
 
-func (p *Database) GetConnectionCount(tenantID string) (count int, err error) {
+func (pg *Database) GetConnectionCount(tenantID string) (count int, err error) {
 	defer returnErr("GetCredentialCount", &err)
-	count, err = p.getCount(
+	count, err = pg.getCount(
 		"connection",
 		" WHERE tenant_id=$1 ",
 		"",

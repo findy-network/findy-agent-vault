@@ -89,8 +89,9 @@ CREATE TABLE "proof_attribute"(
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
   proof_id uuid NOT NULL,
   "name" VARCHAR(1024) NOT NULL,
-  "value" VARCHAR(4096) NOT NULL,
+  "value" VARCHAR(4096),
   "cred_def_id" VARCHAR(4096) NOT NULL,
+  index SMALLINT NOT NULL,
   CONSTRAINT fk_proof_attribute_proof
     FOREIGN KEY(proof_id) REFERENCES "proof"(id)
 );
