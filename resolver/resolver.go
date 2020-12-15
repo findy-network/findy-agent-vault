@@ -17,7 +17,7 @@ type Resolver struct {
 	db store.DB
 }
 
-func InitResolver(mockDB bool) *Resolver {
+func InitResolver(mockDB bool, fakeData bool) *Resolver {
 	var db store.DB
 	if mockDB {
 		db = mock.InitState()
@@ -26,7 +26,9 @@ func InitResolver(mockDB bool) *Resolver {
 	}
 
 	r := &Resolver{db: db}
-	fake.AddData(db)
+	if fakeData {
+		fake.AddData(db)
+	}
 
 	return r
 }

@@ -45,7 +45,7 @@ func main() {
 	utils.SetLogDefaults()
 	var srv http.Handler
 	if os.Getenv("PLAYGROUND_POSTGRES") != "" {
-		srv = server.Server(real.InitResolver(true))
+		srv = server.Server(real.InitResolver(true, false))
 	} /*else {
 		gqlResolver = resolver.InitResolver(false)
 		srv = server.Server(gqlResolver)

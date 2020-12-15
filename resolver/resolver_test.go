@@ -28,7 +28,7 @@ func testContext() context.Context {
 
 func setup() {
 	utils.SetLogDefaults()
-	r = InitResolver(true)
+	r = InitResolver(true, false)
 	size := totalCount
 	a, c := test.AddAgentAndConnections(r.db, fake.FakeCloudDID, size)
 	testConnectionID = c[0].ID

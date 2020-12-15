@@ -7,12 +7,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/graph/generated"
 	"github.com/findy-network/findy-agent-vault/graph/model"
-	"github.com/findy-network/findy-agent-vault/paginator"
-	"github.com/findy-network/findy-agent-vault/utils"
-	"github.com/lainio/err2"
 )
 
 func (r *basicMessageResolver) Connection(ctx context.Context, obj *model.BasicMessage) (*model.Pairwise, error) {
@@ -36,22 +32,7 @@ func (r *eventResolver) Connection(ctx context.Context, obj *model.Event) (*mode
 }
 
 func (r *eventConnectionResolver) TotalCount(ctx context.Context, obj *model.EventConnection) (int, error) {
-	var err error
-	defer err2.Return(&err)
-
-	// TODO: store agent data to context?
-	agent, err := store.GetAgent(ctx, r.db)
-	err2.Check(err)
-
-	utils.LogMed().Infof(
-		"eventConnectionResolver:TotalCount for tenant %s, connection: %v",
-		agent.ID,
-		obj.ConnectionID,
-	)
-	count, err := r.db.GetEventCount(agent.ID, obj.ConnectionID)
-	err2.Check(err)
-
-	return count, nil
+	return r.totalCount(ctx, obj)
 }
 
 func (r *jobResolver) Output(ctx context.Context, obj *model.Job) (*model.JobOutput, error) {
@@ -99,26 +80,7 @@ func (r *pairwiseResolver) Messages(ctx context.Context, obj *model.Pairwise, af
 }
 
 func (r *pairwiseResolver) Credentials(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.CredentialConnection, error) {
-	var err error
-	defer err2.Return(&err)
-
-	agent, err := store.GetAgent(ctx, r.db)
-	err2.Check(err)
-
-	utils.LogMed().Infof("pairwiseResolver:Credentials for tenant: %s, connection %s", agent.ID, obj.ID)
-
-	batch, err := paginator.Validate("pairwiseResolver:Credentials", &paginator.Params{
-		First:  first,
-		Last:   last,
-		After:  after,
-		Before: before,
-	})
-	err2.Check(err)
-
-	res, err := r.db.GetCredentials(batch, agent.ID, &obj.ID)
-	err2.Check(err)
-
-	return res.ToConnection(&obj.ID), nil
+	return r.credentials(ctx, obj, after, before, first, last)
 }
 
 func (r *pairwiseResolver) Proofs(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.ProofConnection, error) {
@@ -130,42 +92,11 @@ func (r *pairwiseResolver) Jobs(ctx context.Context, obj *model.Pairwise, after 
 }
 
 func (r *pairwiseResolver) Events(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.EventConnection, error) {
-	var err error
-	defer err2.Return(&err)
-
-	agent, err := store.GetAgent(ctx, r.db)
-	err2.Check(err)
-
-	utils.LogMed().Infof("pairwiseResolver:Events for tenant: %s, connection %s", agent.ID, obj.ID)
-
-	batch, err := paginator.Validate("pairwiseResolver:Events", &paginator.Params{
-		First:  first,
-		Last:   last,
-		After:  after,
-		Before: before,
-	})
-	err2.Check(err)
-
-	res, err := r.db.GetEvents(batch, agent.ID, &obj.ID)
-	err2.Check(err)
-
-	return res.ToConnection(&obj.ID), nil
+	return r.events(ctx, obj, after, before, first, last)
 }
 
 func (r *pairwiseConnectionResolver) TotalCount(ctx context.Context, obj *model.PairwiseConnection) (int, error) {
-	var err error
-	defer err2.Return(&err)
-
-	// TODO: store agent data to context?
-	agent, err := store.GetAgent(ctx, r.db)
-	err2.Check(err)
-
-	utils.LogMed().Infof("pairwiseConnectionResolver:TotalCount for tenant %s", agent.ID)
-
-	count, err := r.db.GetConnectionCount(agent.ID)
-	err2.Check(err)
-
-	return count, nil
+	return r.totalCount(ctx, obj)
 }
 
 func (r *proofResolver) Connection(ctx context.Context, obj *model.Proof) (*model.Pairwise, error) {
