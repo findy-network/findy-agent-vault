@@ -20,7 +20,7 @@ func (r *basicMessageConnectionResolver) TotalCount(ctx context.Context, obj *mo
 }
 
 func (r *credentialResolver) Connection(ctx context.Context, obj *model.Credential) (*model.Pairwise, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.connection(ctx, obj)
 }
 
 func (r *credentialConnectionResolver) TotalCount(ctx context.Context, obj *model.CredentialConnection) (int, error) {
@@ -32,7 +32,7 @@ func (r *eventResolver) Job(ctx context.Context, obj *model.Event) (*model.JobEd
 }
 
 func (r *eventResolver) Connection(ctx context.Context, obj *model.Event) (*model.Pairwise, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.connection(ctx, obj)
 }
 
 func (r *eventConnectionResolver) TotalCount(ctx context.Context, obj *model.EventConnection) (int, error) {
@@ -108,7 +108,7 @@ func (r *pairwiseConnectionResolver) TotalCount(ctx context.Context, obj *model.
 }
 
 func (r *proofResolver) Connection(ctx context.Context, obj *model.Proof) (*model.Pairwise, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.connection(ctx, obj)
 }
 
 func (r *proofConnectionResolver) TotalCount(ctx context.Context, obj *model.ProofConnection) (int, error) {
