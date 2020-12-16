@@ -39,17 +39,60 @@ func sqlProofSelectBatchFor(tenantOrder, limit, cursorOrder string) string {
 		sqlProofJoin + " ORDER BY cursor " + cursorOrder + ", proof_attribute.index"
 }
 
+func sqlProofFields(tableName string) string {
+	if tableName != "" {
+		tableName += "."
+	}
+	columnCount := 5
+	args := make([]interface{}, columnCount)
+	for i := 0; i < columnCount; i++ {
+		args[i] = tableName
+	}
+	q := fmt.Sprintf("%stenant_id, %sconnection_id,"+
+		" %srole, %sinitiated_by_us, %sresult", args...)
+	return q
+}
+
+var (
+	sqlProofBaseFields = sqlProofFields("")
+	sqlProofInsert     = "INSERT INTO proof " + "(" + sqlProofBaseFields + ") " +
+		"VALUES ($1, $2, $3, $4, $5) RETURNING id, created, cursor"
+	sqlProofSelect = "SELECT proof.id, " + sqlProofBaseFields +
+		", created, approved, verified, failed, cursor, proof_attribute.id, name, value, cred_def_id FROM"
+)
+
 const (
 	sqlProofBatchWhere           = " WHERE tenant_id=$1 AND verified IS NOT NULL "
 	sqlProofBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2 AND verified IS NOT NULL "
 
-	sqlProofFields = "tenant_id, connection_id, role, initiated_by_us, result"
-	sqlProofInsert = "INSERT INTO proof " + "(" + sqlProofFields + ") " +
-		"VALUES ($1, $2, $3, $4, $5) RETURNING id, created, cursor"
-	sqlProofSelect = "SELECT proof.id, " + sqlProofFields +
-		", created, approved, verified, failed, cursor, proof_attribute.id, name, value, cred_def_id FROM"
-	sqlProofJoin = " INNER JOIN proof_attribute on proof_id = proof.id"
+	sqlProofJoin = " INNER JOIN proof_attribute on proof_attribute.proof_id = proof.id"
 )
+
+func (pg *Database) getProofForObject(objectName, columnName, objectID, tenantID string) (c *model.Proof, err error) {
+	defer returnErr("getProofForObject", &err)
+
+	sqlProofJoinSelect := "SELECT proof.id, " + sqlProofFields("proof") +
+		", proof.created, proof.approved, proof.verified, proof.failed, proof.cursor," +
+		" proof_attribute.id, proof_attribute.name, proof_attribute.value, proof_attribute.cred_def_id FROM"
+	sqlProofSelectByObjectID := sqlProofJoinSelect + " proof " + sqlProofJoin +
+		" INNER JOIN " + objectName + " ON " + objectName +
+		"." + columnName + "=proof.id WHERE " + objectName + ".id = $1 AND proof.tenant_id = $2"
+
+	rows, err := pg.db.Query(sqlProofSelectByObjectID, objectID, tenantID)
+	err2.Check(err)
+	defer rows.Close()
+
+	c = model.NewProof(nil)
+	for rows.Next() {
+		c, err = readRowToProof(rows, c)
+		err2.Check(err)
+	}
+
+	err = rows.Err()
+	err2.Check(err)
+
+	return
+}
 
 func (pg *Database) addProofAttributes(id string, attributes []*graph.ProofAttribute) (a []*graph.ProofAttribute, err error) {
 	defer returnErr("addProofAttributes", &err)
@@ -176,7 +219,7 @@ func readRowToProof(rows *sql.Rows, previous *model.Proof) (*model.Proof, error)
 func (pg *Database) GetProof(id, tenantID string) (p *model.Proof, err error) {
 	defer returnErr("GetProof", &err)
 
-	const sqlProofSelectByID = sqlProofSelect + " proof" + sqlProofJoin +
+	sqlProofSelectByID := sqlProofSelect + " proof" + sqlProofJoin +
 		" WHERE proof.id=$1 AND tenant_id=$2" +
 		" ORDER BY proof_attribute.index"
 
@@ -299,5 +342,5 @@ func (pg *Database) GetProofCount(tenantID string, connectionID *string) (count 
 }
 
 func (pg *Database) GetConnectionForProof(id, tenantID string) (*model.Connection, error) {
-	return pg.getConnectionForObject("proof", id, tenantID)
+	return pg.getConnectionForObject("proof", "connection_id", id, tenantID)
 }

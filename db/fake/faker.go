@@ -67,24 +67,23 @@ func AddEvents(db store.DB, tenantID, connectionID string, jobID *string, count 
 }
 
 func AddJobs(db store.DB, tenantID, connectionID string, count int) []*model.Job {
-	jobs := make([]*model.Job, count)
-	for i := 0; i < count; i++ {
-		job := fakeJob(tenantID, connectionID)
-		jobs[i] = job
-	}
+	return addJobs(db, tenantID, connectionID, nil, nil, nil, nil, count)
+}
 
-	newJobs := make([]*model.Job, count)
-	for index, job := range jobs {
-		c, err := db.AddJob(job)
-		err2.Check(err)
-		time.Sleep(time.Millisecond) // generate different timestamps for items
+func AddConnectionJobs(db store.DB, tenantID, connectionID, protocolConnectionID string, count int) []*model.Job {
+	return addJobs(db, tenantID, connectionID, &protocolConnectionID, nil, nil, nil, count)
+}
 
-		newJobs[index] = c
-	}
+func AddCredentialJobs(db store.DB, tenantID, connectionID, protocolCredentialID string, count int) []*model.Job {
+	return addJobs(db, tenantID, connectionID, nil, &protocolCredentialID, nil, nil, count)
+}
 
-	utils.LogMed().Infof("Generated %d jobs for tenant %s", len(newJobs), tenantID)
+func AddProofJobs(db store.DB, tenantID, connectionID, protocolProofID string, count int) []*model.Job {
+	return addJobs(db, tenantID, connectionID, nil, nil, &protocolProofID, nil, count)
+}
 
-	return newJobs
+func AddMessageJobs(db store.DB, tenantID, connectionID, protocolMessageID string, count int) []*model.Job {
+	return addJobs(db, tenantID, connectionID, nil, nil, nil, &protocolMessageID, count)
 }
 
 func AddCredentials(db store.DB, tenantID, connectionID string, count int) []*model.Credential {
@@ -204,6 +203,39 @@ func AddData(db store.DB) {
 	AddConnections(db, agent.ID, 5)
 }
 
+func addJobs(
+	db store.DB,
+	tenantID, connectionID string,
+	protocolConnectionID, protocolCredentialID, protocolProofID, protocolMessageID *string,
+	count int,
+) []*model.Job {
+	jobs := make([]*model.Job, count)
+	for i := 0; i < count; i++ {
+		job := fakeJob(
+			tenantID,
+			connectionID,
+			protocolConnectionID,
+			protocolCredentialID,
+			protocolProofID,
+			protocolMessageID,
+		)
+		jobs[i] = job
+	}
+
+	newJobs := make([]*model.Job, count)
+	for index, job := range jobs {
+		c, err := db.AddJob(job)
+		err2.Check(err)
+		time.Sleep(time.Millisecond) // generate different timestamps for items
+
+		newJobs[index] = c
+	}
+
+	utils.LogMed().Infof("Generated %d jobs for tenant %s", len(newJobs), tenantID)
+
+	return newJobs
+}
+
 func fakeAgent() *model.Agent {
 	agent := model.NewAgent(nil)
 	err2.Check(faker.FakeData(&agent))
@@ -240,24 +272,26 @@ func fakeEvent(tenantID, connectionID string, jobID *string) *model.Event {
 	event := model.NewEvent(nil)
 	err2.Check(faker.FakeData(event))
 
-	var tempID *string
-	if jobID != nil {
-		j := *jobID
-		tempID = &j
-	}
 	event = model.NewEvent(event)
 	event.TenantID = tenantID
 	event.ConnectionID = &connectionID
-	event.JobID = tempID
+	event.JobID = utils.CopyStrPtr(jobID)
 	return event
 }
 
-func fakeJob(tenantID, connectionID string) *model.Job {
+func fakeJob(
+	tenantID, connectionID string,
+	protocolConnectionID, protocolCredentialID, protocolProofID, protocolMessageID *string,
+) *model.Job {
 	job := model.NewJob(nil)
 	err2.Check(faker.FakeData(job))
 	job = model.NewJob(job)
 	job.TenantID = tenantID
 	job.ConnectionID = &connectionID
+	job.ProtocolConnectionID = utils.CopyStrPtr(protocolConnectionID)
+	job.ProtocolCredentialID = utils.CopyStrPtr(protocolCredentialID)
+	job.ProtocolProofID = utils.CopyStrPtr(protocolProofID)
+	job.ProtocolMessageID = utils.CopyStrPtr(protocolMessageID)
 	return job
 }
 

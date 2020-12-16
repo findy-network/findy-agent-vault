@@ -5,6 +5,7 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/findy-network/findy-agent-vault/utils"
 )
 
 type Jobs struct {
@@ -15,13 +16,23 @@ type Jobs struct {
 
 type Job struct {
 	*base
-	ProtocolType  model.ProtocolType `faker:"oneof: NONE,NONE"`
-	ProtocolID    *string            `faker:"-"`
-	ConnectionID  *string            `faker:"-"`
-	Status        model.JobStatus    `faker:"oneof: COMPLETE,COMPLETE"`
-	Result        model.JobResult    `faker:"oneof: SUCCESS,SUCCESS"`
-	InitiatedByUs bool
-	Updated       time.Time
+	ProtocolType         model.ProtocolType `faker:"oneof: NONE,NONE"`
+	ProtocolConnectionID *string            `faker:"-"`
+	ProtocolCredentialID *string            `faker:"-"`
+	ProtocolProofID      *string            `faker:"-"`
+	ProtocolMessageID    *string            `faker:"-"`
+	ConnectionID         *string            `faker:"-"`
+	Status               model.JobStatus    `faker:"oneof: COMPLETE,COMPLETE"`
+	Result               model.JobResult    `faker:"oneof: SUCCESS,SUCCESS"`
+	InitiatedByUs        bool
+	Updated              time.Time
+}
+
+type JobOutput struct {
+	Connection *Connection
+	Credential *Credential
+	Proof      *Proof
+	Message    *Message
 }
 
 func NewJob(j *Job) *Job {
@@ -37,14 +48,11 @@ func (j *Job) copy() (n *Job) {
 		n.base = j.base.copy()
 	}
 	n.ProtocolType = j.ProtocolType
-	if j.ProtocolID != nil {
-		protocolID := *j.ProtocolID
-		n.ProtocolID = &protocolID
-	}
-	if j.ConnectionID != nil {
-		connectionID := *j.ConnectionID
-		n.ConnectionID = &connectionID
-	}
+	n.ProtocolConnectionID = utils.CopyStrPtr(j.ProtocolConnectionID)
+	n.ProtocolCredentialID = utils.CopyStrPtr(j.ProtocolCredentialID)
+	n.ProtocolProofID = utils.CopyStrPtr(j.ProtocolProofID)
+	n.ProtocolMessageID = utils.CopyStrPtr(j.ProtocolMessageID)
+	n.ConnectionID = utils.CopyStrPtr(j.ConnectionID)
 	n.Status = j.Status
 	n.Result = j.Result
 	n.InitiatedByUs = j.InitiatedByUs
@@ -98,5 +106,30 @@ func (j *Jobs) ToConnection(id *string, completed *bool) *model.JobConnection {
 			HasPreviousPage: j.HasPreviousPage,
 			StartCursor:     startCursor,
 		},
+	}
+}
+
+func (j *JobOutput) ToEdges() *model.JobOutput {
+	var connection *model.PairwiseEdge
+	if j.Connection != nil {
+		connection = j.Connection.ToEdge()
+	}
+	var credential *model.CredentialEdge
+	if j.Credential != nil {
+		credential = j.Credential.ToEdge()
+	}
+	var proof *model.ProofEdge
+	if j.Proof != nil {
+		proof = j.Proof.ToEdge()
+	}
+	var message *model.BasicMessageEdge
+	if j.Message != nil {
+		message = j.Message.ToEdge()
+	}
+	return &model.JobOutput{
+		Connection: connection,
+		Credential: credential,
+		Proof:      proof,
+		Message:    message,
 	}
 }

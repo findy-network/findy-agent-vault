@@ -87,7 +87,7 @@ func setup() {
 	msg := fake.AddMessages(r.db, a.ID, c[0].ID, size)
 	testMessageID = msg[0].ID
 
-	jb := fake.AddJobs(r.db, a.ID, c[0].ID, size)
+	jb := fake.AddCredentialJobs(r.db, a.ID, c[0].ID, testCredentialID, size)
 	testJobID = jb[0].ID
 
 	ev := fake.AddEvents(r.db, a.ID, c[0].ID, &testJobID, size)

@@ -293,7 +293,7 @@ func TestGetConnectionMessageCount(t *testing.T) {
 func TestGetConnectionForMessage(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
-		t.Run("get connection for message"+s.name, func(t *testing.T) {
+		t.Run("get connection for message "+s.name, func(t *testing.T) {
 			a, connections := AddAgentAndConnections(s.db, "TestGetConnectionForMessage", 3)
 			connection := connections[0]
 			messages := fake.AddMessages(s.db, a.ID, connection.ID, 1)

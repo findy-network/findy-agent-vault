@@ -8,6 +8,8 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/model"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/findy-network/findy-agent-vault/utils"
+	"github.com/lainio/err2"
 )
 
 type mockJob struct {
@@ -51,32 +53,26 @@ func (m *mockData) AddJob(j *model.Job) (*model.Job, error) {
 	return n, nil
 }
 
-func (m *mockData) UpdateJob(j *model.Job) (*model.Job, error) {
-	agent := m.agents[j.TenantID]
+func (m *mockData) UpdateJob(arg *model.Job) (*model.Job, error) {
+	agent := m.agents[arg.TenantID]
 
-	object := agent.jobs.objectForID(j.ID)
+	object := agent.jobs.objectForID(arg.ID)
 	if object == nil {
-		return nil, errors.New("not found job for id: " + j.ID)
-	}
-	var protocolID, connectionID *string
-	if j.ProtocolID != nil {
-		p := *j.ProtocolID
-		protocolID = &p
-	}
-	if j.ConnectionID != nil {
-		c := *j.ConnectionID
-		connectionID = &c
+		return nil, errors.New("not found job for id: " + arg.ID)
 	}
 	updated := object.Copy()
 	job := updated.Job()
-	job.ProtocolID = protocolID
-	job.ConnectionID = connectionID
-	job.Status = j.Status
-	job.Result = j.Result
+	job.ProtocolConnectionID = utils.CopyStrPtr(arg.ProtocolConnectionID)
+	job.ProtocolCredentialID = utils.CopyStrPtr(arg.ProtocolCredentialID)
+	job.ProtocolProofID = utils.CopyStrPtr(arg.ProtocolProofID)
+	job.ProtocolMessageID = utils.CopyStrPtr(arg.ProtocolMessageID)
+	job.ConnectionID = utils.CopyStrPtr(arg.ConnectionID)
+	job.Status = arg.Status
+	job.Result = arg.Result
 	job.Updated = time.Now().UTC()
 
-	if !agent.jobs.replaceObjectForID(j.ID, updated) {
-		return nil, errors.New("not found job for id: " + j.ID)
+	if !agent.jobs.replaceObjectForID(arg.ID, updated) {
+		return nil, errors.New("not found job for id: " + arg.ID)
 	}
 	return updated.Job(), nil
 }
@@ -166,4 +162,34 @@ func (m *mockData) GetConnectionForJob(id, tenantID string) (*model.Connection, 
 		return m.GetConnection(*job.ConnectionID, tenantID)
 	}
 	return nil, errors.New("no connection found for job id: " + id)
+}
+
+func (m *mockData) GetJobOutput(id, tenantID string, protocolType graph.ProtocolType) (output *model.JobOutput, err error) {
+	defer err2.Return(&err)
+
+	job, err := m.GetJob(id, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	switch protocolType {
+	case graph.ProtocolTypeConnection:
+		connection, err := m.GetConnection(*job.ProtocolConnectionID, tenantID)
+		err2.Check(err)
+		return &model.JobOutput{Connection: connection}, nil
+	case graph.ProtocolTypeCredential:
+		credential, err := m.GetCredential(*job.ProtocolCredentialID, tenantID)
+		err2.Check(err)
+		return &model.JobOutput{Credential: credential}, nil
+	case graph.ProtocolTypeProof:
+		proof, err := m.GetProof(*job.ProtocolProofID, tenantID)
+		err2.Check(err)
+		return &model.JobOutput{Proof: proof}, nil
+	case graph.ProtocolTypeBasicMessage:
+		message, err := m.GetMessage(*job.ProtocolMessageID, tenantID)
+		err2.Check(err)
+		return &model.JobOutput{Message: message}, nil
+	case graph.ProtocolTypeNone:
+		break
+	}
+	return &model.JobOutput{}, nil
 }
