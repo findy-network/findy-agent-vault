@@ -37,8 +37,31 @@ const (
 	sqlConnectionFields = "tenant_id, our_did, their_did, their_endpoint, their_label, invited"
 	sqlConnectionInsert = "INSERT INTO connection " + "(" + sqlConnectionFields + ") " +
 		"VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created, cursor"
-	sqlConnectionSelect = "SELECT id, " + sqlConnectionFields + ", created, approved, cursor FROM connection"
+	sqlConnectionSelect = "SELECT connection.id, connection." + sqlConnectionFields +
+		", connection.created, connection.approved, connection.cursor FROM connection"
 )
+
+func (pg *Database) getConnectionForObject(objectName, objectID, tenantID string) (c *model.Connection, err error) {
+	defer returnErr("getConnectionForObject", &err)
+
+	sqlConnectionSelectByObjectID := sqlConnectionSelect +
+		" INNER JOIN " + objectName + " ON " + objectName +
+		".connection_id=connection.id WHERE " + objectName + ".id = $1 AND connection.tenant_id = $2"
+
+	rows, err := pg.db.Query(sqlConnectionSelectByObjectID, objectID, tenantID)
+	err2.Check(err)
+	defer rows.Close()
+
+	if rows.Next() {
+		c, err = readRowToConnection(rows)
+		err2.Check(err)
+	}
+
+	err = rows.Err()
+	err2.Check(err)
+
+	return
+}
 
 func (pg *Database) AddConnection(c *model.Connection) (n *model.Connection, err error) {
 	defer returnErr("AddConnection", &err)

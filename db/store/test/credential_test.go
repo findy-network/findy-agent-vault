@@ -305,3 +305,23 @@ func TestGetConnectionCredentialCount(t *testing.T) {
 		})
 	}
 }
+
+func TestGetConnectionForCredential(t *testing.T) {
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("get connection for credential"+s.name, func(t *testing.T) {
+			a, connections := AddAgentAndConnections(s.db, "TestGetConnectionForCredential", 3)
+			connection := connections[0]
+			credentials := fake.AddCredentials(s.db, a.ID, connection.ID, 1)
+			credential := credentials[0]
+
+			// Get data for id
+			got, err := s.db.GetConnectionForCredential(credential.ID, a.ID)
+			if err != nil {
+				t.Errorf("Error fetching connection %s", err.Error())
+			} else {
+				validateConnection(t, connection, got)
+			}
+		})
+	}
+}

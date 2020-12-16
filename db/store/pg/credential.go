@@ -298,3 +298,7 @@ func (pg *Database) GetCredentialCount(tenantID string, connectionID *string) (c
 	err2.Check(err)
 	return
 }
+
+func (pg *Database) GetConnectionForCredential(id, tenantID string) (*model.Connection, error) {
+	return pg.getConnectionForObject("credential", id, tenantID)
+}

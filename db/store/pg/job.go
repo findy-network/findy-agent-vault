@@ -235,3 +235,7 @@ func (pg *Database) GetJobCount(tenantID string, connectionID *string, completed
 	err2.Check(err)
 	return
 }
+
+func (pg *Database) GetConnectionForJob(id, tenantID string) (*model.Connection, error) {
+	return pg.getConnectionForObject("job", id, tenantID)
+}

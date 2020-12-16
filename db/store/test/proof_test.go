@@ -303,3 +303,23 @@ func TestGetConnectionProofCount(t *testing.T) {
 		})
 	}
 }
+
+func TestGetConnectionForProof(t *testing.T) {
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("get connection for proof"+s.name, func(t *testing.T) {
+			a, connections := AddAgentAndConnections(s.db, "TestGetConnectionForProof", 3)
+			connection := connections[0]
+			proofs := fake.AddProofs(s.db, a.ID, connection.ID, 1)
+			proof := proofs[0]
+
+			// Get data for id
+			got, err := s.db.GetConnectionForProof(proof.ID, a.ID)
+			if err != nil {
+				t.Errorf("Error fetching connection %s", err.Error())
+			} else {
+				validateConnection(t, connection, got)
+			}
+		})
+	}
+}

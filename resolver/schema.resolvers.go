@@ -12,7 +12,7 @@ import (
 )
 
 func (r *basicMessageResolver) Connection(ctx context.Context, obj *model.BasicMessage) (*model.Pairwise, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.connection(ctx, obj)
 }
 
 func (r *basicMessageConnectionResolver) TotalCount(ctx context.Context, obj *model.BasicMessageConnection) (int, error) {

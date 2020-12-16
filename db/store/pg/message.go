@@ -205,3 +205,7 @@ func (pg *Database) GetMessageCount(tenantID string, connectionID *string) (coun
 	err2.Check(err)
 	return
 }
+
+func (pg *Database) GetConnectionForMessage(id, tenantID string) (*model.Connection, error) {
+	return pg.getConnectionForObject("message", id, tenantID)
+}

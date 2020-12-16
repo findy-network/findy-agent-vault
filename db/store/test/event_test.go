@@ -273,3 +273,23 @@ func TestGetConnectionEventCount(t *testing.T) {
 		})
 	}
 }
+
+func TestGetConnectionForEvent(t *testing.T) {
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("get connection for event"+s.name, func(t *testing.T) {
+			a, connections := AddAgentAndConnections(s.db, "TestGetConnectionForEvent", 3)
+			connection := connections[0]
+			events := fake.AddEvents(s.db, a.ID, connection.ID, 1)
+			event := events[0]
+
+			// Get data for id
+			got, err := s.db.GetConnectionForEvent(event.ID, a.ID)
+			if err != nil {
+				t.Errorf("Error fetching connection %s", err.Error())
+			} else {
+				validateConnection(t, connection, got)
+			}
+		})
+	}
+}
