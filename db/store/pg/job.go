@@ -2,6 +2,7 @@ package pg
 
 import (
 	"database/sql"
+	"fmt"
 	"sort"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
@@ -13,17 +14,56 @@ func sqlJobSelectBatchFor(where, limitArg string) string {
 	return sqlJobSelect + " job " + where + " " + limitArg
 }
 
+func sqlJobFields(tableName string) string {
+	if tableName != "" {
+		tableName += "."
+	}
+	columnCount := 8
+	args := make([]interface{}, columnCount)
+	for i := 0; i < 8; i++ {
+		args[i] = tableName
+	}
+	q := fmt.Sprintf("%stenant_id, %sprotocol_type, %sprotocol_id, %sconnection_id,"+
+		" %sstatus, %sresult, %sinitiated_by_us, %supdated", args...)
+	return q
+}
+
+var (
+	sqlJobBaseFields = sqlJobFields("")
+	sqlJobInsert     = "INSERT INTO job " + "(" + sqlJobBaseFields + ") " +
+		"VALUES ($1, $2, $3, $4, $5, $6, $7, (now() at time zone 'UTC')) RETURNING id, created, cursor"
+	sqlJobSelect = "SELECT id," + sqlJobBaseFields + ", created, cursor FROM"
+)
+
 const (
 	sqlJobBatchWhere              = " WHERE tenant_id=$1 AND status != 'COMPLETE'"
 	sqlJobBatchWhereConnection    = " WHERE tenant_id=$1 AND connection_id=$2 AND status != 'COMPLETE'"
 	sqlJobBatchWhereAll           = " WHERE tenant_id=$1"
 	sqlJobBatchWhereConnectionAll = " WHERE tenant_id=$1 AND connection_id=$2"
-
-	sqlJobFields = "tenant_id, protocol_type, protocol_id, connection_id, status, result, initiated_by_us, updated"
-	sqlJobInsert = "INSERT INTO job " + "(" + sqlJobFields + ") " +
-		"VALUES ($1, $2, $3, $4, $5, $6, $7, (now() at time zone 'UTC')) RETURNING id, created, cursor"
-	sqlJobSelect = "SELECT id, " + sqlJobFields + ", created, cursor FROM"
 )
+
+func (pg *Database) getJobForObject(objectName, objectID, tenantID string) (j *model.Job, err error) {
+	defer returnErr("getJobForObject", &err)
+
+	sqlJobSelectJoin := "SELECT job.id, " + sqlJobFields("job") + ", job.created, job.cursor FROM"
+	sqlJobSelectByObjectID := sqlJobSelectJoin +
+		" job INNER JOIN " + objectName + " ON " + objectName +
+		".job_id=job.id WHERE " + objectName + ".id = $1 AND job.tenant_id = $2"
+
+	rows, err := pg.db.Query(sqlJobSelectByObjectID, objectID, tenantID)
+	err2.Check(err)
+	defer rows.Close()
+
+	if rows.Next() {
+		j, err = readRowToJob(rows)
+		err2.Check(err)
+	}
+
+	err = rows.Err()
+	err2.Check(err)
+
+	return
+}
 
 func (pg *Database) AddJob(j *model.Job) (n *model.Job, err error) {
 	defer returnErr("AddJob", &err)
@@ -56,10 +96,10 @@ func (pg *Database) AddJob(j *model.Job) (n *model.Job, err error) {
 func (pg *Database) UpdateJob(arg *model.Job) (j *model.Job, err error) {
 	defer returnErr("UpdateJob", &err)
 
-	const sqlJobUpdate = "UPDATE job " +
+	sqlJobUpdate := "UPDATE job " +
 		"SET protocol_id=$1, connection_id=$2, status=$3, result=$4, updated=(now() at time zone 'UTC')" +
 		" WHERE id = $5 AND tenant_id = $6" +
-		" RETURNING id," + sqlJobFields + ", created, cursor"
+		" RETURNING id," + sqlJobBaseFields + ", created, cursor"
 
 	rows, err := pg.db.Query(
 		sqlJobUpdate,
@@ -106,8 +146,7 @@ func readRowToJob(rows *sql.Rows) (*model.Job, error) {
 func (pg *Database) GetJob(id, tenantID string) (j *model.Job, err error) {
 	defer returnErr("GetJob", &err)
 
-	const sqlJobSelectByID = sqlJobSelect + " job" +
-		" WHERE id=$1 AND tenant_id=$2"
+	sqlJobSelectByID := sqlJobSelect + " job WHERE id=$1 AND tenant_id=$2"
 
 	rows, err := pg.db.Query(sqlJobSelectByID, id, tenantID)
 	err2.Check(err)

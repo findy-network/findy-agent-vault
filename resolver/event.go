@@ -27,3 +27,22 @@ func (r *eventResolver) connection(ctx context.Context, obj *model.Event) (c *mo
 
 	return connection.ToNode(), nil
 }
+
+func (r *eventResolver) job(ctx context.Context, obj *model.Event) (j *model.JobEdge, err error) {
+	defer err2.Return(&err)
+
+	// TODO: store agent data to context?
+	agent, err := store.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	utils.LogMed().Infof(
+		"eventResolver:Job for tenant %s, event: %s",
+		agent.ID,
+		obj.ID,
+	)
+
+	job, err := r.db.GetJobForEvent(obj.ID, agent.ID)
+	err2.Check(err)
+
+	return job.ToEdge(), nil
+}

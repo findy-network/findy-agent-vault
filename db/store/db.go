@@ -57,6 +57,7 @@ type DB interface {
 	GetEvents(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Events, err error)
 	GetEventCount(tenantID string, connectionID *string) (int, error)
 	GetConnectionForEvent(id, tenantID string) (*model.Connection, error)
+	GetJobForEvent(id, tenantID string) (*model.Job, error)
 
 	AddJob(j *model.Job) (*model.Job, error)
 	UpdateJob(j *model.Job) (*model.Job, error)
