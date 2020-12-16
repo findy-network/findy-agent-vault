@@ -133,3 +133,14 @@ func (m *mockData) GetConnectionForEvent(id, tenantID string) (*model.Connection
 	}
 	return nil, errors.New("no connection found for event id: " + id)
 }
+
+func (m *mockData) GetJobForEvent(id, tenantID string) (*model.Job, error) {
+	event, err := m.GetEvent(id, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	if event.JobID != nil {
+		return m.GetJob(*event.JobID, tenantID)
+	}
+	return nil, errors.New("no job found for event id: " + id)
+}

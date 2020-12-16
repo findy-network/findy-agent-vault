@@ -28,7 +28,7 @@ func (r *credentialConnectionResolver) TotalCount(ctx context.Context, obj *mode
 }
 
 func (r *eventResolver) Job(ctx context.Context, obj *model.Event) (*model.JobEdge, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.job(ctx, obj)
 }
 
 func (r *eventResolver) Connection(ctx context.Context, obj *model.Event) (*model.Pairwise, error) {

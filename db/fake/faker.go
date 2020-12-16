@@ -45,10 +45,10 @@ func AddMessages(db store.DB, tenantID, connectionID string, count int) []*model
 	return newMessages
 }
 
-func AddEvents(db store.DB, tenantID, connectionID string, count int) []*model.Event {
+func AddEvents(db store.DB, tenantID, connectionID string, jobID *string, count int) []*model.Event {
 	events := make([]*model.Event, count)
 	for i := 0; i < count; i++ {
-		event := fakeEvent(tenantID, connectionID)
+		event := fakeEvent(tenantID, connectionID, jobID)
 		events[i] = event
 	}
 
@@ -236,12 +236,19 @@ func fakeProof(tenantID, connectionID string) *model.Proof {
 	return proof
 }
 
-func fakeEvent(tenantID, connectionID string) *model.Event {
+func fakeEvent(tenantID, connectionID string, jobID *string) *model.Event {
 	event := model.NewEvent(nil)
 	err2.Check(faker.FakeData(event))
+
+	var tempID *string
+	if jobID != nil {
+		j := *jobID
+		tempID = &j
+	}
 	event = model.NewEvent(event)
 	event.TenantID = tenantID
 	event.ConnectionID = &connectionID
+	event.JobID = tempID
 	return event
 }
 

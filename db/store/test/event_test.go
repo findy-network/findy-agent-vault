@@ -165,9 +165,9 @@ func TestGetTenantEvents(t *testing.T) {
 			a, connections := AddAgentAndConnections(s.db, "TestGetTenantEvents", 3)
 
 			size := 5
-			all := fake.AddEvents(s.db, a.ID, connections[0].ID, size)
-			all = append(all, fake.AddEvents(s.db, a.ID, connections[1].ID, size)...)
-			all = append(all, fake.AddEvents(s.db, a.ID, connections[2].ID, size)...)
+			all := fake.AddEvents(s.db, a.ID, connections[0].ID, nil, size)
+			all = append(all, fake.AddEvents(s.db, a.ID, connections[1].ID, nil, size)...)
+			all = append(all, fake.AddEvents(s.db, a.ID, connections[2].ID, nil, size)...)
 
 			sort.Slice(all, func(i, j int) bool {
 				return all[i].Created.Sub(all[j].Created) < 0
@@ -201,9 +201,9 @@ func TestGetConnectionEvents(t *testing.T) {
 
 			size := 5
 			countPerConnection := size * 3
-			fake.AddEvents(s.db, a.ID, connections[0].ID, countPerConnection)
-			fake.AddEvents(s.db, a.ID, connections[1].ID, countPerConnection)
-			all := fake.AddEvents(s.db, a.ID, connections[2].ID, countPerConnection)
+			fake.AddEvents(s.db, a.ID, connections[0].ID, nil, countPerConnection)
+			fake.AddEvents(s.db, a.ID, connections[1].ID, nil, countPerConnection)
+			all := fake.AddEvents(s.db, a.ID, connections[2].ID, nil, countPerConnection)
 
 			sort.Slice(all, func(i, j int) bool {
 				return all[i].Created.Sub(all[j].Created) < 0
@@ -235,7 +235,7 @@ func TestGetEventCount(t *testing.T) {
 			// add new agent with no pre-existing event s
 			a, connections := AddAgentAndConnections(s.db, "TestGetEventCount", 3)
 			size := 5
-			fake.AddEvents(s.db, a.ID, connections[0].ID, size)
+			fake.AddEvents(s.db, a.ID, connections[0].ID, nil, size)
 
 			// Get count
 			got, err := s.db.GetEventCount(a.ID, nil)
@@ -256,11 +256,11 @@ func TestGetConnectionEventCount(t *testing.T) {
 			a, connections := AddAgentAndConnections(s.db, "TestGetConnectionEventCount", 3)
 			size := 5
 			index := 0
-			fake.AddEvents(s.db, a.ID, connections[index].ID, (index+1)*size)
+			fake.AddEvents(s.db, a.ID, connections[index].ID, nil, (index+1)*size)
 			index++
-			fake.AddEvents(s.db, a.ID, connections[index].ID, (index+1)*size)
+			fake.AddEvents(s.db, a.ID, connections[index].ID, nil, (index+1)*size)
 			index++
-			fake.AddEvents(s.db, a.ID, connections[index].ID, index*size)
+			fake.AddEvents(s.db, a.ID, connections[index].ID, nil, index*size)
 
 			// Get count
 			expected := index * size
@@ -280,7 +280,7 @@ func TestGetConnectionForEvent(t *testing.T) {
 		t.Run("get connection for event"+s.name, func(t *testing.T) {
 			a, connections := AddAgentAndConnections(s.db, "TestGetConnectionForEvent", 3)
 			connection := connections[0]
-			events := fake.AddEvents(s.db, a.ID, connection.ID, 1)
+			events := fake.AddEvents(s.db, a.ID, connection.ID, nil, 1)
 			event := events[0]
 
 			// Get data for id
@@ -289,6 +289,28 @@ func TestGetConnectionForEvent(t *testing.T) {
 				t.Errorf("Error fetching connection %s", err.Error())
 			} else {
 				validateConnection(t, connection, got)
+			}
+		})
+	}
+}
+
+func TestGetJobForEvent(t *testing.T) {
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("get job for event"+s.name, func(t *testing.T) {
+			a, connections := AddAgentAndConnections(s.db, "TestGetJobForEvent", 3)
+			connection := connections[0]
+			jobs := fake.AddJobs(s.db, a.ID, connection.ID, 1)
+			job := jobs[0]
+			events := fake.AddEvents(s.db, a.ID, connection.ID, &job.ID, 1)
+			event := events[0]
+
+			// Get data for id
+			got, err := s.db.GetJobForEvent(event.ID, a.ID)
+			if err != nil {
+				t.Errorf("Error fetching connection %s", err.Error())
+			} else {
+				validateJob(t, job, got)
 			}
 		})
 	}

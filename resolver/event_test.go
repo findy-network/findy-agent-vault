@@ -15,3 +15,13 @@ func TestGetEventConnection(t *testing.T) {
 		t.Errorf("Expecting result, received %v", connection)
 	}
 }
+
+func TestGetEventJob(t *testing.T) {
+	job, err := r.Event().Job(testContext(), &model.Event{ID: testEventID})
+	if err != nil {
+		t.Errorf("Received unexpected error %s", err)
+	}
+	if job == nil {
+		t.Errorf("Expecting result, received %v", job)
+	}
+}
