@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
+	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/lainio/err2"
 )
@@ -18,20 +19,21 @@ func sqlJobFields(tableName string) string {
 	if tableName != "" {
 		tableName += "."
 	}
-	columnCount := 8
+	columnCount := 11
 	args := make([]interface{}, columnCount)
-	for i := 0; i < 8; i++ {
+	for i := 0; i < columnCount; i++ {
 		args[i] = tableName
 	}
-	q := fmt.Sprintf("%stenant_id, %sprotocol_type, %sprotocol_id, %sconnection_id,"+
-		" %sstatus, %sresult, %sinitiated_by_us, %supdated", args...)
+	q := fmt.Sprintf("%stenant_id, %sprotocol_type,"+
+		" %sprotocol_connection_id, %sprotocol_credential_id, %sprotocol_proof_id, %sprotocol_message_id,"+
+		" %sconnection_id, %sstatus, %sresult, %sinitiated_by_us, %supdated", args...)
 	return q
 }
 
 var (
 	sqlJobBaseFields = sqlJobFields("")
 	sqlJobInsert     = "INSERT INTO job " + "(" + sqlJobBaseFields + ") " +
-		"VALUES ($1, $2, $3, $4, $5, $6, $7, (now() at time zone 'UTC')) RETURNING id, created, cursor"
+		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, (now() at time zone 'UTC')) RETURNING id, created, cursor"
 	sqlJobSelect = "SELECT id," + sqlJobBaseFields + ", created, cursor FROM"
 )
 
@@ -72,7 +74,10 @@ func (pg *Database) AddJob(j *model.Job) (n *model.Job, err error) {
 		sqlJobInsert,
 		j.TenantID,
 		j.ProtocolType,
-		j.ProtocolID,
+		j.ProtocolConnectionID,
+		j.ProtocolCredentialID,
+		j.ProtocolProofID,
+		j.ProtocolMessageID,
 		j.ConnectionID,
 		j.Status,
 		j.Result,
@@ -97,13 +102,17 @@ func (pg *Database) UpdateJob(arg *model.Job) (j *model.Job, err error) {
 	defer returnErr("UpdateJob", &err)
 
 	sqlJobUpdate := "UPDATE job " +
-		"SET protocol_id=$1, connection_id=$2, status=$3, result=$4, updated=(now() at time zone 'UTC')" +
-		" WHERE id = $5 AND tenant_id = $6" +
+		"SET protocol_connection_id=$1, protocol_credential_id=$2, protocol_proof_id=$3, protocol_message_id=$4," +
+		" connection_id=$5, status=$6, result=$7, updated=(now() at time zone 'UTC')" +
+		" WHERE id = $8 AND tenant_id = $9" +
 		" RETURNING id," + sqlJobBaseFields + ", created, cursor"
 
 	rows, err := pg.db.Query(
 		sqlJobUpdate,
-		arg.ProtocolID,
+		arg.ProtocolConnectionID,
+		arg.ProtocolCredentialID,
+		arg.ProtocolProofID,
+		arg.ProtocolMessageID,
 		arg.ConnectionID,
 		arg.Status,
 		arg.Result,
@@ -131,7 +140,10 @@ func readRowToJob(rows *sql.Rows) (*model.Job, error) {
 		&n.ID,
 		&n.TenantID,
 		&n.ProtocolType,
-		&n.ProtocolID,
+		&n.ProtocolConnectionID,
+		&n.ProtocolCredentialID,
+		&n.ProtocolProofID,
+		&n.ProtocolMessageID,
 		&n.ConnectionID,
 		&n.Status,
 		&n.Result,
@@ -276,5 +288,30 @@ func (pg *Database) GetJobCount(tenantID string, connectionID *string, completed
 }
 
 func (pg *Database) GetConnectionForJob(id, tenantID string) (*model.Connection, error) {
-	return pg.getConnectionForObject("job", id, tenantID)
+	return pg.getConnectionForObject("job", "connection_id", id, tenantID)
+}
+
+func (pg *Database) GetJobOutput(id, tenantID string, protocolType graph.ProtocolType) (output *model.JobOutput, err error) {
+	defer err2.Return(&err)
+	switch protocolType {
+	case graph.ProtocolTypeConnection:
+		connection, err := pg.getConnectionForObject("job", "protocol_connection_id", id, tenantID)
+		err2.Check(err)
+		return &model.JobOutput{Connection: connection}, nil
+	case graph.ProtocolTypeCredential:
+		credential, err := pg.getCredentialForObject("job", "protocol_credential_id", id, tenantID)
+		err2.Check(err)
+		return &model.JobOutput{Credential: credential}, nil
+	case graph.ProtocolTypeProof:
+		proof, err := pg.getProofForObject("job", "protocol_proof_id", id, tenantID)
+		err2.Check(err)
+		return &model.JobOutput{Proof: proof}, nil
+	case graph.ProtocolTypeBasicMessage:
+		message, err := pg.getMessageForObject("job", "protocol_message_id", id, tenantID)
+		err2.Check(err)
+		return &model.JobOutput{Message: message}, nil
+	case graph.ProtocolTypeNone:
+		break
+	}
+	return &model.JobOutput{}, nil
 }

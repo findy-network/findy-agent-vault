@@ -2,6 +2,7 @@ package pg
 
 import (
 	"database/sql"
+	"fmt"
 	"sort"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
@@ -13,15 +14,54 @@ func sqlMessageSelectBatchFor(where, limitArg string) string {
 	return sqlMessageSelect + " message " + where + " " + limitArg
 }
 
+func sqlMessageFields(tableName string) string {
+	if tableName != "" {
+		tableName += "."
+	}
+	columnCount := 5
+	args := make([]interface{}, columnCount)
+	for i := 0; i < columnCount; i++ {
+		args[i] = tableName
+	}
+	q := fmt.Sprintf("%stenant_id, %sconnection_id,"+
+		" %smessage, %ssent_by_me, %sdelivered", args...)
+	return q
+}
+
+var (
+	sqlBaseMessageFields = sqlMessageFields("")
+	sqlMessageInsert     = "INSERT INTO message " + "(" + sqlBaseMessageFields + ") " +
+		"VALUES ($1, $2, $3, $4, $5) RETURNING id, created, cursor"
+	sqlMessageSelect = "SELECT id, " + sqlBaseMessageFields + ", created, cursor FROM"
+)
+
 const (
 	sqlMessageBatchWhere           = " WHERE tenant_id=$1 "
 	sqlMessageBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2"
-
-	sqlMessageFields = "tenant_id, connection_id, message, sent_by_me, delivered"
-	sqlMessageInsert = "INSERT INTO message " + "(" + sqlMessageFields + ") " +
-		"VALUES ($1, $2, $3, $4, $5) RETURNING id, created, cursor"
-	sqlMessageSelect = "SELECT id, " + sqlMessageFields + ", created, cursor FROM"
 )
+
+func (pg *Database) getMessageForObject(objectName, columnName, objectID, tenantID string) (c *model.Message, err error) {
+	defer returnErr("getMessageForObject", &err)
+
+	sqlMessageSelectByObjectID := "SELECT message.id, " +
+		sqlMessageFields("message") + ", message.created, message.cursor FROM" +
+		" message INNER JOIN " + objectName + " ON " + objectName +
+		"." + columnName + "=message.id WHERE " + objectName + ".id = $1 AND message.tenant_id = $2"
+
+	rows, err := pg.db.Query(sqlMessageSelectByObjectID, objectID, tenantID)
+	err2.Check(err)
+	defer rows.Close()
+
+	if rows.Next() {
+		c, err = readRowToMessage(rows)
+		err2.Check(err)
+	}
+
+	err = rows.Err()
+	err2.Check(err)
+
+	return
+}
 
 func readRowToMessage(rows *sql.Rows) (*model.Message, error) {
 	n := model.NewMessage(nil)
@@ -68,8 +108,8 @@ func (pg *Database) AddMessage(arg *model.Message) (n *model.Message, err error)
 func (pg *Database) UpdateMessage(arg *model.Message) (m *model.Message, err error) {
 	defer returnErr("UpdateMessage", &err)
 
-	const sqlMessageUpdate = "UPDATE message SET delivered=$1 WHERE id = $2 AND tenant_id = $3" +
-		" RETURNING id," + sqlMessageFields + ", created, cursor"
+	sqlMessageUpdate := "UPDATE message SET delivered=$1 WHERE id = $2 AND tenant_id = $3" +
+		" RETURNING id," + sqlBaseMessageFields + ", created, cursor"
 
 	rows, err := pg.db.Query(
 		sqlMessageUpdate,
@@ -94,8 +134,7 @@ func (pg *Database) UpdateMessage(arg *model.Message) (m *model.Message, err err
 func (pg *Database) GetMessage(id, tenantID string) (m *model.Message, err error) {
 	defer returnErr("GetMessage", &err)
 
-	const sqlMessageSelectByID = sqlMessageSelect + " message" +
-		" WHERE id=$1 AND tenant_id=$2"
+	sqlMessageSelectByID := sqlMessageSelect + " message WHERE id=$1 AND tenant_id=$2"
 
 	rows, err := pg.db.Query(sqlMessageSelectByID, id, tenantID)
 	err2.Check(err)
@@ -207,5 +246,5 @@ func (pg *Database) GetMessageCount(tenantID string, connectionID *string) (coun
 }
 
 func (pg *Database) GetConnectionForMessage(id, tenantID string) (*model.Connection, error) {
-	return pg.getConnectionForObject("message", id, tenantID)
+	return pg.getConnectionForObject("message", "connection_id", id, tenantID)
 }

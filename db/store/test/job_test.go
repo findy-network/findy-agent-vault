@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bxcodec/faker/v3"
 	"github.com/findy-network/findy-agent-vault/db/fake"
 	"github.com/findy-network/findy-agent-vault/db/model"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
@@ -27,7 +26,10 @@ func validateJob(t *testing.T, exp, got *model.Job) {
 	if got.ProtocolType != exp.ProtocolType {
 		t.Errorf("Job protocol type mismatch expected %s got %s", exp.ProtocolType, got.ProtocolType)
 	}
-	validateStrPtr(t, exp.ProtocolID, got.ProtocolID, "ProtocolID")
+	validateStrPtr(t, exp.ProtocolConnectionID, got.ProtocolConnectionID, "ProtocolConnectionID")
+	validateStrPtr(t, exp.ProtocolCredentialID, got.ProtocolCredentialID, "ProtocolCredentialID")
+	validateStrPtr(t, exp.ProtocolProofID, got.ProtocolProofID, "ProtocolProofID")
+	validateStrPtr(t, exp.ProtocolMessageID, got.ProtocolMessageID, "ProtocolMessageID")
 	validateStrPtr(t, exp.ConnectionID, got.ConnectionID, "ConnectionID")
 	if got.Status != exp.Status {
 		t.Errorf("Job status mismatch expected %s got %s", exp.Status, got.Status)
@@ -151,8 +153,7 @@ func TestUpdateJob(t *testing.T) {
 			}
 
 			// Update data
-			pID := faker.UUIDHyphenated()
-			j.ProtocolID = &pID
+			j.ProtocolConnectionID = &s.testConnectionID
 			j.Status = graph.JobStatusComplete
 			j.Result = graph.JobResultSuccess
 			j.Updated = time.Now().UTC()
@@ -293,7 +294,7 @@ func TestGetConnectionJobCount(t *testing.T) {
 func TestGetConnectionForJob(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
-		t.Run("get connection for job"+s.name, func(t *testing.T) {
+		t.Run("get connection for job "+s.name, func(t *testing.T) {
 			a, connections := AddAgentAndConnections(s.db, "TestGetConnectionForJob", 3)
 			connection := connections[0]
 			jobs := fake.AddJobs(s.db, a.ID, connection.ID, 1)
@@ -305,6 +306,92 @@ func TestGetConnectionForJob(t *testing.T) {
 				t.Errorf("Error fetching connection %s", err.Error())
 			} else {
 				validateConnection(t, connection, got)
+			}
+		})
+	}
+}
+
+func TestGetConnectionOutputForJob(t *testing.T) {
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("get credential output for job "+s.name, func(t *testing.T) {
+			a, connections := AddAgentAndConnections(s.db, "TestGetConnectionOutputForJob", 3)
+			connection := connections[0]
+			jobs := fake.AddConnectionJobs(s.db, a.ID, connection.ID, connection.ID, 1)
+			job := jobs[0]
+
+			// Get data for id
+			got, err := s.db.GetJobOutput(job.ID, a.ID, graph.ProtocolTypeConnection)
+			if err != nil {
+				t.Errorf("Error fetching output %s", err.Error())
+			} else {
+				validateConnection(t, connection, got.Connection)
+			}
+		})
+	}
+}
+
+func TestGetCredentialOutputForJob(t *testing.T) {
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("get credential output for job "+s.name, func(t *testing.T) {
+			a, connections := AddAgentAndConnections(s.db, "TestGetCredentialOutputForJob", 3)
+			connection := connections[0]
+			credentials := fake.AddCredentials(s.db, a.ID, connection.ID, 1)
+			credential := credentials[0]
+			jobs := fake.AddCredentialJobs(s.db, a.ID, connection.ID, credential.ID, 1)
+			job := jobs[0]
+
+			// Get data for id
+			got, err := s.db.GetJobOutput(job.ID, a.ID, graph.ProtocolTypeCredential)
+			if err != nil {
+				t.Errorf("Error fetching output %s", err.Error())
+			} else {
+				validateCredential(t, credential, got.Credential)
+			}
+		})
+	}
+}
+
+func TestGetProofOutputForJob(t *testing.T) {
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("get proof output for job "+s.name, func(t *testing.T) {
+			a, connections := AddAgentAndConnections(s.db, "TestGetProofOutputForJob", 3)
+			connection := connections[0]
+			proofs := fake.AddProofs(s.db, a.ID, connection.ID, 1)
+			proof := proofs[0]
+			jobs := fake.AddProofJobs(s.db, a.ID, connection.ID, proof.ID, 1)
+			job := jobs[0]
+
+			// Get data for id
+			got, err := s.db.GetJobOutput(job.ID, a.ID, graph.ProtocolTypeProof)
+			if err != nil {
+				t.Errorf("Error fetching output %s", err.Error())
+			} else {
+				validateProof(t, proof, got.Proof)
+			}
+		})
+	}
+}
+
+func TestGetMessageOutputForJob(t *testing.T) {
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("get message output for job "+s.name, func(t *testing.T) {
+			a, connections := AddAgentAndConnections(s.db, "TestGetMessageOutputForJob", 3)
+			connection := connections[0]
+			messages := fake.AddMessages(s.db, a.ID, connection.ID, 1)
+			message := messages[0]
+			jobs := fake.AddMessageJobs(s.db, a.ID, connection.ID, message.ID, 1)
+			job := jobs[0]
+
+			// Get data for id
+			got, err := s.db.GetJobOutput(job.ID, a.ID, graph.ProtocolTypeBasicMessage)
+			if err != nil {
+				t.Errorf("Error fetching output %s", err.Error())
+			} else {
+				validateMessage(t, message, got.Message)
 			}
 		})
 	}

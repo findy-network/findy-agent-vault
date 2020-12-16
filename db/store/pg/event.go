@@ -206,7 +206,7 @@ func (pg *Database) GetEventCount(tenantID string, connectionID *string) (count 
 }
 
 func (pg *Database) GetConnectionForEvent(id, tenantID string) (*model.Connection, error) {
-	return pg.getConnectionForObject("event", id, tenantID)
+	return pg.getConnectionForObject("event", "connection_id", id, tenantID)
 }
 
 func (pg *Database) GetJobForEvent(id, tenantID string) (*model.Job, error) {

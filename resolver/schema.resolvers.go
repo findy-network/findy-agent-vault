@@ -40,7 +40,7 @@ func (r *eventConnectionResolver) TotalCount(ctx context.Context, obj *model.Eve
 }
 
 func (r *jobResolver) Output(ctx context.Context, obj *model.Job) (*model.JobOutput, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.output(ctx, obj)
 }
 
 func (r *jobConnectionResolver) TotalCount(ctx context.Context, obj *model.JobConnection) (int, error) {

@@ -123,7 +123,10 @@ CREATE TABLE "job"(
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
   tenant_id uuid NOT NULL,
   connection_id uuid,
-  protocol_id uuid,
+  protocol_connection_id uuid,
+  protocol_credential_id uuid,
+  protocol_proof_id uuid,
+  protocol_message_id uuid,
   protocol_type protocol_type NOT NULL DEFAULT 'NONE',
   "status" job_status NOT NULL DEFAULT 'WAITING',
   result job_result NOT NULL DEFAULT 'NONE',
@@ -134,7 +137,13 @@ CREATE TABLE "job"(
   CONSTRAINT fk_job_agent
     FOREIGN KEY(tenant_id) REFERENCES agent(id),
   CONSTRAINT fk_job_connection
-    FOREIGN KEY(connection_id) REFERENCES connection(id)
+    FOREIGN KEY(connection_id) REFERENCES connection(id),
+  CONSTRAINT fk_job_protocol_connection
+    FOREIGN KEY(protocol_connection_id) REFERENCES connection(id),
+  CONSTRAINT fk_job_protocol_proof
+    FOREIGN KEY(protocol_proof_id) REFERENCES proof(id),
+  CONSTRAINT fk_job_protocol_message
+    FOREIGN KEY(protocol_message_id) REFERENCES message(id)
 );
 
 CREATE INDEX "job_cursor_index" ON job (cursor);

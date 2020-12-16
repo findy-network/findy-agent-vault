@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
+	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
 )
@@ -58,6 +59,7 @@ type DB interface {
 	GetEventCount(tenantID string, connectionID *string) (int, error)
 	GetConnectionForEvent(id, tenantID string) (*model.Connection, error)
 	GetJobForEvent(id, tenantID string) (*model.Job, error)
+	GetJobOutput(id, tenantID string, protocolType graph.ProtocolType) (*model.JobOutput, error)
 
 	AddJob(j *model.Job) (*model.Job, error)
 	UpdateJob(j *model.Job) (*model.Job, error)

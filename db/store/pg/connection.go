@@ -41,12 +41,12 @@ const (
 		", connection.created, connection.approved, connection.cursor FROM connection"
 )
 
-func (pg *Database) getConnectionForObject(objectName, objectID, tenantID string) (c *model.Connection, err error) {
+func (pg *Database) getConnectionForObject(objectName, columnName, objectID, tenantID string) (c *model.Connection, err error) {
 	defer returnErr("getConnectionForObject", &err)
 
 	sqlConnectionSelectByObjectID := sqlConnectionSelect +
 		" INNER JOIN " + objectName + " ON " + objectName +
-		".connection_id=connection.id WHERE " + objectName + ".id = $1 AND connection.tenant_id = $2"
+		"." + columnName + "=connection.id WHERE " + objectName + ".id = $1 AND connection.tenant_id = $2"
 
 	rows, err := pg.db.Query(sqlConnectionSelectByObjectID, objectID, tenantID)
 	err2.Check(err)
