@@ -4,6 +4,8 @@ import (
 	"math"
 	"strconv"
 	"time"
+
+	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
 func timeToString(t *time.Time) string {
@@ -44,6 +46,13 @@ func (a *Agent) copy() (n *Agent) {
 	n.AgentID = a.AgentID
 	n.Label = a.Label
 	return n
+}
+
+func (a *Agent) ToNode() *model.User {
+	return &model.User{
+		ID:   a.ID,
+		Name: a.Label,
+	}
 }
 
 func copyTime(t *time.Time) *time.Time {

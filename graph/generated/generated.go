@@ -43,6 +43,7 @@ type ResolverRoot interface {
 	Event() EventResolver
 	EventConnection() EventConnectionResolver
 	Job() JobResolver
+	JobConnection() JobConnectionResolver
 	Mutation() MutationResolver
 	Pairwise() PairwiseResolver
 	PairwiseConnection() PairwiseConnectionResolver
@@ -300,6 +301,9 @@ type EventConnectionResolver interface {
 }
 type JobResolver interface {
 	Output(ctx context.Context, obj *model.Job) (*model.JobOutput, error)
+}
+type JobConnectionResolver interface {
+	TotalCount(ctx context.Context, obj *model.JobConnection) (int, error)
 }
 type MutationResolver interface {
 	MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.Event, error)
@@ -4460,14 +4464,14 @@ func (ec *executionContext) _JobConnection_totalCount(ctx context.Context, field
 		Object:     "JobConnection",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
+		return ec.resolvers.JobConnection().TotalCount(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9007,13 +9011,22 @@ func (ec *executionContext) _JobConnection(ctx context.Context, sel ast.Selectio
 		case "pageInfo":
 			out.Values[i] = ec._JobConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "totalCount":
-			out.Values[i] = ec._JobConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._JobConnection_totalCount(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

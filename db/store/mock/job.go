@@ -6,6 +6,7 @@ import (
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/findy-network/findy-agent-vault/db/model"
+	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 )
 
@@ -108,30 +109,50 @@ func (m *mockItems) getJobs(
 	return c, nil
 }
 
-func jobConnectionFilter(id string) func(item apiObject) bool {
+func jobFilter(completed *bool) func(item apiObject) bool {
+	fetchAll := completed != nil && *completed
+	return func(item apiObject) bool {
+		j := item.Job()
+		if !fetchAll {
+			return j.Status != graph.JobStatusComplete
+		}
+		return true
+	}
+}
+
+func jobConnectionFilter(id string, completed *bool) func(item apiObject) bool {
+	fetchAll := completed != nil && *completed
 	return func(item apiObject) bool {
 		j := item.Job()
 		if j.ConnectionID != nil && *j.ConnectionID == id {
+			if !fetchAll {
+				return j.Status != graph.JobStatusComplete
+			}
 			return true
 		}
 		return false
 	}
 }
 
-func (m *mockData) GetJobs(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Jobs, err error) {
+func (m *mockData) GetJobs(
+	info *paginator.BatchInfo,
+	tenantID string,
+	connectionID *string,
+	completed *bool,
+) (connections *model.Jobs, err error) {
 	agent := m.agents[tenantID]
 
 	if connectionID == nil {
-		return agent.getJobs(info, nil)
+		return agent.getJobs(info, jobFilter(completed))
 	}
-	return agent.getJobs(info, jobConnectionFilter(*connectionID))
+	return agent.getJobs(info, jobConnectionFilter(*connectionID, completed))
 }
 
-func (m *mockData) GetJobCount(tenantID string, connectionID *string) (int, error) {
+func (m *mockData) GetJobCount(tenantID string, connectionID *string, completed *bool) (int, error) {
 	agent := m.agents[tenantID]
 
 	if connectionID == nil {
-		return agent.jobs.count(nil), nil
+		return agent.jobs.count(jobFilter(completed)), nil
 	}
-	return agent.jobs.count(jobConnectionFilter(*connectionID)), nil
+	return agent.jobs.count(jobConnectionFilter(*connectionID, completed)), nil
 }

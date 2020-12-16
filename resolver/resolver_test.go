@@ -21,8 +21,9 @@ var (
 	testConnectionID string
 	testCredentialID string
 	testProofID      string
-	testEventID      string
 	testMessageID    string
+	testEventID      string
+	testJobID        string
 	totalCount       = 5
 )
 
@@ -83,11 +84,14 @@ func setup() {
 	pr := fake.AddProofs(r.db, a.ID, c[0].ID, size)
 	testProofID = pr[0].ID
 
+	msg := fake.AddMessages(r.db, a.ID, c[0].ID, size)
+	testMessageID = msg[0].ID
+
 	ev := fake.AddEvents(r.db, a.ID, c[0].ID, size)
 	testEventID = ev[0].ID
 
-	msg := fake.AddMessages(r.db, a.ID, c[0].ID, size)
-	testMessageID = msg[0].ID
+	jb := fake.AddJobs(r.db, a.ID, c[0].ID, size)
+	testJobID = jb[0].ID
 }
 
 func teardown() {

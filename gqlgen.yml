@@ -108,3 +108,7 @@ models:
     fields:
       totalCount:
         resolver: true
+  JobConnection:
+    fields:
+      totalCount:
+        resolver: true
