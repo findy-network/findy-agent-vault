@@ -42,15 +42,21 @@ type DB interface {
 	GetProofs(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Proofs, err error)
 	GetProofCount(tenantID string, connectionID *string) (int, error)
 
+	AddMessage(m *model.Message) (*model.Message, error)
+	UpdateMessage(m *model.Message) (*model.Message, error)
+	GetMessage(id string, tenantID string) (*model.Message, error)
+	GetMessages(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Messages, err error)
+	GetMessageCount(tenantID string, connectionID *string) (int, error)
+
 	AddEvent(e *model.Event) (*model.Event, error)
 	MarkEventRead(id, tenantID string) (*model.Event, error)
 	GetEvent(id, tenantID string) (*model.Event, error)
 	GetEvents(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Events, err error)
 	GetEventCount(tenantID string, connectionID *string) (int, error)
 
-	AddMessage(m *model.Message) (*model.Message, error)
-	UpdateMessage(m *model.Message) (*model.Message, error)
-	GetMessage(id string, tenantID string) (*model.Message, error)
-	GetMessages(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Messages, err error)
-	GetMessageCount(tenantID string, connectionID *string) (int, error)
+	AddJob(j *model.Job) (*model.Job, error)
+	UpdateJob(j *model.Job) (*model.Job, error)
+	GetJob(id, tenantID string) (*model.Job, error)
+	GetJobs(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Jobs, err error)
+	GetJobCount(tenantID string, connectionID *string) (int, error)
 }

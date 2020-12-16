@@ -66,6 +66,27 @@ func AddEvents(db store.DB, tenantID, connectionID string, count int) []*model.E
 	return newEvents
 }
 
+func AddJobs(db store.DB, tenantID, connectionID string, count int) []*model.Job {
+	jobs := make([]*model.Job, count)
+	for i := 0; i < count; i++ {
+		job := fakeJob(tenantID, connectionID)
+		jobs[i] = job
+	}
+
+	newJobs := make([]*model.Job, count)
+	for index, job := range jobs {
+		c, err := db.AddJob(job)
+		err2.Check(err)
+		time.Sleep(time.Millisecond) // generate different timestamps for items
+
+		newJobs[index] = c
+	}
+
+	utils.LogMed().Infof("Generated %d jobs for tenant %s", len(newJobs), tenantID)
+
+	return newJobs
+}
+
 func AddCredentials(db store.DB, tenantID, connectionID string, count int) []*model.Credential {
 	_ = faker.AddProvider("credentialAttributes", func(v reflect.Value) (interface{}, error) {
 		return []*graph.CredentialValue{
@@ -222,6 +243,15 @@ func fakeEvent(tenantID, connectionID string) *model.Event {
 	event.TenantID = tenantID
 	event.ConnectionID = &connectionID
 	return event
+}
+
+func fakeJob(tenantID, connectionID string) *model.Job {
+	job := model.NewJob(nil)
+	err2.Check(faker.FakeData(job))
+	job = model.NewJob(job)
+	job.TenantID = tenantID
+	job.ConnectionID = &connectionID
+	return job
 }
 
 func fakeMessage(tenantID, connectionID string) *model.Message {

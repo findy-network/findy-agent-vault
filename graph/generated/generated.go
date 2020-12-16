@@ -149,10 +149,11 @@ type ComplexityRoot struct {
 	}
 
 	JobConnection struct {
-		Edges      func(childComplexity int) int
-		Nodes      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		ConnectionID func(childComplexity int) int
+		Edges        func(childComplexity int) int
+		Nodes        func(childComplexity int) int
+		PageInfo     func(childComplexity int) int
+		TotalCount   func(childComplexity int) int
 	}
 
 	JobEdge struct {
@@ -750,6 +751,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Job.UpdatedMs(childComplexity), true
+
+	case "JobConnection.connectionId":
+		if e.complexity.JobConnection.ConnectionID == nil {
+			break
+		}
+
+		return e.complexity.JobConnection.ConnectionID(childComplexity), true
 
 	case "JobConnection.edges":
 		if e.complexity.JobConnection.Edges == nil {
@@ -1690,6 +1698,7 @@ type JobEdge {
 }
 
 type JobConnection {
+  connectionId: ID
   edges: [JobEdge]
   nodes: [Job]
   pageInfo: PageInfo!
@@ -4307,6 +4316,38 @@ func (ec *executionContext) _Job_output(ctx context.Context, field graphql.Colle
 	res := resTmp.(*model.JobOutput)
 	fc.Result = res
 	return ec.marshalNJobOutput2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐJobOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _JobConnection_connectionId(ctx context.Context, field graphql.CollectedField, obj *model.JobConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "JobConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ConnectionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _JobConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.JobConnection) (ret graphql.Marshaler) {
@@ -8957,6 +8998,8 @@ func (ec *executionContext) _JobConnection(ctx context.Context, sel ast.Selectio
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("JobConnection")
+		case "connectionId":
+			out.Values[i] = ec._JobConnection_connectionId(ctx, field, obj)
 		case "edges":
 			out.Values[i] = ec._JobConnection_edges(ctx, field, obj)
 		case "nodes":

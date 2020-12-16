@@ -105,10 +105,11 @@ type Job struct {
 }
 
 type JobConnection struct {
-	Edges      []*JobEdge `json:"edges"`
-	Nodes      []*Job     `json:"nodes"`
-	PageInfo   *PageInfo  `json:"pageInfo"`
-	TotalCount int        `json:"totalCount"`
+	ConnectionID *string    `json:"connectionId"`
+	Edges        []*JobEdge `json:"edges"`
+	Nodes        []*Job     `json:"nodes"`
+	PageInfo     *PageInfo  `json:"pageInfo"`
+	TotalCount   int        `json:"totalCount"`
 }
 
 type JobEdge struct {

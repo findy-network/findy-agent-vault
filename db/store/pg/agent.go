@@ -10,7 +10,7 @@ import (
 const (
 	sqlAgentFields = "id, agent_id, label, created, last_accessed"
 	sqlAgentInsert = "INSERT INTO agent (agent_id, label) VALUES ($1, $2) " +
-		"ON CONFLICT (agent_id) DO UPDATE SET last_accessed = now() RETURNING " + sqlAgentFields
+		"ON CONFLICT (agent_id) DO UPDATE SET last_accessed = (now() at time zone 'UTC') RETURNING " + sqlAgentFields
 	sqlAgentSelect          = "SELECT " + sqlAgentFields + " FROM agent"
 	sqlAgentSelectByID      = sqlAgentSelect + " WHERE id=$1"
 	sqlAgentSelectByAgentID = sqlAgentSelect + " WHERE agent_id=$1"
