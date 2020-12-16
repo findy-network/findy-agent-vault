@@ -191,7 +191,8 @@ func TestGetTenantJobs(t *testing.T) {
 				for _, testCase := range tests {
 					tc := testCase
 					t.Run(tc.name, func(t *testing.T) {
-						c, err := s.db.GetJobs(tc.args, a.ID, nil)
+						completed := true
+						c, err := s.db.GetJobs(tc.args, a.ID, nil, &completed)
 						if err != nil {
 							t.Errorf("Error fetching job s %s", err.Error())
 						} else {
@@ -227,7 +228,8 @@ func TestGetConnectionJobs(t *testing.T) {
 				for _, testCase := range tests {
 					tc := testCase
 					t.Run(tc.name, func(t *testing.T) {
-						c, err := s.db.GetJobs(tc.args, a.ID, &connections[2].ID)
+						completed := true
+						c, err := s.db.GetJobs(tc.args, a.ID, &connections[2].ID, &completed)
 						if err != nil {
 							t.Errorf("Error fetching connection job s %s", err.Error())
 						} else {
@@ -250,7 +252,8 @@ func TestGetJobCount(t *testing.T) {
 			fake.AddJobs(s.db, a.ID, connections[0].ID, size)
 
 			// Get count
-			got, err := s.db.GetJobCount(a.ID, nil)
+			completed := true
+			got, err := s.db.GetJobCount(a.ID, nil, &completed)
 			if err != nil {
 				t.Errorf("Error fetching count %s", err.Error())
 			} else if got != size {
@@ -276,7 +279,8 @@ func TestGetConnectionJobCount(t *testing.T) {
 
 			// Get count
 			expected := index * size
-			got, err := s.db.GetJobCount(a.ID, &connections[index].ID)
+			completed := true
+			got, err := s.db.GetJobCount(a.ID, &connections[index].ID, &completed)
 			if err != nil {
 				t.Errorf("Error fetching count %s", err.Error())
 			} else if got != expected {

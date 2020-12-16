@@ -57,6 +57,6 @@ type DB interface {
 	AddJob(j *model.Job) (*model.Job, error)
 	UpdateJob(j *model.Job) (*model.Job, error)
 	GetJob(id, tenantID string) (*model.Job, error)
-	GetJobs(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Jobs, err error)
-	GetJobCount(tenantID string, connectionID *string) (int, error)
+	GetJobs(info *paginator.BatchInfo, tenantID string, connectionID *string, completed *bool) (connections *model.Jobs, err error)
+	GetJobCount(tenantID string, connectionID *string, completed *bool) (int, error)
 }

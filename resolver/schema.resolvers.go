@@ -43,6 +43,10 @@ func (r *jobResolver) Output(ctx context.Context, obj *model.Job) (*model.JobOut
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *jobConnectionResolver) TotalCount(ctx context.Context, obj *model.JobConnection) (int, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *mutationResolver) MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.Event, error) {
 	panic(fmt.Errorf("not implemented"))
 }
@@ -144,15 +148,15 @@ func (r *queryResolver) Event(ctx context.Context, id string) (*model.Event, err
 }
 
 func (r *queryResolver) Jobs(ctx context.Context, after *string, before *string, first *int, last *int, completed *bool) (*model.JobConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.jobs(ctx, after, before, first, last, completed)
 }
 
 func (r *queryResolver) Job(ctx context.Context, id string) (*model.Job, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.job(ctx, id)
 }
 
 func (r *queryResolver) User(ctx context.Context) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.user(ctx)
 }
 
 func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.EventEdge, error) {
@@ -186,6 +190,9 @@ func (r *Resolver) EventConnection() generated.EventConnectionResolver {
 // Job returns generated.JobResolver implementation.
 func (r *Resolver) Job() generated.JobResolver { return &jobResolver{r} }
 
+// JobConnection returns generated.JobConnectionResolver implementation.
+func (r *Resolver) JobConnection() generated.JobConnectionResolver { return &jobConnectionResolver{r} }
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
@@ -218,6 +225,7 @@ type credentialConnectionResolver struct{ *Resolver }
 type eventResolver struct{ *Resolver }
 type eventConnectionResolver struct{ *Resolver }
 type jobResolver struct{ *Resolver }
+type jobConnectionResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type pairwiseResolver struct{ *Resolver }
 type pairwiseConnectionResolver struct{ *Resolver }

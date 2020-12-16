@@ -14,8 +14,10 @@ func sqlJobSelectBatchFor(where, limitArg string) string {
 }
 
 const (
-	sqlJobBatchWhere           = " WHERE tenant_id=$1 "
-	sqlJobBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2"
+	sqlJobBatchWhere              = " WHERE tenant_id=$1 AND status != 'COMPLETE'"
+	sqlJobBatchWhereConnection    = " WHERE tenant_id=$1 AND connection_id=$2 AND status != 'COMPLETE'"
+	sqlJobBatchWhereAll           = " WHERE tenant_id=$1"
+	sqlJobBatchWhereConnectionAll = " WHERE tenant_id=$1 AND connection_id=$2"
 
 	sqlJobFields = "tenant_id, protocol_type, protocol_id, connection_id, status, result, initiated_by_us, updated"
 	sqlJobInsert = "INSERT INTO job " + "(" + sqlJobFields + ") " +
@@ -176,39 +178,57 @@ func (pg *Database) getJobsForQuery(
 	return j, err
 }
 
-func (pg *Database) GetJobs(info *paginator.BatchInfo, tenantID string, connectionID *string) (c *model.Jobs, err error) {
+func (pg *Database) GetJobs(info *paginator.BatchInfo, tenantID string, connectionID *string, completed *bool) (c *model.Jobs, err error) {
+	fetchAll := completed != nil && *completed
+
+	qWhere := sqlJobBatchWhere
+	qWhereConnection := sqlJobBatchWhereConnection
+	if fetchAll {
+		qWhere = sqlJobBatchWhereAll
+		qWhereConnection = sqlJobBatchWhereConnectionAll
+	}
+
 	if connectionID == nil {
 		return pg.getJobsForQuery(&queryInfo{
-			Asc:        sqlJobSelectBatchFor(sqlJobBatchWhere+sqlOrderByAsc(""), "$2"),
-			Desc:       sqlJobSelectBatchFor(sqlJobBatchWhere+sqlOrderByDesc(""), "$2"),
-			AfterAsc:   sqlJobSelectBatchFor(sqlJobBatchWhere+" AND cursor > $2"+sqlOrderByAsc(""), "$3"),
-			AfterDesc:  sqlJobSelectBatchFor(sqlJobBatchWhere+" AND cursor > $2"+sqlOrderByDesc(""), "$3"),
-			BeforeAsc:  sqlJobSelectBatchFor(sqlJobBatchWhere+" AND cursor < $2"+sqlOrderByAsc(""), "$3"),
-			BeforeDesc: sqlJobSelectBatchFor(sqlJobBatchWhere+" AND cursor < $2"+sqlOrderByDesc(""), "$3"),
+			Asc:        sqlJobSelectBatchFor(qWhere+sqlOrderByAsc(""), "$2"),
+			Desc:       sqlJobSelectBatchFor(qWhere+sqlOrderByDesc(""), "$2"),
+			AfterAsc:   sqlJobSelectBatchFor(qWhere+" AND cursor > $2"+sqlOrderByAsc(""), "$3"),
+			AfterDesc:  sqlJobSelectBatchFor(qWhere+" AND cursor > $2"+sqlOrderByDesc(""), "$3"),
+			BeforeAsc:  sqlJobSelectBatchFor(qWhere+" AND cursor < $2"+sqlOrderByAsc(""), "$3"),
+			BeforeDesc: sqlJobSelectBatchFor(qWhere+" AND cursor < $2"+sqlOrderByDesc(""), "$3"),
 		},
 			info,
 			[]interface{}{tenantID},
 		)
 	}
 	return pg.getJobsForQuery(&queryInfo{
-		Asc:        sqlJobSelectBatchFor(sqlJobBatchWhereConnection+sqlOrderByAsc(""), "$3"),
-		Desc:       sqlJobSelectBatchFor(sqlJobBatchWhereConnection+sqlOrderByDesc(""), "$3"),
-		AfterAsc:   sqlJobSelectBatchFor(sqlJobBatchWhereConnection+" AND cursor > $3"+sqlOrderByAsc(""), "$4"),
-		AfterDesc:  sqlJobSelectBatchFor(sqlJobBatchWhereConnection+" AND cursor > $3"+sqlOrderByDesc(""), "$4"),
-		BeforeAsc:  sqlJobSelectBatchFor(sqlJobBatchWhereConnection+" AND cursor < $3"+sqlOrderByAsc(""), "$4"),
-		BeforeDesc: sqlJobSelectBatchFor(sqlJobBatchWhereConnection+" AND cursor < $3"+sqlOrderByDesc(""), "$4"),
+		Asc:        sqlJobSelectBatchFor(qWhereConnection+sqlOrderByAsc(""), "$3"),
+		Desc:       sqlJobSelectBatchFor(qWhereConnection+sqlOrderByDesc(""), "$3"),
+		AfterAsc:   sqlJobSelectBatchFor(qWhereConnection+" AND cursor > $3"+sqlOrderByAsc(""), "$4"),
+		AfterDesc:  sqlJobSelectBatchFor(qWhereConnection+" AND cursor > $3"+sqlOrderByDesc(""), "$4"),
+		BeforeAsc:  sqlJobSelectBatchFor(qWhereConnection+" AND cursor < $3"+sqlOrderByAsc(""), "$4"),
+		BeforeDesc: sqlJobSelectBatchFor(qWhereConnection+" AND cursor < $3"+sqlOrderByDesc(""), "$4"),
 	},
 		info,
 		[]interface{}{tenantID, *connectionID},
 	)
 }
 
-func (pg *Database) GetJobCount(tenantID string, connectionID *string) (count int, err error) {
+func (pg *Database) GetJobCount(tenantID string, connectionID *string, completed *bool) (count int, err error) {
 	defer returnErr("GetJobCount", &err)
+	fetchAll := completed != nil && *completed
+
+	qWhere := sqlJobBatchWhere
+	qWhereConnection := sqlJobBatchWhereConnection
+	if fetchAll {
+		qWhere = sqlJobBatchWhereAll
+		qWhereConnection = sqlJobBatchWhereConnectionAll
+	}
+
 	count, err = pg.getCount(
 		"job",
-		sqlJobBatchWhere,
-		sqlJobBatchWhereConnection,
+		qWhere,
+		qWhereConnection,
 		tenantID,
 		connectionID,
 	)
