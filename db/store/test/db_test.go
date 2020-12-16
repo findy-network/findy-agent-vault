@@ -26,7 +26,7 @@ type testableDB struct {
 
 var (
 	DBs            []*testableDB
-	testCredential *model.Credential = &model.Credential{
+	testCredential *model.Credential = model.NewCredential(&model.Credential{
 		Role:          graph.CredentialRoleHolder,
 		SchemaID:      "schemaId",
 		CredDefID:     "credDefId",
@@ -35,8 +35,8 @@ var (
 			{Name: "name1", Value: "value1"},
 			{Name: "name2", Value: "value2"},
 		},
-	}
-	testProof *model.Proof = &model.Proof{
+	})
+	testProof *model.Proof = model.NewProof(&model.Proof{
 		Role:          graph.ProofRoleProver,
 		InitiatedByUs: false,
 		Result:        true,
@@ -44,16 +44,21 @@ var (
 			{Name: "name1", Value: nil, CredDefID: "cred_def_id"},
 			{Name: "name2", Value: nil, CredDefID: "cred_def_id"},
 		},
-	}
-	testEvent *model.Event = &model.Event{
-		Description: "event desc",
-		Read:        false,
-	}
-	testMessage *model.Message = &model.Message{
+	})
+	testMessage *model.Message = model.NewMessage(&model.Message{
 		Message:   "msg content",
 		SentByMe:  false,
 		Delivered: nil,
-	}
+	})
+	testEvent *model.Event = model.NewEvent(&model.Event{
+		Description: "event desc",
+		Read:        false,
+	})
+	testJob *model.Job = model.NewJob(&model.Job{
+		ProtocolType: graph.ProtocolTypeConnection,
+		Status:       graph.JobStatusWaiting,
+		Result:       graph.JobResultNone,
+	})
 )
 
 func validateTimestap(t *testing.T, exp, got *time.Time, name string) {

@@ -4,9 +4,9 @@ CREATE TABLE "agent" (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
   agent_id VARCHAR(256) UNIQUE NOT NULL,
   label VARCHAR(1024),
-  created timestamptz NOT NULL DEFAULT now(),
+  created timestamptz NOT NULL DEFAULT (now() at time zone 'UTC'),
   cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC') * 1000) STORED,
-  last_accessed timestamptz NOT NULL DEFAULT now()
+  last_accessed timestamptz NOT NULL DEFAULT (now() at time zone 'UTC')
 );
 
 CREATE INDEX "agent_id_index" ON agent (agent_id);
@@ -21,7 +21,7 @@ CREATE TABLE "connection"(
   their_endpoint VARCHAR(4096) NOT NULL,
   their_label VARCHAR(1024),
   invited BOOLEAN NOT NULL DEFAULT FALSE,
-  created timestamptz NOT NULL DEFAULT now(),
+  created timestamptz NOT NULL DEFAULT (now() at time zone 'UTC'),
   approved timestamptz,
   cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC') * 1000) STORED,
   CONSTRAINT fk_connection_agent
@@ -40,7 +40,7 @@ CREATE TABLE "credential"(
   schema_id VARCHAR(4096) NOT NULL,
   cred_def_id VARCHAR(4096) NOT NULL,
   initiated_by_us BOOLEAN NOT NULL DEFAULT FALSE,
-  created timestamptz NOT NULL DEFAULT now(),
+  created timestamptz NOT NULL DEFAULT (now() at time zone 'UTC'),
   approved timestamptz,
   issued timestamptz,
   failed timestamptz,
@@ -72,7 +72,7 @@ CREATE TABLE "proof"(
   role proof_role NOT NULL,
   initiated_by_us BOOLEAN NOT NULL DEFAULT FALSE,
   result BOOLEAN NOT NULL DEFAULT FALSE,
-  created timestamptz NOT NULL DEFAULT now(),
+  created timestamptz NOT NULL DEFAULT (now() at time zone 'UTC'),
   approved timestamptz,
   verified timestamptz,
   failed timestamptz,
@@ -103,7 +103,7 @@ CREATE TABLE "message"(
   message VARCHAR(4096) NOT NULL,
   sent_by_me BOOLEAN NOT NULL DEFAULT FALSE,
   delivered BOOLEAN DEFAULT NULL,
-  created timestamptz NOT NULL DEFAULT now(),
+  created timestamptz NOT NULL DEFAULT (now() at time zone 'UTC'),
   cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC') * 1000) STORED,
   CONSTRAINT fk_message_agent
     FOREIGN KEY(tenant_id) REFERENCES agent(id),
@@ -128,8 +128,8 @@ CREATE TABLE "job"(
   "status" job_status NOT NULL DEFAULT 'WAITING',
   result job_result NOT NULL DEFAULT 'NONE',
   initiated_by_us BOOLEAN NOT NULL DEFAULT FALSE,
-  updated timestamptz NOT NULL DEFAULT now(),
-  created timestamptz NOT NULL DEFAULT now(),
+  updated timestamptz NOT NULL DEFAULT (now() at time zone 'UTC'),
+  created timestamptz NOT NULL DEFAULT (now() at time zone 'UTC'),
   cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC') * 1000) STORED,
   CONSTRAINT fk_job_agent
     FOREIGN KEY(tenant_id) REFERENCES agent(id),
@@ -146,7 +146,7 @@ CREATE TABLE "event"(
   job_id uuid,
   "description" VARCHAR(4096) NOT NULL,
   "read" BOOLEAN NOT NULL DEFAULT FALSE,
-  created timestamptz NOT NULL DEFAULT now(),
+  created timestamptz NOT NULL DEFAULT (now() at time zone 'UTC'),
   cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC') * 1000) STORED,
   CONSTRAINT fk_event_agent
     FOREIGN KEY(tenant_id) REFERENCES agent(id),
