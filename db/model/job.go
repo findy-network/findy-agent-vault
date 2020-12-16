@@ -71,7 +71,7 @@ func (j *Job) ToNode() *model.Job {
 	}
 }
 
-func (j *Jobs) ToConnection(id *string) *model.JobConnection {
+func (j *Jobs) ToConnection(id *string, completed *bool) *model.JobConnection {
 	totalCount := len(j.Jobs)
 
 	edges := make([]*model.JobEdge, totalCount)
@@ -89,6 +89,7 @@ func (j *Jobs) ToConnection(id *string) *model.JobConnection {
 	}
 	return &model.JobConnection{
 		ConnectionID: id,
+		Completed:    completed,
 		Edges:        edges,
 		Nodes:        nodes,
 		PageInfo: &model.PageInfo{

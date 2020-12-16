@@ -42,6 +42,25 @@ func TestResolverGetConnectionProofs(t *testing.T) {
 		t.Errorf("Expecting result, received %v", c)
 	}
 }
+
+func TestPaginationErrorsGetConnectionMessages(t *testing.T) {
+	testPaginationErrors(t, "connection messages", func(ctx context.Context, after, before *string, first, last *int) error {
+		_, err := r.Pairwise().Messages(ctx, &model.Pairwise{ID: testConnectionID}, after, before, first, last)
+		return err
+	})
+}
+
+func TestResolverGetConnectionMessages(t *testing.T) {
+	first := 1
+	c, err := r.Pairwise().Messages(testContext(), &model.Pairwise{ID: testConnectionID}, nil, nil, &first, nil)
+	if err != nil {
+		t.Errorf("Received unexpected error %s", err)
+	}
+	if c == nil || len(c.Edges) == 0 {
+		t.Errorf("Expecting result, received %v", c)
+	}
+}
+
 func TestPaginationErrorsGetConnectionEvents(t *testing.T) {
 	testPaginationErrors(t, "connection events", func(ctx context.Context, after, before *string, first, last *int) error {
 		_, err := r.Pairwise().Events(ctx, &model.Pairwise{ID: testConnectionID}, after, before, first, last)
@@ -60,20 +79,22 @@ func TestResolverGetConnectionEvents(t *testing.T) {
 	}
 }
 
-func TestPaginationErrorsGetConnectionMessages(t *testing.T) {
-	testPaginationErrors(t, "connection messages", func(ctx context.Context, after, before *string, first, last *int) error {
-		_, err := r.Pairwise().Messages(ctx, &model.Pairwise{ID: testConnectionID}, after, before, first, last)
+func TestPaginationErrorsGetConnectionJobs(t *testing.T) {
+	testPaginationErrors(t, "connection jobs", func(ctx context.Context, after, before *string, first, last *int) error {
+		completed := true
+		_, err := r.Pairwise().Jobs(ctx, &model.Pairwise{ID: testConnectionID}, after, before, first, last, &completed)
 		return err
 	})
 }
 
-func TestResolverGetConnectionMessages(t *testing.T) {
+func TestResolverGetConnectionJobs(t *testing.T) {
 	first := 1
-	c, err := r.Pairwise().Messages(testContext(), &model.Pairwise{ID: testConnectionID}, nil, nil, &first, nil)
+	completed := true
+	j, err := r.Pairwise().Jobs(testContext(), &model.Pairwise{ID: testConnectionID}, nil, nil, &first, nil, &completed)
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)
 	}
-	if c == nil || len(c.Edges) == 0 {
-		t.Errorf("Expecting result, received %v", c)
+	if j == nil || len(j.Edges) == 0 {
+		t.Errorf("Expecting result, received %v", j)
 	}
 }

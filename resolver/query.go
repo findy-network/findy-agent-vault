@@ -174,7 +174,7 @@ func (r *queryResolver) jobs(
 	res, err := r.db.GetJobs(batch, agent.ID, nil, completed)
 	err2.Check(err)
 
-	return res.ToConnection(nil), nil
+	return res.ToConnection(nil, completed), nil
 }
 
 func (r *queryResolver) job(ctx context.Context, id string) (e *model.Job, err error) {
