@@ -150,6 +150,7 @@ type ComplexityRoot struct {
 	}
 
 	JobConnection struct {
+		Completed    func(childComplexity int) int
 		ConnectionID func(childComplexity int) int
 		Edges        func(childComplexity int) int
 		Nodes        func(childComplexity int) int
@@ -755,6 +756,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Job.UpdatedMs(childComplexity), true
+
+	case "JobConnection.completed":
+		if e.complexity.JobConnection.Completed == nil {
+			break
+		}
+
+		return e.complexity.JobConnection.Completed(childComplexity), true
 
 	case "JobConnection.connectionId":
 		if e.complexity.JobConnection.ConnectionID == nil {
@@ -1703,6 +1711,7 @@ type JobEdge {
 
 type JobConnection {
   connectionId: ID
+  completed: Boolean
   edges: [JobEdge]
   nodes: [Job]
   pageInfo: PageInfo!
@@ -4352,6 +4361,38 @@ func (ec *executionContext) _JobConnection_connectionId(ctx context.Context, fie
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _JobConnection_completed(ctx context.Context, field graphql.CollectedField, obj *model.JobConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "JobConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Completed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _JobConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.JobConnection) (ret graphql.Marshaler) {
@@ -9004,6 +9045,8 @@ func (ec *executionContext) _JobConnection(ctx context.Context, sel ast.Selectio
 			out.Values[i] = graphql.MarshalString("JobConnection")
 		case "connectionId":
 			out.Values[i] = ec._JobConnection_connectionId(ctx, field, obj)
+		case "completed":
+			out.Values[i] = ec._JobConnection_completed(ctx, field, obj)
 		case "edges":
 			out.Values[i] = ec._JobConnection_edges(ctx, field, obj)
 		case "nodes":

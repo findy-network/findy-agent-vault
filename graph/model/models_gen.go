@@ -106,6 +106,7 @@ type Job struct {
 
 type JobConnection struct {
 	ConnectionID *string    `json:"connectionId"`
+	Completed    *bool      `json:"completed"`
 	Edges        []*JobEdge `json:"edges"`
 	Nodes        []*Job     `json:"nodes"`
 	PageInfo     *PageInfo  `json:"pageInfo"`

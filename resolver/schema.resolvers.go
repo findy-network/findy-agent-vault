@@ -44,7 +44,7 @@ func (r *jobResolver) Output(ctx context.Context, obj *model.Job) (*model.JobOut
 }
 
 func (r *jobConnectionResolver) TotalCount(ctx context.Context, obj *model.JobConnection) (int, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.totalCount(ctx, obj)
 }
 
 func (r *mutationResolver) MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.Event, error) {
@@ -96,7 +96,7 @@ func (r *pairwiseResolver) Proofs(ctx context.Context, obj *model.Pairwise, afte
 }
 
 func (r *pairwiseResolver) Jobs(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int, completed *bool) (*model.JobConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.jobs(ctx, obj, after, before, first, last, completed)
 }
 
 func (r *pairwiseResolver) Events(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.EventConnection, error) {

@@ -216,6 +216,7 @@ type JobEdge {
 
 type JobConnection {
   connectionId: ID
+  completed: Boolean
   edges: [JobEdge]
   nodes: [Job]
   pageInfo: PageInfo!
