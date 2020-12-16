@@ -156,3 +156,14 @@ func (m *mockData) GetJobCount(tenantID string, connectionID *string, completed 
 	}
 	return agent.jobs.count(jobConnectionFilter(*connectionID, completed)), nil
 }
+
+func (m *mockData) GetConnectionForJob(id, tenantID string) (*model.Connection, error) {
+	job, err := m.GetJob(id, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	if job.ConnectionID != nil {
+		return m.GetConnection(*job.ConnectionID, tenantID)
+	}
+	return nil, errors.New("no connection found for job id: " + id)
+}

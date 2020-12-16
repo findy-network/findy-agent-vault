@@ -289,3 +289,23 @@ func TestGetConnectionMessageCount(t *testing.T) {
 		})
 	}
 }
+
+func TestGetConnectionForMessage(t *testing.T) {
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("get connection for message"+s.name, func(t *testing.T) {
+			a, connections := AddAgentAndConnections(s.db, "TestGetConnectionForMessage", 3)
+			connection := connections[0]
+			messages := fake.AddMessages(s.db, a.ID, connection.ID, 1)
+			message := messages[0]
+
+			// Get data for id
+			got, err := s.db.GetConnectionForMessage(message.ID, a.ID)
+			if err != nil {
+				t.Errorf("Error fetching connection %s", err.Error())
+			} else {
+				validateConnection(t, connection, got)
+			}
+		})
+	}
+}

@@ -297,3 +297,7 @@ func (pg *Database) GetProofCount(tenantID string, connectionID *string) (count 
 	err2.Check(err)
 	return
 }
+
+func (pg *Database) GetConnectionForProof(id, tenantID string) (*model.Connection, error) {
+	return pg.getConnectionForObject("proof", id, tenantID)
+}

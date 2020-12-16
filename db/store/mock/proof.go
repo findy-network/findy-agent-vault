@@ -135,3 +135,11 @@ func (m *mockData) GetProofCount(tenantID string, connectionID *string) (int, er
 	}
 	return agent.proofs.count(proofConnectionFilter(*connectionID)), nil
 }
+
+func (m *mockData) GetConnectionForProof(id, tenantID string) (*model.Connection, error) {
+	proof, err := m.GetProof(id, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	return m.GetConnection(proof.ConnectionID, tenantID)
+}

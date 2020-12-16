@@ -289,3 +289,23 @@ func TestGetConnectionJobCount(t *testing.T) {
 		})
 	}
 }
+
+func TestGetConnectionForJob(t *testing.T) {
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("get connection for job"+s.name, func(t *testing.T) {
+			a, connections := AddAgentAndConnections(s.db, "TestGetConnectionForJob", 3)
+			connection := connections[0]
+			jobs := fake.AddJobs(s.db, a.ID, connection.ID, 1)
+			job := jobs[0]
+
+			// Get data for id
+			got, err := s.db.GetConnectionForJob(job.ID, a.ID)
+			if err != nil {
+				t.Errorf("Error fetching connection %s", err.Error())
+			} else {
+				validateConnection(t, connection, got)
+			}
+		})
+	}
+}

@@ -204,3 +204,7 @@ func (pg *Database) GetEventCount(tenantID string, connectionID *string) (count 
 	err2.Check(err)
 	return
 }
+
+func (pg *Database) GetConnectionForEvent(id, tenantID string) (*model.Connection, error) {
+	return pg.getConnectionForObject("event", id, tenantID)
+}

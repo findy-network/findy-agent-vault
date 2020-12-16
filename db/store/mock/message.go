@@ -121,3 +121,11 @@ func (m *mockData) GetMessageCount(tenantID string, connectionID *string) (int, 
 	}
 	return agent.messages.count(messageConnectionFilter(*connectionID)), nil
 }
+
+func (m *mockData) GetConnectionForMessage(id, tenantID string) (*model.Connection, error) {
+	message, err := m.GetMessage(id, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	return m.GetConnection(message.ConnectionID, tenantID)
+}

@@ -122,3 +122,14 @@ func (m *mockData) GetEventCount(tenantID string, connectionID *string) (int, er
 	}
 	return agent.events.count(eventConnectionFilter(*connectionID)), nil
 }
+
+func (m *mockData) GetConnectionForEvent(id, tenantID string) (*model.Connection, error) {
+	event, err := m.GetEvent(id, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	if event.ConnectionID != nil {
+		return m.GetConnection(*event.ConnectionID, tenantID)
+	}
+	return nil, errors.New("no connection found for event id: " + id)
+}

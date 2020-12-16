@@ -135,3 +135,11 @@ func (m *mockData) GetCredentialCount(tenantID string, connectionID *string) (in
 	}
 	return agent.credentials.count(credentialConnectionFilter(*connectionID)), nil
 }
+
+func (m *mockData) GetConnectionForCredential(id, tenantID string) (*model.Connection, error) {
+	credential, err := m.GetCredential(id, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	return m.GetConnection(credential.ConnectionID, tenantID)
+}
