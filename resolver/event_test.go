@@ -6,8 +6,8 @@ import (
 	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
-func TestGetMessageConnection(t *testing.T) {
-	connection, err := r.BasicMessage().Connection(testContext(), &model.BasicMessage{ID: testMessageID})
+func TestGetEventConnection(t *testing.T) {
+	connection, err := r.Event().Connection(testContext(), &model.Event{ID: testEventID})
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)
 	}
