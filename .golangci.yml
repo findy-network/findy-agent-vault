@@ -117,6 +117,9 @@ issues:
         - dupl
         - gocritic
         - lll
+    - path: resolver/resolver.go
+      linters:
+        - dupl
     - path: resolver/query.go
       linters:
         - dupl
