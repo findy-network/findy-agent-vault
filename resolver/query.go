@@ -23,6 +23,7 @@ func (r *queryResolver) connections(ctx context.Context, after, before *string, 
 		Last:   last,
 		After:  after,
 		Before: before,
+		Object: model.Pairwise{},
 	})
 	err2.Check(err)
 
@@ -77,6 +78,7 @@ func (r *queryResolver) credentials(
 		Last:   last,
 		After:  after,
 		Before: before,
+		Object: model.Credential{},
 	})
 	err2.Check(err)
 
@@ -127,6 +129,7 @@ func (r *queryResolver) events(ctx context.Context, after, before *string, first
 		Last:   last,
 		After:  after,
 		Before: before,
+		Object: model.Event{},
 	})
 	err2.Check(err)
 
@@ -168,6 +171,7 @@ func (r *queryResolver) jobs(
 		Last:   last,
 		After:  after,
 		Before: before,
+		Object: model.Job{},
 	})
 	err2.Check(err)
 

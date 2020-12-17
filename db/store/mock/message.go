@@ -39,7 +39,7 @@ func (m *mockMessage) Message() *model.Message {
 }
 
 func (m *mockData) AddMessage(arg *model.Message) (*model.Message, error) {
-	agent := m.agents[arg.TenantID]
+	agent := m.agents.get(arg.TenantID)
 
 	n := model.NewMessage(arg.TenantID, arg)
 	n.ID = faker.UUIDHyphenated()
@@ -50,7 +50,7 @@ func (m *mockData) AddMessage(arg *model.Message) (*model.Message, error) {
 }
 
 func (m *mockData) UpdateMessage(arg *model.Message) (*model.Message, error) {
-	agent := m.agents[arg.TenantID]
+	agent := m.agents.get(arg.TenantID)
 
 	object := agent.messages.objectForID(arg.ID)
 	if object == nil {
@@ -67,7 +67,7 @@ func (m *mockData) UpdateMessage(arg *model.Message) (*model.Message, error) {
 }
 
 func (m *mockData) GetMessage(id, tenantID string) (*model.Message, error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	msg := agent.messages.objectForID(id)
 	if msg == nil {
@@ -105,7 +105,7 @@ func (m *mockData) GetMessages(
 	tenantID string,
 	connectionID *string,
 ) (connections *model.Messages, err error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	if connectionID == nil {
 		return agent.getMessages(info, nil)
@@ -114,7 +114,7 @@ func (m *mockData) GetMessages(
 }
 
 func (m *mockData) GetMessageCount(tenantID string, connectionID *string) (int, error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	if connectionID == nil {
 		return agent.messages.count(nil), nil

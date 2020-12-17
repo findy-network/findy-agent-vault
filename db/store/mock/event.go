@@ -39,7 +39,7 @@ func (e *mockEvent) Event() *model.Event {
 }
 
 func (m *mockData) AddEvent(e *model.Event) (*model.Event, error) {
-	agent := m.agents[e.TenantID]
+	agent := m.agents.get(e.TenantID)
 
 	n := model.NewEvent(e)
 	n.ID = faker.UUIDHyphenated()
@@ -51,7 +51,7 @@ func (m *mockData) AddEvent(e *model.Event) (*model.Event, error) {
 }
 
 func (m *mockData) MarkEventRead(id, tenantID string) (*model.Event, error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	object := agent.events.objectForID(id)
 	if object == nil {
@@ -68,7 +68,7 @@ func (m *mockData) MarkEventRead(id, tenantID string) (*model.Event, error) {
 }
 
 func (m *mockData) GetEvent(id, tenantID string) (*model.Event, error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	e := agent.events.objectForID(id)
 	if e == nil {
@@ -80,19 +80,19 @@ func (m *mockData) GetEvent(id, tenantID string) (*model.Event, error) {
 func (m *mockItems) getEvents(
 	info *paginator.BatchInfo,
 	filter func(item apiObject) bool,
-) (connections *model.Events, err error) {
+) (events *model.Events, err error) {
 	state, hasNextPage, hasPreviousPage := m.events.getObjects(info, filter)
 	res := make([]*model.Event, len(state.objects))
 	for i := range state.objects {
 		res[i] = state.objects[i].Copy().Event()
 	}
 
-	c := &model.Events{
+	events = &model.Events{
 		Events:          res,
 		HasNextPage:     hasNextPage,
 		HasPreviousPage: hasPreviousPage,
 	}
-	return c, nil
+	return
 }
 
 func eventConnectionFilter(id string) func(item apiObject) bool {
@@ -106,7 +106,7 @@ func eventConnectionFilter(id string) func(item apiObject) bool {
 }
 
 func (m *mockData) GetEvents(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Events, err error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	if connectionID == nil {
 		return agent.getEvents(info, nil)
@@ -115,7 +115,7 @@ func (m *mockData) GetEvents(info *paginator.BatchInfo, tenantID string, connect
 }
 
 func (m *mockData) GetEventCount(tenantID string, connectionID *string) (int, error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	if connectionID == nil {
 		return agent.events.count(nil), nil

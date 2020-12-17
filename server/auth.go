@@ -81,7 +81,7 @@ func CreateToken(id string) (string, error) {
 }
 
 func CreateTestToken(id string) *jwt.Token {
-	token := createToken("test", time.Hour*hoursForTest)
+	token := createToken(id, time.Hour*hoursForTest)
 	str, _ := token.SignedString([]byte(jwtSecret))
 	token.Raw = str
 	return token

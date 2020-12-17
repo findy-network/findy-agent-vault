@@ -8,14 +8,16 @@ import (
 )
 
 func (m *mockData) AddAgent(a *model.Agent) (*model.Agent, error) {
-	agent, ok := m.agentsByAgentID[a.AgentID]
-	if !ok {
+	agent := m.agents.getByAgentID(a.AgentID)
+	add := false
+	if agent == nil {
 		agent = newState()
+		add = true
 	}
 	n := agent.agent
 
 	now := time.Now().UTC()
-	if !ok {
+	if add {
 		n = model.NewAgent(a)
 		n.ID = faker.UUIDHyphenated()
 		n.Created = now
@@ -25,8 +27,7 @@ func (m *mockData) AddAgent(a *model.Agent) (*model.Agent, error) {
 	n.LastAccessed = now
 	agent.agent = n
 
-	m.agents[n.ID] = agent
-	m.agentsByAgentID[n.AgentID] = agent
+	m.agents.set(n.ID, n.AgentID, agent)
 
 	return n, nil
 }
@@ -34,9 +35,9 @@ func (m *mockData) AddAgent(a *model.Agent) (*model.Agent, error) {
 func (m *mockData) GetAgent(id, agentID *string) (*model.Agent, error) {
 	var agent *mockItems
 	if id != nil {
-		agent = m.agents[*id]
+		agent = m.agents.get(*id)
 	} else {
-		agent = m.agentsByAgentID[*agentID]
+		agent = m.agents.getByAgentID(*agentID)
 	}
 	return agent.agent, nil
 }
