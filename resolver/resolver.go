@@ -51,19 +51,19 @@ func InitResolver(mockDB, fakeData bool) *Resolver {
 	return r
 }
 
-func (r *Resolver) addEvent(job *dbModel.Job, description string) (err error) {
+func (r *Resolver) addEvent(tenantID string, job *dbModel.Job, description string) (err error) {
 	var connectionID, jobID *string
 	if job != nil {
 		connectionID = job.ConnectionID
 		jobID = &job.ID
 	}
 	// TODO: event subscription
-	_, err = r.db.AddEvent(&dbModel.Event{
+	_, err = r.db.AddEvent(dbModel.NewEvent(tenantID, &dbModel.Event{
 		Read:         false,
 		Description:  description,
 		ConnectionID: connectionID,
 		JobID:        jobID,
-	})
+	}))
 	return err
 }
 
@@ -72,7 +72,7 @@ func (r *Resolver) addJob(job *dbModel.Job, description string) (err error) {
 	job, err = r.db.AddJob(job)
 	err2.Check(err)
 
-	err2.Check(r.addEvent(job, description))
+	err2.Check(r.addEvent(job.TenantID, job, description))
 
 	return
 }
@@ -82,7 +82,7 @@ func (r *Resolver) updateJob(job *dbModel.Job, description string) (err error) {
 	job, err = r.db.UpdateJob(job)
 	err2.Check(err)
 
-	err2.Check(r.addEvent(job, description))
+	err2.Check(r.addEvent(job.TenantID, job, description))
 
 	return
 }

@@ -51,7 +51,7 @@ var (
 		SentByMe:  false,
 		Delivered: nil,
 	})
-	testEvent *model.Event = model.NewEvent(&model.Event{
+	testEvent *model.Event = model.NewEvent("", &model.Event{
 		Description: "event desc",
 		Read:        false,
 	})
