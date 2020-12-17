@@ -200,7 +200,15 @@ func AddAgent(db store.DB) *model.Agent {
 func AddData(db store.DB) {
 	agent := AddAgent(db)
 
-	AddConnections(db, agent.ID, 5)
+	count := 5
+	eventFactor := 3
+
+	connections := AddConnections(db, agent.ID, count)
+	AddCredentials(db, agent.ID, connections[0].ID, count)
+	AddProofs(db, agent.ID, connections[0].ID, count)
+	AddMessages(db, agent.ID, connections[0].ID, count)
+	jobs := AddJobs(db, agent.ID, connections[0].ID, count)
+	AddEvents(db, agent.ID, connections[0].ID, &jobs[0].ID, count*eventFactor)
 }
 
 func addJobs(

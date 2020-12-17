@@ -39,7 +39,7 @@ func (c *mockConnection) Connection() *model.Connection {
 }
 
 func (m *mockData) AddConnection(c *model.Connection) (*model.Connection, error) {
-	agent := m.agents[c.TenantID]
+	agent := m.agents.get(c.TenantID)
 
 	n := model.NewConnection(c.ID, c.TenantID, c)
 	n.ID = faker.UUIDHyphenated()
@@ -51,7 +51,7 @@ func (m *mockData) AddConnection(c *model.Connection) (*model.Connection, error)
 }
 
 func (m *mockData) GetConnection(id, tenantID string) (*model.Connection, error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	c := agent.connections.objectForID(id)
 	if c == nil {
@@ -61,7 +61,7 @@ func (m *mockData) GetConnection(id, tenantID string) (*model.Connection, error)
 }
 
 func (m *mockData) GetConnections(info *paginator.BatchInfo, tenantID string) (connections *model.Connections, err error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	state, hasNextPage, hasPreviousPage := agent.connections.getObjects(info, nil)
 	res := make([]*model.Connection, len(state.objects))
@@ -78,7 +78,7 @@ func (m *mockData) GetConnections(info *paginator.BatchInfo, tenantID string) (c
 }
 
 func (m *mockData) GetConnectionCount(tenantID string) (int, error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	return agent.connections.count(nil), nil
 }

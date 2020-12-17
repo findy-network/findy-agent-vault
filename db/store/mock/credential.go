@@ -39,7 +39,7 @@ func (c *mockCredential) Credential() *model.Credential {
 }
 
 func (m *mockData) AddCredential(c *model.Credential) (*model.Credential, error) {
-	agent := m.agents[c.TenantID]
+	agent := m.agents.get(c.TenantID)
 
 	n := model.NewCredential(c.TenantID, c)
 	n.ID = faker.UUIDHyphenated()
@@ -53,7 +53,7 @@ func (m *mockData) AddCredential(c *model.Credential) (*model.Credential, error)
 }
 
 func (m *mockData) UpdateCredential(c *model.Credential) (*model.Credential, error) {
-	agent := m.agents[c.TenantID]
+	agent := m.agents.get(c.TenantID)
 
 	object := agent.credentials.objectForID(c.ID)
 	if object == nil {
@@ -72,7 +72,7 @@ func (m *mockData) UpdateCredential(c *model.Credential) (*model.Credential, err
 }
 
 func (m *mockData) GetCredential(id, tenantID string) (*model.Credential, error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	c := agent.credentials.objectForID(id)
 	if c == nil {
@@ -119,7 +119,7 @@ func (m *mockData) GetCredentials(
 	tenantID string,
 	connectionID *string,
 ) (connections *model.Credentials, err error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	if connectionID == nil {
 		return agent.getCredentials(info, filterCredential)
@@ -128,7 +128,7 @@ func (m *mockData) GetCredentials(
 }
 
 func (m *mockData) GetCredentialCount(tenantID string, connectionID *string) (int, error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	if connectionID == nil {
 		return agent.credentials.count(filterCredential), nil

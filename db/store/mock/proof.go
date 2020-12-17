@@ -39,7 +39,7 @@ func (p *mockProof) Proof() *model.Proof {
 }
 
 func (m *mockData) AddProof(p *model.Proof) (*model.Proof, error) {
-	agent := m.agents[p.TenantID]
+	agent := m.agents.get(p.TenantID)
 
 	n := model.NewProof(p.TenantID, p)
 	n.ID = faker.UUIDHyphenated()
@@ -53,7 +53,7 @@ func (m *mockData) AddProof(p *model.Proof) (*model.Proof, error) {
 }
 
 func (m *mockData) UpdateProof(p *model.Proof) (*model.Proof, error) {
-	agent := m.agents[p.TenantID]
+	agent := m.agents.get(p.TenantID)
 
 	object := agent.proofs.objectForID(p.ID)
 	if object == nil {
@@ -72,7 +72,7 @@ func (m *mockData) UpdateProof(p *model.Proof) (*model.Proof, error) {
 }
 
 func (m *mockData) GetProof(id, tenantID string) (*model.Proof, error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	p := agent.proofs.objectForID(id)
 	if p == nil {
@@ -119,7 +119,7 @@ func (m *mockData) GetProofs(
 	tenantID string,
 	connectionID *string,
 ) (connections *model.Proofs, err error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	if connectionID == nil {
 		return agent.getProofs(info, filterProof)
@@ -128,7 +128,7 @@ func (m *mockData) GetProofs(
 }
 
 func (m *mockData) GetProofCount(tenantID string, connectionID *string) (int, error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	if connectionID == nil {
 		return agent.proofs.count(filterProof), nil

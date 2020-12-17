@@ -42,7 +42,7 @@ func (j *mockJob) Job() *model.Job {
 }
 
 func (m *mockData) AddJob(j *model.Job) (*model.Job, error) {
-	agent := m.agents[j.TenantID]
+	agent := m.agents.get(j.TenantID)
 
 	n := model.NewJob(j.ID, j.TenantID, j)
 	n.ID = faker.UUIDHyphenated()
@@ -54,7 +54,7 @@ func (m *mockData) AddJob(j *model.Job) (*model.Job, error) {
 }
 
 func (m *mockData) UpdateJob(arg *model.Job) (*model.Job, error) {
-	agent := m.agents[arg.TenantID]
+	agent := m.agents.get(arg.TenantID)
 
 	object := agent.jobs.objectForID(arg.ID)
 	if object == nil {
@@ -78,7 +78,7 @@ func (m *mockData) UpdateJob(arg *model.Job) (*model.Job, error) {
 }
 
 func (m *mockData) GetJob(id, tenantID string) (*model.Job, error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	j := agent.jobs.objectForID(id)
 	if j == nil {
@@ -90,19 +90,19 @@ func (m *mockData) GetJob(id, tenantID string) (*model.Job, error) {
 func (m *mockItems) getJobs(
 	info *paginator.BatchInfo,
 	filter func(item apiObject) bool,
-) (connections *model.Jobs, err error) {
+) (jobs *model.Jobs, err error) {
 	state, hasNextPage, hasPreviousPage := m.jobs.getObjects(info, filter)
 	res := make([]*model.Job, len(state.objects))
 	for i := range state.objects {
 		res[i] = state.objects[i].Copy().Job()
 	}
 
-	c := &model.Jobs{
+	jobs = &model.Jobs{
 		Jobs:            res,
 		HasNextPage:     hasNextPage,
 		HasPreviousPage: hasPreviousPage,
 	}
-	return c, nil
+	return
 }
 
 func jobFilter(completed *bool) func(item apiObject) bool {
@@ -136,7 +136,7 @@ func (m *mockData) GetJobs(
 	connectionID *string,
 	completed *bool,
 ) (connections *model.Jobs, err error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	if connectionID == nil {
 		return agent.getJobs(info, jobFilter(completed))
@@ -145,7 +145,7 @@ func (m *mockData) GetJobs(
 }
 
 func (m *mockData) GetJobCount(tenantID string, connectionID *string, completed *bool) (int, error) {
-	agent := m.agents[tenantID]
+	agent := m.agents.get(tenantID)
 
 	if connectionID == nil {
 		return agent.jobs.count(jobFilter(completed)), nil

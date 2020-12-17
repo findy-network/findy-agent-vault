@@ -1,12 +1,12 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/google/uuid"
 	"github.com/lainio/err2"
 
 	"github.com/rs/cors"
@@ -21,17 +21,14 @@ import (
 
 const defaultPort = "8085"
 
-var gqlResolver *resolver.Resolver
-
 func TokenHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer err2.Catch(func(err error) {
 			fmt.Println("ERROR generation token:", err.Error())
 		})
-		user, err := gqlResolver.Query().User(context.TODO())
-		err2.Check(err)
 
-		token, err := server.CreateToken(user.ID)
+		// TODO
+		token, err := server.CreateToken(uuid.New().String())
 		err2.Check(err)
 
 		w.Header().Add("Content-Type", "text/plain")

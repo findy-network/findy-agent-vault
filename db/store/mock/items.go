@@ -10,22 +10,22 @@ import (
 type items struct {
 	objects []apiObject
 	apiType string
-	mutex   sync.RWMutex
+	*sync.RWMutex
 }
 
 func newItems(apiType string) (i *items) {
-	return &items{objects: make([]apiObject, 0), apiType: apiType}
+	return &items{objects: make([]apiObject, 0), apiType: apiType, RWMutex: &sync.RWMutex{}}
 }
 
 func (i *items) append(object apiObject) {
-	i.mutex.Lock()
-	defer i.mutex.Unlock()
+	i.Lock()
+	defer i.Unlock()
 	i.objects = append(i.objects, object)
 }
 
 func (i *items) copy() *items {
-	i.mutex.Lock()
-	defer i.mutex.Unlock()
+	i.Lock()
+	defer i.Unlock()
 	n := newItems(i.apiType)
 	for _, o := range i.objects {
 		n.objects = append(n.objects, o.Copy())
@@ -34,8 +34,8 @@ func (i *items) copy() *items {
 }
 
 func (i *items) count(filter func(item apiObject) bool) (count int) {
-	i.mutex.RLock()
-	defer i.mutex.RUnlock()
+	i.RLock()
+	defer i.RUnlock()
 	if filter == nil {
 		count = len(i.objects)
 	} else {
@@ -46,8 +46,8 @@ func (i *items) count(filter func(item apiObject) bool) (count int) {
 
 /*
 func (i *items) randomID() *string {
-	i.mutex.RLock()
-	defer i.mutex.RUnlock()
+	i.RLock()
+	defer i.RUnlock()
 	max := len(i.objects) - 1
 	index := utils.Random(max)
 	id := i.objects[index].Identifier()
@@ -55,29 +55,33 @@ func (i *items) randomID() *string {
 }*/
 
 func (i *items) firstID() (id string) {
-	i.mutex.RLock()
-	defer i.mutex.RUnlock()
-	id = i.objects[0].Identifier()
+	i.RLock()
+	defer i.RUnlock()
+	if len(i.objects) > 0 {
+		id = i.objects[0].Identifier()
+	}
 	return
 }
 
 func (i *items) lastID() (id string) {
-	i.mutex.RLock()
-	defer i.mutex.RUnlock()
-	id = i.objects[len(i.objects)-1].Identifier()
+	i.RLock()
+	defer i.RUnlock()
+	if len(i.objects) > 0 {
+		id = i.objects[len(i.objects)-1].Identifier()
+	}
 	return
 }
 
 func (i *items) createdForIndex(index int) (created uint64) {
-	i.mutex.RLock()
-	defer i.mutex.RUnlock()
+	i.RLock()
+	defer i.RUnlock()
 	created = i.objects[index].Created()
 	return
 }
 
 func (i *items) sort() {
-	i.mutex.Lock()
-	defer i.mutex.Unlock()
+	i.Lock()
+	defer i.Unlock()
 	s := i.objects
 	sort.Slice(s, func(i, j int) bool {
 		return s[i].Created() < s[j].Created()
@@ -85,8 +89,8 @@ func (i *items) sort() {
 }
 
 func (i *items) filter(fn func(item apiObject) apiObject) *items {
-	i.mutex.RLock()
-	defer i.mutex.RUnlock()
+	i.RLock()
+	defer i.RUnlock()
 	f := newItems(i.apiType)
 	for index := range i.objects {
 		res := fn(i.objects[index])
@@ -98,8 +102,8 @@ func (i *items) filter(fn func(item apiObject) apiObject) *items {
 }
 
 func (i *items) objectForID(id string) (o apiObject) {
-	i.mutex.RLock()
-	defer i.mutex.RUnlock()
+	i.RLock()
+	defer i.RUnlock()
 
 	if id == "" {
 		return
@@ -116,8 +120,8 @@ func (i *items) objectForID(id string) (o apiObject) {
 }
 
 func (i *items) replaceObjectForID(id string, o apiObject) (found bool) {
-	i.mutex.RLock()
-	defer i.mutex.RUnlock()
+	i.RLock()
+	defer i.RUnlock()
 
 	if id == "" {
 		return

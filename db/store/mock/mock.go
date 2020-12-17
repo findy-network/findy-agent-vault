@@ -2,6 +2,7 @@ package mock
 
 import (
 	"reflect"
+	"sync"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/db/store"
@@ -82,19 +83,51 @@ func (b *base) Job() *model.Job {
 }
 
 type mockData struct {
-	agents          map[string]*mockItems
-	agentsByAgentID map[string]*mockItems
+	agents *agentLedger
 }
 
 func newData() *mockData {
 	return &mockData{
-		agents:          make(map[string]*mockItems),
-		agentsByAgentID: make(map[string]*mockItems),
+		agents: &agentLedger{
+			RWMutex:         &sync.RWMutex{},
+			agents:          make(map[string]*mockItems),
+			agentsByAgentID: make(map[string]*mockItems),
+		},
 	}
 }
 
 func (m *mockData) Close() {
 	n := newData()
 	m.agents = n.agents
-	m.agentsByAgentID = n.agentsByAgentID
+}
+
+type agentLedger struct {
+	*sync.RWMutex
+	agents          map[string]*mockItems
+	agentsByAgentID map[string]*mockItems
+}
+
+func (a *agentLedger) get(tenantID string) *mockItems {
+	a.RLock()
+	defer a.RUnlock()
+
+	items := a.agents[tenantID]
+
+	return items
+}
+
+func (a *agentLedger) getByAgentID(agentID string) *mockItems {
+	a.RLock()
+	defer a.RUnlock()
+
+	items := a.agentsByAgentID[agentID]
+
+	return items
+}
+
+func (a *agentLedger) set(tenantID, agentID string, items *mockItems) {
+	a.Lock()
+	defer a.Unlock()
+	a.agents[tenantID] = items
+	a.agentsByAgentID[agentID] = items
 }

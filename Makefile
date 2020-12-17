@@ -1,7 +1,7 @@
 .PHONY: db
 
 run:
-	go run playground.go
+	go run tools/playground/playground.go
 
 generate: 
 	go generate ./...

@@ -28,6 +28,7 @@ func (r *pairwiseResolver) credentials(
 		Last:   last,
 		After:  after,
 		Before: before,
+		Object: model.Credential{},
 	})
 	err2.Check(err)
 
@@ -55,6 +56,7 @@ func (r *pairwiseResolver) proofs(
 		Last:   last,
 		After:  after,
 		Before: before,
+		Object: model.Proof{},
 	})
 	err2.Check(err)
 
@@ -82,6 +84,7 @@ func (r *pairwiseResolver) messages(
 		Last:   last,
 		After:  after,
 		Before: before,
+		Object: model.BasicMessage{},
 	})
 	err2.Check(err)
 
@@ -109,6 +112,7 @@ func (r *pairwiseResolver) events(
 		Last:   last,
 		After:  after,
 		Before: before,
+		Object: model.Event{},
 	})
 	err2.Check(err)
 
@@ -137,6 +141,7 @@ func (r *pairwiseResolver) jobs(
 		Last:   last,
 		After:  after,
 		Before: before,
+		Object: model.Job{},
 	})
 	err2.Check(err)
 
