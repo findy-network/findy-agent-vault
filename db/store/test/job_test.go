@@ -10,6 +10,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/model"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/google/uuid"
 )
 
 func validateJob(t *testing.T, exp, got *model.Job) {
@@ -116,7 +117,7 @@ func TestAddJob(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("add job  "+s.name, func(t *testing.T) {
-			testJob = model.NewJob(testJob)
+			testJob = model.NewJob(uuid.New().String(), s.testTenantID, testJob)
 			testJob.TenantID = s.testTenantID
 			testJob.ConnectionID = &s.testConnectionID
 
@@ -143,6 +144,7 @@ func TestUpdateJob(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("update job  "+s.name, func(t *testing.T) {
+			testJob = model.NewJob(uuid.New().String(), s.testTenantID, testJob)
 			testJob.TenantID = s.testTenantID
 			testJob.ConnectionID = &s.testConnectionID
 

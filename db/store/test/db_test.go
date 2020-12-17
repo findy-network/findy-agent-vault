@@ -54,7 +54,7 @@ var (
 		Description: "event desc",
 		Read:        false,
 	})
-	testJob *model.Job = model.NewJob(&model.Job{
+	testJob *model.Job = model.NewJob("", "", &model.Job{
 		ProtocolType: graph.ProtocolTypeConnection,
 		Status:       graph.JobStatusWaiting,
 		Result:       graph.JobResultNone,

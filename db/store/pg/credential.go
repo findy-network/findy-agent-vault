@@ -78,7 +78,6 @@ func (pg *Database) getCredentialForObject(objectName, columnName, objectID, ten
 		" INNER JOIN " + objectName + " ON " + objectName +
 		"." + columnName + "=credential.id WHERE " + objectName + ".id = $1 AND credential.tenant_id = $2"
 
-	fmt.Println(sqlCredentialSelectByObjectID)
 	rows, err := pg.db.Query(sqlCredentialSelectByObjectID, objectID, tenantID)
 	err2.Check(err)
 	defer rows.Close()

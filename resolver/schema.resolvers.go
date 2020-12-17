@@ -48,39 +48,39 @@ func (r *jobConnectionResolver) TotalCount(ctx context.Context, obj *model.JobCo
 }
 
 func (r *mutationResolver) MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.Event, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.markEventRead(ctx, input)
 }
 
 func (r *mutationResolver) Invite(ctx context.Context) (*model.InvitationResponse, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.invite(ctx)
 }
 
 func (r *mutationResolver) Connect(ctx context.Context, input model.ConnectInput) (*model.Response, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.connect(ctx, input)
 }
 
 func (r *mutationResolver) SendMessage(ctx context.Context, input model.MessageInput) (*model.Response, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.sendMessage(ctx, input)
 }
 
 func (r *mutationResolver) Resume(ctx context.Context, input model.ResumeJobInput) (*model.Response, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.resume(ctx, input)
 }
 
 func (r *mutationResolver) AddRandomEvent(ctx context.Context) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.addRandomEvent(ctx)
 }
 
 func (r *mutationResolver) AddRandomMessage(ctx context.Context) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.addRandomMessage(ctx)
 }
 
 func (r *mutationResolver) AddRandomCredential(ctx context.Context) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.addRandomCredential(ctx)
 }
 
 func (r *mutationResolver) AddRandomProof(ctx context.Context) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.addRandomProof(ctx)
 }
 
 func (r *pairwiseResolver) Messages(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.BasicMessageConnection, error) {

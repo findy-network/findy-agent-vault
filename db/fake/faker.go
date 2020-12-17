@@ -212,6 +212,7 @@ func addJobs(
 	jobs := make([]*model.Job, count)
 	for i := 0; i < count; i++ {
 		job := fakeJob(
+			faker.UUIDHyphenated(),
 			tenantID,
 			connectionID,
 			protocolConnectionID,
@@ -280,12 +281,12 @@ func fakeEvent(tenantID, connectionID string, jobID *string) *model.Event {
 }
 
 func fakeJob(
-	tenantID, connectionID string,
+	id, tenantID, connectionID string,
 	protocolConnectionID, protocolCredentialID, protocolProofID, protocolMessageID *string,
 ) *model.Job {
-	job := model.NewJob(nil)
+	job := model.NewJob("", "", nil)
 	err2.Check(faker.FakeData(job))
-	job = model.NewJob(job)
+	job = model.NewJob(id, tenantID, job)
 	job.TenantID = tenantID
 	job.ConnectionID = &connectionID
 	job.ProtocolConnectionID = utils.CopyStrPtr(protocolConnectionID)

@@ -35,15 +35,22 @@ type JobOutput struct {
 	Message    *Message
 }
 
-func NewJob(j *Job) *Job {
+func NewJob(id, tenantID string, j *Job) *Job {
+	defaultBase := &base{ID: id, TenantID: tenantID}
 	if j != nil {
+		if j.base == nil {
+			j.base = defaultBase
+		} else {
+			j.base.ID = id
+			j.base.TenantID = tenantID
+		}
 		return j.copy()
 	}
-	return &Job{base: &base{}}
+	return &Job{base: defaultBase}
 }
 
 func (j *Job) copy() (n *Job) {
-	n = NewJob(nil)
+	n = NewJob("", "", nil)
 	if j.base != nil {
 		n.base = j.base.copy()
 	}
