@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/google/uuid"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
 )
@@ -50,6 +51,7 @@ func TestAddConnection(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("add connection "+s.name, func(t *testing.T) {
+			s.testConnection = model.NewConnection(uuid.New().String(), s.testConnection.TenantID, s.testConnection)
 			// Add data
 			c, err := s.db.AddConnection(s.testConnection)
 			if err != nil {

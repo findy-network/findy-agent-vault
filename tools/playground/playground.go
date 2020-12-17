@@ -14,9 +14,8 @@ import (
 	"github.com/golang/glog"
 
 	"github.com/99designs/gqlgen/graphql/playground"
-	real "github.com/findy-network/findy-agent-vault/resolver"
+	"github.com/findy-network/findy-agent-vault/resolver"
 	"github.com/findy-network/findy-agent-vault/server"
-	"github.com/findy-network/findy-agent-vault/tools/resolver"
 	"github.com/findy-network/findy-agent-vault/utils"
 )
 
@@ -43,13 +42,7 @@ func TokenHandler() http.HandlerFunc {
 
 func main() {
 	utils.SetLogDefaults()
-	var srv http.Handler
-	if os.Getenv("PLAYGROUND_POSTGRES") != "" {
-		srv = server.Server(real.InitResolver(true, false))
-	} /*else {
-		gqlResolver = resolver.InitResolver(false)
-		srv = server.Server(gqlResolver)
-	}*/
+	srv := server.Server(resolver.InitResolver(true, true))
 
 	port := os.Getenv("PORT")
 	if port == "" {

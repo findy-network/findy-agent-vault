@@ -3,6 +3,7 @@ package resolver
 import (
 	"context"
 
+	"github.com/findy-network/findy-agent-vault/agency"
 	db "github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/graph/model"
@@ -10,40 +11,12 @@ import (
 	"github.com/lainio/err2"
 )
 
-func (r *mutationResolver) addEvent(job *db.Job, description string) (err error) {
-	var connectionID, jobID *string
-	if job != nil {
-		connectionID = job.ConnectionID
-		jobID = &job.ID
+func agencyAuth(agent *db.Agent) *agency.Agent {
+	return &agency.Agent{
+		RawJWT:   agent.RawJWT,
+		TenantID: agent.TenantID,
+		AgentID:  agent.AgentID,
 	}
-	// TODO: event subscription
-	_, err = r.db.AddEvent(&db.Event{
-		Read:         false,
-		Description:  description,
-		ConnectionID: connectionID,
-		JobID:        jobID,
-	})
-	return err
-}
-
-func (r *mutationResolver) addJob(job *db.Job, description string) (err error) {
-	defer err2.Return(&err)
-	job, err = r.db.AddJob(job)
-	err2.Check(err)
-
-	err2.Check(r.addEvent(job, description))
-
-	return
-}
-
-func (r *mutationResolver) updateJob(job *db.Job, description string) (err error) {
-	defer err2.Return(&err)
-	job, err = r.db.UpdateJob(job)
-	err2.Check(err)
-
-	err2.Check(r.addEvent(job, description))
-
-	return
 }
 
 func (r *mutationResolver) markEventRead(ctx context.Context, input model.MarkReadInput) (e *model.Event, err error) {
@@ -71,7 +44,7 @@ func (r *mutationResolver) invite(ctx context.Context) (res *model.InvitationRes
 	agent, err := store.GetAgent(ctx, r.db)
 	err2.Check(err)
 
-	str, id, err := r.agency.Invite(ctx)
+	str, id, err := r.agency.Invite(agencyAuth(agent))
 	err2.Check(err)
 
 	img, err := utils.StrToQRCode(str)
@@ -102,7 +75,7 @@ func (r *mutationResolver) connect(ctx context.Context, input model.ConnectInput
 	agent, err := store.GetAgent(ctx, r.db)
 	err2.Check(err)
 
-	id, err := r.agency.Connect(ctx, input.Invitation)
+	id, err := r.agency.Connect(agencyAuth(agent), input.Invitation)
 	err2.Check(err)
 
 	err2.Check(r.addJob(
@@ -126,7 +99,7 @@ func (r *mutationResolver) sendMessage(ctx context.Context, input model.MessageI
 	agent, err := store.GetAgent(ctx, r.db)
 	err2.Check(err)
 
-	id, err := r.agency.SendMessage(ctx, input.ConnectionID, input.Message)
+	id, err := r.agency.SendMessage(agencyAuth(agent), input.ConnectionID, input.Message)
 	err2.Check(err)
 
 	err2.Check(r.addJob(
@@ -161,10 +134,10 @@ func (r *mutationResolver) resume(ctx context.Context, input model.ResumeJobInpu
 
 	switch job.ProtocolType {
 	case model.ProtocolTypeCredential:
-		err2.Check(r.agency.ResumeCredentialOffer(ctx, job.ID, input.Accept))
+		err2.Check(r.agency.ResumeCredentialOffer(agencyAuth(agent), job.ID, input.Accept))
 		desc += " credential"
 	case model.ProtocolTypeProof:
-		err2.Check(r.agency.ResumeProofRequest(ctx, job.ID, input.Accept))
+		err2.Check(r.agency.ResumeProofRequest(agencyAuth(agent), job.ID, input.Accept))
 		desc += " proof"
 	case model.ProtocolTypeBasicMessage:
 	case model.ProtocolTypeConnection:

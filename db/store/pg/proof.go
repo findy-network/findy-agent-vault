@@ -82,7 +82,7 @@ func (pg *Database) getProofForObject(objectName, columnName, objectID, tenantID
 	err2.Check(err)
 	defer rows.Close()
 
-	c = model.NewProof(nil)
+	c = model.NewProof("", nil)
 	for rows.Next() {
 		c, err = readRowToProof(rows, c)
 		err2.Check(err)
@@ -137,7 +137,7 @@ func (pg *Database) AddProof(p *model.Proof) (n *model.Proof, err error) {
 	err2.Check(err)
 	defer rows.Close()
 
-	n = model.NewProof(p)
+	n = model.NewProof(p.TenantID, p)
 	if rows.Next() {
 		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
 		err2.Check(err)
@@ -175,7 +175,7 @@ func readRowToProof(rows *sql.Rows, previous *model.Proof) (*model.Proof, error)
 	var verified sql.NullTime
 	var failed sql.NullTime
 
-	n := model.NewProof(nil)
+	n := model.NewProof("", nil)
 
 	err := rows.Scan(
 		&n.ID,
@@ -227,7 +227,7 @@ func (pg *Database) GetProof(id, tenantID string) (p *model.Proof, err error) {
 	err2.Check(err)
 	defer rows.Close()
 
-	p = model.NewProof(nil)
+	p = model.NewProof("", nil)
 	for rows.Next() {
 		p, err = readRowToProof(rows, p)
 		err2.Check(err)
@@ -256,7 +256,7 @@ func (pg *Database) getProofsForQuery(
 		HasNextPage:     false,
 		HasPreviousPage: false,
 	}
-	prevProof := model.NewProof(nil)
+	prevProof := model.NewProof("", nil)
 	var proof *model.Proof
 	for rows.Next() {
 		proof, err = readRowToProof(rows, prevProof)

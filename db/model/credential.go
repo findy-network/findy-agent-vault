@@ -5,6 +5,7 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/golang/glog"
 )
 
 type Credentials struct {
@@ -26,15 +27,21 @@ type Credential struct {
 	Failed        *time.Time `faker:"-"`
 }
 
-func NewCredential(c *Credential) *Credential {
+func NewCredential(tenantID string, c *Credential) *Credential {
+	defaultBase := &base{TenantID: tenantID}
 	if c != nil {
+		if c.base == nil {
+			c.base = defaultBase
+		} else {
+			c.base.TenantID = tenantID
+		}
 		return c.copy()
 	}
-	return &Credential{base: &base{}}
+	return &Credential{base: defaultBase}
 }
 
 func (c *Credential) copy() (n *Credential) {
-	n = NewCredential(nil)
+	n = NewCredential("", nil)
 
 	attributes := make([]*model.CredentialValue, len(c.Attributes))
 	for index := range c.Attributes {
@@ -89,6 +96,29 @@ func (c *Credential) ToNode() *model.Credential {
 		IssuedMs:      &issuedMs,
 		CreatedMs:     timeToString(&c.Created),
 	}
+}
+
+func (c *Credential) Description() string {
+	if c.Issued != nil {
+		switch c.Role {
+		case model.CredentialRoleIssuer:
+			return "Issued credential"
+		case model.CredentialRoleHolder:
+			return "Received credential"
+		}
+	} else if c.Approved != nil {
+		return "Approved credential"
+	}
+
+	switch c.Role {
+	case model.CredentialRoleIssuer:
+		return "Received credential request"
+	case model.CredentialRoleHolder:
+		return "Received credential offer"
+	}
+
+	glog.Errorf("invalid role %s for credential", c.Role)
+	return ""
 }
 
 func (c *Credentials) ToConnection(id *string) *model.CredentialConnection {

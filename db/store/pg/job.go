@@ -156,7 +156,7 @@ func readRowToJob(rows *sql.Rows) (*model.Job, error) {
 	return n, err
 }
 
-func (pg *Database) GetJob(id, tenantID string) (j *model.Job, err error) {
+func (pg *Database) GetJob(id, tenantID string) (job *model.Job, err error) {
 	defer returnErr("GetJob", &err)
 
 	sqlJobSelectByID := sqlJobSelect + " job WHERE id=$1 AND tenant_id=$2"
@@ -165,9 +165,8 @@ func (pg *Database) GetJob(id, tenantID string) (j *model.Job, err error) {
 	err2.Check(err)
 	defer rows.Close()
 
-	j = model.NewJob(id, tenantID, nil)
 	if rows.Next() {
-		j, err = readRowToJob(rows)
+		job, err = readRowToJob(rows)
 		err2.Check(err)
 	}
 

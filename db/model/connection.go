@@ -23,15 +23,26 @@ type Connection struct {
 	Approved      *time.Time
 }
 
-func NewConnection(c *Connection) *Connection {
+func EmptyConnection() *Connection {
+	return NewConnection("", "", nil)
+}
+
+func NewConnection(id, tenantID string, c *Connection) *Connection {
+	defaultBase := &base{ID: id, TenantID: tenantID}
 	if c != nil {
+		if c.base == nil {
+			c.base = defaultBase
+		} else {
+			c.base.TenantID = tenantID
+			c.base.ID = id
+		}
 		return c.copy()
 	}
-	return &Connection{base: &base{}}
+	return &Connection{base: defaultBase}
 }
 
 func (c *Connection) copy() (n *Connection) {
-	n = NewConnection(nil)
+	n = EmptyConnection()
 	if c.base != nil {
 		n.base = c.base.copy()
 	}

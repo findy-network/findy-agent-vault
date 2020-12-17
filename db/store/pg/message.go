@@ -64,7 +64,7 @@ func (pg *Database) getMessageForObject(objectName, columnName, objectID, tenant
 }
 
 func readRowToMessage(rows *sql.Rows) (*model.Message, error) {
-	n := model.NewMessage(nil)
+	n := model.NewMessage("", nil)
 
 	err := rows.Scan(
 		&n.ID,
@@ -93,7 +93,7 @@ func (pg *Database) AddMessage(arg *model.Message) (n *model.Message, err error)
 	err2.Check(err)
 	defer rows.Close()
 
-	n = model.NewMessage(arg)
+	n = model.NewMessage(arg.TenantID, arg)
 	if rows.Next() {
 		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
 		err2.Check(err)
@@ -140,7 +140,7 @@ func (pg *Database) GetMessage(id, tenantID string) (m *model.Message, err error
 	err2.Check(err)
 	defer rows.Close()
 
-	m = model.NewMessage(nil)
+	m = model.NewMessage("", nil)
 	if rows.Next() {
 		m, err = readRowToMessage(rows)
 		err2.Check(err)

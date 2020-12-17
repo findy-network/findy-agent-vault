@@ -50,7 +50,7 @@ func (f *Findy) findyCallback(pl *mesg.Payload) (while bool, err error) {
 
 	glog.Infof("Received findy callback %s %s", pl.Type)
 
-	currentTime := tools.CurrentTimeMs()
+	currentTime := utils.CurrentTimeMs()
 
 	switch pl.Type {
 	case pltype.CANotifyUserAction:

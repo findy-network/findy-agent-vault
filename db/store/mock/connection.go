@@ -25,7 +25,7 @@ func (c *mockConnection) Identifier() string {
 func newConnection(c *model.Connection) *mockConnection {
 	var connection *model.Connection
 	if c != nil {
-		connection = model.NewConnection(c)
+		connection = model.NewConnection(c.ID, c.TenantID, c)
 	}
 	return &mockConnection{base: &base{}, connection: connection}
 }
@@ -41,7 +41,7 @@ func (c *mockConnection) Connection() *model.Connection {
 func (m *mockData) AddConnection(c *model.Connection) (*model.Connection, error) {
 	agent := m.agents[c.TenantID]
 
-	n := model.NewConnection(c)
+	n := model.NewConnection(c.ID, c.TenantID, c)
 	n.ID = faker.UUIDHyphenated()
 	n.Created = time.Now().UTC()
 	n.Cursor = model.TimeToCursor(&n.Created)

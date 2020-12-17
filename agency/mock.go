@@ -4,7 +4,6 @@
 package agency
 
 import (
-	"context"
 	"encoding/json"
 	"time"
 
@@ -32,7 +31,7 @@ func (m *Mock) Init(l Listener) {
 	m.listener = l
 }
 
-func (m *Mock) Invite(ctx context.Context) (result, id string, err error) {
+func (m *Mock) Invite(a *Agent) (result, id string, err error) {
 	defer err2.Return(&err)
 
 	inv := invitation{}
@@ -49,7 +48,7 @@ func (m *Mock) Invite(ctx context.Context) (result, id string, err error) {
 	return
 }
 
-func (m *Mock) Connect(ctx context.Context, strInvitation string) (id string, err error) {
+func (m *Mock) Connect(a *Agent, strInvitation string) (id string, err error) {
 	defer err2.Return(&err)
 
 	inv := invitation{}
@@ -57,36 +56,41 @@ func (m *Mock) Connect(ctx context.Context, strInvitation string) (id string, er
 
 	id = inv.ID
 
+	job := &JobInfo{TenantID: a.TenantID, JobID: id, ConnectionID: id}
+
 	time.AfterFunc(time.Second, func() {
 		if connections, err := generator.FakeConnections(1, true); err == nil {
 			connection := connections[0]
-			m.listener.AddConnection(inv.ID, connection.OurDid, connection.TheirDid, connection.TheirEndpoint, connection.TheirLabel)
+			m.listener.AddConnection(job, connection.OurDid, connection.TheirDid, connection.TheirEndpoint, connection.TheirLabel)
 		}
 	})
 
 	return
 }
 
-func (m *Mock) SendMessage(ctx context.Context, connectionID, message string) (id string, err error) {
+func (m *Mock) SendMessage(a *Agent, connectionID, message string) (id string, err error) {
 	defer err2.Return(&err)
 
 	id = uuid.New().String()
 
-	m.listener.AddMessage(connectionID, id, message, true)
+	job := &JobInfo{TenantID: a.TenantID, JobID: id, ConnectionID: connectionID}
+
+	m.listener.AddMessage(job, message, true)
 	time.AfterFunc(time.Second, func() {
 		if messages, err := generator.FakeMessages(1); err == nil {
 			msg := messages[0]
-			m.listener.AddMessage(connectionID, msg.ID, msg.Message, false)
+			// reply
+			m.listener.AddMessage(job, msg.Message, false)
 		}
 	})
 
 	return
 }
 
-func (m *Mock) ResumeCredentialOffer(ctx context.Context, id string, accept bool) (err error) {
+func (m *Mock) ResumeCredentialOffer(a *Agent, id string, accept bool) (err error) {
 	return
 }
 
-func (m *Mock) ResumeProofRequest(ctx context.Context, id string, accept bool) (err error) {
+func (m *Mock) ResumeProofRequest(a *Agent, id string, accept bool) (err error) {
 	return
 }

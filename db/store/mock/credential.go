@@ -25,7 +25,7 @@ func (c *mockCredential) Identifier() string {
 func newCredential(c *model.Credential) *mockCredential {
 	var credential *model.Credential
 	if c != nil {
-		credential = model.NewCredential(c)
+		credential = model.NewCredential(c.TenantID, c)
 	}
 	return &mockCredential{base: &base{}, credential: credential}
 }
@@ -41,7 +41,7 @@ func (c *mockCredential) Credential() *model.Credential {
 func (m *mockData) AddCredential(c *model.Credential) (*model.Credential, error) {
 	agent := m.agents[c.TenantID]
 
-	n := model.NewCredential(c)
+	n := model.NewCredential(c.TenantID, c)
 	n.ID = faker.UUIDHyphenated()
 	n.Created = time.Now().UTC()
 	n.Cursor = model.TimeToCursor(&n.Created)

@@ -82,7 +82,7 @@ func (pg *Database) getCredentialForObject(objectName, columnName, objectID, ten
 	err2.Check(err)
 	defer rows.Close()
 
-	c = model.NewCredential(nil)
+	c = model.NewCredential("", nil)
 	for rows.Next() {
 		c, err = readRowToCredential(rows, c)
 		err2.Check(err)
@@ -138,7 +138,7 @@ func (pg *Database) AddCredential(c *model.Credential) (n *model.Credential, err
 	err2.Check(err)
 	defer rows.Close()
 
-	n = model.NewCredential(c)
+	n = model.NewCredential(c.TenantID, c)
 	if rows.Next() {
 		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
 		err2.Check(err)
@@ -176,7 +176,7 @@ func readRowToCredential(rows *sql.Rows, previous *model.Credential) (*model.Cre
 	var issued sql.NullTime
 	var failed sql.NullTime
 
-	n := model.NewCredential(nil)
+	n := model.NewCredential("", nil)
 
 	err := rows.Scan(
 		&n.ID,
@@ -228,7 +228,7 @@ func (pg *Database) GetCredential(id, tenantID string) (c *model.Credential, err
 	err2.Check(err)
 	defer rows.Close()
 
-	c = model.NewCredential(nil)
+	c = model.NewCredential("", nil)
 	for rows.Next() {
 		c, err = readRowToCredential(rows, c)
 		err2.Check(err)
@@ -257,7 +257,7 @@ func (pg *Database) getCredentialsForQuery(
 		HasNextPage:     false,
 		HasPreviousPage: false,
 	}
-	prevCredential := model.NewCredential(nil)
+	prevCredential := model.NewCredential("", nil)
 	var credential *model.Credential
 	for rows.Next() {
 		credential, err = readRowToCredential(rows, prevCredential)

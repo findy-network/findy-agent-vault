@@ -25,7 +25,7 @@ func (p *mockProof) Identifier() string {
 func newProof(p *model.Proof) *mockProof {
 	var proof *model.Proof
 	if p != nil {
-		proof = model.NewProof(p)
+		proof = model.NewProof(p.TenantID, p)
 	}
 	return &mockProof{base: &base{}, proof: proof}
 }
@@ -41,7 +41,7 @@ func (p *mockProof) Proof() *model.Proof {
 func (m *mockData) AddProof(p *model.Proof) (*model.Proof, error) {
 	agent := m.agents[p.TenantID]
 
-	n := model.NewProof(p)
+	n := model.NewProof(p.TenantID, p)
 	n.ID = faker.UUIDHyphenated()
 	n.Created = time.Now().UTC()
 	n.Cursor = model.TimeToCursor(&n.Created)
