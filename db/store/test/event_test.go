@@ -106,7 +106,7 @@ func TestAddEvent(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("add event  "+s.name, func(t *testing.T) {
-			testEvent = model.NewEvent(testEvent)
+			testEvent = model.NewEvent(s.testTenantID, testEvent)
 			testEvent.TenantID = s.testTenantID
 			testEvent.ConnectionID = &s.testConnectionID
 

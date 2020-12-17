@@ -19,15 +19,21 @@ type Event struct {
 	ConnectionID *string `faker:"-"`
 }
 
-func NewEvent(e *Event) *Event {
+func NewEvent(tenantID string, e *Event) *Event {
+	defaultBase := &base{TenantID: tenantID}
 	if e != nil {
+		if e.base == nil {
+			e.base = defaultBase
+		} else {
+			e.base.TenantID = tenantID
+		}
 		return e.copy()
 	}
-	return &Event{base: &base{}}
+	return &Event{base: defaultBase}
 }
 
 func (e *Event) copy() (n *Event) {
-	n = NewEvent(nil)
+	n = NewEvent("", nil)
 	if e.base != nil {
 		n.base = e.base.copy()
 	}

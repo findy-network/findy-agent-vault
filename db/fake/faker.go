@@ -278,10 +278,9 @@ func fakeProof(tenantID, connectionID string) *model.Proof {
 }
 
 func fakeEvent(tenantID, connectionID string, jobID *string) *model.Event {
-	event := model.NewEvent(nil)
+	event := model.NewEvent("", nil)
 	err2.Check(faker.FakeData(event))
-
-	event = model.NewEvent(event)
+	event = model.NewEvent(tenantID, event)
 	event.TenantID = tenantID
 	event.ConnectionID = &connectionID
 	event.JobID = utils.CopyStrPtr(jobID)

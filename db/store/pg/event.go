@@ -37,7 +37,7 @@ func (pg *Database) AddEvent(e *model.Event) (n *model.Event, err error) {
 	err2.Check(err)
 	defer rows.Close()
 
-	n = model.NewEvent(e)
+	n = model.NewEvent(e.TenantID, e)
 	if rows.Next() {
 		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
 		err2.Check(err)
@@ -75,7 +75,7 @@ func (pg *Database) MarkEventRead(id, tenantID string) (e *model.Event, err erro
 }
 
 func readRowToEvent(rows *sql.Rows) (*model.Event, error) {
-	n := model.NewEvent(nil)
+	n := model.NewEvent("", nil)
 
 	err := rows.Scan(
 		&n.ID,
@@ -100,7 +100,6 @@ func (pg *Database) GetEvent(id, tenantID string) (e *model.Event, err error) {
 	err2.Check(err)
 	defer rows.Close()
 
-	e = model.NewEvent(nil)
 	if rows.Next() {
 		e, err = readRowToEvent(rows)
 		err2.Check(err)

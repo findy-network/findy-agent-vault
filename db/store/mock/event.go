@@ -25,7 +25,7 @@ func (e *mockEvent) Identifier() string {
 func newEvent(e *model.Event) *mockEvent {
 	var event *model.Event
 	if e != nil {
-		event = model.NewEvent(e)
+		event = model.NewEvent(e.TenantID, e)
 	}
 	return &mockEvent{base: &base{}, event: event}
 }
@@ -41,7 +41,7 @@ func (e *mockEvent) Event() *model.Event {
 func (m *mockData) AddEvent(e *model.Event) (*model.Event, error) {
 	agent := m.agents.get(e.TenantID)
 
-	n := model.NewEvent(e)
+	n := model.NewEvent(e.TenantID, e)
 	n.ID = faker.UUIDHyphenated()
 	n.Created = time.Now().UTC()
 	n.Cursor = model.TimeToCursor(&n.Created)
