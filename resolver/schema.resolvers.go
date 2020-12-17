@@ -5,7 +5,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/findy-network/findy-agent-vault/graph/generated"
 	"github.com/findy-network/findy-agent-vault/graph/model"
@@ -160,7 +159,7 @@ func (r *queryResolver) User(ctx context.Context) (*model.User, error) {
 }
 
 func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.EventEdge, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.eventAdded(ctx)
 }
 
 // BasicMessage returns generated.BasicMessageResolver implementation.

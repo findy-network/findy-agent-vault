@@ -16,8 +16,9 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	db     store.DB
-	agency agency.Agency
+	db             store.DB
+	agency         agency.Agency
+	eventObservers map[string]chan *model.EventEdge
 }
 
 func InitResolver(mockDB, fakeData bool) *Resolver {
@@ -30,7 +31,11 @@ func InitResolver(mockDB, fakeData bool) *Resolver {
 
 	// TODO: configure agency
 	a := agency.Mock{}
-	r := &Resolver{db: db, agency: &agency.Mock{}}
+	r := &Resolver{
+		db:             db,
+		agency:         &agency.Mock{},
+		eventObservers: map[string]chan *model.EventEdge{},
+	}
 
 	a.Init(r)
 
