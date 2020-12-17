@@ -297,7 +297,7 @@ func TestGetConnectionForEvent(t *testing.T) {
 func TestGetJobForEvent(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
-		t.Run("get job for event"+s.name, func(t *testing.T) {
+		t.Run("get job for event "+s.name, func(t *testing.T) {
 			a, connections := AddAgentAndConnections(s.db, "TestGetJobForEvent", 3)
 			connection := connections[0]
 			jobs := fake.AddJobs(s.db, a.ID, connection.ID, 1)

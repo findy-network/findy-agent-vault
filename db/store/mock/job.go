@@ -28,7 +28,7 @@ func (j *mockJob) Identifier() string {
 func newJob(j *model.Job) *mockJob {
 	var job *model.Job
 	if j != nil {
-		job = model.NewJob(j)
+		job = model.NewJob(j.ID, j.TenantID, j)
 	}
 	return &mockJob{base: &base{}, job: job}
 }
@@ -44,7 +44,7 @@ func (j *mockJob) Job() *model.Job {
 func (m *mockData) AddJob(j *model.Job) (*model.Job, error) {
 	agent := m.agents[j.TenantID]
 
-	n := model.NewJob(j)
+	n := model.NewJob(j.ID, j.TenantID, j)
 	n.ID = faker.UUIDHyphenated()
 	n.Created = time.Now().UTC()
 	n.Cursor = model.TimeToCursor(&n.Created)

@@ -120,7 +120,7 @@ CREATE TYPE "job_status" AS ENUM ('WAITING', 'PENDING', 'COMPLETE');
 CREATE TYPE "job_result" AS ENUM ('NONE', 'SUCCESS', 'FAILURE');
 
 CREATE TABLE "job"(
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
+  id uuid PRIMARY KEY NOT NULL,
   tenant_id uuid NOT NULL,
   connection_id uuid,
   protocol_connection_id uuid,

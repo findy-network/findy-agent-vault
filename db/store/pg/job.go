@@ -19,12 +19,12 @@ func sqlJobFields(tableName string) string {
 	if tableName != "" {
 		tableName += "."
 	}
-	columnCount := 11
+	columnCount := 12
 	args := make([]interface{}, columnCount)
 	for i := 0; i < columnCount; i++ {
 		args[i] = tableName
 	}
-	q := fmt.Sprintf("%stenant_id, %sprotocol_type,"+
+	q := fmt.Sprintf("%sid, %stenant_id, %sprotocol_type,"+
 		" %sprotocol_connection_id, %sprotocol_credential_id, %sprotocol_proof_id, %sprotocol_message_id,"+
 		" %sconnection_id, %sstatus, %sresult, %sinitiated_by_us, %supdated", args...)
 	return q
@@ -33,8 +33,8 @@ func sqlJobFields(tableName string) string {
 var (
 	sqlJobBaseFields = sqlJobFields("")
 	sqlJobInsert     = "INSERT INTO job " + "(" + sqlJobBaseFields + ") " +
-		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, (now() at time zone 'UTC')) RETURNING id, created, cursor"
-	sqlJobSelect = "SELECT id," + sqlJobBaseFields + ", created, cursor FROM"
+		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, (now() at time zone 'UTC')) RETURNING id, created, cursor"
+	sqlJobSelect = "SELECT " + sqlJobBaseFields + ", created, cursor FROM"
 )
 
 const (
@@ -47,7 +47,7 @@ const (
 func (pg *Database) getJobForObject(objectName, objectID, tenantID string) (j *model.Job, err error) {
 	defer returnErr("getJobForObject", &err)
 
-	sqlJobSelectJoin := "SELECT job.id, " + sqlJobFields("job") + ", job.created, job.cursor FROM"
+	sqlJobSelectJoin := "SELECT " + sqlJobFields("job") + ", job.created, job.cursor FROM"
 	sqlJobSelectByObjectID := sqlJobSelectJoin +
 		" job INNER JOIN " + objectName + " ON " + objectName +
 		".job_id=job.id WHERE " + objectName + ".id = $1 AND job.tenant_id = $2"
@@ -72,6 +72,7 @@ func (pg *Database) AddJob(j *model.Job) (n *model.Job, err error) {
 
 	rows, err := pg.db.Query(
 		sqlJobInsert,
+		j.ID,
 		j.TenantID,
 		j.ProtocolType,
 		j.ProtocolConnectionID,
@@ -86,7 +87,7 @@ func (pg *Database) AddJob(j *model.Job) (n *model.Job, err error) {
 	err2.Check(err)
 	defer rows.Close()
 
-	n = model.NewJob(j)
+	n = model.NewJob(j.ID, j.TenantID, j)
 	if rows.Next() {
 		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
 		err2.Check(err)
@@ -105,7 +106,7 @@ func (pg *Database) UpdateJob(arg *model.Job) (j *model.Job, err error) {
 		"SET protocol_connection_id=$1, protocol_credential_id=$2, protocol_proof_id=$3, protocol_message_id=$4," +
 		" connection_id=$5, status=$6, result=$7, updated=(now() at time zone 'UTC')" +
 		" WHERE id = $8 AND tenant_id = $9" +
-		" RETURNING id," + sqlJobBaseFields + ", created, cursor"
+		" RETURNING " + sqlJobBaseFields + ", created, cursor"
 
 	rows, err := pg.db.Query(
 		sqlJobUpdate,
@@ -134,7 +135,7 @@ func (pg *Database) UpdateJob(arg *model.Job) (j *model.Job, err error) {
 }
 
 func readRowToJob(rows *sql.Rows) (*model.Job, error) {
-	n := model.NewJob(nil)
+	n := model.NewJob("", "", nil)
 
 	err := rows.Scan(
 		&n.ID,
@@ -164,7 +165,7 @@ func (pg *Database) GetJob(id, tenantID string) (j *model.Job, err error) {
 	err2.Check(err)
 	defer rows.Close()
 
-	j = model.NewJob(nil)
+	j = model.NewJob(id, tenantID, nil)
 	if rows.Next() {
 		j, err = readRowToJob(rows)
 		err2.Check(err)
