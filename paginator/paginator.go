@@ -117,7 +117,7 @@ func Validate(prefix string, params *Params) (info *BatchInfo, err error) {
 		err2.Check(err)
 	}
 	if params.Before != nil {
-		after, err = ParseCursor(*params.Before, params.Object)
+		before, err = ParseCursor(*params.Before, params.Object)
 		err2.Check(err)
 	}
 
