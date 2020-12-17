@@ -134,7 +134,7 @@ func TestAddCredential(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("add credential "+s.name, func(t *testing.T) {
-			testCredential = model.NewCredential(testCredential)
+			testCredential = model.NewCredential(s.testTenantID, testCredential)
 			testCredential.TenantID = s.testTenantID
 			testCredential.ConnectionID = s.testConnectionID
 

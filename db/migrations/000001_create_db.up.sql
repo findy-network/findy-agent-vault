@@ -14,7 +14,7 @@ CREATE INDEX "agent_id_index" ON agent (agent_id);
 CREATE INDEX "agent_cursor_index" ON agent (cursor);
 
 CREATE TABLE "connection"(
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
+  id uuid PRIMARY KEY NOT NULL,
   tenant_id uuid NOT NULL,
   our_did VARCHAR(256) NOT NULL,
   their_did VARCHAR(256) NOT NULL,

@@ -25,7 +25,7 @@ func (m *mockMessage) Identifier() string {
 func newMessage(m *model.Message) *mockMessage {
 	var message *model.Message
 	if m != nil {
-		message = model.NewMessage(m)
+		message = model.NewMessage(m.TenantID, m)
 	}
 	return &mockMessage{base: &base{}, message: message}
 }
@@ -41,7 +41,7 @@ func (m *mockMessage) Message() *model.Message {
 func (m *mockData) AddMessage(arg *model.Message) (*model.Message, error) {
 	agent := m.agents[arg.TenantID]
 
-	n := model.NewMessage(arg)
+	n := model.NewMessage(arg.TenantID, arg)
 	n.ID = faker.UUIDHyphenated()
 	n.Created = time.Now().UTC()
 	n.Cursor = model.TimeToCursor(&n.Created)

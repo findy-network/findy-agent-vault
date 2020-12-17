@@ -2,6 +2,7 @@ package pg
 
 import (
 	"database/sql"
+	"fmt"
 	"sort"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
@@ -33,18 +34,34 @@ func sqlWhereTenantDescBefore(orderBy string) string {
 	return " WHERE tenant_id=$1 AND cursor < $2" + sqlOrderByDesc(orderBy)
 }
 
-const (
-	sqlConnectionFields = "tenant_id, our_did, their_did, their_endpoint, their_label, invited"
-	sqlConnectionInsert = "INSERT INTO connection " + "(" + sqlConnectionFields + ") " +
-		"VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created, cursor"
-	sqlConnectionSelect = "SELECT connection.id, connection." + sqlConnectionFields +
+func sqlConnectionFields(tableName string) string {
+	if tableName != "" {
+		tableName += "."
+	}
+	columnCount := 7
+	args := make([]interface{}, columnCount)
+	for i := 0; i < columnCount; i++ {
+		args[i] = tableName
+	}
+	q := fmt.Sprintf("%sid, %stenant_id, %sour_did,"+
+		" %stheir_did, %stheir_endpoint, %stheir_label, %sinvited", args...)
+	return q
+}
+
+var (
+	sqlConnectionBaseFields = sqlConnectionFields("")
+	sqlConnectionInsert     = "INSERT INTO connection " + "(" + sqlConnectionBaseFields + ") " +
+		"VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, created, cursor"
+	sqlConnectionSelect = "SELECT " + sqlConnectionBaseFields +
 		", connection.created, connection.approved, connection.cursor FROM connection"
 )
 
 func (pg *Database) getConnectionForObject(objectName, columnName, objectID, tenantID string) (c *model.Connection, err error) {
 	defer returnErr("getConnectionForObject", &err)
 
-	sqlConnectionSelectByObjectID := sqlConnectionSelect +
+	sqlConnectionJoinSelect := "SELECT " + sqlConnectionFields("connection") +
+		", connection.created, connection.approved, connection.cursor FROM connection"
+	sqlConnectionSelectByObjectID := sqlConnectionJoinSelect +
 		" INNER JOIN " + objectName + " ON " + objectName +
 		"." + columnName + "=connection.id WHERE " + objectName + ".id = $1 AND connection.tenant_id = $2"
 
@@ -68,6 +85,7 @@ func (pg *Database) AddConnection(c *model.Connection) (n *model.Connection, err
 
 	rows, err := pg.db.Query(
 		sqlConnectionInsert,
+		c.ID,
 		c.TenantID,
 		c.OurDid,
 		c.TheirDid,
@@ -78,7 +96,7 @@ func (pg *Database) AddConnection(c *model.Connection) (n *model.Connection, err
 	err2.Check(err)
 	defer rows.Close()
 
-	n = model.NewConnection(c)
+	n = model.NewConnection(c.ID, c.TenantID, c)
 	if rows.Next() {
 		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
 		err2.Check(err)
@@ -91,7 +109,7 @@ func (pg *Database) AddConnection(c *model.Connection) (n *model.Connection, err
 }
 
 func readRowToConnection(rows *sql.Rows) (c *model.Connection, err error) {
-	c = model.NewConnection(nil)
+	c = model.EmptyConnection()
 	err = rows.Scan(
 		&c.ID,
 		&c.TenantID,
@@ -110,7 +128,7 @@ func readRowToConnection(rows *sql.Rows) (c *model.Connection, err error) {
 func (pg *Database) GetConnection(id, tenantID string) (c *model.Connection, err error) {
 	defer returnErr("GetConnection", &err)
 
-	const sqlConnectionSelectByID = sqlConnectionSelect + " WHERE id=$1 AND tenant_id=$2"
+	sqlConnectionSelectByID := sqlConnectionSelect + " WHERE id=$1 AND tenant_id=$2"
 
 	rows, err := pg.db.Query(sqlConnectionSelectByID, id, tenantID)
 	err2.Check(err)

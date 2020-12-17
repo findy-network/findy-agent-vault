@@ -3,10 +3,8 @@
 package agency
 
 import (
-	"context"
 	"fmt"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/findy-network/findy-agent/grpc/client"
 	"github.com/lainio/err2"
 )
@@ -20,37 +18,9 @@ type FindyGrpc struct {
 	listener Listener
 }
 
-func getToken(ctx context.Context) string {
-	defer err2.Catch(func(err error) {
-		panic(err)
-	})
-
-	user := ctx.Value("user")
-	if user == nil {
-		err2.Check(fmt.Errorf("no authenticated user found"))
-	}
-	jwtToken, ok := user.(*jwt.Token)
-	if !ok {
-		err2.Check(fmt.Errorf("no jwt token found for user"))
-	}
-	claims, ok := jwtToken.Claims.(jwt.MapClaims)
-	if !ok {
-		err2.Check(fmt.Errorf("no claims found for token"))
-	}
-	caDID, ok := claims["un"].(string)
-	if !ok || caDID == "" {
-		err2.Check(fmt.Errorf("no cloud agent DID found for token"))
-	}
-	if jwtToken.Raw == "" {
-		err2.Check(fmt.Errorf("no raw token found for user %s", caDID))
-	}
-
-	return jwtToken.Raw
-}
-
-func grpcClient(ctx context.Context) client.Conn {
+func grpcClient(a *Agent) client.Conn {
 	baseCfg := client.BuildClientConnBase("", agencyHost, agencyPort, nil)
-	return client.TryAuthOpen(getToken(ctx), baseCfg)
+	return client.TryAuthOpen(a.JwtRaw, baseCfg)
 }
 
 var Instance Agency = &FindyGrpc{}
@@ -58,11 +28,11 @@ var Instance Agency = &FindyGrpc{}
 func (f *FindyGrpc) Init(l Listener) {
 }
 
-func (f *FindyGrpc) Invite(ctx context.Context) (invitation, id string, err error) {
+func (f *FindyGrpc) Invite(a *Agent) (invitation, id string, err error) {
 	return
 }
 
-func (f *FindyGrpc) Connect(ctx context.Context, invitation string) (id string, err error) {
+func (f *FindyGrpc) Connect(a *Agent, invitation string) (id string, err error) {
 	defer err2.Return(&err) // TODO: do not leak internal errors to client
 
 	conn := grpcClient(ctx)
@@ -81,14 +51,14 @@ func (f *FindyGrpc) Connect(ctx context.Context, invitation string) (id string, 
 	return
 }
 
-func (f *FindyGrpc) SendMessage(ctx context.Context, connectionID, message string) (id string, err error) {
+func (f *FindyGrpc) SendMessage(a *Agent, connectionID, message string) (id string, err error) {
 	return
 }
 
-func (f *FindyGrpc) ResumeCredentialOffer(ctx context.Context, id string, accept bool) (err error) {
+func (f *FindyGrpc) ResumeCredentialOffer(a *Agent, id string, accept bool) (err error) {
 	return
 }
 
-func (f *FindyGrpc) ResumeProofRequest(ctx context.Context, id string, accept bool) (err error) {
+func (f *FindyGrpc) ResumeProofRequest(a *Agent, id string, accept bool) (err error) {
 	return
 }

@@ -132,7 +132,7 @@ func TestAddProof(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("add proof "+s.name, func(t *testing.T) {
-			testProof = model.NewProof(testProof)
+			testProof = model.NewProof(s.testTenantID, testProof)
 			testProof.TenantID = s.testTenantID
 			testProof.ConnectionID = s.testConnectionID
 

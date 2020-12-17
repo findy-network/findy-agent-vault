@@ -5,6 +5,7 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/golang/glog"
 )
 
 type Proofs struct {
@@ -25,15 +26,21 @@ type Proof struct {
 	Failed        *time.Time `faker:"-"`
 }
 
-func NewProof(p *Proof) *Proof {
+func NewProof(tenantID string, p *Proof) *Proof {
+	defaultBase := &base{TenantID: tenantID}
 	if p != nil {
+		if p.base == nil {
+			p.base = defaultBase
+		} else {
+			p.base.TenantID = tenantID
+		}
 		return p.copy()
 	}
-	return &Proof{base: &base{}}
+	return &Proof{base: defaultBase}
 }
 
 func (p *Proof) copy() (n *Proof) {
-	n = NewProof(nil)
+	n = NewProof("", nil)
 
 	attributes := make([]*model.ProofAttribute, len(p.Attributes))
 	for index := range p.Attributes {
@@ -87,6 +94,28 @@ func (p *Proof) ToNode() *model.Proof {
 		VerifiedMs:    &verifiedMs,
 		CreatedMs:     timeToString(&p.Created),
 	}
+}
+
+func (p *Proof) Description() string {
+	if p.Verified != nil {
+		switch p.Role {
+		case model.ProofRoleVerifier:
+			return "Verified credential"
+		case model.ProofRoleProver:
+			return "Proved credential"
+		}
+	} else if p.Approved != nil {
+		return "Approved proof"
+	}
+	switch p.Role {
+	case model.ProofRoleVerifier:
+		return "Received proof offer"
+	case model.ProofRoleProver:
+		return "Received proof request"
+	}
+
+	glog.Errorf("invalid role %s for proof", p.Role)
+	return ""
 }
 
 func (p *Proofs) ToConnection(id *string) *model.ProofConnection {

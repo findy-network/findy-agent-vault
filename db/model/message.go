@@ -19,15 +19,21 @@ type Message struct {
 	Delivered    *bool
 }
 
-func NewMessage(m *Message) *Message {
+func NewMessage(tenantID string, m *Message) *Message {
+	defaultBase := &base{TenantID: tenantID}
 	if m != nil {
+		if m.base == nil {
+			m.base = defaultBase
+		} else {
+			m.base.TenantID = tenantID
+		}
 		return m.copy()
 	}
-	return &Message{base: &base{}}
+	return &Message{base: defaultBase}
 }
 
 func (m *Message) copy() (n *Message) {
-	n = NewMessage(nil)
+	n = NewMessage("", nil)
 
 	if m.base != nil {
 		n.base = m.base.copy()
@@ -65,6 +71,13 @@ func (m *Message) ToNode() *model.BasicMessage {
 		Delivered: delivered,
 		CreatedMs: timeToString(&m.Created),
 	}
+}
+
+func (m *Message) Description() string {
+	if m.SentByMe {
+		return "Sent basic message"
+	}
+	return "Received basic message"
 }
 
 func (m *Messages) ToConnection(id *string) *model.BasicMessageConnection {

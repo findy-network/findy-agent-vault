@@ -11,6 +11,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/store/pg"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/utils"
+	"github.com/google/uuid"
 )
 
 const testAgentLabel = "testAgent"
@@ -26,7 +27,7 @@ type testableDB struct {
 
 var (
 	DBs            []*testableDB
-	testCredential *model.Credential = model.NewCredential(&model.Credential{
+	testCredential *model.Credential = model.NewCredential("", &model.Credential{
 		Role:          graph.CredentialRoleHolder,
 		SchemaID:      "schemaId",
 		CredDefID:     "credDefId",
@@ -36,7 +37,7 @@ var (
 			{Name: "name2", Value: "value2"},
 		},
 	})
-	testProof *model.Proof = model.NewProof(&model.Proof{
+	testProof *model.Proof = model.NewProof("", &model.Proof{
 		Role:          graph.ProofRoleProver,
 		InitiatedByUs: false,
 		Result:        true,
@@ -45,7 +46,7 @@ var (
 			{Name: "name2", Value: nil, CredDefID: "cred_def_id"},
 		},
 	})
-	testMessage *model.Message = model.NewMessage(&model.Message{
+	testMessage *model.Message = model.NewMessage("", &model.Message{
 		Message:   "msg content",
 		SentByMe:  false,
 		Delivered: nil,
@@ -98,7 +99,7 @@ func setup() {
 	testAgent.AgentID = "testAgentID"
 	testAgent.Label = testAgentLabel
 
-	testConnection := model.NewConnection(nil)
+	testConnection := model.EmptyConnection()
 	testConnection.OurDid = "ourDid"
 	testConnection.TheirDid = "theirDid"
 	testConnection.TheirEndpoint = "theirEndpoint"
@@ -125,6 +126,8 @@ func setup() {
 		}
 		s.testTenantID = a.ID
 		s.testAgentID = a.AgentID
+
+		s.testConnection = model.NewConnection(uuid.New().String(), s.testTenantID, testConnection)
 		s.testConnection.TenantID = s.testTenantID
 
 		c, err := s.db.AddConnection(testConnection)

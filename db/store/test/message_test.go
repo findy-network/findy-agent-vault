@@ -121,7 +121,7 @@ func TestAddMessage(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("add message  "+s.name, func(t *testing.T) {
-			testMessage = model.NewMessage(testMessage)
+			testMessage = model.NewMessage(s.testTenantID, testMessage)
 			testMessage.TenantID = s.testTenantID
 			testMessage.ConnectionID = s.testConnectionID
 
