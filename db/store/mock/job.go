@@ -4,7 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/bxcodec/faker/v3"
 	"github.com/findy-network/findy-agent-vault/db/model"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
@@ -45,7 +44,6 @@ func (m *mockData) AddJob(j *model.Job) (*model.Job, error) {
 	agent := m.agents.get(j.TenantID)
 
 	n := model.NewJob(j.ID, j.TenantID, j)
-	n.ID = faker.UUIDHyphenated()
 	n.Created = time.Now().UTC()
 	n.Cursor = model.TimeToCursor(&n.Created)
 	agent.jobs.append(newJob(n))

@@ -7,8 +7,9 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/findy-network/findy-agent-vault/db/fake"
+
 	"github.com/bxcodec/faker"
-	generator "github.com/findy-network/findy-agent-vault/tools/faker"
 	"github.com/google/uuid"
 	"github.com/lainio/err2"
 )
@@ -59,10 +60,8 @@ func (m *Mock) Connect(a *Agent, strInvitation string) (id string, err error) {
 	job := &JobInfo{TenantID: a.TenantID, JobID: id, ConnectionID: id}
 
 	time.AfterFunc(time.Second, func() {
-		if connections, err := generator.FakeConnections(1, true); err == nil {
-			connection := connections[0]
-			m.listener.AddConnection(job, connection.OurDid, connection.TheirDid, connection.TheirEndpoint, connection.TheirLabel)
-		}
+		connection := fake.FakeConnection(a.TenantID)
+		m.listener.AddConnection(job, connection.OurDid, connection.TheirDid, connection.TheirEndpoint, connection.TheirLabel)
 	})
 
 	return
@@ -76,13 +75,13 @@ func (m *Mock) SendMessage(a *Agent, connectionID, message string) (id string, e
 	job := &JobInfo{TenantID: a.TenantID, JobID: id, ConnectionID: connectionID}
 
 	m.listener.AddMessage(job, message, true)
-	time.AfterFunc(time.Second, func() {
+	/*time.AfterFunc(time.Second, func() {
 		if messages, err := generator.FakeMessages(1); err == nil {
 			msg := messages[0]
 			// reply
 			m.listener.AddMessage(job, msg.Message, false)
 		}
-	})
+	})*/
 
 	return
 }

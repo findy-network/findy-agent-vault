@@ -4,6 +4,7 @@ CREATE TABLE "agent" (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
   agent_id VARCHAR(256) UNIQUE NOT NULL,
   label VARCHAR(1024),
+  raw_jwt VARCHAR(4096),
   created timestamptz NOT NULL DEFAULT (now() at time zone 'UTC'),
   cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC') * 1000) STORED,
   last_accessed timestamptz NOT NULL DEFAULT (now() at time zone 'UTC')

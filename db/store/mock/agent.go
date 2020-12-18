@@ -22,7 +22,9 @@ func (m *mockData) AddAgent(a *model.Agent) (*model.Agent, error) {
 		n.ID = faker.UUIDHyphenated()
 		n.Created = now
 	} else {
-		n = model.NewAgent(n)
+		n.AgentID = a.AgentID
+		n.Label = a.Label
+		n.RawJWT = a.RawJWT
 	}
 	n.LastAccessed = now
 	agent.agent = n

@@ -14,7 +14,7 @@ import (
 func agencyAuth(agent *db.Agent) *agency.Agent {
 	return &agency.Agent{
 		RawJWT:   agent.RawJWT,
-		TenantID: agent.TenantID,
+		TenantID: agent.ID,
 		AgentID:  agent.AgentID,
 	}
 }
