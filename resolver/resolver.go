@@ -1,13 +1,15 @@
 package resolver
 
 import (
-	"github.com/findy-network/findy-agent-vault/agency"
+	agencys "github.com/findy-network/findy-agent-vault/agency"
+	agency "github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/db/fake"
 	dbModel "github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/db/store/mock"
 	"github.com/findy-network/findy-agent-vault/db/store/pg"
 	"github.com/findy-network/findy-agent-vault/graph/model"
+	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
 
@@ -34,15 +36,29 @@ func InitResolver(mockDB, fakeData bool) *Resolver {
 		db = pg.InitDB("file://db/migrations", "5432", false)
 	}
 
-	// TODO: configure agency
-	a := &agency.Mock{}
-	r := &Resolver{
-		db:               db,
-		agency:           a,
-		eventSubscribers: newSubscriberRegister(),
+	nextPage := true
+	after := uint64(0)
+	allAgents := make([]*dbModel.Agent, 0)
+	for nextPage {
+		agents, err := db.GetListenerAgents(&paginator.BatchInfo{Count: 50, After: after})
+		if err != nil {
+			panic(err)
+		}
+		allAgents = append(allAgents, agents.Agents...)
+		nextPage = agents.HasNextPage
+		after = agents.Agents[len(agents.Agents)-1].Cursor
 	}
 
-	a.Init(r)
+	listenerAgents := make([]*agency.Agent, len(allAgents))
+	for index := range allAgents {
+		listenerAgents[index] = agencyAuth(allAgents[index])
+	}
+
+	r := &Resolver{
+		db:               db,
+		eventSubscribers: newSubscriberRegister(),
+	}
+	r.agency = agencys.InitAgency(agencys.AgencyTypeFindyGRPC, r, listenerAgents)
 
 	if fakeData {
 		fake.AddData(db)

@@ -7,7 +7,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/google/uuid"
 
-	"github.com/findy-network/findy-agent-vault/agency"
+	agency "github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/db/fake"
 	db "github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/db/store"
@@ -18,6 +18,7 @@ import (
 
 func agencyAuth(agent *db.Agent) *agency.Agent {
 	return &agency.Agent{
+		Label:    agent.Label,
 		RawJWT:   agent.RawJWT,
 		TenantID: agent.ID,
 		AgentID:  agent.AgentID,

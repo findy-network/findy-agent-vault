@@ -24,6 +24,12 @@ func (b *base) copy() *base {
 	return &baseCopy
 }
 
+type Agents struct {
+	Agents          []*Agent
+	HasNextPage     bool
+	HasPreviousPage bool
+}
+
 type Agent struct {
 	*base
 	AgentID      string `faker:"agentId"`
