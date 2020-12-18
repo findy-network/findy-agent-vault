@@ -2,8 +2,13 @@ package resolver
 
 import (
 	"context"
+	"time"
+
+	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/google/uuid"
 
 	"github.com/findy-network/findy-agent-vault/agency"
+	"github.com/findy-network/findy-agent-vault/db/fake"
 	db "github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/graph/model"
@@ -158,6 +163,8 @@ func (r *mutationResolver) resume(ctx context.Context, input model.ResumeJobInpu
 
 // ************* For testing: TODO: enable only with feature flag *************
 func (r *mutationResolver) addRandomEvent(ctx context.Context) (ok bool, err error) {
+	utils.LogMed().Info("mutationResolver:addRandomEvent")
+
 	_, err = store.GetAgent(ctx, r.db)
 	err2.Check(err)
 
@@ -166,25 +173,104 @@ func (r *mutationResolver) addRandomEvent(ctx context.Context) (ok bool, err err
 }
 
 func (r *mutationResolver) addRandomMessage(ctx context.Context) (ok bool, err error) {
-	_, err = store.GetAgent(ctx, r.db)
+	utils.LogMed().Info("mutationResolver:addRandomMessage")
+
+	agent, err := store.GetAgent(ctx, r.db)
 	err2.Check(err)
 
-	// TODO
+	res, err := r.db.GetConnections(
+		&paginator.BatchInfo{Count: 1},
+		agent.ID,
+	)
+	err2.Check(err)
+
+	if len(res.Connections) > 0 {
+		connectionID := res.Connections[0].ID
+		message := fake.Message(agent.ID, connectionID)
+		job := &agency.JobInfo{
+			TenantID:     agent.ID,
+			JobID:        uuid.New().String(),
+			ConnectionID: connectionID,
+		}
+
+		r.AddMessage(job, message.Message, message.SentByMe)
+		ok = true
+	}
+
 	return
 }
 
 func (r *mutationResolver) addRandomCredential(ctx context.Context) (ok bool, err error) {
-	_, err = store.GetAgent(ctx, r.db)
+	utils.LogMed().Info("mutationResolver:addRandomCredential")
+
+	agent, err := store.GetAgent(ctx, r.db)
 	err2.Check(err)
 
-	// TODO
-	return
+	res, err := r.db.GetConnections(
+		&paginator.BatchInfo{Count: 1},
+		agent.ID,
+	)
+	err2.Check(err)
+
+	if len(res.Connections) > 0 {
+		connectionID := res.Connections[0].ID
+		credential := fake.Credential(agent.ID, connectionID)
+		job := &agency.JobInfo{
+			TenantID:     agent.ID,
+			JobID:        uuid.New().String(),
+			ConnectionID: connectionID,
+		}
+
+		r.AddCredential(
+			job,
+			credential.Role,
+			credential.SchemaID,
+			credential.CredDefID,
+			credential.Attributes,
+			credential.InitiatedByUs,
+		)
+		time.AfterFunc(time.Second, func() {
+			now := utils.CurrentTimeMs()
+			r.UpdateCredential(job, &now, &now, nil)
+		})
+		ok = true
+	}
+
+	return ok, err
 }
 
 func (r *mutationResolver) addRandomProof(ctx context.Context) (ok bool, err error) {
-	_, err = store.GetAgent(ctx, r.db)
+	utils.LogMed().Info("mutationResolver:addRandomProof")
+
+	agent, err := store.GetAgent(ctx, r.db)
 	err2.Check(err)
 
-	// TODO
-	return
+	res, err := r.db.GetConnections(
+		&paginator.BatchInfo{Count: 1},
+		agent.ID,
+	)
+	err2.Check(err)
+
+	if len(res.Connections) > 0 {
+		connectionID := res.Connections[0].ID
+		proof := fake.Proof(agent.ID, connectionID)
+		job := &agency.JobInfo{
+			TenantID:     agent.ID,
+			JobID:        uuid.New().String(),
+			ConnectionID: connectionID,
+		}
+
+		r.AddProof(
+			job,
+			proof.Role,
+			proof.Attributes,
+			proof.InitiatedByUs,
+		)
+		time.AfterFunc(time.Second, func() {
+			now := utils.CurrentTimeMs()
+			r.UpdateProof(job, &now, &now, nil)
+		})
+		ok = true
+	}
+	return ok, err
 }

@@ -195,7 +195,7 @@ func (r *Resolver) UpdateCredential(info *agency.JobInfo, approvedMs, issuedMs, 
 	err2.Check(err)
 
 	// TODO: is this needed - can we just update directly
-	credential, err := r.db.GetCredential(job.TenantID, *job.ProtocolCredentialID)
+	credential, err := r.db.GetCredential(*job.ProtocolCredentialID, job.TenantID)
 	err2.Check(err)
 
 	credential.Approved = utils.TimestampToTime(approvedMs)
@@ -260,7 +260,7 @@ func (r *Resolver) UpdateProof(info *agency.JobInfo, approvedMs, verifiedMs, fai
 	err2.Check(err)
 
 	// TODO: is this needed - can we just update directly
-	proof, err := r.db.GetProof(job.TenantID, *job.ProtocolProofID)
+	proof, err := r.db.GetProof(*job.ProtocolProofID, job.TenantID)
 	err2.Check(err)
 
 	proof.Approved = utils.TimestampToTime(approvedMs)

@@ -52,18 +52,20 @@ func (s *subscriberRegister) notify(tenantID string, event *dbModel.Event) {
 	}
 }
 
-func (s *subscriberRegister) add(tenantID string) (string, <-chan *model.EventEdge) {
+func (s *subscriberRegister) add(tenantID string) (subscriptionID string, eventChannel <-chan *model.EventEdge) {
 	s.Lock()
 	defer s.Unlock()
 
 	utils.LogLow().Infof("Add subscription for tenant %s", tenantID)
 
-	subscriptionID := tenantID + "-" + strconv.FormatInt(utils.CurrentTimeMs(), 10)
+	subscriptionID = tenantID + "-" + strconv.FormatInt(utils.CurrentTimeMs(), 10)
 	newSubscription := &subscription{
 		tenantID: tenantID,
 		channel:  make(chan *model.EventEdge, 1),
 	}
+	eventChannel = newSubscription.channel
 	s.subscriptions[subscriptionID] = newSubscription
+
 	subscriptions, ok := s.agents[tenantID]
 	if !ok {
 		subscriptions = make([]string, 0)
@@ -71,7 +73,7 @@ func (s *subscriberRegister) add(tenantID string) (string, <-chan *model.EventEd
 	subscriptions = append(subscriptions, subscriptionID)
 	s.agents[tenantID] = subscriptions
 
-	return subscriptionID, newSubscription.channel
+	return
 }
 
 func (s *subscriberRegister) remove(subscriptionID string) {

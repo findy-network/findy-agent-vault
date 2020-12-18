@@ -37,6 +37,8 @@ func (pg *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
 	err = rows.Err()
 	err2.Check(err)
 
+	n.TenantID = n.ID
+
 	return
 }
 
@@ -65,6 +67,8 @@ func (pg *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
 
 	err = rows.Err()
 	err2.Check(err)
+
+	a.TenantID = a.ID
 
 	return
 }
