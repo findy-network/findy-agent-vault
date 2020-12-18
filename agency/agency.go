@@ -1,47 +1,29 @@
 package agency
 
 import (
-	"github.com/findy-network/findy-agent-vault/graph/model"
+	"github.com/findy-network/findy-agent-vault/agency/findy"
+	"github.com/findy-network/findy-agent-vault/agency/mock"
+	"github.com/findy-network/findy-agent-vault/agency/model"
 )
 
-type JobInfo struct {
-	TenantID     string
-	JobID        string
-	ConnectionID string
-}
+const (
+	AgencyTypeMock      = "MOCK"
+	AgencyTypeFindyGRPC = "FINDY_GRPC"
+	// TODO: is legacy needed?
+)
 
-type Listener interface {
-	AddConnection(job *JobInfo, ourDID, theirDID, theirEndpoint, theirLabel string)
+func InitAgency(agencyType string, listener model.Listener, agents []*model.Agent) model.Agency {
+	var a model.Agency
+	switch agencyType {
+	case AgencyTypeMock:
+		a = &mock.Mock{}
+	case AgencyTypeFindyGRPC:
+		a = &findy.Agency{}
+	}
+	if a == nil {
+		panic("Invalid agency type: " + agencyType)
+	}
 
-	AddMessage(job *JobInfo, message string, sentByMe bool)
-	UpdateMessage(job *JobInfo, delivered bool)
-
-	AddCredential(
-		job *JobInfo,
-		role model.CredentialRole,
-		schemaID, credDefID string,
-		attributes []*model.CredentialValue,
-		initiatedByUs bool,
-	)
-	UpdateCredential(job *JobInfo, approvedMs, issuedMs, failedMs *int64)
-
-	AddProof(job *JobInfo, role model.ProofRole, attributes []*model.ProofAttribute, initiatedByUs bool)
-	UpdateProof(job *JobInfo, approvedMs, verifiedMs, failedMs *int64)
-}
-
-type Agent struct {
-	RawJWT   string
-	TenantID string
-	AgentID  string
-}
-
-type Agency interface {
-	Init(l Listener)
-
-	Invite(a *Agent) (string, string, error)
-	Connect(a *Agent, invitation string) (string, error)
-	SendMessage(a *Agent, connectionID, message string) (string, error)
-
-	ResumeCredentialOffer(a *Agent, id string, accept bool) error
-	ResumeProofRequest(a *Agent, id string, accept bool) error
+	a.Init(listener, agents)
+	return a
 }

@@ -1,6 +1,6 @@
 // +build findy
 
-package agency
+package legacy
 
 import (
 	"github.com/golang/glog"

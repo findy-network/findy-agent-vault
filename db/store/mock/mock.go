@@ -54,6 +54,7 @@ type apiObject interface {
 	Message() *model.Message
 	Event() *model.Event
 	Job() *model.Job
+	Agent() *model.Agent
 }
 
 type base struct{}
@@ -80,6 +81,10 @@ func (b *base) Event() *model.Event {
 
 func (b *base) Job() *model.Job {
 	panic("Object is not job")
+}
+
+func (b *base) Agent() *model.Agent {
+	panic("Object is not agent")
 }
 
 type mockData struct {
@@ -130,4 +135,15 @@ func (a *agentLedger) set(tenantID, agentID string, items *mockItems) {
 	defer a.Unlock()
 	a.agents[tenantID] = items
 	a.agentsByAgentID[agentID] = items
+}
+
+func (a *agentLedger) getAgents() []*model.Agent {
+	a.Lock()
+	defer a.Unlock()
+
+	agents := make([]*model.Agent, 0)
+	for _, agentData := range a.agents {
+		agents = append(agents, agentData.agent)
+	}
+	return agents
 }

@@ -1,9 +1,12 @@
 package pg
 
 import (
+	"database/sql"
 	"fmt"
+	"sort"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
+	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/lainio/err2"
 )
 
@@ -15,6 +18,67 @@ const (
 	sqlAgentSelectByID      = sqlAgentSelect + " WHERE id=$1"
 	sqlAgentSelectByAgentID = sqlAgentSelect + " WHERE agent_id=$1"
 )
+
+func (pg *Database) GetListenerAgents(info *paginator.BatchInfo) (a *model.Agents, err error) {
+	defer returnErr("GetListenerAgents", &err)
+
+	jwtNotNull := " raw_jwt IS NOT NULL "
+	query, args := getBatchQuery(&queryInfo{
+		Asc:        sqlAgentSelect + " WHERE " + jwtNotNull + sqlOrderByAsc("") + " $1",
+		Desc:       sqlAgentSelect + " WHERE " + jwtNotNull + sqlOrderByDesc("") + " $1",
+		AfterAsc:   sqlAgentSelect + " WHERE cursor > $1 AND" + jwtNotNull + sqlOrderByAsc("") + " $2",
+		AfterDesc:  sqlAgentSelect + " WHERE cursor > $1 AND" + jwtNotNull + sqlOrderByDesc("") + " $2",
+		BeforeAsc:  sqlAgentSelect + " WHERE cursor < $1 AND" + jwtNotNull + sqlOrderByAsc("") + " $2",
+		BeforeDesc: sqlAgentSelect + " WHERE cursor < $1 AND" + jwtNotNull + sqlOrderByDesc("") + " $2",
+	},
+		info,
+		[]interface{}{},
+	)
+
+	rows, err := pg.db.Query(query, args...)
+	err2.Check(err)
+	defer rows.Close()
+
+	a = &model.Agents{
+		Agents:          make([]*model.Agent, 0),
+		HasNextPage:     false,
+		HasPreviousPage: false,
+	}
+	var agent *model.Agent
+	for rows.Next() {
+		agent, err = readRowToAgent(rows)
+		err2.Check(err)
+		a.Agents = append(a.Agents, agent)
+	}
+
+	err = rows.Err()
+	err2.Check(err)
+
+	if info.Count < len(a.Agents) {
+		a.Agents = a.Agents[:info.Count]
+		if info.Tail {
+			a.HasPreviousPage = true
+		} else {
+			a.HasNextPage = true
+		}
+	}
+
+	if info.After > 0 {
+		a.HasPreviousPage = true
+	}
+	if info.Before > 0 {
+		a.HasNextPage = true
+	}
+
+	// Reverse order for tail first
+	if info.Tail {
+		sort.Slice(a.Agents, func(i, j int) bool {
+			return a.Agents[i].Created.Sub(a.Agents[j].Created) < 0
+		})
+	}
+
+	return a, err
+}
 
 func (pg *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
 	defer returnErr("AddAgent", &err)
@@ -42,6 +106,14 @@ func (pg *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
 	return
 }
 
+func readRowToAgent(rows *sql.Rows) (a *model.Agent, err error) {
+	a = model.NewAgent(nil)
+	err = rows.Scan(
+		&a.ID, &a.AgentID, &a.Label, &a.RawJWT, &a.Created, &a.LastAccessed,
+	)
+	return
+}
+
 func (pg *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
 	defer returnErr("GetAgent", &err)
 
@@ -59,9 +131,8 @@ func (pg *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
 	err2.Check(err)
 	defer rows.Close()
 
-	a = model.NewAgent(nil)
 	if rows.Next() {
-		err = rows.Scan(&a.ID, &a.AgentID, &a.Label, &a.RawJWT, &a.Created, &a.LastAccessed)
+		a, err = readRowToAgent(rows)
 		err2.Check(err)
 	}
 
