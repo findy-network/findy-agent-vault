@@ -37,12 +37,18 @@ type Config struct {
 
 type ResolverRoot interface {
 	BasicMessage() BasicMessageResolver
+	BasicMessageConnection() BasicMessageConnectionResolver
 	Credential() CredentialResolver
+	CredentialConnection() CredentialConnectionResolver
 	Event() EventResolver
+	EventConnection() EventConnectionResolver
 	Job() JobResolver
+	JobConnection() JobConnectionResolver
 	Mutation() MutationResolver
 	Pairwise() PairwiseResolver
+	PairwiseConnection() PairwiseConnectionResolver
 	Proof() ProofResolver
+	ProofConnection() ProofConnectionResolver
 	Query() QueryResolver
 	Subscription() SubscriptionResolver
 }
@@ -61,10 +67,11 @@ type ComplexityRoot struct {
 	}
 
 	BasicMessageConnection struct {
-		Edges      func(childComplexity int) int
-		Nodes      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		ConnectionID func(childComplexity int) int
+		Edges        func(childComplexity int) int
+		Nodes        func(childComplexity int) int
+		PageInfo     func(childComplexity int) int
+		TotalCount   func(childComplexity int) int
 	}
 
 	BasicMessageEdge struct {
@@ -86,10 +93,11 @@ type ComplexityRoot struct {
 	}
 
 	CredentialConnection struct {
-		Edges      func(childComplexity int) int
-		Nodes      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		ConnectionID func(childComplexity int) int
+		Edges        func(childComplexity int) int
+		Nodes        func(childComplexity int) int
+		PageInfo     func(childComplexity int) int
+		TotalCount   func(childComplexity int) int
 	}
 
 	CredentialEdge struct {
@@ -98,6 +106,7 @@ type ComplexityRoot struct {
 	}
 
 	CredentialValue struct {
+		ID    func(childComplexity int) int
 		Name  func(childComplexity int) int
 		Value func(childComplexity int) int
 	}
@@ -112,10 +121,11 @@ type ComplexityRoot struct {
 	}
 
 	EventConnection struct {
-		Edges      func(childComplexity int) int
-		Nodes      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		ConnectionID func(childComplexity int) int
+		Edges        func(childComplexity int) int
+		Nodes        func(childComplexity int) int
+		PageInfo     func(childComplexity int) int
+		TotalCount   func(childComplexity int) int
 	}
 
 	EventEdge struct {
@@ -140,10 +150,12 @@ type ComplexityRoot struct {
 	}
 
 	JobConnection struct {
-		Edges      func(childComplexity int) int
-		Nodes      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		Completed    func(childComplexity int) int
+		ConnectionID func(childComplexity int) int
+		Edges        func(childComplexity int) int
+		Nodes        func(childComplexity int) int
+		PageInfo     func(childComplexity int) int
+		TotalCount   func(childComplexity int) int
 	}
 
 	JobEdge struct {
@@ -223,15 +235,17 @@ type ComplexityRoot struct {
 
 	ProofAttribute struct {
 		CredDefID func(childComplexity int) int
+		ID        func(childComplexity int) int
 		Name      func(childComplexity int) int
 		Value     func(childComplexity int) int
 	}
 
 	ProofConnection struct {
-		Edges      func(childComplexity int) int
-		Nodes      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		ConnectionID func(childComplexity int) int
+		Edges        func(childComplexity int) int
+		Nodes        func(childComplexity int) int
+		PageInfo     func(childComplexity int) int
+		TotalCount   func(childComplexity int) int
 	}
 
 	ProofEdge struct {
@@ -270,15 +284,27 @@ type ComplexityRoot struct {
 type BasicMessageResolver interface {
 	Connection(ctx context.Context, obj *model.BasicMessage) (*model.Pairwise, error)
 }
+type BasicMessageConnectionResolver interface {
+	TotalCount(ctx context.Context, obj *model.BasicMessageConnection) (int, error)
+}
 type CredentialResolver interface {
 	Connection(ctx context.Context, obj *model.Credential) (*model.Pairwise, error)
+}
+type CredentialConnectionResolver interface {
+	TotalCount(ctx context.Context, obj *model.CredentialConnection) (int, error)
 }
 type EventResolver interface {
 	Job(ctx context.Context, obj *model.Event) (*model.JobEdge, error)
 	Connection(ctx context.Context, obj *model.Event) (*model.Pairwise, error)
 }
+type EventConnectionResolver interface {
+	TotalCount(ctx context.Context, obj *model.EventConnection) (int, error)
+}
 type JobResolver interface {
 	Output(ctx context.Context, obj *model.Job) (*model.JobOutput, error)
+}
+type JobConnectionResolver interface {
+	TotalCount(ctx context.Context, obj *model.JobConnection) (int, error)
 }
 type MutationResolver interface {
 	MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.Event, error)
@@ -298,8 +324,14 @@ type PairwiseResolver interface {
 	Jobs(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int, completed *bool) (*model.JobConnection, error)
 	Events(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.EventConnection, error)
 }
+type PairwiseConnectionResolver interface {
+	TotalCount(ctx context.Context, obj *model.PairwiseConnection) (int, error)
+}
 type ProofResolver interface {
 	Connection(ctx context.Context, obj *model.Proof) (*model.Pairwise, error)
+}
+type ProofConnectionResolver interface {
+	TotalCount(ctx context.Context, obj *model.ProofConnection) (int, error)
 }
 type QueryResolver interface {
 	Connections(ctx context.Context, after *string, before *string, first *int, last *int) (*model.PairwiseConnection, error)
@@ -374,6 +406,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.BasicMessage.SentByMe(childComplexity), true
+
+	case "BasicMessageConnection.ConnectionId":
+		if e.complexity.BasicMessageConnection.ConnectionID == nil {
+			break
+		}
+
+		return e.complexity.BasicMessageConnection.ConnectionID(childComplexity), true
 
 	case "BasicMessageConnection.edges":
 		if e.complexity.BasicMessageConnection.Edges == nil {
@@ -487,6 +526,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Credential.SchemaID(childComplexity), true
 
+	case "CredentialConnection.connectionId":
+		if e.complexity.CredentialConnection.ConnectionID == nil {
+			break
+		}
+
+		return e.complexity.CredentialConnection.ConnectionID(childComplexity), true
+
 	case "CredentialConnection.edges":
 		if e.complexity.CredentialConnection.Edges == nil {
 			break
@@ -528,6 +574,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CredentialEdge.Node(childComplexity), true
+
+	case "CredentialValue.id":
+		if e.complexity.CredentialValue.ID == nil {
+			break
+		}
+
+		return e.complexity.CredentialValue.ID(childComplexity), true
 
 	case "CredentialValue.name":
 		if e.complexity.CredentialValue.Name == nil {
@@ -584,6 +637,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Event.Read(childComplexity), true
+
+	case "EventConnection.connectionId":
+		if e.complexity.EventConnection.ConnectionID == nil {
+			break
+		}
+
+		return e.complexity.EventConnection.ConnectionID(childComplexity), true
 
 	case "EventConnection.edges":
 		if e.complexity.EventConnection.Edges == nil {
@@ -696,6 +756,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Job.UpdatedMs(childComplexity), true
+
+	case "JobConnection.completed":
+		if e.complexity.JobConnection.Completed == nil {
+			break
+		}
+
+		return e.complexity.JobConnection.Completed(childComplexity), true
+
+	case "JobConnection.connectionId":
+		if e.complexity.JobConnection.ConnectionID == nil {
+			break
+		}
+
+		return e.complexity.JobConnection.ConnectionID(childComplexity), true
 
 	case "JobConnection.edges":
 		if e.complexity.JobConnection.Edges == nil {
@@ -1113,6 +1187,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ProofAttribute.CredDefID(childComplexity), true
 
+	case "ProofAttribute.id":
+		if e.complexity.ProofAttribute.ID == nil {
+			break
+		}
+
+		return e.complexity.ProofAttribute.ID(childComplexity), true
+
 	case "ProofAttribute.name":
 		if e.complexity.ProofAttribute.Name == nil {
 			break
@@ -1126,6 +1207,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ProofAttribute.Value(childComplexity), true
+
+	case "ProofConnection.connectionId":
+		if e.complexity.ProofConnection.ConnectionID == nil {
+			break
+		}
+
+		return e.complexity.ProofConnection.ConnectionID(childComplexity), true
 
 	case "ProofConnection.edges":
 		if e.complexity.ProofConnection.Edges == nil {
@@ -1475,6 +1563,7 @@ type BasicMessageEdge {
 }
 
 type BasicMessageConnection {
+  ConnectionId: ID
   edges: [BasicMessageEdge]
   nodes: [BasicMessage]
   pageInfo: PageInfo!
@@ -1487,6 +1576,7 @@ enum CredentialRole {
 }
 
 type CredentialValue {
+  id: ID!
   name: String!
   value: String!
 }
@@ -1510,6 +1600,7 @@ type CredentialEdge {
 }
 
 type CredentialConnection {
+  connectionId: ID
   edges: [CredentialEdge]
   nodes: [Credential]
   pageInfo: PageInfo!
@@ -1522,6 +1613,7 @@ enum ProofRole {
 }
 
 type ProofAttribute {
+  id: ID!
   name: String!
   value: String
   credDefId: String!
@@ -1545,6 +1637,7 @@ type ProofEdge {
 }
 
 type ProofConnection {
+  connectionId: ID
   edges: [ProofEdge]
   nodes: [Proof]
   pageInfo: PageInfo!
@@ -1566,6 +1659,7 @@ type EventEdge {
 }
 
 type EventConnection {
+  connectionId: ID
   edges: [EventEdge]
   nodes: [Event]
   pageInfo: PageInfo!
@@ -1616,6 +1710,8 @@ type JobEdge {
 }
 
 type JobConnection {
+  connectionId: ID
+  completed: Boolean
   edges: [JobEdge]
   nodes: [Job]
   pageInfo: PageInfo!
@@ -2527,6 +2623,38 @@ func (ec *executionContext) _BasicMessage_connection(ctx context.Context, field 
 	return ec.marshalNPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _BasicMessageConnection_ConnectionId(ctx context.Context, field graphql.CollectedField, obj *model.BasicMessageConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BasicMessageConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ConnectionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _BasicMessageConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.BasicMessageConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2637,14 +2765,14 @@ func (ec *executionContext) _BasicMessageConnection_totalCount(ctx context.Conte
 		Object:     "BasicMessageConnection",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
+		return ec.resolvers.BasicMessageConnection().TotalCount(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3072,6 +3200,38 @@ func (ec *executionContext) _Credential_connection(ctx context.Context, field gr
 	return ec.marshalNPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _CredentialConnection_connectionId(ctx context.Context, field graphql.CollectedField, obj *model.CredentialConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CredentialConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ConnectionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _CredentialConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.CredentialConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3182,14 +3342,14 @@ func (ec *executionContext) _CredentialConnection_totalCount(ctx context.Context
 		Object:     "CredentialConnection",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
+		return ec.resolvers.CredentialConnection().TotalCount(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3274,6 +3434,41 @@ func (ec *executionContext) _CredentialEdge_node(ctx context.Context, field grap
 	res := resTmp.(*model.Credential)
 	fc.Result = res
 	return ec.marshalNCredential2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredential(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CredentialValue_id(ctx context.Context, field graphql.CollectedField, obj *model.CredentialValue) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CredentialValue",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CredentialValue_name(ctx context.Context, field graphql.CollectedField, obj *model.CredentialValue) (ret graphql.Marshaler) {
@@ -3550,6 +3745,38 @@ func (ec *executionContext) _Event_connection(ctx context.Context, field graphql
 	return ec.marshalOPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _EventConnection_connectionId(ctx context.Context, field graphql.CollectedField, obj *model.EventConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "EventConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ConnectionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _EventConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.EventConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3660,14 +3887,14 @@ func (ec *executionContext) _EventConnection_totalCount(ctx context.Context, fie
 		Object:     "EventConnection",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
+		return ec.resolvers.EventConnection().TotalCount(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4104,6 +4331,70 @@ func (ec *executionContext) _Job_output(ctx context.Context, field graphql.Colle
 	return ec.marshalNJobOutput2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐJobOutput(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _JobConnection_connectionId(ctx context.Context, field graphql.CollectedField, obj *model.JobConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "JobConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ConnectionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _JobConnection_completed(ctx context.Context, field graphql.CollectedField, obj *model.JobConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "JobConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Completed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _JobConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.JobConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4214,14 +4505,14 @@ func (ec *executionContext) _JobConnection_totalCount(ctx context.Context, field
 		Object:     "JobConnection",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
+		return ec.resolvers.JobConnection().TotalCount(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5545,14 +5836,14 @@ func (ec *executionContext) _PairwiseConnection_totalCount(ctx context.Context, 
 		Object:     "PairwiseConnection",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
+		return ec.resolvers.PairwiseConnection().TotalCount(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5948,6 +6239,41 @@ func (ec *executionContext) _Proof_connection(ctx context.Context, field graphql
 	return ec.marshalNPairwise2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐPairwise(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ProofAttribute_id(ctx context.Context, field graphql.CollectedField, obj *model.ProofAttribute) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ProofAttribute",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ProofAttribute_name(ctx context.Context, field graphql.CollectedField, obj *model.ProofAttribute) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6048,6 +6374,38 @@ func (ec *executionContext) _ProofAttribute_credDefId(ctx context.Context, field
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ProofConnection_connectionId(ctx context.Context, field graphql.CollectedField, obj *model.ProofConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ProofConnection",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ConnectionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ProofConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.ProofConnection) (ret graphql.Marshaler) {
@@ -6160,14 +6518,14 @@ func (ec *executionContext) _ProofConnection_totalCount(ctx context.Context, fie
 		Object:     "ProofConnection",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
+		return ec.resolvers.ProofConnection().TotalCount(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8172,6 +8530,8 @@ func (ec *executionContext) _BasicMessageConnection(ctx context.Context, sel ast
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("BasicMessageConnection")
+		case "ConnectionId":
+			out.Values[i] = ec._BasicMessageConnection_ConnectionId(ctx, field, obj)
 		case "edges":
 			out.Values[i] = ec._BasicMessageConnection_edges(ctx, field, obj)
 		case "nodes":
@@ -8179,13 +8539,22 @@ func (ec *executionContext) _BasicMessageConnection(ctx context.Context, sel ast
 		case "pageInfo":
 			out.Values[i] = ec._BasicMessageConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "totalCount":
-			out.Values[i] = ec._BasicMessageConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._BasicMessageConnection_totalCount(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8312,6 +8681,8 @@ func (ec *executionContext) _CredentialConnection(ctx context.Context, sel ast.S
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("CredentialConnection")
+		case "connectionId":
+			out.Values[i] = ec._CredentialConnection_connectionId(ctx, field, obj)
 		case "edges":
 			out.Values[i] = ec._CredentialConnection_edges(ctx, field, obj)
 		case "nodes":
@@ -8319,13 +8690,22 @@ func (ec *executionContext) _CredentialConnection(ctx context.Context, sel ast.S
 		case "pageInfo":
 			out.Values[i] = ec._CredentialConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "totalCount":
-			out.Values[i] = ec._CredentialConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CredentialConnection_totalCount(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8380,6 +8760,11 @@ func (ec *executionContext) _CredentialValue(ctx context.Context, sel ast.Select
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("CredentialValue")
+		case "id":
+			out.Values[i] = ec._CredentialValue_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "name":
 			out.Values[i] = ec._CredentialValue_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -8476,6 +8861,8 @@ func (ec *executionContext) _EventConnection(ctx context.Context, sel ast.Select
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("EventConnection")
+		case "connectionId":
+			out.Values[i] = ec._EventConnection_connectionId(ctx, field, obj)
 		case "edges":
 			out.Values[i] = ec._EventConnection_edges(ctx, field, obj)
 		case "nodes":
@@ -8483,13 +8870,22 @@ func (ec *executionContext) _EventConnection(ctx context.Context, sel ast.Select
 		case "pageInfo":
 			out.Values[i] = ec._EventConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "totalCount":
-			out.Values[i] = ec._EventConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._EventConnection_totalCount(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8647,6 +9043,10 @@ func (ec *executionContext) _JobConnection(ctx context.Context, sel ast.Selectio
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("JobConnection")
+		case "connectionId":
+			out.Values[i] = ec._JobConnection_connectionId(ctx, field, obj)
+		case "completed":
+			out.Values[i] = ec._JobConnection_completed(ctx, field, obj)
 		case "edges":
 			out.Values[i] = ec._JobConnection_edges(ctx, field, obj)
 		case "nodes":
@@ -8654,13 +9054,22 @@ func (ec *executionContext) _JobConnection(ctx context.Context, sel ast.Selectio
 		case "pageInfo":
 			out.Values[i] = ec._JobConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "totalCount":
-			out.Values[i] = ec._JobConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._JobConnection_totalCount(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9015,13 +9424,22 @@ func (ec *executionContext) _PairwiseConnection(ctx context.Context, sel ast.Sel
 		case "pageInfo":
 			out.Values[i] = ec._PairwiseConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "totalCount":
-			out.Values[i] = ec._PairwiseConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PairwiseConnection_totalCount(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9146,6 +9564,11 @@ func (ec *executionContext) _ProofAttribute(ctx context.Context, sel ast.Selecti
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ProofAttribute")
+		case "id":
+			out.Values[i] = ec._ProofAttribute_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "name":
 			out.Values[i] = ec._ProofAttribute_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -9180,6 +9603,8 @@ func (ec *executionContext) _ProofConnection(ctx context.Context, sel ast.Select
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ProofConnection")
+		case "connectionId":
+			out.Values[i] = ec._ProofConnection_connectionId(ctx, field, obj)
 		case "edges":
 			out.Values[i] = ec._ProofConnection_edges(ctx, field, obj)
 		case "nodes":
@@ -9187,13 +9612,22 @@ func (ec *executionContext) _ProofConnection(ctx context.Context, sel ast.Select
 		case "pageInfo":
 			out.Values[i] = ec._ProofConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "totalCount":
-			out.Values[i] = ec._ProofConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ProofConnection_totalCount(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -10702,6 +11136,21 @@ func (ec *executionContext) marshalOEventEdge2ᚖgithubᚗcomᚋfindyᚑnetwork�
 		return graphql.Null
 	}
 	return ec._EventEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalID(*v)
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {

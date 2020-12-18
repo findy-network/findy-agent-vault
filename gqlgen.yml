@@ -88,3 +88,27 @@ models:
     fields:
       output:
         resolver: true
+  PairwiseConnection:
+    fields:
+      totalCount:
+        resolver: true
+  CredentialConnection:
+    fields:
+      totalCount:
+        resolver: true
+  ProofConnection:
+    fields:
+      totalCount:
+        resolver: true
+  EventConnection:
+    fields:
+      totalCount:
+        resolver: true
+  BasicMessageConnection:
+    fields:
+      totalCount:
+        resolver: true
+  JobConnection:
+    fields:
+      totalCount:
+        resolver: true

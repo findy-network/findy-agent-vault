@@ -18,10 +18,11 @@ type BasicMessage struct {
 }
 
 type BasicMessageConnection struct {
-	Edges      []*BasicMessageEdge `json:"edges"`
-	Nodes      []*BasicMessage     `json:"nodes"`
-	PageInfo   *PageInfo           `json:"pageInfo"`
-	TotalCount int                 `json:"totalCount"`
+	ConnectionID *string             `json:"ConnectionId"`
+	Edges        []*BasicMessageEdge `json:"edges"`
+	Nodes        []*BasicMessage     `json:"nodes"`
+	PageInfo     *PageInfo           `json:"pageInfo"`
+	TotalCount   int                 `json:"totalCount"`
 }
 
 type BasicMessageEdge struct {
@@ -47,10 +48,11 @@ type Credential struct {
 }
 
 type CredentialConnection struct {
-	Edges      []*CredentialEdge `json:"edges"`
-	Nodes      []*Credential     `json:"nodes"`
-	PageInfo   *PageInfo         `json:"pageInfo"`
-	TotalCount int               `json:"totalCount"`
+	ConnectionID *string           `json:"connectionId"`
+	Edges        []*CredentialEdge `json:"edges"`
+	Nodes        []*Credential     `json:"nodes"`
+	PageInfo     *PageInfo         `json:"pageInfo"`
+	TotalCount   int               `json:"totalCount"`
 }
 
 type CredentialEdge struct {
@@ -59,6 +61,7 @@ type CredentialEdge struct {
 }
 
 type CredentialValue struct {
+	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }
@@ -73,10 +76,11 @@ type Event struct {
 }
 
 type EventConnection struct {
-	Edges      []*EventEdge `json:"edges"`
-	Nodes      []*Event     `json:"nodes"`
-	PageInfo   *PageInfo    `json:"pageInfo"`
-	TotalCount int          `json:"totalCount"`
+	ConnectionID *string      `json:"connectionId"`
+	Edges        []*EventEdge `json:"edges"`
+	Nodes        []*Event     `json:"nodes"`
+	PageInfo     *PageInfo    `json:"pageInfo"`
+	TotalCount   int          `json:"totalCount"`
 }
 
 type EventEdge struct {
@@ -101,10 +105,12 @@ type Job struct {
 }
 
 type JobConnection struct {
-	Edges      []*JobEdge `json:"edges"`
-	Nodes      []*Job     `json:"nodes"`
-	PageInfo   *PageInfo  `json:"pageInfo"`
-	TotalCount int        `json:"totalCount"`
+	ConnectionID *string    `json:"connectionId"`
+	Completed    *bool      `json:"completed"`
+	Edges        []*JobEdge `json:"edges"`
+	Nodes        []*Job     `json:"nodes"`
+	PageInfo     *PageInfo  `json:"pageInfo"`
+	TotalCount   int        `json:"totalCount"`
 }
 
 type JobEdge struct {
@@ -180,16 +186,18 @@ type Proof struct {
 }
 
 type ProofAttribute struct {
+	ID        string  `json:"id"`
 	Name      string  `json:"name"`
 	Value     *string `json:"value"`
 	CredDefID string  `json:"credDefId"`
 }
 
 type ProofConnection struct {
-	Edges      []*ProofEdge `json:"edges"`
-	Nodes      []*Proof     `json:"nodes"`
-	PageInfo   *PageInfo    `json:"pageInfo"`
-	TotalCount int          `json:"totalCount"`
+	ConnectionID *string      `json:"connectionId"`
+	Edges        []*ProofEdge `json:"edges"`
+	Nodes        []*Proof     `json:"nodes"`
+	PageInfo     *PageInfo    `json:"pageInfo"`
+	TotalCount   int          `json:"totalCount"`
 }
 
 type ProofEdge struct {

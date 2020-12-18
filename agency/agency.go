@@ -1,37 +1,47 @@
 package agency
 
 import (
-	"context"
-
 	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
-type Listener interface {
-	AddConnection(id, ourDID, theirDID, theirEndpoint, theirLabel string)
+type JobInfo struct {
+	TenantID     string
+	JobID        string
+	ConnectionID string
+}
 
-	AddMessage(connectionID, id, message string, sentByMe bool)
-	UpdateMessage(connectionID, id, delivered bool)
+type Listener interface {
+	AddConnection(job *JobInfo, ourDID, theirDID, theirEndpoint, theirLabel string)
+
+	AddMessage(job *JobInfo, message string, sentByMe bool)
+	UpdateMessage(job *JobInfo, delivered bool)
 
 	AddCredential(
-		connectionID, id string,
+		job *JobInfo,
 		role model.CredentialRole,
 		schemaID, credDefID string,
 		attributes []*model.CredentialValue,
 		initiatedByUs bool,
 	)
-	UpdateCredential(connectionID, id string, approvedMs, issuedMs, failedMs *int64)
+	UpdateCredential(job *JobInfo, approvedMs, issuedMs, failedMs *int64)
 
-	AddProof(connectionID, id string, role model.ProofRole, attributes []*model.ProofAttribute, initiatedByUs bool)
-	UpdateProof(connectionID, id string, approvedMs, verifiedMs, failedMs *int64)
+	AddProof(job *JobInfo, role model.ProofRole, attributes []*model.ProofAttribute, initiatedByUs bool)
+	UpdateProof(job *JobInfo, approvedMs, verifiedMs, failedMs *int64)
+}
+
+type Agent struct {
+	RawJWT   string
+	TenantID string
+	AgentID  string
 }
 
 type Agency interface {
 	Init(l Listener)
 
-	Invite(ctx context.Context) (string, string, error)
-	Connect(ctx context.Context, invitation string) (string, error)
-	SendMessage(ctx context.Context, connectionID, message string) (string, error)
+	Invite(a *Agent) (string, string, error)
+	Connect(a *Agent, invitation string) (string, error)
+	SendMessage(a *Agent, connectionID, message string) (string, error)
 
-	ResumeCredentialOffer(ctx context.Context, id string, accept bool) error
-	ResumeProofRequest(ctx context.Context, id string, accept bool) error
+	ResumeCredentialOffer(a *Agent, id string, accept bool) error
+	ResumeProofRequest(a *Agent, id string, accept bool) error
 }

@@ -9,39 +9,25 @@ import (
 
 type agencyListener struct{}
 
-func (l *agencyListener) AddConnection(id, ourDID, theirDID, theirEndpoint, theirLabel string) {
-
+func (l *agencyListener) AddConnection(job *JobInfo, ourDID, theirDID, theirEndpoint, theirLabel string) {
 }
 
-func (l *agencyListener) AddMessage(connectionID, id, message string, sentByMe bool) {
-
-}
-
-func (l *agencyListener) UpdateMessage(connectionID, id, delivered bool) {
-
-}
+func (l *agencyListener) AddMessage(job *JobInfo, message string, sentByMe bool) {}
+func (l *agencyListener) UpdateMessage(job *JobInfo, delivered bool)             {}
 
 func (l *agencyListener) AddCredential(
-	connectionID, id string,
+	job *JobInfo,
 	role model.CredentialRole,
 	schemaID, credDefID string,
 	attributes []*model.CredentialValue,
 	initiatedByUs bool,
 ) {
-
 }
+func (l *agencyListener) UpdateCredential(job *JobInfo, approvedMs, issuedMs, failedMs *int64) {}
 
-func (l *agencyListener) UpdateCredential(connectionID, id string, approvedMs, issuedMs, failedMs *int64) {
-
+func (l *agencyListener) AddProof(job *JobInfo, role model.ProofRole, attributes []*model.ProofAttribute, initiatedByUs bool) {
 }
-
-func (l *agencyListener) AddProof(connectionID, id string, role model.ProofRole, attributes []*model.ProofAttribute, initiatedByUs bool) {
-
-}
-
-func (l *agencyListener) UpdateProof(connectionID, id string, approvedMs, verifiedMs, failedMs *int64) {
-
-}
+func (l *agencyListener) UpdateProof(job *JobInfo, approvedMs, verifiedMs, failedMs *int64) {}
 
 func TestMain(m *testing.M) {
 	setup()
