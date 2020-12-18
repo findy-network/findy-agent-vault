@@ -127,7 +127,7 @@ func (f *Findy) Init(l Listener) {
 }
 
 // TODO: fetch constructed JSON from CA
-func (f *Findy) Invite(ctx context.Context) (invitation, id string, err error) {
+func (f *Findy) Invite(a *Agent) (invitation, id string, err error) {
 	defer err2.Return(&err)
 
 	id = utils.UUID()
@@ -144,7 +144,7 @@ func (f *Findy) Invite(ctx context.Context) (invitation, id string, err error) {
 	return
 }
 
-func (f *Findy) Connect(ctx context.Context, invitation string) (id string, err error) {
+func (f *Findy) Connect(a *Agent, invitation string) (id string, err error) {
 	defer err2.Return(&err)
 
 	inv := didexchange.Invitation{}
@@ -160,7 +160,7 @@ func (f *Findy) Connect(ctx context.Context, invitation string) (id string, err 
 	return
 }
 
-func (f *Findy) SendMessage(ctx context.Context, connectionID, message string) (id string, err error) {
+func (f *Findy) SendMessage(a *Agent, connectionID, message string) (id string, err error) {
 	defer err2.Return(&err)
 
 	id = uuid.New().String()
@@ -176,7 +176,7 @@ func (f *Findy) SendMessage(ctx context.Context, connectionID, message string) (
 	return
 }
 
-func (f *Findy) ResumeCredentialOffer(ctx context.Context, id string, accept bool) (err error) {
+func (f *Findy) ResumeCredentialOffer(a *Agent, id string, accept bool) (err error) {
 	defer err2.Return(&err)
 
 	taskID := f.taskMapper.readTask(id)
@@ -193,7 +193,7 @@ func (f *Findy) ResumeCredentialOffer(ctx context.Context, id string, accept boo
 	return
 }
 
-func (f *Findy) ResumeProofRequest(ctx context.Context, id string, accept bool) (err error) {
+func (f *Findy) ResumeProofRequest(a *Agent, id string, accept bool) (err error) {
 	defer err2.Return(&err)
 
 	taskID := f.taskMapper.readTask(id)

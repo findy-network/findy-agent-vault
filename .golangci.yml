@@ -96,10 +96,43 @@ issues:
     - path: _test.go
       linters:
         - dupl
-    - path: resolver/schema.resolvers.go
+    - path: db/store/pg/pg.go
       linters:
         - gocritic
+    - path: db/fake/
+      linters:
+        - dupl
+    - path: db/store/pg/
+      linters:
+        - dupl
+    - path: db/store/mock
+      linters:
+        - dupl
+        - unused
+    - path: db/model
+      linters:
+        - dupl
+    - path: resolver/schema.resolvers.go
+      linters:
+        - dupl
+        - gocritic
         - lll
+    - path: resolver/resolver.go
+      linters:
+        - dupl
+    - path: resolver/query.go
+      linters:
+        - dupl
+    - path: resolver/pairwise.go
+      linters:
+        - dupl
+    - path: resolver/pairwise_connection.go
+      linters:
+        - unparam
+    - path: resolver/resolver_test.go
+      linters:
+        - staticcheck
+        - golint
     - linters:
         - gocritic
       text: "unnecessaryDefer:"

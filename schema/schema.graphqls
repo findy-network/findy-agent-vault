@@ -68,6 +68,7 @@ type BasicMessageEdge {
 }
 
 type BasicMessageConnection {
+  ConnectionId: ID
   edges: [BasicMessageEdge]
   nodes: [BasicMessage]
   pageInfo: PageInfo!
@@ -80,6 +81,7 @@ enum CredentialRole {
 }
 
 type CredentialValue {
+  id: ID!
   name: String!
   value: String!
 }
@@ -103,6 +105,7 @@ type CredentialEdge {
 }
 
 type CredentialConnection {
+  connectionId: ID
   edges: [CredentialEdge]
   nodes: [Credential]
   pageInfo: PageInfo!
@@ -115,6 +118,7 @@ enum ProofRole {
 }
 
 type ProofAttribute {
+  id: ID!
   name: String!
   value: String
   credDefId: String!
@@ -138,6 +142,7 @@ type ProofEdge {
 }
 
 type ProofConnection {
+  connectionId: ID
   edges: [ProofEdge]
   nodes: [Proof]
   pageInfo: PageInfo!
@@ -159,6 +164,7 @@ type EventEdge {
 }
 
 type EventConnection {
+  connectionId: ID
   edges: [EventEdge]
   nodes: [Event]
   pageInfo: PageInfo!
@@ -209,6 +215,8 @@ type JobEdge {
 }
 
 type JobConnection {
+  connectionId: ID
+  completed: Boolean
   edges: [JobEdge]
   nodes: [Job]
   pageInfo: PageInfo!

@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/findy-network/findy-agent-vault/db/fake"
+
 	"github.com/golang/glog"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware"
@@ -74,18 +76,32 @@ func jwtChecker(next http.Handler) http.Handler {
 }
 
 func CreateToken(id string) (string, error) {
-	return createToken(id, time.Hour*hoursInDay)
-}
-
-func createToken(id string, duration time.Duration) (string, error) {
-	claims := jwt.MapClaims{}
-	claims["id"] = id
-	claims["exp"] = time.Now().Add(duration).Unix()
-	signer := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signer := createToken(id, time.Hour*hoursInDay)
 	return signer.SignedString([]byte(jwtSecret))
 }
 
+func CreateTestToken(id string) *jwt.Token {
+	token := createToken(id, time.Hour*hoursForTest)
+	str, _ := token.SignedString([]byte(jwtSecret))
+	token.Raw = str
+	return token
+}
+
+func createTokenString(id string, duration time.Duration) (string, error) {
+	signer := createToken(id, duration)
+	return signer.SignedString([]byte(jwtSecret))
+}
+
+func createToken(id string, duration time.Duration) *jwt.Token {
+	claims := jwt.MapClaims{}
+	claims["id"] = id
+	claims["un"] = fake.FakeCloudDID
+	claims["label"] = "minnie mouse"
+	claims["exp"] = time.Now().Add(duration).Unix()
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+}
+
 func createTestToken() string {
-	token, _ := createToken("test", time.Hour*hoursForTest)
+	token, _ := createTokenString("test", time.Hour*hoursForTest)
 	return token
 }
