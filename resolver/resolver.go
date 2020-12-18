@@ -21,9 +21,9 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	db             store.DB
-	agency         agency.Agency
-	eventObservers map[string]chan *model.EventEdge
+	db               store.DB
+	agency           agency.Agency
+	eventSubscribers *subscriberRegister
 }
 
 func InitResolver(mockDB, fakeData bool) *Resolver {
@@ -37,9 +37,9 @@ func InitResolver(mockDB, fakeData bool) *Resolver {
 	// TODO: configure agency
 	a := agency.Mock{}
 	r := &Resolver{
-		db:             db,
-		agency:         &agency.Mock{},
-		eventObservers: map[string]chan *model.EventEdge{},
+		db:               db,
+		agency:           &agency.Mock{},
+		eventSubscribers: newSubscriberRegister(),
 	}
 
 	a.Init(r)
@@ -52,18 +52,21 @@ func InitResolver(mockDB, fakeData bool) *Resolver {
 }
 
 func (r *Resolver) addEvent(tenantID string, job *dbModel.Job, description string) (err error) {
+	defer err2.Return(&err)
 	var connectionID, jobID *string
 	if job != nil {
 		connectionID = job.ConnectionID
 		jobID = &job.ID
 	}
-	// TODO: event subscription
-	_, err = r.db.AddEvent(dbModel.NewEvent(tenantID, &dbModel.Event{
+	event, err := r.db.AddEvent(dbModel.NewEvent(tenantID, &dbModel.Event{
 		Read:         false,
 		Description:  description,
 		ConnectionID: connectionID,
 		JobID:        jobID,
 	}))
+	err2.Check(err)
+
+	r.eventSubscribers.notify(tenantID, event)
 	return err
 }
 
