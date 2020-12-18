@@ -27,7 +27,7 @@ func random(n int) int {
 func AddMessages(db store.DB, tenantID, connectionID string, count int) []*model.Message {
 	messages := make([]*model.Message, count)
 	for i := 0; i < count; i++ {
-		message := fakeMessage(tenantID, connectionID)
+		message := Message(tenantID, connectionID)
 		messages[i] = message
 	}
 
@@ -87,17 +87,9 @@ func AddMessageJobs(db store.DB, tenantID, connectionID, protocolMessageID strin
 }
 
 func AddCredentials(db store.DB, tenantID, connectionID string, count int) []*model.Credential {
-	_ = faker.AddProvider("credentialAttributes", func(v reflect.Value) (interface{}, error) {
-		return []*graph.CredentialValue{
-			{Name: "name1", Value: "value1"},
-			{Name: "name2", Value: "value2"},
-			{Name: "name3", Value: "value3"},
-		}, nil
-	})
-
 	credentials := make([]*model.Credential, count)
 	for i := 0; i < count; i++ {
-		credential := fakeCredential(tenantID, connectionID)
+		credential := Credential(tenantID, connectionID)
 		credentials[i] = credential
 	}
 
@@ -122,18 +114,9 @@ func AddCredentials(db store.DB, tenantID, connectionID string, count int) []*mo
 }
 
 func AddProofs(db store.DB, tenantID, connectionID string, count int) []*model.Proof {
-	_ = faker.AddProvider("proofAttributes", func(v reflect.Value) (interface{}, error) {
-		value := "value"
-		return []*graph.ProofAttribute{
-			{Name: "name1", Value: &value, CredDefID: "credDefId1"},
-			{Name: "name2", Value: &value, CredDefID: "credDefId2"},
-			{Name: "name3", Value: &value, CredDefID: "credDefId3"},
-		}, nil
-	})
-
 	proofs := make([]*model.Proof, count)
 	for i := 0; i < count; i++ {
-		proof := fakeProof(tenantID, connectionID)
+		proof := Proof(tenantID, connectionID)
 		proofs[i] = proof
 	}
 
@@ -160,7 +143,7 @@ func AddProofs(db store.DB, tenantID, connectionID string, count int) []*model.P
 func AddConnections(db store.DB, tenantID string, count int) []*model.Connection {
 	connections := make([]*model.Connection, count)
 	for i := 0; i < count; i++ {
-		connection := FakeConnection(tenantID)
+		connection := Connection(tenantID)
 		connections[i] = connection
 	}
 
@@ -245,7 +228,7 @@ func fakeAgent() *model.Agent {
 	return model.NewAgent(agent)
 }
 
-func FakeConnection(tenantID string) *model.Connection {
+func Connection(tenantID string) *model.Connection {
 	_ = faker.AddProvider("organisationLabel", func(v reflect.Value) (interface{}, error) {
 		orgs := []string{"Bank", "Ltd", "Agency", "Company", "United"}
 		index := random(len(orgs))
@@ -259,7 +242,14 @@ func FakeConnection(tenantID string) *model.Connection {
 	return connection
 }
 
-func fakeCredential(tenantID, connectionID string) *model.Credential {
+func Credential(tenantID, connectionID string) *model.Credential {
+	_ = faker.AddProvider("credentialAttributes", func(v reflect.Value) (interface{}, error) {
+		return []*graph.CredentialValue{
+			{Name: "name1", Value: "value1"},
+			{Name: "name2", Value: "value2"},
+			{Name: "name3", Value: "value3"},
+		}, nil
+	})
 	credential := model.NewCredential("", nil)
 	err2.Check(faker.FakeData(credential))
 	credential = model.NewCredential(tenantID, credential)
@@ -268,7 +258,15 @@ func fakeCredential(tenantID, connectionID string) *model.Credential {
 	return credential
 }
 
-func fakeProof(tenantID, connectionID string) *model.Proof {
+func Proof(tenantID, connectionID string) *model.Proof {
+	_ = faker.AddProvider("proofAttributes", func(v reflect.Value) (interface{}, error) {
+		value := "value"
+		return []*graph.ProofAttribute{
+			{Name: "name1", Value: &value, CredDefID: "credDefId1"},
+			{Name: "name2", Value: &value, CredDefID: "credDefId2"},
+			{Name: "name3", Value: &value, CredDefID: "credDefId3"},
+		}, nil
+	})
 	proof := model.NewProof("", nil)
 	err2.Check(faker.FakeData(proof))
 	proof = model.NewProof(tenantID, proof)
@@ -303,7 +301,7 @@ func fakeJob(
 	return job
 }
 
-func fakeMessage(tenantID, connectionID string) *model.Message {
+func Message(tenantID, connectionID string) *model.Message {
 	message := model.NewMessage("", nil)
 	err2.Check(faker.FakeData(message))
 	message = model.NewMessage(tenantID, message)

@@ -14,7 +14,7 @@ func (m *mockData) AddAgent(a *model.Agent) (*model.Agent, error) {
 		agent = newState()
 		add = true
 	}
-	n := agent.agent
+	n := model.NewAgent(agent.agent)
 
 	now := time.Now().UTC()
 	if add {
@@ -27,6 +27,7 @@ func (m *mockData) AddAgent(a *model.Agent) (*model.Agent, error) {
 		n.RawJWT = a.RawJWT
 	}
 	n.LastAccessed = now
+	n.TenantID = n.ID
 	agent.agent = n
 
 	m.agents.set(n.ID, n.AgentID, agent)

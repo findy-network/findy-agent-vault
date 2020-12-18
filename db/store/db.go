@@ -18,7 +18,6 @@ func GetAgent(ctx context.Context, db DB) (*model.Agent, error) {
 	a.AgentID = token.AgentID
 	a.Label = token.Label
 	a.RawJWT = token.Token
-
 	return db.AddAgent(a)
 }
 

@@ -60,7 +60,7 @@ func (m *Mock) Connect(a *Agent, strInvitation string) (id string, err error) {
 	job := &JobInfo{TenantID: a.TenantID, JobID: id, ConnectionID: id}
 
 	time.AfterFunc(time.Second, func() {
-		connection := fake.FakeConnection(a.TenantID)
+		connection := fake.Connection(a.TenantID)
 		m.listener.AddConnection(job, connection.OurDid, connection.TheirDid, connection.TheirEndpoint, connection.TheirLabel)
 	})
 
@@ -75,14 +75,10 @@ func (m *Mock) SendMessage(a *Agent, connectionID, message string) (id string, e
 	job := &JobInfo{TenantID: a.TenantID, JobID: id, ConnectionID: connectionID}
 
 	m.listener.AddMessage(job, message, true)
-	/*time.AfterFunc(time.Second, func() {
-		if messages, err := generator.FakeMessages(1); err == nil {
-			msg := messages[0]
-			// reply
-			m.listener.AddMessage(job, msg.Message, false)
-		}
-	})*/
-
+	time.AfterFunc(time.Second, func() {
+		message := fake.Message(a.TenantID, connectionID)
+		m.listener.AddMessage(job, message.Message, false)
+	})
 	return
 }
 
