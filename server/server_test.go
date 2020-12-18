@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -35,7 +34,6 @@ func doQuery(query string, auth bool) (payload JSONPayload) {
 	Server(&resolver.Resolver{}).ServeHTTP(response, request)
 
 	bytes := response.Body.Bytes()
-	fmt.Println(string(bytes))
 	_ = json.Unmarshal(bytes, &payload)
 	return
 }

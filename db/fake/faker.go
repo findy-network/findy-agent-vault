@@ -158,15 +158,9 @@ func AddProofs(db store.DB, tenantID, connectionID string, count int) []*model.P
 }
 
 func AddConnections(db store.DB, tenantID string, count int) []*model.Connection {
-	_ = faker.AddProvider("organisationLabel", func(v reflect.Value) (interface{}, error) {
-		orgs := []string{"Bank", "Ltd", "Agency", "Company", "United"}
-		index := random(len(orgs))
-		return faker.LastName() + " " + orgs[index], nil
-	})
-
 	connections := make([]*model.Connection, count)
 	for i := 0; i < count; i++ {
-		connection := fakeConnection(tenantID)
+		connection := FakeConnection(tenantID)
 		connections[i] = connection
 	}
 
@@ -251,7 +245,13 @@ func fakeAgent() *model.Agent {
 	return model.NewAgent(agent)
 }
 
-func fakeConnection(tenantID string) *model.Connection {
+func FakeConnection(tenantID string) *model.Connection {
+	_ = faker.AddProvider("organisationLabel", func(v reflect.Value) (interface{}, error) {
+		orgs := []string{"Bank", "Ltd", "Agency", "Company", "United"}
+		index := random(len(orgs))
+		return faker.LastName() + " " + orgs[index], nil
+	})
+
 	connection := model.EmptyConnection()
 	err2.Check(faker.FakeData(connection))
 	connection = model.NewConnection(faker.UUIDHyphenated(), tenantID, connection)

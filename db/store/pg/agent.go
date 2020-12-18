@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	sqlAgentFields = "id, agent_id, label, created, last_accessed"
-	sqlAgentInsert = "INSERT INTO agent (agent_id, label) VALUES ($1, $2) " +
+	sqlAgentFields = "id, agent_id, label, raw_jwt, created, last_accessed"
+	sqlAgentInsert = "INSERT INTO agent (agent_id, label, raw_jwt) VALUES ($1, $2, $3) " +
 		"ON CONFLICT (agent_id) DO UPDATE SET last_accessed = (now() at time zone 'UTC') RETURNING " + sqlAgentFields
 	sqlAgentSelect          = "SELECT " + sqlAgentFields + " FROM agent"
 	sqlAgentSelectByID      = sqlAgentSelect + " WHERE id=$1"
@@ -23,13 +23,14 @@ func (pg *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
 		sqlAgentInsert,
 		a.AgentID,
 		a.Label,
+		a.RawJWT,
 	)
 	err2.Check(err)
 	defer rows.Close()
 
 	n = model.NewAgent(a)
 	if rows.Next() {
-		err = rows.Scan(&n.ID, &n.AgentID, &n.Label, &n.Created, &n.LastAccessed)
+		err = rows.Scan(&n.ID, &n.AgentID, &n.Label, &n.RawJWT, &n.Created, &n.LastAccessed)
 		err2.Check(err)
 	}
 
@@ -58,7 +59,7 @@ func (pg *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
 
 	a = model.NewAgent(nil)
 	if rows.Next() {
-		err = rows.Scan(&a.ID, &a.AgentID, &a.Label, &a.Created, &a.LastAccessed)
+		err = rows.Scan(&a.ID, &a.AgentID, &a.Label, &a.RawJWT, &a.Created, &a.LastAccessed)
 		err2.Check(err)
 	}
 

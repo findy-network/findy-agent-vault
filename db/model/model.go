@@ -46,6 +46,7 @@ func (a *Agent) copy() (n *Agent) {
 	}
 	n.AgentID = a.AgentID
 	n.Label = a.Label
+	n.RawJWT = a.RawJWT
 	return n
 }
 

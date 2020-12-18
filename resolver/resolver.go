@@ -35,10 +35,10 @@ func InitResolver(mockDB, fakeData bool) *Resolver {
 	}
 
 	// TODO: configure agency
-	a := agency.Mock{}
+	a := &agency.Mock{}
 	r := &Resolver{
 		db:               db,
-		agency:           &agency.Mock{},
+		agency:           a,
 		eventSubscribers: newSubscriberRegister(),
 	}
 
@@ -72,6 +72,9 @@ func (r *Resolver) addEvent(tenantID string, job *dbModel.Job, description strin
 
 func (r *Resolver) addJob(job *dbModel.Job, description string) (err error) {
 	defer err2.Return(&err)
+
+	utils.LogLow().Infof("Add job with ID %s for tenant %s", job.ID, job.TenantID)
+
 	job, err = r.db.AddJob(job)
 	err2.Check(err)
 
@@ -94,6 +97,9 @@ func (r *Resolver) AddConnection(info *agency.JobInfo, ourDID, theirDID, theirEn
 	defer err2.Catch(func(err error) {
 		glog.Errorf("Encountered error when adding connection %s", err.Error())
 	})
+
+	utils.LogLow().Infof("Add connection %s for tenant %s", info.ConnectionID, info.TenantID)
+
 	job, err := r.db.GetJob(info.JobID, info.TenantID)
 	err2.Check(err)
 

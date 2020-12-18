@@ -26,6 +26,9 @@ func TestAddAgent(t *testing.T) {
 				if a.Label != testAgent.Label {
 					t.Errorf("Agent label mismatch expected %s got %s", testAgent.Label, a.Label)
 				}
+				if a.RawJWT != testAgent.RawJWT {
+					t.Errorf("Agent RawJWT mismatch expected %s got %s", testAgent.RawJWT, a.RawJWT)
+				}
 				if a.ID == "" {
 					t.Errorf("Invalid agent id %s", a.ID)
 				}

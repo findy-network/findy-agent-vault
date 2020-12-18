@@ -4,7 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/bxcodec/faker/v3"
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 )
@@ -42,7 +41,6 @@ func (m *mockData) AddConnection(c *model.Connection) (*model.Connection, error)
 	agent := m.agents.get(c.TenantID)
 
 	n := model.NewConnection(c.ID, c.TenantID, c)
-	n.ID = faker.UUIDHyphenated()
 	n.Created = time.Now().UTC()
 	n.Cursor = model.TimeToCursor(&n.Created)
 	object := newConnection(n)

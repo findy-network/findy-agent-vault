@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -24,7 +23,7 @@ const defaultPort = "8085"
 func TokenHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer err2.Catch(func(err error) {
-			fmt.Println("ERROR generation token:", err.Error())
+			glog.Error("ERROR generation token:", err.Error())
 		})
 
 		// TODO
