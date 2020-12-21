@@ -74,10 +74,10 @@ func (m *Mock) SendMessage(a *model.Agent, connectionID, message string) (id str
 	return
 }
 
-func (m *Mock) ResumeCredentialOffer(a *model.Agent, id string, accept bool) (err error) {
+func (m *Mock) ResumeCredentialOffer(a *model.Agent, job *model.JobInfo, accept bool) (err error) {
 	return
 }
 
-func (m *Mock) ResumeProofRequest(a *model.Agent, id string, accept bool) (err error) {
+func (m *Mock) ResumeProofRequest(a *model.Agent, job *model.JobInfo, accept bool) (err error) {
 	return
 }

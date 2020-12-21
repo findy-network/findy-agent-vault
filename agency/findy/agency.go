@@ -6,6 +6,7 @@ import (
 
 	"github.com/findy-network/findy-agent-api/grpc/agency"
 	"github.com/findy-network/findy-agent-vault/agency/model"
+	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/findy-network/findy-grpc/agency/client"
 	"github.com/findy-network/findy-grpc/agency/client/async"
 	"github.com/golang/glog"
@@ -22,9 +23,13 @@ type Agency struct {
 	ctx   context.Context
 }
 
-func userCmdClient(a *model.Agent) *async.Pairwise {
+func userCmdConn(a *model.Agent) client.Conn {
 	config := client.BuildClientConnBase("", agencyHost, agencyPort, nil)
-	return async.NewPairwise(client.TryAuthOpen(a.RawJWT, config), "")
+	return client.TryAuthOpen(a.RawJWT, config)
+}
+
+func userCmdPw(a *model.Agent) *async.Pairwise {
+	return async.NewPairwise(userCmdConn(a), "")
 }
 
 func userListenClient(a *model.Agent) client.Conn {
@@ -32,40 +37,9 @@ func userListenClient(a *model.Agent) client.Conn {
 	return client.TryOpen(a.AgentID, config)
 }
 
-func (f *Agency) listenAgent(a *model.Agent) (err error) {
-	defer err2.Return(&err)
-	// TODO: cancellation, reconnect
-
-	conn := userListenClient(a)
-
-	ch, err := conn.Listen(f.ctx, &agency.ClientID{Id: a.TenantID})
-	err2.Check(err)
-
-	go func() {
-		for {
-			status, ok := <-ch
-			if !ok {
-				glog.Warningln("closed from server")
-				conn.Close()
-				break
-			}
-			glog.V(1).Infoln("listen status:",
-				status.Notification.TypeId,
-				status.Notification.Role,
-				status.Notification.ProtocolId)
-		}
-	}()
-
-	return
-}
-
 func (f *Agency) Init(listener model.Listener, agents []*model.Agent) {
 	f.ctx = context.Background()
 	f.vault = listener
-	// TODO: create JWT on demand v
-	// TODO: get all agents from db and start listening v
-	// TODO: start listening when onboarding <-----
-	// TODO: parse listening payload
 	// TODO: release protocol when saved
 	err := f.listenAdminHook()
 	if err != nil {
@@ -93,7 +67,7 @@ func (f *Agency) Connect(a *model.Agent, strInvitation string) (id string, err e
 	inv := model.Invitation{}
 	err2.Check(json.Unmarshal([]byte(strInvitation), &inv))
 
-	connect := userCmdClient(a)
+	connect := userCmdPw(a)
 	defer connect.Close()
 
 	connect.Label = a.Label
@@ -107,10 +81,69 @@ func (f *Agency) SendMessage(a *model.Agent, connectionID, message string) (id s
 	return
 }
 
-func (f *Agency) ResumeCredentialOffer(a *model.Agent, id string, accept bool) (err error) {
+func (f *Agency) resume(
+	conn client.Conn,
+	id string,
+	protocol agency.Protocol_Type,
+	state agency.ProtocolState_State,
+) (*agency.ProtocolID, error) {
+	ctx := context.Background()
+	didComm := agency.NewDIDCommClient(conn)
+	return didComm.Resume(ctx, &agency.ProtocolState{
+		ProtocolId: &agency.ProtocolID{
+			TypeId: protocol,
+			Role:   agency.Protocol_RESUME,
+			Id:     id,
+		},
+		State: state,
+	})
+}
+
+func (f *Agency) ResumeCredentialOffer(a *model.Agent, job *model.JobInfo, accept bool) (err error) {
+	defer err2.Return(&err) // TODO: do not leak internal errors to client
+
+	conn := userCmdConn(a)
+	defer conn.Close()
+
+	state := agency.ProtocolState_NACK
+	if accept {
+		state = agency.ProtocolState_ACK
+	}
+
+	_, err = f.resume(conn, job.JobID, agency.Protocol_ISSUE, state)
+	err2.Check(err)
+
+	now := utils.CurrentTimeMs()
+	f.vault.UpdateCredential(
+		job,
+		&now,
+		nil,
+		nil,
+	)
+
 	return
 }
 
-func (f *Agency) ResumeProofRequest(a *model.Agent, id string, accept bool) (err error) {
+func (f *Agency) ResumeProofRequest(a *model.Agent, job *model.JobInfo, accept bool) (err error) {
+	defer err2.Return(&err) // TODO: do not leak internal errors to client
+
+	conn := userCmdConn(a)
+	defer conn.Close()
+
+	state := agency.ProtocolState_NACK
+	if accept {
+		state = agency.ProtocolState_ACK
+	}
+
+	_, err = f.resume(conn, job.JobID, agency.Protocol_PROOF, state)
+	err2.Check(err)
+
+	now := utils.CurrentTimeMs()
+	f.vault.UpdateProof(
+		job,
+		&now,
+		nil,
+		nil,
+	)
 	return
 }

@@ -42,8 +42,8 @@ type Agency interface {
 	Connect(a *Agent, invitation string) (string, error)
 	SendMessage(a *Agent, connectionID, message string) (string, error)
 
-	ResumeCredentialOffer(a *Agent, id string, accept bool) error
-	ResumeProofRequest(a *Agent, id string, accept bool) error
+	ResumeCredentialOffer(a *Agent, job *JobInfo, accept bool) error
+	ResumeProofRequest(a *Agent, job *JobInfo, accept bool) error
 }
 
 // TODO: use invitation struct defined by agency
