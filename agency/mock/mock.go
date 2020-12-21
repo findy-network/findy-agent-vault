@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
+	parent "github.com/findy-network/findy-agent-vault/agency"
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/db/fake"
 
@@ -14,6 +15,10 @@ import (
 
 type Mock struct {
 	listener model.Listener
+}
+
+func Activate() {
+	parent.Register[parent.AgencyTypeMock] = &Mock{}
 }
 
 func (m *Mock) Init(l model.Listener, agents []*model.Agent) {

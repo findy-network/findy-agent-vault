@@ -1,3 +1,5 @@
+// +build findy_grpc
+
 package findy
 
 import (
@@ -5,6 +7,7 @@ import (
 	"encoding/json"
 
 	"github.com/findy-network/findy-agent-api/grpc/agency"
+	parent "github.com/findy-network/findy-agent-vault/agency"
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/findy-network/findy-grpc/agency/client"
@@ -21,6 +24,10 @@ const (
 type Agency struct {
 	vault model.Listener
 	ctx   context.Context
+}
+
+func Activate() {
+	parent.Register[parent.AgencyTypeFindyGRPC] = &Agency{}
 }
 
 func userCmdConn(a *model.Agent) client.Conn {
