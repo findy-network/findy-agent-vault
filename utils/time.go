@@ -1,9 +1,11 @@
 package utils
 
-import "time"
+import (
+	"time"
+)
 
 func CurrentTimeMs() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
+	return time.Now().UTC().UnixNano() / int64(time.Millisecond)
 }
 
 func CurrentTime() time.Time {
@@ -14,8 +16,8 @@ func TimestampToTime(tsMs *int64) *time.Time {
 	var t *time.Time
 	if tsMs != nil {
 		secs := *tsMs / time.Second.Milliseconds()
-		msecs := *tsMs - secs
-		ts := time.Unix(secs, msecs*time.Millisecond.Nanoseconds())
+		msecs := *tsMs - secs*time.Second.Milliseconds()
+		ts := time.Unix(secs, msecs*time.Millisecond.Nanoseconds()).UTC()
 		t = &ts
 	}
 	return t

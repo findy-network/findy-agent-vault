@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	dbModel "github.com/findy-network/findy-agent-vault/db/model"
-	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/golang/glog"
@@ -118,7 +117,7 @@ func (s *subscriberRegister) remove(subscriptionID string) {
 func (r *subscriptionResolver) eventAdded(ctx context.Context) (ch <-chan *model.EventEdge, err error) {
 	defer err2.Return(&err)
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	id, events := r.eventSubscribers.add(agent.ID)

@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/findy-network/findy-agent-vault/agency/mock"
 	"github.com/findy-network/findy-agent-vault/db/fake"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/server"
@@ -73,7 +74,8 @@ func testPaginationErrors(t *testing.T, objName string, ex executor) {
 
 func setup() {
 	utils.SetLogDefaults()
-	r = InitResolver(true, false)
+	mock.Activate()
+	r = InitResolver(true, true, false)
 	size := totalCount
 	a, c := test.AddAgentAndConnections(r.db, fake.FakeCloudDID, size)
 	testConnectionID = c[0].ID

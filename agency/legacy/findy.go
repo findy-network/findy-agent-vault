@@ -1,9 +1,8 @@
 // +build findy
 
-package agency
+package legacy
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"

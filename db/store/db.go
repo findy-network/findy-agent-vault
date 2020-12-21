@@ -22,6 +22,7 @@ func GetAgent(ctx context.Context, db DB) (*model.Agent, error) {
 }
 
 type DB interface {
+	GetListenerAgents(info *paginator.BatchInfo) (*model.Agents, error)
 	Close()
 
 	AddAgent(a *model.Agent) (*model.Agent, error)

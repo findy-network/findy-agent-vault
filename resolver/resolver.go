@@ -1,13 +1,18 @@
 package resolver
 
 import (
-	"github.com/findy-network/findy-agent-vault/agency"
+	"context"
+
+	agencys "github.com/findy-network/findy-agent-vault/agency"
+	agencyMock "github.com/findy-network/findy-agent-vault/agency/mock"
+	agency "github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/db/fake"
 	dbModel "github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/db/store/mock"
 	"github.com/findy-network/findy-agent-vault/db/store/pg"
 	"github.com/findy-network/findy-agent-vault/graph/model"
+	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
 
@@ -26,7 +31,7 @@ type Resolver struct {
 	eventSubscribers *subscriberRegister
 }
 
-func InitResolver(mockDB, fakeData bool) *Resolver {
+func InitResolver(mockDB, mockAgency, fakeData bool) *Resolver {
 	var db store.DB
 	if mockDB {
 		db = mock.InitState()
@@ -34,21 +39,61 @@ func InitResolver(mockDB, fakeData bool) *Resolver {
 		db = pg.InitDB("file://db/migrations", "5432", false)
 	}
 
-	// TODO: configure agency
-	a := &agency.Mock{}
+	listenerAgents := fetchAgents(db)
+
 	r := &Resolver{
 		db:               db,
-		agency:           a,
 		eventSubscribers: newSubscriberRegister(),
 	}
 
-	a.Init(r)
+	agencyMock.Activate()
+	aType := agencys.AgencyTypeMock
+	r.agency = agencys.InitAgency(aType, r, listenerAgents)
 
 	if fakeData {
 		fake.AddData(db)
 	}
 
 	return r
+}
+
+func fetchAgents(db store.DB) []*agency.Agent {
+	nextPage := true
+	after := uint64(0)
+	allAgents := make([]*dbModel.Agent, 0)
+	for nextPage {
+		agents, err := db.GetListenerAgents(&paginator.BatchInfo{Count: 50, After: after})
+		if err != nil {
+			panic(err)
+		}
+		count := len(agents.Agents)
+		if count > 0 {
+			allAgents = append(allAgents, agents.Agents...)
+			nextPage = agents.HasNextPage
+			after = agents.Agents[count-1].Cursor
+		} else {
+			nextPage = false
+		}
+	}
+
+	listenerAgents := make([]*agency.Agent, len(allAgents))
+	for index := range allAgents {
+		listenerAgents[index] = agencyAuth(allAgents[index])
+	}
+	return listenerAgents
+}
+
+func (r *Resolver) getAgent(ctx context.Context) (agent *dbModel.Agent, err error) {
+	err2.Return(&err)
+
+	agent, err = store.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	// make sure we are listening events for this agent
+	if agent.IsNewOnboard() {
+		err2.Check(r.agency.AddAgent(agencyAuth(agent)))
+	}
+	return
 }
 
 func (r *Resolver) addEvent(tenantID string, job *dbModel.Job, description string) (err error) {
@@ -194,25 +239,30 @@ func (r *Resolver) UpdateCredential(info *agency.JobInfo, approvedMs, issuedMs, 
 	job, err := r.db.GetJob(info.JobID, info.TenantID)
 	err2.Check(err)
 
-	// TODO: is this needed - can we just update directly
 	credential, err := r.db.GetCredential(*job.ProtocolCredentialID, job.TenantID)
 	err2.Check(err)
 
-	credential.Approved = utils.TimestampToTime(approvedMs)
-	credential.Issued = utils.TimestampToTime(issuedMs)
-	credential.Failed = utils.TimestampToTime(failedMs)
+	if credential.Approved == nil {
+		credential.Approved = utils.TimestampToTime(approvedMs)
+	}
+	if credential.Issued == nil {
+		credential.Issued = utils.TimestampToTime(issuedMs)
+	}
+	if credential.Failed == nil {
+		credential.Failed = utils.TimestampToTime(failedMs)
+	}
 
 	credential, err = r.db.UpdateCredential(credential)
 	err2.Check(err)
 
 	status := model.JobStatusWaiting
 	result := model.JobResultNone
-	if failedMs != nil {
+	if credential.Failed != nil {
 		status = model.JobStatusComplete
 		result = model.JobResultFailure
-	} else if approvedMs == nil && issuedMs == nil {
+	} else if credential.Approved == nil && credential.Issued == nil {
 		status = model.JobStatusPending
-	} else if issuedMs != nil {
+	} else if credential.Issued != nil {
 		status = model.JobStatusComplete
 		result = model.JobResultSuccess
 	}
@@ -259,25 +309,30 @@ func (r *Resolver) UpdateProof(info *agency.JobInfo, approvedMs, verifiedMs, fai
 	job, err := r.db.GetJob(info.JobID, info.TenantID)
 	err2.Check(err)
 
-	// TODO: is this needed - can we just update directly
 	proof, err := r.db.GetProof(*job.ProtocolProofID, job.TenantID)
 	err2.Check(err)
 
-	proof.Approved = utils.TimestampToTime(approvedMs)
-	proof.Verified = utils.TimestampToTime(verifiedMs)
-	proof.Failed = utils.TimestampToTime(failedMs)
+	if proof.Approved != nil {
+		proof.Approved = utils.TimestampToTime(approvedMs)
+	}
+	if proof.Verified != nil {
+		proof.Verified = utils.TimestampToTime(verifiedMs)
+	}
+	if proof.Failed != nil {
+		proof.Failed = utils.TimestampToTime(failedMs)
+	}
 
 	proof, err = r.db.UpdateProof(proof)
 	err2.Check(err)
 
 	status := model.JobStatusWaiting
 	result := model.JobResultNone
-	if failedMs != nil {
+	if proof.Failed != nil {
 		status = model.JobStatusComplete
 		result = model.JobResultFailure
-	} else if approvedMs == nil && verifiedMs == nil {
+	} else if proof.Approved == nil && proof.Verified == nil {
 		status = model.JobStatusPending
-	} else if verifiedMs != nil {
+	} else if proof.Verified != nil {
 		status = model.JobStatusComplete
 		result = model.JobResultSuccess
 	}

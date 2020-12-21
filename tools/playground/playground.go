@@ -38,7 +38,7 @@ func TokenHandler() http.HandlerFunc {
 
 func main() {
 	utils.SetLogDefaults()
-	srv := server.Server(resolver.InitResolver(true, true))
+	srv := server.Server(resolver.InitResolver(true, false, true))
 
 	port := os.Getenv("PORT")
 	if port == "" {

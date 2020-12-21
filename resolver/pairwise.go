@@ -3,7 +3,6 @@ package resolver
 import (
 	"context"
 
-	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
@@ -18,7 +17,7 @@ func (r *pairwiseResolver) credentials(
 ) (c *model.CredentialConnection, err error) {
 	defer err2.Return(&err)
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	utils.LogMed().Infof("pairwiseResolver:Credentials for tenant: %s, connection %s", agent.ID, obj.ID)
@@ -46,7 +45,7 @@ func (r *pairwiseResolver) proofs(
 ) (c *model.ProofConnection, err error) {
 	defer err2.Return(&err)
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	utils.LogMed().Infof("pairwiseResolver:Proofs for tenant: %s, connection %s", agent.ID, obj.ID)
@@ -74,7 +73,7 @@ func (r *pairwiseResolver) messages(
 ) (e *model.BasicMessageConnection, err error) {
 	defer err2.Return(&err)
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	utils.LogMed().Infof("pairwiseResolver:Messages for tenant: %s, connection %s", agent.ID, obj.ID)
@@ -102,7 +101,7 @@ func (r *pairwiseResolver) events(
 ) (e *model.EventConnection, err error) {
 	defer err2.Return(&err)
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	utils.LogMed().Infof("pairwiseResolver:Events for tenant: %s, connection %s", agent.ID, obj.ID)
@@ -131,7 +130,7 @@ func (r *pairwiseResolver) jobs(
 ) (e *model.JobConnection, err error) {
 	defer err2.Return(&err)
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	utils.LogMed().Infof("pairwiseResolver:Jobs for tenant: %s, connection %s", agent.ID, obj.ID)

@@ -18,7 +18,7 @@ var gqlResolver *resolver.Resolver
 
 func main() {
 	utils.SetLogDefaults()
-	gqlResolver = resolver.InitResolver(false, false)
+	gqlResolver = resolver.InitResolver(false, false, false)
 
 	port := os.Getenv("PORT")
 	if port == "" {
