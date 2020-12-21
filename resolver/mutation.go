@@ -137,13 +137,23 @@ func (r *mutationResolver) resume(ctx context.Context, input model.ResumeJobInpu
 		desc = "Declined"
 	}
 
+	jobInfo := &agency.JobInfo{
+		TenantID:     agent.ID,
+		JobID:        job.ID,
+		ConnectionID: *job.ConnectionID,
+	}
+
+	now := utils.CurrentTimeMs()
+
 	switch job.ProtocolType {
 	case model.ProtocolTypeCredential:
-		err2.Check(r.agency.ResumeCredentialOffer(agencyAuth(agent), job.ID, input.Accept))
+		err2.Check(r.agency.ResumeCredentialOffer(agencyAuth(agent), jobInfo, input.Accept))
 		desc += " credential"
+		r.UpdateCredential(jobInfo, &now, nil, nil)
 	case model.ProtocolTypeProof:
-		err2.Check(r.agency.ResumeProofRequest(agencyAuth(agent), job.ID, input.Accept))
+		err2.Check(r.agency.ResumeProofRequest(agencyAuth(agent), jobInfo, input.Accept))
 		desc += " proof"
+		r.UpdateProof(jobInfo, &now, nil, nil)
 	case model.ProtocolTypeBasicMessage:
 	case model.ProtocolTypeConnection:
 	case model.ProtocolTypeNone:

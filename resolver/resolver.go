@@ -240,25 +240,30 @@ func (r *Resolver) UpdateCredential(info *agency.JobInfo, approvedMs, issuedMs, 
 	job, err := r.db.GetJob(info.JobID, info.TenantID)
 	err2.Check(err)
 
-	// TODO: is this needed - can we just update directly
 	credential, err := r.db.GetCredential(*job.ProtocolCredentialID, job.TenantID)
 	err2.Check(err)
 
-	credential.Approved = utils.TimestampToTime(approvedMs)
-	credential.Issued = utils.TimestampToTime(issuedMs)
-	credential.Failed = utils.TimestampToTime(failedMs)
+	if credential.Approved == nil {
+		credential.Approved = utils.TimestampToTime(approvedMs)
+	}
+	if credential.Issued == nil {
+		credential.Issued = utils.TimestampToTime(issuedMs)
+	}
+	if credential.Failed == nil {
+		credential.Failed = utils.TimestampToTime(failedMs)
+	}
 
 	credential, err = r.db.UpdateCredential(credential)
 	err2.Check(err)
 
 	status := model.JobStatusWaiting
 	result := model.JobResultNone
-	if failedMs != nil {
+	if credential.Failed != nil {
 		status = model.JobStatusComplete
 		result = model.JobResultFailure
-	} else if approvedMs == nil && issuedMs == nil {
+	} else if credential.Approved == nil && credential.Issued == nil {
 		status = model.JobStatusPending
-	} else if issuedMs != nil {
+	} else if credential.Issued != nil {
 		status = model.JobStatusComplete
 		result = model.JobResultSuccess
 	}
@@ -305,25 +310,30 @@ func (r *Resolver) UpdateProof(info *agency.JobInfo, approvedMs, verifiedMs, fai
 	job, err := r.db.GetJob(info.JobID, info.TenantID)
 	err2.Check(err)
 
-	// TODO: is this needed - can we just update directly
 	proof, err := r.db.GetProof(*job.ProtocolProofID, job.TenantID)
 	err2.Check(err)
 
-	proof.Approved = utils.TimestampToTime(approvedMs)
-	proof.Verified = utils.TimestampToTime(verifiedMs)
-	proof.Failed = utils.TimestampToTime(failedMs)
+	if proof.Approved != nil {
+		proof.Approved = utils.TimestampToTime(approvedMs)
+	}
+	if proof.Verified != nil {
+		proof.Verified = utils.TimestampToTime(verifiedMs)
+	}
+	if proof.Failed != nil {
+		proof.Failed = utils.TimestampToTime(failedMs)
+	}
 
 	proof, err = r.db.UpdateProof(proof)
 	err2.Check(err)
 
 	status := model.JobStatusWaiting
 	result := model.JobResultNone
-	if failedMs != nil {
+	if proof.Failed != nil {
 		status = model.JobStatusComplete
 		result = model.JobResultFailure
-	} else if approvedMs == nil && verifiedMs == nil {
+	} else if proof.Approved == nil && proof.Verified == nil {
 		status = model.JobStatusPending
-	} else if verifiedMs != nil {
+	} else if proof.Verified != nil {
 		status = model.JobStatusComplete
 		result = model.JobResultSuccess
 	}
