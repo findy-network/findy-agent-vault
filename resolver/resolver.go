@@ -4,6 +4,7 @@ import (
 	"context"
 
 	agencys "github.com/findy-network/findy-agent-vault/agency"
+	agencyMock "github.com/findy-network/findy-agent-vault/agency/mock"
 	agency "github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/db/fake"
 	dbModel "github.com/findy-network/findy-agent-vault/db/model"
@@ -45,10 +46,8 @@ func InitResolver(mockDB, mockAgency, fakeData bool) *Resolver {
 		eventSubscribers: newSubscriberRegister(),
 	}
 
-	aType := agencys.AgencyTypeFindyGRPC
-	if mockAgency {
-		aType = agencys.AgencyTypeMock
-	}
+	agencyMock.Activate()
+	aType := agencys.AgencyTypeMock
 	r.agency = agencys.InitAgency(aType, r, listenerAgents)
 
 	if fakeData {

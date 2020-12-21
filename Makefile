@@ -12,9 +12,6 @@ deps:
 update-deps:
 	go get -u ./...
 
-build_mock: generate
-	go build -tags mock -v ./...
-
 build_findy: generate
 	go build -tags findy -v ./...
 
@@ -61,8 +58,6 @@ test:
 test_cov:
 	go test -coverprofile=c.out ./... -coverpkg=./... && go tool cover -html=c.out
 
-check: check_fmt vet shadow
-
 db:
 	-docker stop findy-agent-vault-db
 	-docker rm findy-agent-vault-db
@@ -79,3 +74,8 @@ db_client:
 
 db_client_test:
 	docker run -it --rm --network host jbergknoff/postgresql-client postgres://postgres:$(POSTGRES_PASSWORD)@localhost:5433/vault?sslmode=disable
+
+check:
+	go build -tags findy_grpc ./...
+	go test -tags findy_grpc ./...
+	golangci-lint --build-tags findy_grpc run
