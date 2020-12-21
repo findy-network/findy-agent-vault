@@ -5,14 +5,15 @@ package findy
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/findy-network/findy-agent-api/grpc/agency"
-	parent "github.com/findy-network/findy-agent-vault/agency"
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/findy-network/findy-grpc/agency/client"
 	"github.com/findy-network/findy-grpc/agency/client/async"
 	"github.com/golang/glog"
+	"github.com/google/uuid"
 	"github.com/lainio/err2"
 )
 
@@ -26,22 +27,13 @@ type Agency struct {
 	ctx   context.Context
 }
 
-func Activate() {
-	parent.Register[parent.AgencyTypeFindyGRPC] = &Agency{}
-}
-
 func userCmdConn(a *model.Agent) client.Conn {
 	config := client.BuildClientConnBase("", agencyHost, agencyPort, nil)
 	return client.TryAuthOpen(a.RawJWT, config)
 }
 
-func userCmdPw(a *model.Agent) *async.Pairwise {
-	return async.NewPairwise(userCmdConn(a), "")
-}
-
-func userListenClient(a *model.Agent) client.Conn {
-	config := client.BuildClientConnBase("", agencyHost, agencyPort, nil)
-	return client.TryOpen(a.AgentID, config)
+func userCmdPw(a *model.Agent, connectionID string) *async.Pairwise {
+	return async.NewPairwise(userCmdConn(a), connectionID)
 }
 
 func (f *Agency) Init(listener model.Listener, agents []*model.Agent) {
@@ -65,6 +57,17 @@ func (f *Agency) AddAgent(agent *model.Agent) error {
 }
 
 func (f *Agency) Invite(a *model.Agent) (invitation, id string, err error) {
+	conn := userCmdConn(a)
+	defer conn.Close()
+
+	cmd := agency.NewAgentClient(conn)
+	id = uuid.New().String()
+
+	res, err := cmd.CreateInvitation(f.ctx, &agency.InvitationBase{Label: a.Label, Id: id})
+	err2.Check(err)
+
+	invitation = res.JsonStr
+
 	return
 }
 
@@ -74,18 +77,27 @@ func (f *Agency) Connect(a *model.Agent, strInvitation string) (id string, err e
 	inv := model.Invitation{}
 	err2.Check(json.Unmarshal([]byte(strInvitation), &inv))
 
-	connect := userCmdPw(a)
+	connect := userCmdPw(a, "")
 	defer connect.Close()
 
 	connect.Label = a.Label
 	protocolID, err := connect.Connection(context.Background(), strInvitation)
+	fmt.Println(err)
 	err2.Check(err)
 
 	return protocolID.Id, err
 }
 
 func (f *Agency) SendMessage(a *model.Agent, connectionID, message string) (id string, err error) {
-	return
+	defer err2.Return(&err) // TODO: do not leak internal errors to client
+
+	pairwise := userCmdPw(a, connectionID)
+	defer pairwise.Close()
+
+	protocolID, err := pairwise.BasicMessage(context.Background(), message)
+	err2.Check(err)
+
+	return protocolID.Id, err
 }
 
 func (f *Agency) resume(

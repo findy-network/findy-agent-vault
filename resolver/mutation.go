@@ -104,19 +104,8 @@ func (r *mutationResolver) sendMessage(ctx context.Context, input model.MessageI
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	id, err := r.agency.SendMessage(agencyAuth(agent), input.ConnectionID, input.Message)
+	_, err = r.agency.SendMessage(agencyAuth(agent), input.ConnectionID, input.Message)
 	err2.Check(err)
-
-	err2.Check(r.addJob(
-		db.NewJob(id, agent.ID, &db.Job{
-			ConnectionID:  &input.ConnectionID,
-			ProtocolType:  model.ProtocolTypeBasicMessage,
-			InitiatedByUs: true,
-			Status:        model.JobStatusWaiting,
-			Result:        model.JobResultNone,
-		}),
-		"Sent basic message",
-	))
 
 	res = &model.Response{Ok: true}
 	return
