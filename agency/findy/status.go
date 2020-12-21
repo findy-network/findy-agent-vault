@@ -14,6 +14,11 @@ import (
 	"github.com/lainio/err2"
 )
 
+func userListenClient(a *model.Agent) client.Conn {
+	config := client.BuildClientConnBase("", agencyHost, agencyPort, nil)
+	return client.TryOpen(a.AgentID, config)
+}
+
 func (f *Agency) getStatus(conn client.Conn, notification *agency.Notification) (*agency.ProtocolStatus, error) {
 	ctx := context.Background()
 	didComm := agency.NewDIDCommClient(conn)
