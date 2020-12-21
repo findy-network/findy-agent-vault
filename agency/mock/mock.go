@@ -1,12 +1,11 @@
-// +build !findy
-// +build !findy_grpc
-
-package agency
+package mock
 
 import (
 	"encoding/json"
 	"time"
 
+	parent "github.com/findy-network/findy-agent-vault/agency"
+	"github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/db/fake"
 
 	"github.com/bxcodec/faker"
@@ -15,27 +14,25 @@ import (
 )
 
 type Mock struct {
-	listener Listener
+	listener model.Listener
 }
 
-type invitation struct {
-	ServiceEndpoint string   `json:"serviceEndpoint,omitempty" faker:"url"`
-	RecipientKeys   []string `json:"recipientKeys,omitempty" faker:"-"`
-	ID              string   `json:"@id,omitempty" faker:"uuid_hyphenated"`
-	Label           string   `json:"label,omitempty" faker:"first_name"`
-	Type            string   `json:"@type,omitempty" faker:"-"`
+func Activate() {
+	parent.Register[parent.AgencyTypeMock] = &Mock{}
 }
 
-var Instance Agency = &Mock{}
-
-func (m *Mock) Init(l Listener) {
+func (m *Mock) Init(l model.Listener, agents []*model.Agent) {
 	m.listener = l
 }
 
-func (m *Mock) Invite(a *Agent) (result, id string, err error) {
+func (m *Mock) AddAgent(agent *model.Agent) error {
+	return nil
+}
+
+func (m *Mock) Invite(a *model.Agent) (result, id string, err error) {
 	defer err2.Return(&err)
 
-	inv := invitation{}
+	inv := model.Invitation{}
 	err = faker.FakeData(&inv)
 	err2.Check(err)
 
@@ -49,15 +46,15 @@ func (m *Mock) Invite(a *Agent) (result, id string, err error) {
 	return
 }
 
-func (m *Mock) Connect(a *Agent, strInvitation string) (id string, err error) {
+func (m *Mock) Connect(a *model.Agent, strInvitation string) (id string, err error) {
 	defer err2.Return(&err)
 
-	inv := invitation{}
+	inv := model.Invitation{}
 	err2.Check(json.Unmarshal([]byte(strInvitation), &inv))
 
 	id = inv.ID
 
-	job := &JobInfo{TenantID: a.TenantID, JobID: id, ConnectionID: id}
+	job := &model.JobInfo{TenantID: a.TenantID, JobID: id, ConnectionID: id}
 
 	time.AfterFunc(time.Second, func() {
 		connection := fake.Connection(a.TenantID)
@@ -67,12 +64,12 @@ func (m *Mock) Connect(a *Agent, strInvitation string) (id string, err error) {
 	return
 }
 
-func (m *Mock) SendMessage(a *Agent, connectionID, message string) (id string, err error) {
+func (m *Mock) SendMessage(a *model.Agent, connectionID, message string) (id string, err error) {
 	defer err2.Return(&err)
 
 	id = uuid.New().String()
 
-	job := &JobInfo{TenantID: a.TenantID, JobID: id, ConnectionID: connectionID}
+	job := &model.JobInfo{TenantID: a.TenantID, JobID: id, ConnectionID: connectionID}
 
 	m.listener.AddMessage(job, message, true)
 	time.AfterFunc(time.Second, func() {
@@ -82,10 +79,10 @@ func (m *Mock) SendMessage(a *Agent, connectionID, message string) (id string, e
 	return
 }
 
-func (m *Mock) ResumeCredentialOffer(a *Agent, id string, accept bool) (err error) {
+func (m *Mock) ResumeCredentialOffer(a *model.Agent, job *model.JobInfo, accept bool) (err error) {
 	return
 }
 
-func (m *Mock) ResumeProofRequest(a *Agent, id string, accept bool) (err error) {
+func (m *Mock) ResumeProofRequest(a *model.Agent, job *model.JobInfo, accept bool) (err error) {
 	return
 }
