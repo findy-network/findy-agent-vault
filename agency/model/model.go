@@ -36,6 +36,7 @@ type Agent struct {
 
 type Agency interface {
 	Init(l Listener, agents []*Agent)
+	AddAgent(agent *Agent) error
 
 	Invite(a *Agent) (string, string, error)
 	Connect(a *Agent, invitation string) (string, error)

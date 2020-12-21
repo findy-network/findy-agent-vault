@@ -10,7 +10,6 @@ import (
 	agency "github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/db/fake"
 	db "github.com/findy-network/findy-agent-vault/db/model"
-	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
@@ -28,7 +27,7 @@ func agencyAuth(agent *db.Agent) *agency.Agent {
 func (r *mutationResolver) markEventRead(ctx context.Context, input model.MarkReadInput) (e *model.Event, err error) {
 	defer err2.Return(&err)
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	utils.LogMed().Infof(
@@ -47,7 +46,7 @@ func (r *mutationResolver) invite(ctx context.Context) (res *model.InvitationRes
 	defer err2.Return(&err)
 	utils.LogMed().Info("mutationResolver:Invite")
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	str, id, err := r.agency.Invite(agencyAuth(agent))
@@ -78,7 +77,7 @@ func (r *mutationResolver) connect(ctx context.Context, input model.ConnectInput
 	defer err2.Return(&err)
 	utils.LogMed().Info("mutationResolver:Connect")
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	id, err := r.agency.Connect(agencyAuth(agent), input.Invitation)
@@ -102,7 +101,7 @@ func (r *mutationResolver) sendMessage(ctx context.Context, input model.MessageI
 	defer err2.Return(&err)
 	utils.LogMed().Info("mutationResolver:SendMessage")
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	id, err := r.agency.SendMessage(agencyAuth(agent), input.ConnectionID, input.Message)
@@ -127,7 +126,7 @@ func (r *mutationResolver) resume(ctx context.Context, input model.ResumeJobInpu
 	defer err2.Return(&err)
 	utils.LogMed().Info("mutationResolver:Resume")
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	job, err := r.db.GetJob(input.ID, agent.ID)
@@ -166,7 +165,7 @@ func (r *mutationResolver) resume(ctx context.Context, input model.ResumeJobInpu
 func (r *mutationResolver) addRandomEvent(ctx context.Context) (ok bool, err error) {
 	utils.LogMed().Info("mutationResolver:addRandomEvent")
 
-	_, err = store.GetAgent(ctx, r.db)
+	_, err = r.getAgent(ctx)
 	err2.Check(err)
 
 	// TODO
@@ -176,7 +175,7 @@ func (r *mutationResolver) addRandomEvent(ctx context.Context) (ok bool, err err
 func (r *mutationResolver) addRandomMessage(ctx context.Context) (ok bool, err error) {
 	utils.LogMed().Info("mutationResolver:addRandomMessage")
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	res, err := r.db.GetConnections(
@@ -204,7 +203,7 @@ func (r *mutationResolver) addRandomMessage(ctx context.Context) (ok bool, err e
 func (r *mutationResolver) addRandomCredential(ctx context.Context) (ok bool, err error) {
 	utils.LogMed().Info("mutationResolver:addRandomCredential")
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	res, err := r.db.GetConnections(
@@ -243,7 +242,7 @@ func (r *mutationResolver) addRandomCredential(ctx context.Context) (ok bool, er
 func (r *mutationResolver) addRandomProof(ctx context.Context) (ok bool, err error) {
 	utils.LogMed().Info("mutationResolver:addRandomProof")
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	res, err := r.db.GetConnections(

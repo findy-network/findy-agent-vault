@@ -3,7 +3,6 @@ package resolver
 import (
 	"context"
 
-	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
@@ -13,7 +12,7 @@ import (
 func (r *queryResolver) connections(ctx context.Context, after, before *string, first, last *int) (c *model.PairwiseConnection, err error) {
 	defer err2.Return(&err)
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	utils.LogMed().Info("queryResolver:Connections for tenant: ", agent.ID)
@@ -36,7 +35,7 @@ func (r *queryResolver) connections(ctx context.Context, after, before *string, 
 func (r *queryResolver) connection(ctx context.Context, id string) (c *model.Pairwise, err error) {
 	defer err2.Return(&err)
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	utils.LogMed().Infof("queryResolver:Connection id: %s for tenant %s", id, agent.ID)
@@ -50,7 +49,7 @@ func (r *queryResolver) connection(ctx context.Context, id string) (c *model.Pai
 func (r *queryResolver) credential(ctx context.Context, id string) (c *model.Credential, err error) {
 	defer err2.Return(&err)
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	utils.LogMed().Infof("queryResolver:Credential id: %s for tenant %s", id, agent.ID)
@@ -68,7 +67,7 @@ func (r *queryResolver) credentials(
 ) (c *model.CredentialConnection, err error) {
 	defer err2.Return(&err)
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	utils.LogMed().Info("queryResolver:Credentials for tenant: ", agent.ID)
@@ -91,7 +90,7 @@ func (r *queryResolver) credentials(
 func (r *queryResolver) proof(ctx context.Context, id string) (c *model.Proof, err error) {
 	defer err2.Return(&err)
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	utils.LogMed().Infof("queryResolver:Proof id: %s for tenant %s", id, agent.ID)
@@ -105,7 +104,7 @@ func (r *queryResolver) proof(ctx context.Context, id string) (c *model.Proof, e
 func (r *queryResolver) message(ctx context.Context, id string) (c *model.BasicMessage, err error) {
 	defer err2.Return(&err)
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	utils.LogMed().Infof("queryResolver:Message id: %s for tenant %s", id, agent.ID)
@@ -119,7 +118,7 @@ func (r *queryResolver) message(ctx context.Context, id string) (c *model.BasicM
 func (r *queryResolver) events(ctx context.Context, after, before *string, first, last *int) (e *model.EventConnection, err error) {
 	defer err2.Return(&err)
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	utils.LogMed().Info("queryResolver:Events for tenant: ", agent.ID)
@@ -142,7 +141,7 @@ func (r *queryResolver) events(ctx context.Context, after, before *string, first
 func (r *queryResolver) event(ctx context.Context, id string) (e *model.Event, err error) {
 	defer err2.Return(&err)
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	utils.LogMed().Infof("queryResolver:Event id: %s for tenant %s", id, agent.ID)
@@ -161,7 +160,7 @@ func (r *queryResolver) jobs(
 ) (e *model.JobConnection, err error) {
 	defer err2.Return(&err)
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	utils.LogMed().Info("queryResolver:Jobs for tenant: ", agent.ID)
@@ -184,7 +183,7 @@ func (r *queryResolver) jobs(
 func (r *queryResolver) job(ctx context.Context, id string) (e *model.Job, err error) {
 	defer err2.Return(&err)
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	utils.LogMed().Infof("queryResolver:Job id: %s for tenant %s", id, agent.ID)
@@ -198,7 +197,7 @@ func (r *queryResolver) job(ctx context.Context, id string) (e *model.Job, err e
 func (r *queryResolver) user(ctx context.Context) (u *model.User, err error) {
 	defer err2.Return(&err)
 
-	agent, err := store.GetAgent(ctx, r.db)
+	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
 	utils.LogMed().Infof("queryResolver:User tenant %s", agent.ID)
