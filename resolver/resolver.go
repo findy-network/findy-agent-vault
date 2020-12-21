@@ -1,6 +1,8 @@
 package resolver
 
 import (
+	"context"
+
 	agencys "github.com/findy-network/findy-agent-vault/agency"
 	agency "github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/db/fake"
@@ -28,7 +30,7 @@ type Resolver struct {
 	eventSubscribers *subscriberRegister
 }
 
-func InitResolver(mockDB, fakeData bool) *Resolver {
+func InitResolver(mockDB, mockAgency, fakeData bool) *Resolver {
 	var db store.DB
 	if mockDB {
 		db = mock.InitState()
@@ -36,6 +38,27 @@ func InitResolver(mockDB, fakeData bool) *Resolver {
 		db = pg.InitDB("file://db/migrations", "5432", false)
 	}
 
+	listenerAgents := fetchAgents(db)
+
+	r := &Resolver{
+		db:               db,
+		eventSubscribers: newSubscriberRegister(),
+	}
+
+	aType := agencys.AgencyTypeFindyGRPC
+	if mockAgency {
+		aType = agencys.AgencyTypeMock
+	}
+	r.agency = agencys.InitAgency(aType, r, listenerAgents)
+
+	if fakeData {
+		fake.AddData(db)
+	}
+
+	return r
+}
+
+func fetchAgents(db store.DB) []*agency.Agent {
 	nextPage := true
 	after := uint64(0)
 	allAgents := make([]*dbModel.Agent, 0)
@@ -44,27 +67,34 @@ func InitResolver(mockDB, fakeData bool) *Resolver {
 		if err != nil {
 			panic(err)
 		}
-		allAgents = append(allAgents, agents.Agents...)
-		nextPage = agents.HasNextPage
-		after = agents.Agents[len(agents.Agents)-1].Cursor
+		count := len(agents.Agents)
+		if count > 0 {
+			allAgents = append(allAgents, agents.Agents...)
+			nextPage = agents.HasNextPage
+			after = agents.Agents[count-1].Cursor
+		} else {
+			nextPage = false
+		}
 	}
 
 	listenerAgents := make([]*agency.Agent, len(allAgents))
 	for index := range allAgents {
 		listenerAgents[index] = agencyAuth(allAgents[index])
 	}
+	return listenerAgents
+}
 
-	r := &Resolver{
-		db:               db,
-		eventSubscribers: newSubscriberRegister(),
+func (r *Resolver) getAgent(ctx context.Context) (agent *dbModel.Agent, err error) {
+	err2.Return(&err)
+
+	agent, err = store.GetAgent(ctx, r.db)
+	err2.Check(err)
+
+	// make sure we are listening events for this agent
+	if agent.IsNewOnboard() {
+		err2.Check(r.agency.AddAgent(agencyAuth(agent)))
 	}
-	r.agency = agencys.InitAgency(agencys.AgencyTypeFindyGRPC, r, listenerAgents)
-
-	if fakeData {
-		fake.AddData(db)
-	}
-
-	return r
+	return
 }
 
 func (r *Resolver) addEvent(tenantID string, job *dbModel.Job, description string) (err error) {

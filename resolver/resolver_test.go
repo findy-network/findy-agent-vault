@@ -73,7 +73,7 @@ func testPaginationErrors(t *testing.T, objName string, ex executor) {
 
 func setup() {
 	utils.SetLogDefaults()
-	r = InitResolver(true, false)
+	r = InitResolver(true, true, false)
 	size := totalCount
 	a, c := test.AddAgentAndConnections(r.db, fake.FakeCloudDID, size)
 	testConnectionID = c[0].ID

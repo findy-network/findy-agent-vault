@@ -20,6 +20,10 @@ func (m *Mock) Init(l model.Listener, agents []*model.Agent) {
 	m.listener = l
 }
 
+func (m *Mock) AddAgent(agent *model.Agent) error {
+	return nil
+}
+
 func (m *Mock) Invite(a *model.Agent) (result, id string, err error) {
 	defer err2.Return(&err)
 

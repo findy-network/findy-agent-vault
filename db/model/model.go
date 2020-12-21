@@ -4,8 +4,6 @@ import (
 	"math"
 	"strconv"
 	"time"
-
-	"github.com/findy-network/findy-agent-vault/graph/model"
 )
 
 func timeToString(t *time.Time) string {
@@ -22,45 +20,6 @@ type base struct {
 func (b *base) copy() *base {
 	baseCopy := *b
 	return &baseCopy
-}
-
-type Agents struct {
-	Agents          []*Agent
-	HasNextPage     bool
-	HasPreviousPage bool
-}
-
-type Agent struct {
-	*base
-	AgentID      string `faker:"agentId"`
-	Label        string `faker:"first_name"`
-	RawJWT       string `faker:"-"`
-	LastAccessed time.Time
-}
-
-func NewAgent(a *Agent) *Agent {
-	if a != nil {
-		return a.copy()
-	}
-	return &Agent{base: &base{}}
-}
-
-func (a *Agent) copy() (n *Agent) {
-	n = NewAgent(nil)
-	if a.base != nil {
-		n.base = a.base.copy()
-	}
-	n.AgentID = a.AgentID
-	n.Label = a.Label
-	n.RawJWT = a.RawJWT
-	return n
-}
-
-func (a *Agent) ToNode() *model.User {
-	return &model.User{
-		ID:   a.ID,
-		Name: a.Label,
-	}
 }
 
 func copyTime(t *time.Time) *time.Time {

@@ -34,7 +34,7 @@ func userListenClient(a *model.Agent) client.Conn {
 
 func (f *Agency) listenAgent(a *model.Agent) (err error) {
 	defer err2.Return(&err)
-	// TODO: cancellation
+	// TODO: cancellation, reconnect
 
 	conn := userListenClient(a)
 
@@ -43,17 +43,16 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 
 	go func() {
 		for {
-			select {
-			case status, ok := <-ch:
-				if !ok {
-					glog.V(2).Infoln("closed from server")
-					break
-				}
-				glog.V(5).Infoln("listen status:",
-					status.Notification.TypeId,
-					status.Notification.Role,
-					status.Notification.ProtocolId)
+			status, ok := <-ch
+			if !ok {
+				glog.Warningln("closed from server")
+				conn.Close()
+				break
 			}
+			glog.V(1).Infoln("listen status:",
+				status.Notification.TypeId,
+				status.Notification.Role,
+				status.Notification.ProtocolId)
 		}
 	}()
 
@@ -63,13 +62,25 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 func (f *Agency) Init(listener model.Listener, agents []*model.Agent) {
 	f.ctx = context.Background()
 	f.vault = listener
-	// TODO: create JWT on demand
-	// TODO: get all agents from db and start listening
-	// TODO: start listening when onboarding
-	f.listenAdminHook()
-	for _, a := range agents {
-		f.listenAgent(a)
+	// TODO: create JWT on demand v
+	// TODO: get all agents from db and start listening v
+	// TODO: start listening when onboarding <-----
+	// TODO: parse listening payload
+	// TODO: release protocol when saved
+	err := f.listenAdminHook()
+	if err != nil {
+		panic(err)
 	}
+	for _, a := range agents {
+		err := f.listenAgent(a)
+		if err != nil {
+			glog.Error(err)
+		}
+	}
+}
+
+func (f *Agency) AddAgent(agent *model.Agent) error {
+	return f.listenAgent(agent)
 }
 
 func (f *Agency) Invite(a *model.Agent) (invitation, id string, err error) {
@@ -82,11 +93,11 @@ func (f *Agency) Connect(a *model.Agent, strInvitation string) (id string, err e
 	inv := model.Invitation{}
 	err2.Check(json.Unmarshal([]byte(strInvitation), &inv))
 
-	client := userCmdClient(a)
-	defer client.Close()
+	connect := userCmdClient(a)
+	defer connect.Close()
 
-	client.Label = a.Label
-	protocolID, err := client.Connection(context.Background(), strInvitation)
+	connect.Label = a.Label
+	protocolID, err := connect.Connection(context.Background(), strInvitation)
 	err2.Check(err)
 
 	return protocolID.Id, err

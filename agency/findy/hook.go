@@ -6,11 +6,12 @@ import (
 
 	"github.com/findy-network/findy-agent-api/grpc/agency"
 	"github.com/findy-network/findy-agent-api/grpc/ops"
+	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/findy-network/findy-grpc/agency/client"
 	auth "github.com/findy-network/findy-grpc/jwt"
 	"github.com/findy-network/findy-grpc/rpc"
-	"github.com/findy-network/findy-grpc/utils"
 	"github.com/golang/glog"
+	"github.com/google/uuid"
 	"github.com/lainio/err2"
 	"google.golang.org/grpc"
 )
@@ -18,7 +19,7 @@ import (
 func adminClient(user string) (conn *grpc.ClientConn, err error) {
 	defer err2.Return(&err)
 
-	glog.V(5).Infoln("client with user:", user)
+	utils.LogLow().Infoln("client with user:", user)
 
 	cfg := client.BuildClientConnBase("", agencyHost, agencyPort, nil)
 	token := auth.BuildJWT(user)
@@ -30,6 +31,9 @@ func adminClient(user string) (conn *grpc.ClientConn, err error) {
 }
 
 func (f *Agency) listenAdminHook() (err error) {
+	defer err2.Return(&err)
+
+	// TODO: cancellation, reconnect
 	glog.Info("Start listening to PSM events.")
 
 	conn, err := adminClient("findy-root")
@@ -38,13 +42,13 @@ func (f *Agency) listenAdminHook() (err error) {
 
 	statusCh := make(chan *agency.ProtocolStatus)
 
-	stream, err := opsClient.PSMHook(f.ctx, &ops.DataHook{Id: utils.UUID()})
+	stream, err := opsClient.PSMHook(f.ctx, &ops.DataHook{Id: uuid.New().String()})
 	err2.Check(err)
-	glog.V(3).Infoln("successful start of listen PSM hook id:")
+	utils.LogMed().Infoln("successful start of listen PSM hook id:")
 
 	go func() {
 		defer err2.CatchTrace(func(err error) {
-			glog.V(1).Infoln("WARNING: error when reading response:", err)
+			glog.Warningln("error when reading response:", err)
 			close(statusCh)
 			conn.Close()
 			// TODO: reconnect logic
@@ -52,7 +56,7 @@ func (f *Agency) listenAdminHook() (err error) {
 		for {
 			status, err := stream.Recv()
 			if err == io.EOF {
-				glog.V(3).Infoln("status stream end")
+				glog.Warningln("status stream end")
 				close(statusCh)
 				conn.Close()
 				break
@@ -65,20 +69,13 @@ func (f *Agency) listenAdminHook() (err error) {
 
 	go func() {
 		for {
-			status, ok := <-statusCh
+			_, ok := <-statusCh
 			if !ok {
-				glog.V(2).Infoln("closed from server")
+				glog.Warning("closed from server")
 				break
 			}
-			switch status.State.ProtocolId.TypeId {
-			case agency.Protocol_CONNECT:
-				// connection := status.GetConnection()
-				// TODO: get agent ID from agency status
-				// store data
-			default:
-				fmt.Println("Skip:", status.State.ProtocolId.TypeId.String())
-			}
-
+			// TODO: get agent ID from agency status
+			// store data
 		}
 	}()
 
