@@ -6,8 +6,6 @@ import (
 
 	"github.com/rs/cors"
 
-	"github.com/golang/glog"
-
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 
@@ -15,13 +13,13 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/findy-network/findy-agent-vault/graph/generated"
+	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/gorilla/websocket"
 )
 
 const (
 	queryCacheSize          = 1000
 	persistedQueryCacheSize = 100
-	lowLogLevel             = 3
 )
 
 func schema(resolver generated.ResolverRoot) graphql.ExecutableSchema {
@@ -30,7 +28,7 @@ func schema(resolver generated.ResolverRoot) graphql.ExecutableSchema {
 
 func logRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		glog.V(lowLogLevel).Infof("received request: %s %s", r.Method, r.URL.String())
+		utils.LogLow().Infof("received request: %s %s", r.Method, r.URL.String())
 		next.ServeHTTP(w, r)
 	})
 }

@@ -15,7 +15,7 @@ func (r *jobResolver) output(ctx context.Context, obj *model.Job) (o *model.JobO
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof(
+	utils.LogLow().Infof(
 		"jobResolver:Output for tenant %s, event: %s",
 		agent.ID,
 		obj.ID,

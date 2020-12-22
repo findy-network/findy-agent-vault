@@ -15,7 +15,7 @@ func (r *jobConnectionResolver) totalCount(ctx context.Context, obj *model.JobCo
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof(
+	utils.LogLow().Infof(
 		"jobConnectionResolver:TotalCount for tenant %s, connection: %v",
 		agent.ID,
 		obj.ConnectionID,

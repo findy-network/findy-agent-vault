@@ -14,6 +14,11 @@ import (
 	"github.com/lainio/err2"
 )
 
+func userListenClient(a *model.Agent) client.Conn {
+	config := client.BuildClientConnBase("", agencyHost, agencyPort, nil)
+	return client.TryOpen(a.AgentID, config)
+}
+
 func (f *Agency) getStatus(conn client.Conn, notification *agency.Notification) (*agency.ProtocolStatus, error) {
 	ctx := context.Background()
 	didComm := agency.NewDIDCommClient(conn)
@@ -39,6 +44,7 @@ func (f *Agency) handleStatus(
 			connection.TheirEndpoint,
 			connection.TheirLabel,
 		)
+
 	case agency.Protocol_BASIC_MESSAGE:
 		message := status.GetBasicMessage()
 		f.vault.AddMessage(
@@ -55,6 +61,12 @@ func (f *Agency) handleStatus(
 			nil,
 		)
 	case agency.Protocol_PROOF:
+		f.vault.UpdateProof(
+			job,
+			nil,
+			&now,
+			nil,
+		)
 	case agency.Protocol_NONE:
 	case agency.Protocol_TRUST_PING:
 	}
@@ -82,7 +94,22 @@ func (f *Agency) handleAction(
 		// TODO: what if we are issuer?
 		f.vault.AddCredential(job, role, credential.SchemaId, credential.CredDefId, values, false)
 	case agency.Protocol_PROOF:
-		// TODO
+		proof := status.GetProof()
+		role := graph.ProofRoleProver
+		if notification.Role != agency.Protocol_ADDRESSEE {
+			role = graph.ProofRoleVerifier
+		}
+		attributes := make([]*graph.ProofAttribute, 0)
+		for _, v := range proof.Attrs {
+			value := "" // TODO: get also values from notification?
+			attributes = append(attributes, &graph.ProofAttribute{
+				Name:      v.Name,
+				Value:     &value,
+				CredDefID: v.CredDefId,
+			})
+		}
+		f.vault.AddProof(job, role, attributes, false)
+		// TODO: what if we are verifier?
 	case agency.Protocol_NONE:
 	case agency.Protocol_TRUST_PING:
 	case agency.Protocol_CONNECT:
@@ -102,6 +129,11 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 	err2.Check(err)
 
 	go func() {
+		defer err2.Catch(func(err error) {
+			glog.Errorf("Recovered error in listener routine: %s", err.Error())
+			// TODO: reconnect?
+		})
+
 		for {
 			status, ok := <-ch
 			if !ok {
@@ -109,7 +141,7 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 				conn.Close()
 				break
 			}
-			utils.LogLow().Infoln("received notification:",
+			utils.LogMed().Infoln("received notification:",
 				status.Notification.TypeId,
 				status.Notification.Role,
 				status.Notification.ProtocolId)

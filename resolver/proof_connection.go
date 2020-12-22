@@ -15,7 +15,7 @@ func (r *proofConnectionResolver) totalCount(ctx context.Context, obj *model.Pro
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof(
+	utils.LogLow().Infof(
 		"proofConnectionResolver:TotalCount for tenant %s, connection: %v",
 		agent.ID,
 		obj.ConnectionID,

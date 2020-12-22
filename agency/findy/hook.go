@@ -3,7 +3,6 @@
 package findy
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/findy-network/findy-agent-api/grpc/agency"
@@ -64,7 +63,6 @@ func (f *Agency) listenAdminHook() (err error) {
 				break
 			}
 			err2.Check(err)
-			fmt.Println(status)
 			statusCh <- status.ProtocolStatus
 		}
 	}()

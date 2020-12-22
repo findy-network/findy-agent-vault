@@ -15,7 +15,7 @@ func (r *pairwiseConnectionResolver) totalCount(ctx context.Context, obj *model.
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof("pairwiseConnectionResolver:TotalCount for tenant %s", agent.ID)
+	utils.LogLow().Infof("pairwiseConnectionResolver:TotalCount for tenant %s", agent.ID)
 
 	count, err := r.db.GetConnectionCount(agent.ID)
 	err2.Check(err)
