@@ -15,7 +15,7 @@ func (r *proofResolver) connection(ctx context.Context, obj *model.Proof) (c *mo
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof(
+	utils.LogLow().Infof(
 		"proofResolver:Connection for tenant %s, proof: %s",
 		agent.ID,
 		obj.ID,

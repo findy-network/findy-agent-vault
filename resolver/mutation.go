@@ -30,7 +30,7 @@ func (r *mutationResolver) markEventRead(ctx context.Context, input model.MarkRe
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof(
+	utils.LogLow().Infof(
 		"mutationResolver:MarkEventRead for tenant %s, event: %s",
 		agent.ID,
 		input.ID,
@@ -44,7 +44,7 @@ func (r *mutationResolver) markEventRead(ctx context.Context, input model.MarkRe
 
 func (r *mutationResolver) invite(ctx context.Context) (res *model.InvitationResponse, err error) {
 	defer err2.Return(&err)
-	utils.LogMed().Info("mutationResolver:Invite")
+	utils.LogLow().Info("mutationResolver:Invite")
 
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
@@ -75,7 +75,7 @@ func (r *mutationResolver) invite(ctx context.Context) (res *model.InvitationRes
 
 func (r *mutationResolver) connect(ctx context.Context, input model.ConnectInput) (res *model.Response, err error) {
 	defer err2.Return(&err)
-	utils.LogMed().Info("mutationResolver:Connect")
+	utils.LogLow().Info("mutationResolver:Connect")
 
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
@@ -99,7 +99,7 @@ func (r *mutationResolver) connect(ctx context.Context, input model.ConnectInput
 
 func (r *mutationResolver) sendMessage(ctx context.Context, input model.MessageInput) (res *model.Response, err error) {
 	defer err2.Return(&err)
-	utils.LogMed().Info("mutationResolver:SendMessage")
+	utils.LogLow().Info("mutationResolver:SendMessage")
 
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
@@ -113,7 +113,7 @@ func (r *mutationResolver) sendMessage(ctx context.Context, input model.MessageI
 
 func (r *mutationResolver) resume(ctx context.Context, input model.ResumeJobInput) (res *model.Response, err error) {
 	defer err2.Return(&err)
-	utils.LogMed().Info("mutationResolver:Resume")
+	utils.LogLow().Info("mutationResolver:Resume")
 
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
@@ -121,39 +121,23 @@ func (r *mutationResolver) resume(ctx context.Context, input model.ResumeJobInpu
 	job, err := r.db.GetJob(input.ID, agent.ID)
 	err2.Check(err)
 
-	desc := "Accepted"
-	if !input.Accept {
-		desc = "Declined"
-	}
-
 	jobInfo := &agency.JobInfo{
 		TenantID:     agent.ID,
 		JobID:        job.ID,
 		ConnectionID: *job.ConnectionID,
 	}
 
-	now := utils.CurrentTimeMs()
-
 	switch job.ProtocolType {
 	case model.ProtocolTypeCredential:
 		err2.Check(r.agency.ResumeCredentialOffer(agencyAuth(agent), jobInfo, input.Accept))
-		desc += " credential"
-		r.UpdateCredential(jobInfo, &now, nil, nil)
 	case model.ProtocolTypeProof:
 		err2.Check(r.agency.ResumeProofRequest(agencyAuth(agent), jobInfo, input.Accept))
-		desc += " proof"
-		r.UpdateProof(jobInfo, &now, nil, nil)
 	case model.ProtocolTypeBasicMessage:
 	case model.ProtocolTypeConnection:
 	case model.ProtocolTypeNone:
 		// N/A
 		return
 	}
-
-	job.Status = model.JobStatusWaiting
-	job.Result = model.JobResultNone
-
-	err2.Check(r.updateJob(job, desc))
 
 	res = &model.Response{Ok: true}
 
@@ -162,7 +146,7 @@ func (r *mutationResolver) resume(ctx context.Context, input model.ResumeJobInpu
 
 // ************* For testing: TODO: enable only with feature flag *************
 func (r *mutationResolver) addRandomEvent(ctx context.Context) (ok bool, err error) {
-	utils.LogMed().Info("mutationResolver:addRandomEvent")
+	utils.LogLow().Info("mutationResolver:addRandomEvent")
 
 	_, err = r.getAgent(ctx)
 	err2.Check(err)
@@ -172,7 +156,7 @@ func (r *mutationResolver) addRandomEvent(ctx context.Context) (ok bool, err err
 }
 
 func (r *mutationResolver) addRandomMessage(ctx context.Context) (ok bool, err error) {
-	utils.LogMed().Info("mutationResolver:addRandomMessage")
+	utils.LogLow().Info("mutationResolver:addRandomMessage")
 
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
@@ -200,7 +184,7 @@ func (r *mutationResolver) addRandomMessage(ctx context.Context) (ok bool, err e
 }
 
 func (r *mutationResolver) addRandomCredential(ctx context.Context) (ok bool, err error) {
-	utils.LogMed().Info("mutationResolver:addRandomCredential")
+	utils.LogLow().Info("mutationResolver:addRandomCredential")
 
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
@@ -239,7 +223,7 @@ func (r *mutationResolver) addRandomCredential(ctx context.Context) (ok bool, er
 }
 
 func (r *mutationResolver) addRandomProof(ctx context.Context) (ok bool, err error) {
-	utils.LogMed().Info("mutationResolver:addRandomProof")
+	utils.LogLow().Info("mutationResolver:addRandomProof")
 
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)

@@ -15,7 +15,7 @@ func (r *basicMessageConnectionResolver) totalCount(ctx context.Context, obj *mo
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof(
+	utils.LogLow().Infof(
 		"MessageConnectionResolver:TotalCount for tenant %s, connection: %v",
 		agent.ID,
 		obj.ConnectionID,
