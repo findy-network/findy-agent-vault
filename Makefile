@@ -73,3 +73,8 @@ check:
 
 run_findy:
 	go run -tags findy_grpc tools/playground/playground.go
+
+remod:
+	rm go*
+	go mod init
+	go build ./...
