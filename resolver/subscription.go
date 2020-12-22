@@ -55,7 +55,7 @@ func (s *subscriberRegister) add(tenantID string) (subscriptionID string, eventC
 	s.Lock()
 	defer s.Unlock()
 
-	utils.LogLow().Infof("Add subscription for tenant %s", tenantID)
+	utils.LogMed().Infof("Add subscription for tenant %s", tenantID)
 
 	subscriptionID = tenantID + "-" + strconv.FormatInt(utils.CurrentTimeMs(), 10)
 	newSubscription := &subscription{
@@ -111,7 +111,7 @@ func (s *subscriberRegister) remove(subscriptionID string) {
 	}
 	s.agents[tenantID] = subscriptions
 
-	utils.LogLow().Infof("Subscription %s was removed for tenant %s", subscriptionID, tenantID)
+	utils.LogMed().Infof("Subscription %s was removed for tenant %s", subscriptionID, tenantID)
 }
 
 func (r *subscriptionResolver) eventAdded(ctx context.Context) (ch <-chan *model.EventEdge, err error) {

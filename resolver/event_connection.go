@@ -15,7 +15,7 @@ func (r *eventConnectionResolver) totalCount(ctx context.Context, obj *model.Eve
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof(
+	utils.LogLow().Infof(
 		"eventConnectionResolver:TotalCount for tenant %s, connection: %v",
 		agent.ID,
 		obj.ConnectionID,

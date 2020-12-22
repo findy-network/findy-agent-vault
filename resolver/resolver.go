@@ -119,7 +119,7 @@ func (r *Resolver) addEvent(tenantID string, job *dbModel.Job, description strin
 func (r *Resolver) addJob(job *dbModel.Job, description string) (err error) {
 	defer err2.Return(&err)
 
-	utils.LogLow().Infof("Add job with ID %s for tenant %s", job.ID, job.TenantID)
+	utils.LogMed().Infof("Add job with ID %s for tenant %s", job.ID, job.TenantID)
 
 	job, err = r.db.AddJob(job)
 	err2.Check(err)
@@ -131,6 +131,9 @@ func (r *Resolver) addJob(job *dbModel.Job, description string) (err error) {
 
 func (r *Resolver) updateJob(job *dbModel.Job, description string) (err error) {
 	defer err2.Return(&err)
+
+	utils.LogMed().Infof("Update job with ID %s for tenant %s", job.ID, job.TenantID)
+
 	job, err = r.db.UpdateJob(job)
 	err2.Check(err)
 
@@ -144,7 +147,7 @@ func (r *Resolver) AddConnection(info *agency.JobInfo, ourDID, theirDID, theirEn
 		glog.Errorf("Encountered error when adding connection %s", err.Error())
 	})
 
-	utils.LogLow().Infof("Add connection %s for tenant %s", info.ConnectionID, info.TenantID)
+	utils.LogMed().Infof("Add connection %s for tenant %s", info.ConnectionID, info.TenantID)
 
 	job, err := r.db.GetJob(info.JobID, info.TenantID)
 	err2.Check(err)
@@ -218,6 +221,8 @@ func (r *Resolver) AddCredential(
 	}))
 	err2.Check(err)
 
+	utils.LogMed().Infof("Add credential %s for tenant %s", credential.ID, info.TenantID)
+
 	status := model.JobStatusWaiting
 	if !initiatedByUs {
 		status = model.JobStatusPending
@@ -237,8 +242,11 @@ func (r *Resolver) UpdateCredential(info *agency.JobInfo, approvedMs, issuedMs, 
 	defer err2.Catch(func(err error) {
 		glog.Errorf("Encountered error when updating credential %s", err.Error())
 	})
+
 	job, err := r.db.GetJob(info.JobID, info.TenantID)
 	err2.Check(err)
+
+	utils.LogMed().Infof("Update credential %s for tenant %s", *job.ProtocolCredentialID, info.TenantID)
 
 	credential, err := r.db.GetCredential(*job.ProtocolCredentialID, job.TenantID)
 	err2.Check(err)
@@ -288,6 +296,8 @@ func (r *Resolver) AddProof(info *agency.JobInfo, role model.ProofRole, attribut
 	}))
 	err2.Check(err)
 
+	utils.LogMed().Infof("Add proof %s for tenant %s", proof.ID, info.TenantID)
+
 	status := model.JobStatusWaiting
 	if !initiatedByUs {
 		status = model.JobStatusPending
@@ -310,16 +320,18 @@ func (r *Resolver) UpdateProof(info *agency.JobInfo, approvedMs, verifiedMs, fai
 	job, err := r.db.GetJob(info.JobID, info.TenantID)
 	err2.Check(err)
 
+	utils.LogMed().Infof("Update proof %s for tenant %s", *job.ProtocolProofID, info.TenantID)
+
 	proof, err := r.db.GetProof(*job.ProtocolProofID, job.TenantID)
 	err2.Check(err)
 
-	if proof.Approved != nil {
+	if proof.Approved == nil {
 		proof.Approved = utils.TimestampToTime(approvedMs)
 	}
-	if proof.Verified != nil {
+	if proof.Verified == nil {
 		proof.Verified = utils.TimestampToTime(verifiedMs)
 	}
-	if proof.Failed != nil {
+	if proof.Failed == nil {
 		proof.Failed = utils.TimestampToTime(failedMs)
 	}
 

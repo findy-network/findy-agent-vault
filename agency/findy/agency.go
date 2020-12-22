@@ -5,7 +5,6 @@ package findy
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/findy-network/findy-agent-api/grpc/agency"
 	"github.com/findy-network/findy-agent-vault/agency/model"
@@ -82,7 +81,6 @@ func (f *Agency) Connect(a *model.Agent, strInvitation string) (id string, err e
 
 	connect.Label = a.Label
 	protocolID, err := connect.Connection(context.Background(), strInvitation)
-	fmt.Println(err)
 	err2.Check(err)
 
 	return protocolID.Id, err

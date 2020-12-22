@@ -6,8 +6,7 @@ import (
 	"time"
 
 	"github.com/findy-network/findy-agent-vault/db/fake"
-
-	"github.com/golang/glog"
+	"github.com/findy-network/findy-agent-vault/utils"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware"
 	"github.com/dgrijalva/jwt-go"
@@ -51,7 +50,7 @@ func jwtChecker(next http.Handler) http.Handler {
 			jwtmiddleware.FromParameter("access_token"), // TODO: unsafe but needed for browser websocket auth
 		),
 		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err string) {
-			glog.V(lowLogLevel).Infof("auth failed: %s", err)
+			utils.LogLow().Infof("auth failed: %s", err)
 			if r.Method == http.MethodPost {
 				js, e := json.Marshal(
 					&JSONPayload{

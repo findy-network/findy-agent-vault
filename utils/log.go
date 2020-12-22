@@ -9,12 +9,14 @@ import (
 )
 
 const (
-	logLevelMedium = 2
-	logLevelLow    = 3
+	logLevelHigh   = 1
+	logLevelMedium = 3
+	logLevelLow    = 5
 )
 
-func LogMed() glog.Verbose { return glog.V(logLevelMedium) }
-func LogLow() glog.Verbose { return glog.V(logLevelLow) }
+func LogHigh() glog.Verbose { return glog.V(logLevelHigh) }
+func LogMed() glog.Verbose  { return glog.V(logLevelMedium) }
+func LogLow() glog.Verbose  { return glog.V(logLevelLow) }
 
 func SetLogDefaults() {
 	defer err2.Catch(func(err error) {

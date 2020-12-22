@@ -15,7 +15,7 @@ func (r *credentialResolver) connection(ctx context.Context, obj *model.Credenti
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof(
+	utils.LogLow().Infof(
 		"credentialResolver:Connection for tenant %s, credential: %s",
 		agent.ID,
 		obj.ID,

@@ -20,7 +20,7 @@ func (r *pairwiseResolver) credentials(
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof("pairwiseResolver:Credentials for tenant: %s, connection %s", agent.ID, obj.ID)
+	utils.LogLow().Infof("pairwiseResolver:Credentials for tenant: %s, connection %s", agent.ID, obj.ID)
 
 	batch, err := paginator.Validate("pairwiseResolver:Credentials", &paginator.Params{
 		First:  first,
@@ -48,7 +48,7 @@ func (r *pairwiseResolver) proofs(
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof("pairwiseResolver:Proofs for tenant: %s, connection %s", agent.ID, obj.ID)
+	utils.LogLow().Infof("pairwiseResolver:Proofs for tenant: %s, connection %s", agent.ID, obj.ID)
 
 	batch, err := paginator.Validate("pairwiseResolver:Proofs", &paginator.Params{
 		First:  first,
@@ -76,7 +76,7 @@ func (r *pairwiseResolver) messages(
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof("pairwiseResolver:Messages for tenant: %s, connection %s", agent.ID, obj.ID)
+	utils.LogLow().Infof("pairwiseResolver:Messages for tenant: %s, connection %s", agent.ID, obj.ID)
 
 	batch, err := paginator.Validate("pairwiseResolver:Messages", &paginator.Params{
 		First:  first,
@@ -104,7 +104,7 @@ func (r *pairwiseResolver) events(
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof("pairwiseResolver:Events for tenant: %s, connection %s", agent.ID, obj.ID)
+	utils.LogLow().Infof("pairwiseResolver:Events for tenant: %s, connection %s", agent.ID, obj.ID)
 
 	batch, err := paginator.Validate("pairwiseResolver:Events", &paginator.Params{
 		First:  first,
@@ -133,7 +133,7 @@ func (r *pairwiseResolver) jobs(
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof("pairwiseResolver:Jobs for tenant: %s, connection %s", agent.ID, obj.ID)
+	utils.LogLow().Infof("pairwiseResolver:Jobs for tenant: %s, connection %s", agent.ID, obj.ID)
 
 	batch, err := paginator.Validate("pairwiseResolver:Jobs", &paginator.Params{
 		First:  first,

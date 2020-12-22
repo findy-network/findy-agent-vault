@@ -15,7 +15,7 @@ func (r *credentialConnectionResolver) totalCount(ctx context.Context, obj *mode
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof(
+	utils.LogLow().Infof(
 		"credentialConnectionResolver:TotalCount for tenant %s, connection: %v",
 		agent.ID,
 		obj.ConnectionID,
