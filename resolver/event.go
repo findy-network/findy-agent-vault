@@ -15,7 +15,7 @@ func (r *eventResolver) connection(ctx context.Context, obj *model.Event) (c *mo
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof(
+	utils.LogLow().Infof(
 		"eventResolver:Connection for tenant %s, event: %s",
 		agent.ID,
 		obj.ID,
@@ -34,7 +34,7 @@ func (r *eventResolver) job(ctx context.Context, obj *model.Event) (j *model.Job
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof(
+	utils.LogLow().Infof(
 		"eventResolver:Job for tenant %s, event: %s",
 		agent.ID,
 		obj.ID,

@@ -15,7 +15,7 @@ func (r *queryResolver) connections(ctx context.Context, after, before *string, 
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Info("queryResolver:Connections for tenant: ", agent.ID)
+	utils.LogLow().Info("queryResolver:Connections for tenant: ", agent.ID)
 
 	batch, err := paginator.Validate("queryResolver:Connections", &paginator.Params{
 		First:  first,
@@ -38,7 +38,7 @@ func (r *queryResolver) connection(ctx context.Context, id string) (c *model.Pai
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof("queryResolver:Connection id: %s for tenant %s", id, agent.ID)
+	utils.LogLow().Infof("queryResolver:Connection id: %s for tenant %s", id, agent.ID)
 
 	conn, err := r.db.GetConnection(id, agent.ID)
 	err2.Check(err)
@@ -52,7 +52,7 @@ func (r *queryResolver) credential(ctx context.Context, id string) (c *model.Cre
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof("queryResolver:Credential id: %s for tenant %s", id, agent.ID)
+	utils.LogLow().Infof("queryResolver:Credential id: %s for tenant %s", id, agent.ID)
 
 	cred, err := r.db.GetCredential(id, agent.ID)
 	err2.Check(err)
@@ -70,7 +70,7 @@ func (r *queryResolver) credentials(
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Info("queryResolver:Credentials for tenant: ", agent.ID)
+	utils.LogLow().Info("queryResolver:Credentials for tenant: ", agent.ID)
 
 	batch, err := paginator.Validate("queryResolver:Credentials", &paginator.Params{
 		First:  first,
@@ -93,7 +93,7 @@ func (r *queryResolver) proof(ctx context.Context, id string) (c *model.Proof, e
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof("queryResolver:Proof id: %s for tenant %s", id, agent.ID)
+	utils.LogLow().Infof("queryResolver:Proof id: %s for tenant %s", id, agent.ID)
 
 	cred, err := r.db.GetProof(id, agent.ID)
 	err2.Check(err)
@@ -107,7 +107,7 @@ func (r *queryResolver) message(ctx context.Context, id string) (c *model.BasicM
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof("queryResolver:Message id: %s for tenant %s", id, agent.ID)
+	utils.LogLow().Infof("queryResolver:Message id: %s for tenant %s", id, agent.ID)
 
 	msg, err := r.db.GetMessage(id, agent.ID)
 	err2.Check(err)
@@ -121,7 +121,7 @@ func (r *queryResolver) events(ctx context.Context, after, before *string, first
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Info("queryResolver:Events for tenant: ", agent.ID)
+	utils.LogLow().Info("queryResolver:Events for tenant: ", agent.ID)
 
 	batch, err := paginator.Validate("queryResolver:Events", &paginator.Params{
 		First:  first,
@@ -144,7 +144,7 @@ func (r *queryResolver) event(ctx context.Context, id string) (e *model.Event, e
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof("queryResolver:Event id: %s for tenant %s", id, agent.ID)
+	utils.LogLow().Infof("queryResolver:Event id: %s for tenant %s", id, agent.ID)
 
 	event, err := r.db.GetEvent(id, agent.ID)
 	err2.Check(err)
@@ -163,7 +163,7 @@ func (r *queryResolver) jobs(
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Info("queryResolver:Jobs for tenant: ", agent.ID)
+	utils.LogLow().Info("queryResolver:Jobs for tenant: ", agent.ID)
 
 	batch, err := paginator.Validate("queryResolver:Jobs", &paginator.Params{
 		First:  first,
@@ -186,7 +186,7 @@ func (r *queryResolver) job(ctx context.Context, id string) (e *model.Job, err e
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof("queryResolver:Job id: %s for tenant %s", id, agent.ID)
+	utils.LogLow().Infof("queryResolver:Job id: %s for tenant %s", id, agent.ID)
 
 	job, err := r.db.GetJob(id, agent.ID)
 	err2.Check(err)
@@ -200,7 +200,7 @@ func (r *queryResolver) user(ctx context.Context) (u *model.User, err error) {
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof("queryResolver:User tenant %s", agent.ID)
+	utils.LogLow().Infof("queryResolver:User tenant %s", agent.ID)
 
 	return agent.ToNode(), nil
 }

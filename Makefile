@@ -12,17 +12,8 @@ deps:
 update-deps:
 	go get -u ./...
 
-build_findy: generate
-	go build -tags findy -v ./...
-
 build: generate
 	go build -v ./...
-
-test_findy:
-	go test -tags findy -v ./...
-
-vet:
-	go vet ./...
 
 shadow:
 	@echo Running govet
@@ -79,3 +70,11 @@ check:
 	go build -tags findy_grpc ./...
 	go test -tags findy_grpc ./...
 	golangci-lint --build-tags findy_grpc run
+
+run_findy:
+	go run -tags findy_grpc tools/playground/playground.go
+
+remod:
+	rm go*
+	go mod init
+	go build ./...

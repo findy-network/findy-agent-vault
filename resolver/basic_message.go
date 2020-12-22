@@ -15,7 +15,7 @@ func (r *basicMessageResolver) connection(ctx context.Context, obj *model.BasicM
 	agent, err := r.getAgent(ctx)
 	err2.Check(err)
 
-	utils.LogMed().Infof(
+	utils.LogLow().Infof(
 		"basicMessageResolver:Connection for tenant %s, message: %s",
 		agent.ID,
 		obj.ID,
