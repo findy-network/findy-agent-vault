@@ -15,7 +15,7 @@ jobs:
       - name: test
         run: go test ./...
         env:
-          POSTGRES_PASSWORD: password
+          VAULT_POSTGRES_PASSWORD: password
     services:
       postgres:
         image: postgres:13.1-alpine

@@ -17,7 +17,6 @@ import (
 )
 
 const (
-	host   = "localhost"
 	user   = "postgres"
 	dbName = "vault"
 )
@@ -112,9 +111,14 @@ type Database struct {
 }
 
 func InitDB(migratePath, port string, reset bool) store.DB {
+	host := os.Getenv("VAULT_POSTGRES_HOST")
+	if host == "" {
+		host = "localhost"
+	}
+
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, os.Getenv("POSTGRES_PASSWORD"), dbName)
+		host, port, user, os.Getenv("VAULT_POSTGRES_PASSWORD"), dbName)
 	sqlDB, err := sql.Open("postgres", psqlInfo)
 	err2.Check(err)
 
