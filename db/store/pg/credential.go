@@ -262,7 +262,12 @@ func (pg *Database) getCredentialsForQuery(
 	}
 
 	// ensure also last credential is added
-	if prevCredential.ID != c.Credentials[len(c.Credentials)-1].ID {
+	lastCredentialID := ""
+	if len(c.Credentials) > 0 {
+		lastCredentialID = c.Credentials[len(c.Credentials)-1].ID
+	}
+
+	if prevCredential.ID != lastCredentialID {
 		c.Credentials = append(c.Credentials, prevCredential)
 	}
 
