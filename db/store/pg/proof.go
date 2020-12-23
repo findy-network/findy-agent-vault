@@ -33,12 +33,6 @@ func constructProofAttributeInsert(count int) string {
 	return result + " RETURNING id"
 }
 
-func sqlProofSelectBatchFor(tenantOrder, limit, cursorOrder string) string {
-	return sqlProofSelect +
-		" (SELECT * FROM proof " + tenantOrder + " " + limit + ") AS proof " +
-		sqlProofJoin + " ORDER BY cursor " + cursorOrder + ", proof_attribute.index"
-}
-
 func sqlProofFields(tableName string) string {
 	if tableName != "" {
 		tableName += "."
@@ -62,9 +56,6 @@ var (
 )
 
 const (
-	sqlProofBatchWhere           = " WHERE tenant_id=$1 AND verified IS NOT NULL "
-	sqlProofBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2 AND verified IS NOT NULL "
-
 	sqlProofJoin = " INNER JOIN proof_attribute on proof_attribute.proof_id = proof.id"
 )
 
@@ -242,11 +233,12 @@ func (pg *Database) GetProof(id, tenantID string) (p *model.Proof, err error) {
 func (pg *Database) getProofsForQuery(
 	queries *queryInfo,
 	batch *paginator.BatchInfo,
+	tenantID string,
 	initialArgs []interface{},
 ) (p *model.Proofs, err error) {
 	defer returnErr("GetProofs", &err)
 
-	query, args := getBatchQuery(queries, batch, initialArgs)
+	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
 	rows, err := pg.db.Query(query, args...)
 	err2.Check(err)
 	defer rows.Close()
@@ -301,35 +293,70 @@ func (pg *Database) getProofsForQuery(
 	return p, err
 }
 
+func sqlProofBatchWhere(cursorParam, connectionParam, limitParam string, desc, before bool) string {
+	const verifiedNotNull = " AND verified IS NOT NULL "
+	const whereTenantID = " WHERE tenant_id=$1 "
+	order := sqlAsc
+	cursorOrder := sqlOrderByAsc("")
+	cursor := ""
+	connection := ""
+	compareChar := sqlGreaterThan
+	if before {
+		compareChar = sqlLessThan
+	}
+	if connectionParam != "" {
+		connection = " AND connection_id = " + connectionParam + " "
+	}
+	if cursorParam != "" {
+		cursor = " AND cursor " + compareChar + cursorParam + " "
+		if desc {
+			cursor = " AND cursor " + compareChar + cursorParam + " "
+		}
+	}
+	if desc {
+		order = sqlDesc
+		cursorOrder = sqlOrderByDesc("")
+	}
+	where := whereTenantID + cursor + connection + verifiedNotNull
+	return sqlProofSelect + " (SELECT * FROM proof " + where + cursorOrder + " " + limitParam + ") AS proof " +
+		sqlProofJoin + " ORDER BY cursor " + order + ", proof_attribute.index"
+}
+
 func (pg *Database) GetProofs(info *paginator.BatchInfo, tenantID string, connectionID *string) (c *model.Proofs, err error) {
 	if connectionID == nil {
 		return pg.getProofsForQuery(&queryInfo{
-			Asc:        sqlProofSelectBatchFor(sqlProofBatchWhere+sqlOrderByAsc(""), "$2", "ASC"),
-			Desc:       sqlProofSelectBatchFor(sqlProofBatchWhere+sqlOrderByDesc(""), "$2", "DESC"),
-			AfterAsc:   sqlProofSelectBatchFor(sqlProofBatchWhere+" AND cursor > $2"+sqlOrderByAsc(""), "$3", "ASC"),
-			AfterDesc:  sqlProofSelectBatchFor(sqlProofBatchWhere+" AND cursor > $2"+sqlOrderByDesc(""), "$3", "DESC"),
-			BeforeAsc:  sqlProofSelectBatchFor(sqlProofBatchWhere+" AND cursor < $2"+sqlOrderByAsc(""), "$3", "ASC"),
-			BeforeDesc: sqlProofSelectBatchFor(sqlProofBatchWhere+" AND cursor < $2"+sqlOrderByDesc(""), "$3", "DESC"),
+			Asc:        sqlProofBatchWhere("", "", "$2", false, false),
+			Desc:       sqlProofBatchWhere("", "", "$2", true, false),
+			AfterAsc:   sqlProofBatchWhere("$2", "", "$3", false, false),
+			AfterDesc:  sqlProofBatchWhere("$2", "", "$3", true, false),
+			BeforeAsc:  sqlProofBatchWhere("$2", "", "$3", false, true),
+			BeforeDesc: sqlProofBatchWhere("$2", "", "$3", true, true),
 		},
 			info,
-			[]interface{}{tenantID},
+			tenantID,
+			[]interface{}{},
 		)
 	}
 	return pg.getProofsForQuery(&queryInfo{
-		Asc:        sqlProofSelectBatchFor(sqlProofBatchWhereConnection+sqlOrderByAsc(""), "$3", "ASC"),
-		Desc:       sqlProofSelectBatchFor(sqlProofBatchWhereConnection+sqlOrderByDesc(""), "$3", "DESC"),
-		AfterAsc:   sqlProofSelectBatchFor(sqlProofBatchWhereConnection+" AND cursor > $3"+sqlOrderByAsc(""), "$4", "ASC"),
-		AfterDesc:  sqlProofSelectBatchFor(sqlProofBatchWhereConnection+" AND cursor > $3"+sqlOrderByDesc(""), "$4", "DESC"),
-		BeforeAsc:  sqlProofSelectBatchFor(sqlProofBatchWhereConnection+" AND cursor < $3"+sqlOrderByAsc(""), "$4", "ASC"),
-		BeforeDesc: sqlProofSelectBatchFor(sqlProofBatchWhereConnection+" AND cursor < $3"+sqlOrderByDesc(""), "$4", "DESC"),
+		Asc:        sqlProofBatchWhere("", "$2", "$3", false, false),
+		Desc:       sqlProofBatchWhere("", "$2", "$3", true, false),
+		AfterAsc:   sqlProofBatchWhere("$2", "$3", "$4", false, false),
+		AfterDesc:  sqlProofBatchWhere("$2", "$3", "$4", true, false),
+		BeforeAsc:  sqlProofBatchWhere("$2", "$3", "$4", false, true),
+		BeforeDesc: sqlProofBatchWhere("$2", "$3", "$4", true, true),
 	},
 		info,
-		[]interface{}{tenantID, *connectionID},
+		tenantID,
+		[]interface{}{*connectionID},
 	)
 }
 
 func (pg *Database) GetProofCount(tenantID string, connectionID *string) (count int, err error) {
 	defer returnErr("GetProofCount", &err)
+	const (
+		sqlProofBatchWhere           = " WHERE tenant_id=$1 AND verified IS NOT NULL "
+		sqlProofBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2 AND verified IS NOT NULL "
+	)
 	count, err = pg.getCount(
 		"proof",
 		sqlProofBatchWhere,

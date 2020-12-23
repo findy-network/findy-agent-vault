@@ -157,7 +157,8 @@ func (pg *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (
 		BeforeDesc: sqlConnectionSelect + sqlWhereTenantDescBefore("") + " $3",
 	},
 		info,
-		[]interface{}{tenantID},
+		tenantID,
+		[]interface{}{},
 	)
 
 	rows, err := pg.db.Query(query, args...)

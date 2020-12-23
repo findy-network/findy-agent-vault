@@ -10,10 +10,6 @@ import (
 	"github.com/lainio/err2"
 )
 
-func sqlMessageSelectBatchFor(where, limitArg string) string {
-	return sqlMessageSelect + " message " + where + " " + limitArg
-}
-
 func sqlMessageFields(tableName string) string {
 	if tableName != "" {
 		tableName += "."
@@ -33,11 +29,6 @@ var (
 	sqlMessageInsert     = "INSERT INTO message " + "(" + sqlBaseMessageFields + ") " +
 		"VALUES ($1, $2, $3, $4, $5) RETURNING id, created, cursor"
 	sqlMessageSelect = "SELECT id, " + sqlBaseMessageFields + ", created, cursor FROM"
-)
-
-const (
-	sqlMessageBatchWhere           = " WHERE tenant_id=$1 "
-	sqlMessageBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2"
 )
 
 func (pg *Database) getMessageForObject(objectName, columnName, objectID, tenantID string) (c *model.Message, err error) {
@@ -155,11 +146,12 @@ func (pg *Database) GetMessage(id, tenantID string) (m *model.Message, err error
 func (pg *Database) getMessagesForQuery(
 	queries *queryInfo,
 	batch *paginator.BatchInfo,
+	tenantID string,
 	initialArgs []interface{},
 ) (m *model.Messages, err error) {
 	defer returnErr("GetMessages", &err)
 
-	query, args := getBatchQuery(queries, batch, initialArgs)
+	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
 	rows, err := pg.db.Query(query, args...)
 	err2.Check(err)
 	defer rows.Close()
@@ -205,35 +197,66 @@ func (pg *Database) getMessagesForQuery(
 	return m, err
 }
 
+func sqlMessageBatchWhere(cursorParam, connectionParam, limitParam string, desc, before bool) string {
+	const whereTenantID = " WHERE tenant_id=$1 "
+	cursorOrder := sqlOrderByAsc("")
+	cursor := ""
+	connection := ""
+	compareChar := sqlGreaterThan
+	if before {
+		compareChar = sqlLessThan
+	}
+	if connectionParam != "" {
+		connection = " AND connection_id = " + connectionParam + " "
+	}
+	if cursorParam != "" {
+		cursor = " AND cursor " + compareChar + cursorParam + " "
+		if desc {
+			cursor = " AND cursor " + compareChar + cursorParam + " "
+		}
+	}
+	if desc {
+		cursorOrder = sqlOrderByDesc("")
+	}
+	where := whereTenantID + cursor + connection
+	return sqlMessageSelect + " message " + where + cursorOrder + " " + limitParam
+}
+
 func (pg *Database) GetMessages(info *paginator.BatchInfo, tenantID string, connectionID *string) (m *model.Messages, err error) {
 	if connectionID == nil {
 		return pg.getMessagesForQuery(&queryInfo{
-			Asc:        sqlMessageSelectBatchFor(sqlMessageBatchWhere+sqlOrderByAsc(""), "$2"),
-			Desc:       sqlMessageSelectBatchFor(sqlMessageBatchWhere+sqlOrderByDesc(""), "$2"),
-			AfterAsc:   sqlMessageSelectBatchFor(sqlMessageBatchWhere+" AND cursor > $2"+sqlOrderByAsc(""), "$3"),
-			AfterDesc:  sqlMessageSelectBatchFor(sqlMessageBatchWhere+" AND cursor > $2"+sqlOrderByDesc(""), "$3"),
-			BeforeAsc:  sqlMessageSelectBatchFor(sqlMessageBatchWhere+" AND cursor < $2"+sqlOrderByAsc(""), "$3"),
-			BeforeDesc: sqlMessageSelectBatchFor(sqlMessageBatchWhere+" AND cursor < $2"+sqlOrderByDesc(""), "$3"),
+			Asc:        sqlMessageBatchWhere("", "", "$2", false, false),
+			Desc:       sqlMessageBatchWhere("", "", "$2", true, false),
+			AfterAsc:   sqlMessageBatchWhere("$2", "", "$3", false, false),
+			AfterDesc:  sqlMessageBatchWhere("$2", "", "$3", true, false),
+			BeforeAsc:  sqlMessageBatchWhere("$2", "", "$3", false, true),
+			BeforeDesc: sqlMessageBatchWhere("$2", "", "$3", true, true),
 		},
 			info,
-			[]interface{}{tenantID},
+			tenantID,
+			[]interface{}{},
 		)
 	}
 	return pg.getMessagesForQuery(&queryInfo{
-		Asc:        sqlMessageSelectBatchFor(sqlMessageBatchWhereConnection+sqlOrderByAsc(""), "$3"),
-		Desc:       sqlMessageSelectBatchFor(sqlMessageBatchWhereConnection+sqlOrderByDesc(""), "$3"),
-		AfterAsc:   sqlMessageSelectBatchFor(sqlMessageBatchWhereConnection+" AND cursor > $3"+sqlOrderByAsc(""), "$4"),
-		AfterDesc:  sqlMessageSelectBatchFor(sqlMessageBatchWhereConnection+" AND cursor > $3"+sqlOrderByDesc(""), "$4"),
-		BeforeAsc:  sqlMessageSelectBatchFor(sqlMessageBatchWhereConnection+" AND cursor < $3"+sqlOrderByAsc(""), "$4"),
-		BeforeDesc: sqlMessageSelectBatchFor(sqlMessageBatchWhereConnection+" AND cursor < $3"+sqlOrderByDesc(""), "$4"),
+		Asc:        sqlMessageBatchWhere("", "$2", "$3", false, false),
+		Desc:       sqlMessageBatchWhere("", "$2", "$3", true, false),
+		AfterAsc:   sqlMessageBatchWhere("$2", "$3", "$4", false, false),
+		AfterDesc:  sqlMessageBatchWhere("$2", "$3", "$4", true, false),
+		BeforeAsc:  sqlMessageBatchWhere("$2", "$3", "$4", false, true),
+		BeforeDesc: sqlMessageBatchWhere("$2", "$3", "$4", true, true),
 	},
 		info,
-		[]interface{}{tenantID, *connectionID},
+		tenantID,
+		[]interface{}{*connectionID},
 	)
 }
 
 func (pg *Database) GetMessageCount(tenantID string, connectionID *string) (count int, err error) {
 	defer returnErr("GetMessageCount", &err)
+	const (
+		sqlMessageBatchWhere           = " WHERE tenant_id=$1 "
+		sqlMessageBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2"
+	)
 	count, err = pg.getCount(
 		"message",
 		sqlMessageBatchWhere,

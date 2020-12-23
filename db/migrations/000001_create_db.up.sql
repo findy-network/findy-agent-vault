@@ -30,7 +30,7 @@ CREATE TABLE "connection"(
     FOREIGN KEY(tenant_id) REFERENCES agent(id)
 );
 
-CREATE INDEX "connection_cursor_index" ON connection (cursor);
+CREATE INDEX "connection_cursor_index" ON connection (tenant_id, cursor);
 
 CREATE TYPE "credential_role" AS ENUM ('ISSUER', 'HOLDER');
 
@@ -53,7 +53,7 @@ CREATE TABLE "credential"(
     FOREIGN KEY(connection_id, tenant_id) REFERENCES connection(id, tenant_id)
 );
 
-CREATE INDEX "credential_cursor_index" ON credential (cursor);
+CREATE INDEX "credential_cursor_index" ON credential (tenant_id, cursor);
 
 CREATE TABLE "credential_attribute"(
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
@@ -85,7 +85,7 @@ CREATE TABLE "proof"(
     FOREIGN KEY(connection_id, tenant_id) REFERENCES connection(id, tenant_id)
 );
 
-CREATE INDEX "proof_cursor_index" ON proof (cursor);
+CREATE INDEX "proof_cursor_index" ON proof (tenant_id, cursor);
 
 CREATE TABLE "proof_attribute"(
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
@@ -113,7 +113,7 @@ CREATE TABLE "message"(
     FOREIGN KEY(connection_id, tenant_id) REFERENCES connection(id, tenant_id)
 );
 
-CREATE INDEX "message_cursor_index" ON message (cursor);
+CREATE INDEX "message_cursor_index" ON message (tenant_id, cursor);
 
 CREATE TYPE "protocol_type" AS ENUM ('NONE', 'CONNECTION', 'CREDENTIAL', 'PROOF', 'BASIC_MESSAGE');
 
@@ -149,7 +149,7 @@ CREATE TABLE "job"(
     FOREIGN KEY(protocol_message_id) REFERENCES message(id)
 );
 
-CREATE INDEX "job_cursor_index" ON job (cursor);
+CREATE INDEX "job_cursor_index" ON job (tenant_id, cursor);
 
 CREATE TABLE "event"(
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
@@ -168,4 +168,4 @@ CREATE TABLE "event"(
     FOREIGN KEY(job_id, tenant_id) REFERENCES job(id, tenant_id)
 );
 
-CREATE INDEX "event_cursor_index" ON event (cursor);
+CREATE INDEX "event_cursor_index" ON event (tenant_id, cursor);
