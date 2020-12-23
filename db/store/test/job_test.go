@@ -140,6 +140,35 @@ func TestAddJob(t *testing.T) {
 	}
 }
 
+func TestAddJobSameIDDifferentTenant(t *testing.T) {
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("add job same id "+s.name, func(t *testing.T) {
+			testJob = model.NewJob(uuid.New().String(), s.testTenantID, testJob)
+			testJob.TenantID = s.testTenantID
+			testJob.ConnectionID = nil
+
+			// Add data
+			job1, err := s.db.AddJob(testJob)
+			if err != nil {
+				t.Errorf("Failed to add job  %s", err.Error())
+			} else {
+				validateJob(t, testJob, job1)
+			}
+
+			// Add data
+			a2 := fake.AddAgent(s.db)
+			testJob.TenantID = a2.ID
+			job2, err := s.db.AddJob(testJob)
+			if err != nil {
+				t.Errorf("Failed to add job with same id %s", err.Error())
+			} else {
+				validateJob(t, testJob, job2)
+			}
+		})
+	}
+}
+
 func TestUpdateJob(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
