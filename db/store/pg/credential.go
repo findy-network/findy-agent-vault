@@ -33,12 +33,6 @@ func constructCredentialAttributeInsert(count int) string {
 	return result + " RETURNING id"
 }
 
-func sqlCredentialSelectBatchFor(tenantOrder, limit, cursorOrder string) string {
-	return sqlCredentialSelect +
-		" (SELECT * FROM credential " + tenantOrder + " " + limit + ") AS credential " +
-		sqlCredentialJoin + " ORDER BY cursor " + cursorOrder + ", credential_attribute.index"
-}
-
 func sqlCredentialFields(tableName string) string {
 	if tableName != "" {
 		tableName += "."
@@ -62,9 +56,6 @@ var (
 )
 
 const (
-	sqlCredentialBatchWhere           = " WHERE tenant_id=$1 AND issued IS NOT NULL "
-	sqlCredentialBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2 AND issued IS NOT NULL "
-
 	sqlCredentialJoin = " INNER JOIN credential_attribute on credential_attribute.credential_id = credential.id"
 )
 
@@ -243,11 +234,13 @@ func (pg *Database) GetCredential(id, tenantID string) (c *model.Credential, err
 func (pg *Database) getCredentialsForQuery(
 	queries *queryInfo,
 	batch *paginator.BatchInfo,
+	tenantID string,
+
 	initialArgs []interface{},
 ) (c *model.Credentials, err error) {
 	defer returnErr("GetCredentials", &err)
 
-	query, args := getBatchQuery(queries, batch, initialArgs)
+	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
 	rows, err := pg.db.Query(query, args...)
 	err2.Check(err)
 	defer rows.Close()
@@ -302,35 +295,70 @@ func (pg *Database) getCredentialsForQuery(
 	return c, err
 }
 
+func sqlCredentialBatchWhere(cursorParam, connectionParam, limitParam string, desc, before bool) string {
+	const issuedNotNull = " AND issued IS NOT NULL "
+	const whereTenantID = " WHERE tenant_id=$1 "
+	order := sqlAsc
+	cursorOrder := sqlOrderByAsc("")
+	cursor := ""
+	connection := ""
+	compareChar := sqlGreaterThan
+	if before {
+		compareChar = sqlLessThan
+	}
+	if connectionParam != "" {
+		connection = " AND connection_id = " + connectionParam + " "
+	}
+	if cursorParam != "" {
+		cursor = " AND cursor " + compareChar + cursorParam + " "
+		if desc {
+			cursor = " AND cursor " + compareChar + cursorParam + " "
+		}
+	}
+	if desc {
+		order = sqlDesc
+		cursorOrder = sqlOrderByDesc("")
+	}
+	where := whereTenantID + cursor + connection + issuedNotNull
+	return sqlCredentialSelect + " (SELECT * FROM credential " + where + cursorOrder + " " + limitParam + ") AS credential " +
+		sqlCredentialJoin + " ORDER BY cursor " + order + ", credential_attribute.index"
+}
+
 func (pg *Database) GetCredentials(info *paginator.BatchInfo, tenantID string, connectionID *string) (c *model.Credentials, err error) {
 	if connectionID == nil {
 		return pg.getCredentialsForQuery(&queryInfo{
-			Asc:        sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+sqlOrderByAsc(""), "$2", "ASC"),
-			Desc:       sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+sqlOrderByDesc(""), "$2", "DESC"),
-			AfterAsc:   sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+" AND cursor > $2"+sqlOrderByAsc(""), "$3", "ASC"),
-			AfterDesc:  sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+" AND cursor > $2"+sqlOrderByDesc(""), "$3", "DESC"),
-			BeforeAsc:  sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+" AND cursor < $2"+sqlOrderByAsc(""), "$3", "ASC"),
-			BeforeDesc: sqlCredentialSelectBatchFor(sqlCredentialBatchWhere+" AND cursor < $2"+sqlOrderByDesc(""), "$3", "DESC"),
+			Asc:        sqlCredentialBatchWhere("", "", "$2", false, false),
+			Desc:       sqlCredentialBatchWhere("", "", "$2", true, false),
+			AfterAsc:   sqlCredentialBatchWhere("$2", "", "$3", false, false),
+			AfterDesc:  sqlCredentialBatchWhere("$2", "", "$3", true, false),
+			BeforeAsc:  sqlCredentialBatchWhere("$2", "", "$3", false, true),
+			BeforeDesc: sqlCredentialBatchWhere("$2", "", "$3", true, true),
 		},
 			info,
-			[]interface{}{tenantID},
+			tenantID,
+			[]interface{}{},
 		)
 	}
 	return pg.getCredentialsForQuery(&queryInfo{
-		Asc:        sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+sqlOrderByAsc(""), "$3", "ASC"),
-		Desc:       sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+sqlOrderByDesc(""), "$3", "DESC"),
-		AfterAsc:   sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+" AND cursor > $3"+sqlOrderByAsc(""), "$4", "ASC"),
-		AfterDesc:  sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+" AND cursor > $3"+sqlOrderByDesc(""), "$4", "DESC"),
-		BeforeAsc:  sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+" AND cursor < $3"+sqlOrderByAsc(""), "$4", "ASC"),
-		BeforeDesc: sqlCredentialSelectBatchFor(sqlCredentialBatchWhereConnection+" AND cursor < $3"+sqlOrderByDesc(""), "$4", "DESC"),
+		Asc:        sqlCredentialBatchWhere("", "$2", "$3", false, false),
+		Desc:       sqlCredentialBatchWhere("", "$2", "$3", true, false),
+		AfterAsc:   sqlCredentialBatchWhere("$2", "$3", "$4", false, false),
+		AfterDesc:  sqlCredentialBatchWhere("$2", "$3", "$4", true, false),
+		BeforeAsc:  sqlCredentialBatchWhere("$2", "$3", "$4", false, true),
+		BeforeDesc: sqlCredentialBatchWhere("$2", "$3", "$4", true, true),
 	},
 		info,
-		[]interface{}{tenantID, *connectionID},
+		tenantID,
+		[]interface{}{*connectionID},
 	)
 }
 
 func (pg *Database) GetCredentialCount(tenantID string, connectionID *string) (count int, err error) {
 	defer returnErr("GetCredentialCount", &err)
+	const (
+		sqlCredentialBatchWhere           = " WHERE tenant_id=$1 AND issued IS NOT NULL "
+		sqlCredentialBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2 AND issued IS NOT NULL "
+	)
 	count, err = pg.getCount(
 		"credential",
 		sqlCredentialBatchWhere,

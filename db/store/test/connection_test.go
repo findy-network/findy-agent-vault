@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/findy-network/findy-agent-vault/db/fake"
+
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/google/uuid"
 
@@ -66,6 +68,32 @@ func TestAddConnection(t *testing.T) {
 				t.Errorf("Error fetching connection %s", err.Error())
 			} else if !reflect.DeepEqual(&c, &got) {
 				t.Errorf("Mismatch in fetched connection expected: %v  got: %v", c, got)
+			}
+		})
+	}
+}
+
+func TestAddConnectionSameIDDifferentTenant(t *testing.T) {
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("add connection with same id "+s.name, func(t *testing.T) {
+			s.testConnection = model.NewConnection(uuid.New().String(), s.testConnection.TenantID, s.testConnection)
+			// Add data
+			connection1, err := s.db.AddConnection(s.testConnection)
+			if err != nil {
+				t.Errorf("Failed to add connection %s", err.Error())
+			} else {
+				validateConnection(t, s.testConnection, connection1)
+			}
+
+			// Add connection with same id
+			agent2 := fake.AddAgent(s.db)
+			s.testConnection.TenantID = agent2.TenantID
+			connection2, err := s.db.AddConnection(s.testConnection)
+			if err != nil {
+				t.Errorf("Failed to add connection with same id %s", err.Error())
+			} else {
+				validateConnection(t, s.testConnection, connection2)
 			}
 		})
 	}
