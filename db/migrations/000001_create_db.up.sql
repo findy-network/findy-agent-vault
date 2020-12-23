@@ -15,7 +15,7 @@ CREATE INDEX "agent_id_index" ON agent (agent_id);
 CREATE INDEX "agent_cursor_index" ON agent (cursor);
 
 CREATE TABLE "connection"(
-  id uuid PRIMARY KEY NOT NULL,
+  id uuid NOT NULL,
   tenant_id uuid NOT NULL,
   our_did VARCHAR(256) NOT NULL,
   their_did VARCHAR(256) NOT NULL,
@@ -25,11 +25,12 @@ CREATE TABLE "connection"(
   created timestamptz NOT NULL DEFAULT (now() at time zone 'UTC'),
   approved timestamptz,
   cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC') * 1000) STORED,
+  CONSTRAINT connection_pkey PRIMARY KEY (id, tenant_id),
   CONSTRAINT fk_connection_agent
     FOREIGN KEY(tenant_id) REFERENCES agent(id)
 );
 
-CREATE INDEX "connection_cursor_index" ON connection (cursor);
+CREATE INDEX "connection_cursor_index" ON connection (tenant_id, cursor);
 
 CREATE TYPE "credential_role" AS ENUM ('ISSUER', 'HOLDER');
 
@@ -49,10 +50,10 @@ CREATE TABLE "credential"(
   CONSTRAINT fk_credential_agent
     FOREIGN KEY(tenant_id) REFERENCES agent(id),
   CONSTRAINT fk_credential_connection
-    FOREIGN KEY(connection_id) REFERENCES connection(id)
+    FOREIGN KEY(connection_id, tenant_id) REFERENCES connection(id, tenant_id)
 );
 
-CREATE INDEX "credential_cursor_index" ON credential (cursor);
+CREATE INDEX "credential_cursor_index" ON credential (tenant_id, cursor);
 
 CREATE TABLE "credential_attribute"(
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
@@ -81,10 +82,10 @@ CREATE TABLE "proof"(
   CONSTRAINT fk_proof_agent
     FOREIGN KEY(tenant_id) REFERENCES agent(id),
   CONSTRAINT fk_proof_connection
-    FOREIGN KEY(connection_id) REFERENCES connection(id)
+    FOREIGN KEY(connection_id, tenant_id) REFERENCES connection(id, tenant_id)
 );
 
-CREATE INDEX "proof_cursor_index" ON proof (cursor);
+CREATE INDEX "proof_cursor_index" ON proof (tenant_id, cursor);
 
 CREATE TABLE "proof_attribute"(
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
@@ -109,10 +110,10 @@ CREATE TABLE "message"(
   CONSTRAINT fk_message_agent
     FOREIGN KEY(tenant_id) REFERENCES agent(id),
   CONSTRAINT fk_message_connection
-    FOREIGN KEY(connection_id) REFERENCES connection(id)
+    FOREIGN KEY(connection_id, tenant_id) REFERENCES connection(id, tenant_id)
 );
 
-CREATE INDEX "message_cursor_index" ON message (cursor);
+CREATE INDEX "message_cursor_index" ON message (tenant_id, cursor);
 
 CREATE TYPE "protocol_type" AS ENUM ('NONE', 'CONNECTION', 'CREDENTIAL', 'PROOF', 'BASIC_MESSAGE');
 
@@ -121,7 +122,7 @@ CREATE TYPE "job_status" AS ENUM ('WAITING', 'PENDING', 'COMPLETE');
 CREATE TYPE "job_result" AS ENUM ('NONE', 'SUCCESS', 'FAILURE');
 
 CREATE TABLE "job"(
-  id uuid PRIMARY KEY NOT NULL,
+  id uuid NOT NULL,
   tenant_id uuid NOT NULL,
   connection_id uuid,
   protocol_connection_id uuid,
@@ -135,19 +136,20 @@ CREATE TABLE "job"(
   updated timestamptz NOT NULL DEFAULT (now() at time zone 'UTC'),
   created timestamptz NOT NULL DEFAULT (now() at time zone 'UTC'),
   cursor BIGINT NOT NULL GENERATED ALWAYS AS (extract(epoch from created at time zone 'UTC') * 1000) STORED,
+  CONSTRAINT job_pkey PRIMARY KEY (id, tenant_id),
   CONSTRAINT fk_job_agent
     FOREIGN KEY(tenant_id) REFERENCES agent(id),
   CONSTRAINT fk_job_connection
-    FOREIGN KEY(connection_id) REFERENCES connection(id),
+    FOREIGN KEY(connection_id, tenant_id) REFERENCES connection(id, tenant_id),
   CONSTRAINT fk_job_protocol_connection
-    FOREIGN KEY(protocol_connection_id) REFERENCES connection(id),
+    FOREIGN KEY(protocol_connection_id, tenant_id) REFERENCES connection(id, tenant_id),
   CONSTRAINT fk_job_protocol_proof
     FOREIGN KEY(protocol_proof_id) REFERENCES proof(id),
   CONSTRAINT fk_job_protocol_message
     FOREIGN KEY(protocol_message_id) REFERENCES message(id)
 );
 
-CREATE INDEX "job_cursor_index" ON job (cursor);
+CREATE INDEX "job_cursor_index" ON job (tenant_id, cursor);
 
 CREATE TABLE "event"(
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
@@ -161,9 +163,9 @@ CREATE TABLE "event"(
   CONSTRAINT fk_event_agent
     FOREIGN KEY(tenant_id) REFERENCES agent(id),
   CONSTRAINT fk_event_connection
-    FOREIGN KEY(connection_id) REFERENCES connection(id),
+    FOREIGN KEY(connection_id, tenant_id) REFERENCES connection(id, tenant_id),
   CONSTRAINT fk_event_job
-    FOREIGN KEY(job_id) REFERENCES job(id)
+    FOREIGN KEY(job_id, tenant_id) REFERENCES job(id, tenant_id)
 );
 
-CREATE INDEX "event_cursor_index" ON event (cursor);
+CREATE INDEX "event_cursor_index" ON event (tenant_id, cursor);

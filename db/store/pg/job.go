@@ -11,10 +11,6 @@ import (
 	"github.com/lainio/err2"
 )
 
-func sqlJobSelectBatchFor(where, limitArg string) string {
-	return sqlJobSelect + " job " + where + " " + limitArg
-}
-
 func sqlJobFields(tableName string) string {
 	if tableName != "" {
 		tableName += "."
@@ -35,13 +31,6 @@ var (
 	sqlJobInsert     = "INSERT INTO job " + "(" + sqlJobBaseFields + ") " +
 		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, (now() at time zone 'UTC')) RETURNING id, created, cursor"
 	sqlJobSelect = "SELECT " + sqlJobBaseFields + ", created, cursor FROM"
-)
-
-const (
-	sqlJobBatchWhere              = " WHERE tenant_id=$1 AND status != 'COMPLETE'"
-	sqlJobBatchWhereConnection    = " WHERE tenant_id=$1 AND connection_id=$2 AND status != 'COMPLETE'"
-	sqlJobBatchWhereAll           = " WHERE tenant_id=$1"
-	sqlJobBatchWhereConnectionAll = " WHERE tenant_id=$1 AND connection_id=$2"
 )
 
 func (pg *Database) getJobForObject(objectName, objectID, tenantID string) (j *model.Job, err error) {
@@ -179,11 +168,12 @@ func (pg *Database) GetJob(id, tenantID string) (job *model.Job, err error) {
 func (pg *Database) getJobsForQuery(
 	queries *queryInfo,
 	batch *paginator.BatchInfo,
+	tenantID string,
 	initialArgs []interface{},
 ) (j *model.Jobs, err error) {
 	defer returnErr("GetJobs", &err)
 
-	query, args := getBatchQuery(queries, batch, initialArgs)
+	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
 	rows, err := pg.db.Query(query, args...)
 	err2.Check(err)
 	defer rows.Close()
@@ -229,44 +219,75 @@ func (pg *Database) getJobsForQuery(
 	return j, err
 }
 
+func sqlJobBatchWhere(fetchAll bool, cursorParam, connectionParam, limitParam string, desc, before bool) string {
+	const whereTenantID = " WHERE tenant_id=$1 "
+	whereStatus := " AND status != 'COMPLETE' "
+	cursorOrder := sqlOrderByAsc("")
+	cursor := ""
+	connection := ""
+	compareChar := sqlGreaterThan
+	if fetchAll {
+		whereStatus = ""
+	}
+	if before {
+		compareChar = sqlLessThan
+	}
+	if connectionParam != "" {
+		connection = " AND connection_id = " + connectionParam + " "
+	}
+	if cursorParam != "" {
+		cursor = " AND cursor " + compareChar + cursorParam + " "
+		if desc {
+			cursor = " AND cursor " + compareChar + cursorParam + " "
+		}
+	}
+	if desc {
+		cursorOrder = sqlOrderByDesc("")
+	}
+	where := whereTenantID + cursor + connection + whereStatus
+	return sqlJobSelect + " job " + where + cursorOrder + " " + limitParam
+}
+
 func (pg *Database) GetJobs(info *paginator.BatchInfo, tenantID string, connectionID *string, completed *bool) (c *model.Jobs, err error) {
 	fetchAll := completed != nil && *completed
 
-	qWhere := sqlJobBatchWhere
-	qWhereConnection := sqlJobBatchWhereConnection
-	if fetchAll {
-		qWhere = sqlJobBatchWhereAll
-		qWhereConnection = sqlJobBatchWhereConnectionAll
-	}
-
 	if connectionID == nil {
 		return pg.getJobsForQuery(&queryInfo{
-			Asc:        sqlJobSelectBatchFor(qWhere+sqlOrderByAsc(""), "$2"),
-			Desc:       sqlJobSelectBatchFor(qWhere+sqlOrderByDesc(""), "$2"),
-			AfterAsc:   sqlJobSelectBatchFor(qWhere+" AND cursor > $2"+sqlOrderByAsc(""), "$3"),
-			AfterDesc:  sqlJobSelectBatchFor(qWhere+" AND cursor > $2"+sqlOrderByDesc(""), "$3"),
-			BeforeAsc:  sqlJobSelectBatchFor(qWhere+" AND cursor < $2"+sqlOrderByAsc(""), "$3"),
-			BeforeDesc: sqlJobSelectBatchFor(qWhere+" AND cursor < $2"+sqlOrderByDesc(""), "$3"),
+			Asc:        sqlJobBatchWhere(fetchAll, "", "", "$2", false, false),
+			Desc:       sqlJobBatchWhere(fetchAll, "", "", "$2", true, false),
+			AfterAsc:   sqlJobBatchWhere(fetchAll, "$2", "", "$3", false, false),
+			AfterDesc:  sqlJobBatchWhere(fetchAll, "$2", "", "$3", true, false),
+			BeforeAsc:  sqlJobBatchWhere(fetchAll, "$2", "", "$3", false, true),
+			BeforeDesc: sqlJobBatchWhere(fetchAll, "$2", "", "$3", true, true),
 		},
 			info,
-			[]interface{}{tenantID},
+			tenantID,
+			[]interface{}{},
 		)
 	}
 	return pg.getJobsForQuery(&queryInfo{
-		Asc:        sqlJobSelectBatchFor(qWhereConnection+sqlOrderByAsc(""), "$3"),
-		Desc:       sqlJobSelectBatchFor(qWhereConnection+sqlOrderByDesc(""), "$3"),
-		AfterAsc:   sqlJobSelectBatchFor(qWhereConnection+" AND cursor > $3"+sqlOrderByAsc(""), "$4"),
-		AfterDesc:  sqlJobSelectBatchFor(qWhereConnection+" AND cursor > $3"+sqlOrderByDesc(""), "$4"),
-		BeforeAsc:  sqlJobSelectBatchFor(qWhereConnection+" AND cursor < $3"+sqlOrderByAsc(""), "$4"),
-		BeforeDesc: sqlJobSelectBatchFor(qWhereConnection+" AND cursor < $3"+sqlOrderByDesc(""), "$4"),
+		Asc:        sqlJobBatchWhere(fetchAll, "", "$2", "$3", false, false),
+		Desc:       sqlJobBatchWhere(fetchAll, "", "$2", "$3", true, false),
+		AfterAsc:   sqlJobBatchWhere(fetchAll, "$2", "$3", "$4", false, false),
+		AfterDesc:  sqlJobBatchWhere(fetchAll, "$2", "$3", "$4", true, false),
+		BeforeAsc:  sqlJobBatchWhere(fetchAll, "$2", "$3", "$4", false, true),
+		BeforeDesc: sqlJobBatchWhere(fetchAll, "$2", "$3", "$4", true, true),
 	},
 		info,
-		[]interface{}{tenantID, *connectionID},
+		tenantID,
+		[]interface{}{*connectionID},
 	)
 }
 
 func (pg *Database) GetJobCount(tenantID string, connectionID *string, completed *bool) (count int, err error) {
 	defer returnErr("GetJobCount", &err)
+	const (
+		sqlJobBatchWhere              = " WHERE tenant_id=$1 AND status != 'COMPLETE'"
+		sqlJobBatchWhereConnection    = " WHERE tenant_id=$1 AND connection_id=$2 AND status != 'COMPLETE'"
+		sqlJobBatchWhereAll           = " WHERE tenant_id=$1"
+		sqlJobBatchWhereConnectionAll = " WHERE tenant_id=$1 AND connection_id=$2"
+	)
+
 	fetchAll := completed != nil && *completed
 
 	qWhere := sqlJobBatchWhere

@@ -9,14 +9,7 @@ import (
 	"github.com/lainio/err2"
 )
 
-func sqlEventSelectBatchFor(where, limitArg string) string {
-	return sqlEventSelect + " event " + where + " " + limitArg
-}
-
 const (
-	sqlEventBatchWhere           = " WHERE tenant_id=$1 "
-	sqlEventBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2"
-
 	sqlEventFields = "tenant_id, connection_id, job_id, description, read"
 	sqlEventInsert = "INSERT INTO event " + "(" + sqlEventFields + ") " +
 		"VALUES ($1, $2, $3, $4, $5) RETURNING id, created, cursor"
@@ -114,11 +107,12 @@ func (pg *Database) GetEvent(id, tenantID string) (e *model.Event, err error) {
 func (pg *Database) getEventsForQuery(
 	queries *queryInfo,
 	batch *paginator.BatchInfo,
+	tenantID string,
 	initialArgs []interface{},
 ) (e *model.Events, err error) {
 	defer returnErr("GetEvents", &err)
 
-	query, args := getBatchQuery(queries, batch, initialArgs)
+	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
 	rows, err := pg.db.Query(query, args...)
 	err2.Check(err)
 	defer rows.Close()
@@ -164,35 +158,66 @@ func (pg *Database) getEventsForQuery(
 	return e, err
 }
 
+func sqlEventBatchWhere(cursorParam, connectionParam, limitParam string, desc, before bool) string {
+	const whereTenantID = " WHERE tenant_id=$1 "
+	cursorOrder := sqlOrderByAsc("")
+	cursor := ""
+	connection := ""
+	compareChar := sqlGreaterThan
+	if before {
+		compareChar = sqlLessThan
+	}
+	if connectionParam != "" {
+		connection = " AND connection_id = " + connectionParam + " "
+	}
+	if cursorParam != "" {
+		cursor = " AND cursor " + compareChar + cursorParam + " "
+		if desc {
+			cursor = " AND cursor " + compareChar + cursorParam + " "
+		}
+	}
+	if desc {
+		cursorOrder = sqlOrderByDesc("")
+	}
+	where := whereTenantID + cursor + connection
+	return sqlEventSelect + " event " + where + cursorOrder + " " + limitParam
+}
+
 func (pg *Database) GetEvents(info *paginator.BatchInfo, tenantID string, connectionID *string) (c *model.Events, err error) {
 	if connectionID == nil {
 		return pg.getEventsForQuery(&queryInfo{
-			Asc:        sqlEventSelectBatchFor(sqlEventBatchWhere+sqlOrderByAsc(""), "$2"),
-			Desc:       sqlEventSelectBatchFor(sqlEventBatchWhere+sqlOrderByDesc(""), "$2"),
-			AfterAsc:   sqlEventSelectBatchFor(sqlEventBatchWhere+" AND cursor > $2"+sqlOrderByAsc(""), "$3"),
-			AfterDesc:  sqlEventSelectBatchFor(sqlEventBatchWhere+" AND cursor > $2"+sqlOrderByDesc(""), "$3"),
-			BeforeAsc:  sqlEventSelectBatchFor(sqlEventBatchWhere+" AND cursor < $2"+sqlOrderByAsc(""), "$3"),
-			BeforeDesc: sqlEventSelectBatchFor(sqlEventBatchWhere+" AND cursor < $2"+sqlOrderByDesc(""), "$3"),
+			Asc:        sqlEventBatchWhere("", "", "$2", false, false),
+			Desc:       sqlEventBatchWhere("", "", "$2", true, false),
+			AfterAsc:   sqlEventBatchWhere("$2", "", "$3", false, false),
+			AfterDesc:  sqlEventBatchWhere("$2", "", "$3", true, false),
+			BeforeAsc:  sqlEventBatchWhere("$2", "", "$3", false, true),
+			BeforeDesc: sqlEventBatchWhere("$2", "", "$3", true, true),
 		},
 			info,
-			[]interface{}{tenantID},
+			tenantID,
+			[]interface{}{},
 		)
 	}
 	return pg.getEventsForQuery(&queryInfo{
-		Asc:        sqlEventSelectBatchFor(sqlEventBatchWhereConnection+sqlOrderByAsc(""), "$3"),
-		Desc:       sqlEventSelectBatchFor(sqlEventBatchWhereConnection+sqlOrderByDesc(""), "$3"),
-		AfterAsc:   sqlEventSelectBatchFor(sqlEventBatchWhereConnection+" AND cursor > $3"+sqlOrderByAsc(""), "$4"),
-		AfterDesc:  sqlEventSelectBatchFor(sqlEventBatchWhereConnection+" AND cursor > $3"+sqlOrderByDesc(""), "$4"),
-		BeforeAsc:  sqlEventSelectBatchFor(sqlEventBatchWhereConnection+" AND cursor < $3"+sqlOrderByAsc(""), "$4"),
-		BeforeDesc: sqlEventSelectBatchFor(sqlEventBatchWhereConnection+" AND cursor < $3"+sqlOrderByDesc(""), "$4"),
+		Asc:        sqlEventBatchWhere("", "$2", "$3", false, false),
+		Desc:       sqlEventBatchWhere("", "$2", "$3", true, false),
+		AfterAsc:   sqlEventBatchWhere("$2", "$3", "$4", false, false),
+		AfterDesc:  sqlEventBatchWhere("$2", "$3", "$4", true, false),
+		BeforeAsc:  sqlEventBatchWhere("$2", "$3", "$4", false, true),
+		BeforeDesc: sqlEventBatchWhere("$2", "$3", "$4", true, true),
 	},
 		info,
-		[]interface{}{tenantID, *connectionID},
+		tenantID,
+		[]interface{}{*connectionID},
 	)
 }
 
 func (pg *Database) GetEventCount(tenantID string, connectionID *string) (count int, err error) {
 	defer returnErr("GetEventCount", &err)
+	const (
+		sqlEventBatchWhere           = " WHERE tenant_id=$1 "
+		sqlEventBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2"
+	)
 	count, err = pg.getCount(
 		"event",
 		sqlEventBatchWhere,

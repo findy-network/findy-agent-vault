@@ -21,6 +21,13 @@ const (
 	dbName = "vault"
 )
 
+const (
+	sqlGreaterThan = " > "
+	sqlLessThan    = " < "
+	sqlAsc         = "ASC"
+	sqlDesc        = "DESC"
+)
+
 type PostgresErrorCode string
 
 const (
@@ -63,10 +70,14 @@ type queryInfo struct {
 func getBatchQuery(
 	queries *queryInfo,
 	batch *paginator.BatchInfo,
+	tenantID string,
 	initialArgs []interface{},
 ) (query string, args []interface{}) {
 	args = make([]interface{}, 0)
-	args = append(args, initialArgs...)
+	if tenantID != "" {
+		args = append(args, tenantID)
+	}
+
 	if batch.Tail {
 		query = queries.Desc
 		if batch.After > 0 {
@@ -87,6 +98,7 @@ func getBatchQuery(
 	} else if batch.Before > 0 {
 		args = append(args, batch.Before)
 	}
+	args = append(args, initialArgs...)
 
 	args = append(args, batch.Count+1)
 	return query, args

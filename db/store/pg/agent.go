@@ -32,6 +32,7 @@ func (pg *Database) GetListenerAgents(info *paginator.BatchInfo) (a *model.Agent
 		BeforeDesc: sqlAgentSelect + " WHERE cursor < $1 AND" + jwtNotNull + sqlOrderByDesc("") + " $2",
 	},
 		info,
+		"",
 		[]interface{}{},
 	)
 
