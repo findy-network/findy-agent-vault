@@ -19,14 +19,29 @@ func userListenClient(a *model.Agent) client.Conn {
 	return client.TryOpen(a.AgentID, config)
 }
 
-func (f *Agency) getStatus(conn client.Conn, notification *agency.Notification) (*agency.ProtocolStatus, error) {
+func (f *Agency) getStatus(conn client.Conn, notification *agency.Notification) (status *agency.ProtocolStatus, ok bool) {
+	var err error
+
 	ctx := context.Background()
 	didComm := agency.NewDIDCommClient(conn)
-	return didComm.Status(ctx, &agency.ProtocolID{
+	status, err = didComm.Status(ctx, &agency.ProtocolID{
 		TypeId:           notification.ProtocolType,
 		Id:               notification.ProtocolId,
 		NotificationTime: notification.Timestamp,
 	})
+
+	if err != nil {
+		glog.Errorf("Unable to fetch protocol status for %s (%s)", notification.ProtocolId, err.Error())
+		return
+	}
+
+	if status == nil {
+		glog.Errorf("Received invalid protocol status for %s", notification.ProtocolId)
+		return
+	}
+
+	ok = true
+	return
 }
 
 func (f *Agency) handleStatus(
@@ -37,6 +52,11 @@ func (f *Agency) handleStatus(
 	switch notification.ProtocolType {
 	case agency.Protocol_CONNECT:
 		connection := status.GetConnection()
+		if connection == nil {
+			glog.Errorf("Received invalid connection object for %s", job.JobID)
+			return
+		}
+
 		f.vault.AddConnection(
 			job,
 			connection.MyDid,
@@ -47,6 +67,11 @@ func (f *Agency) handleStatus(
 
 	case agency.Protocol_BASIC_MESSAGE:
 		message := status.GetBasicMessage()
+		if message == nil {
+			glog.Errorf("Received invalid message object for %s", job.JobID)
+			return
+		}
+
 		f.vault.AddMessage(
 			job,
 			message.Content,
@@ -80,6 +105,11 @@ func (f *Agency) handleAction(
 	switch notification.ProtocolType {
 	case agency.Protocol_ISSUE:
 		credential := status.GetIssue()
+		if credential == nil {
+			glog.Errorf("Received invalid credential issue object for %s", job.JobID)
+			return
+		}
+
 		role := graph.CredentialRoleHolder
 		if notification.Role != agency.Protocol_ADDRESSEE {
 			role = graph.CredentialRoleIssuer
@@ -95,6 +125,11 @@ func (f *Agency) handleAction(
 		f.vault.AddCredential(job, role, credential.SchemaId, credential.CredDefId, values, false)
 	case agency.Protocol_PROOF:
 		proof := status.GetProof()
+		if proof == nil {
+			glog.Errorf("Received invalid proof object for %s", job.JobID)
+			return
+		}
+
 		role := graph.ProofRoleProver
 		if notification.Role != agency.Protocol_ADDRESSEE {
 			role = graph.ProofRoleVerifier
@@ -108,8 +143,8 @@ func (f *Agency) handleAction(
 				CredDefID: v.CredDefId,
 			})
 		}
-		f.vault.AddProof(job, role, attributes, false)
 		// TODO: what if we are verifier?
+		f.vault.AddProof(job, role, attributes, false)
 	case agency.Protocol_NONE:
 	case agency.Protocol_TRUST_PING:
 	case agency.Protocol_CONNECT:
@@ -134,6 +169,7 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 			// TODO: reconnect?
 		})
 
+		// TODO: fail job if error happens?
 		for {
 			status, ok := <-ch
 			if !ok {
@@ -152,9 +188,8 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 				ConnectionID: status.Notification.ConnectionId,
 			}
 
-			protocolStatus, statusErr := f.getStatus(conn, status.Notification)
-			if err != nil {
-				glog.Error(statusErr)
+			protocolStatus, ok := f.getStatus(conn, status.Notification)
+			if !ok {
 				continue
 			}
 
