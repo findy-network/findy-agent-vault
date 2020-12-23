@@ -260,7 +260,11 @@ func (pg *Database) getProofsForQuery(
 	}
 
 	// ensure also last proof is added
-	if prevProof.ID != p.Proofs[len(p.Proofs)-1].ID {
+	lastProofID := ""
+	if len(p.Proofs) > 0 {
+		lastProofID = p.Proofs[len(p.Proofs)-1].ID
+	}
+	if prevProof.ID != lastProofID {
 		p.Proofs = append(p.Proofs, prevProof)
 	}
 
