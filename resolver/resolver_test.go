@@ -28,7 +28,7 @@ var (
 )
 
 func testContext() context.Context {
-	u := server.CreateTestToken("test")
+	u := server.NewServer(nil, "test-secret").CreateTestToken("test")
 	ctx := context.WithValue(context.Background(), "user", u)
 	return ctx
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/google/uuid"
 	"github.com/lainio/err2"
@@ -18,16 +17,15 @@ import (
 	"github.com/findy-network/findy-agent-vault/utils"
 )
 
-const defaultPort = "8085"
+var srv *server.VaultServer
 
 func TokenHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer err2.Catch(func(err error) {
-			glog.Error("ERROR generation token:", err.Error())
+			glog.Error("ERROR generating token:", err.Error())
 		})
 
-		// TODO
-		token, err := server.CreateToken(uuid.New().String())
+		token, err := srv.CreateToken(uuid.New().String())
 		err2.Check(err)
 
 		w.Header().Add("Content-Type", "text/plain")
@@ -38,16 +36,13 @@ func TokenHandler() http.HandlerFunc {
 
 func main() {
 	utils.SetLogDefaults()
-	srv := server.Server(resolver.InitResolver(true, false, true))
+	config := utils.LoadConfig()
+	srv = server.NewServer(resolver.InitResolver(true, true, true), config.JWTKey)
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	http.Handle("/query", srv.Handle())
 	http.Handle("/token", cors.AllowAll().Handler(TokenHandler()))
 
-	glog.Infof("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	glog.Infof("connect to http://localhost:%d/ for GraphQL playground", config.ServerPort)
+	log.Fatal(http.ListenAndServe(config.Address, nil))
 }

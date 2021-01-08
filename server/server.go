@@ -22,6 +22,11 @@ const (
 	persistedQueryCacheSize = 100
 )
 
+type VaultServer struct {
+	server      *handler.Server
+	authChecker *jwtChecker
+}
+
 func schema(resolver generated.ResolverRoot) graphql.ExecutableSchema {
 	return generated.NewExecutableSchema(generated.Config{Resolvers: resolver})
 }
@@ -33,7 +38,7 @@ func logRequest(next http.Handler) http.Handler {
 	})
 }
 
-func Server(resolver generated.ResolverRoot) http.Handler {
+func NewServer(resolver generated.ResolverRoot, jwtSecret string) *VaultServer {
 	srv := handler.New(schema(resolver))
 
 	// TODO: figure out CORS policy for our WS use case
@@ -58,6 +63,15 @@ func Server(resolver generated.ResolverRoot) http.Handler {
 		Cache: lru.New(persistedQueryCacheSize),
 	})
 
+	authChecker := newJWTChecker(jwtSecret)
+
+	return &VaultServer{
+		server:      srv,
+		authChecker: authChecker,
+	}
+}
+
+func (v *VaultServer) Handle() http.Handler {
 	// TODO: figure out CORS policy for our HTTP use case
-	return cors.AllowAll().Handler(logRequest(jwtChecker(srv)))
+	return cors.AllowAll().Handler(logRequest(v.authChecker.handler(v.server)))
 }
