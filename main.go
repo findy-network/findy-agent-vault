@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/findy-network/findy-agent-vault/resolver"
 	"github.com/findy-network/findy-agent-vault/utils"
@@ -12,20 +11,14 @@ import (
 	"github.com/findy-network/findy-agent-vault/server"
 )
 
-const defaultPort = "8085"
-
-var gqlResolver *resolver.Resolver
-
 func main() {
 	utils.SetLogDefaults()
-	gqlResolver = resolver.InitResolver(false, false, false)
+	config := utils.LoadConfig()
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
-	srv := server.Server(gqlResolver)
-	http.Handle("/query", srv)
+	gqlResolver := resolver.InitResolver(false, false, false)
 
-	glog.Fatal(http.ListenAndServe(":"+port, nil))
+	srv := server.NewServer(gqlResolver, config.JWTKey)
+	http.Handle("/query", srv.Handle())
+
+	glog.Fatal(http.ListenAndServe(config.Address, nil))
 }
