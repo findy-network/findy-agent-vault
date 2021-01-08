@@ -3,8 +3,8 @@ package server
 import (
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/findy-network/findy-agent-vault/db/fake"
+	"github.com/form3tech-oss/jwt-go"
 )
 
 const (
