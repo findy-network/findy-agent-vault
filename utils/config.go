@@ -17,6 +17,9 @@ type Configuration struct {
 	Address          string
 	ServerPort       int    `mapstructure:"server_port"`
 	JWTKey           string `mapstructure:"jwt_key"`
+	DBHost           string `mapstructure:"db_host"`
+	DBPort           int    `mapstructure:"db_port"`
+	DBPassword       string `mapstructure:"db_password"`
 	UseMockDB        bool
 	UseMockAgency    bool
 	GenerateFakeData bool
@@ -32,6 +35,8 @@ func LoadConfig() *Configuration {
 	v.SetEnvPrefix("fav")
 	v.SetDefault("server_port", defaultPort)
 	v.SetDefault("jwt_key", defaultJWTSecret)
+	v.SetDefault("db_host", "localhost")
+	v.SetDefault("db_port", 5432)
 
 	viper.SetConfigName("config.yaml")
 	viper.AddConfigPath(".")
