@@ -14,9 +14,12 @@ const defaultPort = "8085"
 const defaultJWTSecret = "mySuperSecretKeyLol"
 
 type Configuration struct {
-	Address    string
-	ServerPort int    `mapstructure:"server_port"`
-	JWTKey     string `mapstructure:"jwt_key"`
+	Address          string
+	ServerPort       int    `mapstructure:"server_port"`
+	JWTKey           string `mapstructure:"jwt_key"`
+	UseMockDB        bool
+	UseMockAgency    bool
+	GenerateFakeData bool
 }
 
 func LoadConfig() *Configuration {

@@ -15,7 +15,7 @@ func main() {
 	utils.SetLogDefaults()
 	config := utils.LoadConfig()
 
-	gqlResolver := resolver.InitResolver(false, false, false)
+	gqlResolver := resolver.InitResolver(config)
 
 	srv := server.NewServer(gqlResolver, config.JWTKey)
 	http.Handle("/query", srv.Handle())
