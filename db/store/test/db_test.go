@@ -107,7 +107,7 @@ func setup() {
 	testConnection.Invited = false
 
 	DBs = append(DBs, []*testableDB{{
-		db:             pg.InitDB("file://../../migrations", "5433", true),
+		db:             pg.InitDB("file://../../migrations", "localhost", os.Getenv("FAV_DB_PASSWORD"), 5433, true),
 		name:           "pg",
 		testConnection: testConnection,
 	}, {
