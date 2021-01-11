@@ -37,7 +37,10 @@ func TokenHandler() http.HandlerFunc {
 func main() {
 	utils.SetLogDefaults()
 	config := utils.LoadConfig()
-	srv = server.NewServer(resolver.InitResolver(true, true, true), config.JWTKey)
+	config.UseMockDB = true
+	config.UseMockAgency = true
+	config.GenerateFakeData = true
+	srv = server.NewServer(resolver.InitResolver(config), config.JWTKey)
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv.Handle())

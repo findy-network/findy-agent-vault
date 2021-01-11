@@ -30,9 +30,9 @@ type Resolver struct {
 	eventSubscribers *subscriberRegister
 }
 
-func InitResolver(mockDB, mockAgency, fakeData bool) *Resolver {
+func InitResolver(config *utils.Configuration) *Resolver {
 	var db store.DB
-	if mockDB {
+	if config.UseMockDB {
 		db = mock.InitState()
 	} else {
 		db = pg.InitDB("file://db/migrations", "5432", false)
@@ -46,12 +46,12 @@ func InitResolver(mockDB, mockAgency, fakeData bool) *Resolver {
 	}
 
 	aType := agencys.AgencyTypeMock
-	if !mockAgency {
+	if !config.UseMockAgency {
 		aType = agencys.AgencyTypeFindyGRPC
 	}
-	r.agency = agencys.InitAgency(aType, r, listenerAgents)
+	r.agency = agencys.InitAgency(aType, r, listenerAgents, config)
 
-	if fakeData {
+	if config.GenerateFakeData {
 		fake.AddData(db)
 	}
 

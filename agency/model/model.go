@@ -1,6 +1,9 @@
 package model
 
-import "github.com/findy-network/findy-agent-vault/graph/model"
+import (
+	"github.com/findy-network/findy-agent-vault/graph/model"
+	"github.com/findy-network/findy-agent-vault/utils"
+)
 
 type JobInfo struct {
 	TenantID     string
@@ -35,7 +38,7 @@ type Agent struct {
 }
 
 type Agency interface {
-	Init(l Listener, agents []*Agent)
+	Init(l Listener, agents []*Agent, config *utils.Configuration)
 	AddAgent(agent *Agent) error
 
 	Invite(a *Agent) (string, string, error)
