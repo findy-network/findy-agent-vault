@@ -37,6 +37,7 @@ func LoadConfig() *Configuration {
 	v.SetDefault("jwt_key", defaultJWTSecret)
 	v.SetDefault("db_host", "localhost")
 	v.SetDefault("db_port", 5432)
+	v.SetDefault("db_password", "")
 
 	viper.SetConfigName("config.yaml")
 	viper.AddConfigPath(".")
