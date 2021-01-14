@@ -1,5 +1,3 @@
-// +build findy_grpc
-
 package findy
 
 import (
