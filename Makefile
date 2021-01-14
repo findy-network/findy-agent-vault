@@ -67,12 +67,9 @@ db_client_test:
 	docker run -it --rm --network host jbergknoff/postgresql-client postgres://postgres:$(FAV_DB_PASSWORD)@localhost:5433/vault?sslmode=disable
 
 check:
-	go build -tags findy_grpc ./...
-	go test -tags findy_grpc ./...
-	golangci-lint --build-tags findy_grpc run
-
-run_findy:
-	go run -tags findy_grpc tools/playground/playground.go
+	go build ./...
+	go test ./...
+	golangci-lint run
 
 remod:
 	rm go*
