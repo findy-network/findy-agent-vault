@@ -3,7 +3,6 @@ package pg
 import (
 	"database/sql"
 	"fmt"
-	"os"
 
 	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/paginator"
@@ -122,15 +121,10 @@ type Database struct {
 	db *sql.DB
 }
 
-func InitDB(migratePath, port string, reset bool) store.DB {
-	host := os.Getenv("VAULT_POSTGRES_HOST")
-	if host == "" {
-		host = "localhost"
-	}
-
-	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
+func InitDB(migratePath, host, password string, port int, reset bool) store.DB {
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, os.Getenv("VAULT_POSTGRES_PASSWORD"), dbName)
+		host, port, user, password, dbName)
 	sqlDB, err := sql.Open("postgres", psqlInfo)
 	err2.Check(err)
 
@@ -165,7 +159,7 @@ func InitDB(migratePath, port string, reset bool) store.DB {
 	err = sqlDB.Ping()
 	err2.Check(err)
 
-	glog.Infof("successfully connected to postgres %s:%s\n", host, port)
+	glog.Infof("successfully connected to postgres %s:%d\n", host, port)
 	return &Database{db: sqlDB}
 }
 

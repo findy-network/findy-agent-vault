@@ -11,8 +11,6 @@ import (
 	"github.com/findy-network/findy-agent-vault/resolver"
 )
 
-var testToken string = createTestToken()
-
 const testQuery = "{\n  __schema {\n    queryType {\n      name\n    }\n  }\n}"
 
 func queryJSON(content string) string {
@@ -24,14 +22,16 @@ func queryJSON(content string) string {
 }
 
 func doQuery(query string, auth bool) (payload JSONPayload) {
+	srv := NewServer(&resolver.Resolver{}, "test-secret")
+
 	request, _ := http.NewRequestWithContext(context.TODO(), http.MethodPost, "/query", strings.NewReader(queryJSON(query)))
 	request.Header.Set("Content-Type", "application/json")
 	if auth {
-		request.Header.Set("Authorization", "Bearer "+testToken)
+		request.Header.Set("Authorization", "Bearer "+srv.createTestToken())
 	}
 	response := httptest.NewRecorder()
 
-	Server(&resolver.Resolver{}).ServeHTTP(response, request)
+	srv.Handle().ServeHTTP(response, request)
 
 	bytes := response.Body.Bytes()
 	_ = json.Unmarshal(bytes, &payload)

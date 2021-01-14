@@ -28,7 +28,7 @@ var (
 )
 
 func testContext() context.Context {
-	u := server.CreateTestToken("test")
+	u := server.NewServer(nil, "test-secret").CreateTestToken("test")
 	ctx := context.WithValue(context.Background(), "user", u)
 	return ctx
 }
@@ -73,7 +73,8 @@ func testPaginationErrors(t *testing.T, objName string, ex executor) {
 
 func setup() {
 	utils.SetLogDefaults()
-	r = InitResolver(true, true, false)
+
+	r = InitResolver(&utils.Configuration{UseMockDB: true, UseMockAgency: true})
 	size := totalCount
 	a, c := test.AddAgentAndConnections(r.db, fake.FakeCloudDID, size)
 	testConnectionID = c[0].ID

@@ -35,7 +35,7 @@ init-test:
 	-docker rm findy-agent-vault-test-db
 	-rm -rf .db/test
 	docker run --name findy-agent-vault-test-db \
-		-e POSTGRES_PASSWORD=$(VAULT_POSTGRES_PASSWORD) \
+		-e POSTGRES_PASSWORD=$(FAV_DB_PASSWORD) \
 		-e POSTGRES_DB=vault \
 		-v $(PWD)/.db/test:/var/lib/postgresql/data \
 		-p 5433:5432 \
@@ -54,25 +54,22 @@ db:
 	-docker rm findy-agent-vault-db
 	-rm -rf .db/data
 	docker run --name findy-agent-vault-db \
-		-e POSTGRES_PASSWORD=$(VAULT_POSTGRES_PASSWORD) \
+		-e POSTGRES_PASSWORD=$(FAV_DB_PASSWORD) \
 		-e POSTGRES_DB=vault \
 		-v $(PWD)/.db/data:/var/lib/postgresql/data \
 		-p 5432:5432 \
 		-d postgres:13.1-alpine
 
 db_client:
-	docker run -it --rm --network host jbergknoff/postgresql-client postgres://postgres:$(VAULT_POSTGRES_PASSWORD)@localhost:5432/vault?sslmode=disable
+	docker run -it --rm --network host jbergknoff/postgresql-client postgres://postgres:$(FAV_DB_PASSWORD)@localhost:5432/vault?sslmode=disable
 
 db_client_test:
-	docker run -it --rm --network host jbergknoff/postgresql-client postgres://postgres:$(VAULT_POSTGRES_PASSWORD)@localhost:5433/vault?sslmode=disable
+	docker run -it --rm --network host jbergknoff/postgresql-client postgres://postgres:$(FAV_DB_PASSWORD)@localhost:5433/vault?sslmode=disable
 
 check:
-	go build -tags findy_grpc ./...
-	go test -tags findy_grpc ./...
-	golangci-lint --build-tags findy_grpc run
-
-run_findy:
-	go run -tags findy_grpc tools/playground/playground.go
+	go build ./...
+	go test ./...
+	golangci-lint run
 
 remod:
 	rm go*

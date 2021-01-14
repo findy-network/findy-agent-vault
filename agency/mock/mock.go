@@ -6,6 +6,7 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/db/fake"
+	"github.com/findy-network/findy-agent-vault/utils"
 
 	"github.com/bxcodec/faker"
 	"github.com/google/uuid"
@@ -16,7 +17,7 @@ type Mock struct {
 	listener model.Listener
 }
 
-func (m *Mock) Init(l model.Listener, agents []*model.Agent) {
+func (m *Mock) Init(l model.Listener, agents []*model.Agent, config *utils.Configuration) {
 	m.listener = l
 }
 

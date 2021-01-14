@@ -1,5 +1,3 @@
-// +build findy_grpc
-
 package findy
 
 import (
@@ -11,6 +9,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/findy-network/findy-grpc/agency/client"
 	"github.com/findy-network/findy-grpc/agency/client/async"
+	"github.com/findy-network/findy-grpc/jwt"
 	"github.com/golang/glog"
 	"github.com/google/uuid"
 	"github.com/lainio/err2"
@@ -35,7 +34,7 @@ func userCmdPw(a *model.Agent, connectionID string) *async.Pairwise {
 	return async.NewPairwise(userCmdConn(a), connectionID)
 }
 
-func (f *Agency) Init(listener model.Listener, agents []*model.Agent) {
+func (f *Agency) Init(listener model.Listener, agents []*model.Agent, config *utils.Configuration) {
 	f.ctx = context.Background()
 	f.vault = listener
 	// TODO: release protocol when saved
@@ -49,6 +48,7 @@ func (f *Agency) Init(listener model.Listener, agents []*model.Agent) {
 			glog.Error(err)
 		}
 	}
+	jwt.SetJWTSecret(config.JWTKey)
 }
 
 func (f *Agency) AddAgent(agent *model.Agent) error {
