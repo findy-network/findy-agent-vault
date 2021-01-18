@@ -33,22 +33,10 @@ func constructProofAttributeInsert(count int) string {
 	return result + " RETURNING id"
 }
 
-func sqlProofFields(tableName string) string {
-	if tableName != "" {
-		tableName += "."
-	}
-	columnCount := 5
-	args := make([]interface{}, columnCount)
-	for i := 0; i < columnCount; i++ {
-		args[i] = tableName
-	}
-	q := fmt.Sprintf("%stenant_id, %sconnection_id,"+
-		" %srole, %sinitiated_by_us, %sresult", args...)
-	return q
-}
-
 var (
-	sqlProofBaseFields = sqlProofFields("")
+	proofFields = []string{"tenant_id", "connection_id", "role", "initiated_by_us", "result"}
+
+	sqlProofBaseFields = sqlFields("", proofFields)
 	sqlProofInsert     = "INSERT INTO proof " + "(" + sqlProofBaseFields + ") " +
 		"VALUES ($1, $2, $3, $4, $5) RETURNING id, created, cursor"
 	sqlProofSelect = "SELECT proof.id, " + sqlProofBaseFields +
@@ -62,7 +50,7 @@ const (
 func (pg *Database) getProofForObject(objectName, columnName, objectID, tenantID string) (c *model.Proof, err error) {
 	defer returnErr("getProofForObject", &err)
 
-	sqlProofJoinSelect := "SELECT proof.id, " + sqlProofFields("proof") +
+	sqlProofJoinSelect := "SELECT proof.id, " + sqlFields("proof", proofFields) +
 		", proof.created, proof.approved, proof.verified, proof.failed, proof.cursor," +
 		" proof_attribute.id, proof_attribute.name, proof_attribute.value, proof_attribute.cred_def_id FROM"
 	sqlProofSelectByObjectID := sqlProofJoinSelect + " proof " + sqlProofJoin +
@@ -301,7 +289,7 @@ func sqlProofBatchWhere(cursorParam, connectionParam, limitParam string, desc, b
 	const verifiedNotNull = " AND verified IS NOT NULL "
 	const whereTenantID = " WHERE tenant_id=$1 "
 	order := sqlAsc
-	cursorOrder := sqlOrderByAsc("")
+	cursorOrder := sqlOrderByCursorAsc
 	cursor := ""
 	connection := ""
 	compareChar := sqlGreaterThan
@@ -319,7 +307,7 @@ func sqlProofBatchWhere(cursorParam, connectionParam, limitParam string, desc, b
 	}
 	if desc {
 		order = sqlDesc
-		cursorOrder = sqlOrderByDesc("")
+		cursorOrder = sqlOrderByCursorDesc
 	}
 	where := whereTenantID + cursor + connection + verifiedNotNull
 	return sqlProofSelect + " (SELECT * FROM proof " + where + cursorOrder + " " + limitParam + ") AS proof " +

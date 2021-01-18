@@ -33,22 +33,9 @@ func constructCredentialAttributeInsert(count int) string {
 	return result + " RETURNING id"
 }
 
-func sqlCredentialFields(tableName string) string {
-	if tableName != "" {
-		tableName += "."
-	}
-	columnCount := 6
-	args := make([]interface{}, columnCount)
-	for i := 0; i < columnCount; i++ {
-		args[i] = tableName
-	}
-	q := fmt.Sprintf("%stenant_id, %sconnection_id,"+
-		" %srole, %sschema_id, %scred_def_id, %sinitiated_by_us", args...)
-	return q
-}
-
 var (
-	sqlCredentialBaseFields = sqlCredentialFields("")
+	credentialFields        = []string{"tenant_id", "connection_id", "role", "schema_id", "cred_def_id", "initiated_by_us"}
+	sqlCredentialBaseFields = sqlFields("", credentialFields)
 	sqlCredentialInsert     = "INSERT INTO credential " + "(" + sqlCredentialBaseFields + ") " +
 		"VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created, cursor"
 	sqlCredentialSelect = "SELECT credential.id, " + sqlCredentialBaseFields +
@@ -62,7 +49,7 @@ const (
 func (pg *Database) getCredentialForObject(objectName, columnName, objectID, tenantID string) (c *model.Credential, err error) {
 	defer returnErr("getCredentialForObject", &err)
 
-	sqlCredentialJoinSelect := "SELECT credential.id, " + sqlCredentialFields("credential") +
+	sqlCredentialJoinSelect := "SELECT credential.id, " + sqlFields("credential", credentialFields) +
 		", credential.created, credential.approved, credential.issued, credential.failed, credential.cursor," +
 		" credential_attribute.id, credential_attribute.name, credential_attribute.value FROM"
 	sqlCredentialSelectByObjectID := sqlCredentialJoinSelect + " credential " + sqlCredentialJoin +
@@ -304,7 +291,7 @@ func sqlCredentialBatchWhere(cursorParam, connectionParam, limitParam string, de
 	const issuedNotNull = " AND issued IS NOT NULL "
 	const whereTenantID = " WHERE tenant_id=$1 "
 	order := sqlAsc
-	cursorOrder := sqlOrderByAsc("")
+	cursorOrder := sqlOrderByCursorAsc
 	cursor := ""
 	connection := ""
 	compareChar := sqlGreaterThan
@@ -322,7 +309,7 @@ func sqlCredentialBatchWhere(cursorParam, connectionParam, limitParam string, de
 	}
 	if desc {
 		order = sqlDesc
-		cursorOrder = sqlOrderByDesc("")
+		cursorOrder = sqlOrderByCursorDesc
 	}
 	where := whereTenantID + cursor + connection + issuedNotNull
 	return sqlCredentialSelect + " (SELECT * FROM credential " + where + cursorOrder + " " + limitParam + ") AS credential " +

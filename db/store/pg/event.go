@@ -160,7 +160,7 @@ func (pg *Database) getEventsForQuery(
 
 func sqlEventBatchWhere(cursorParam, connectionParam, limitParam string, desc, before bool) string {
 	const whereTenantID = " WHERE tenant_id=$1 "
-	cursorOrder := sqlOrderByAsc("")
+	cursorOrder := sqlOrderByCursorAsc
 	cursor := ""
 	connection := ""
 	compareChar := sqlGreaterThan
@@ -177,7 +177,7 @@ func sqlEventBatchWhere(cursorParam, connectionParam, limitParam string, desc, b
 		}
 	}
 	if desc {
-		cursorOrder = sqlOrderByDesc("")
+		cursorOrder = sqlOrderByCursorDesc
 	}
 	where := whereTenantID + cursor + connection
 	return sqlEventSelect + " event " + where + cursorOrder + " " + limitParam

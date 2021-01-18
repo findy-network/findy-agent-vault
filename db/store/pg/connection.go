@@ -2,7 +2,6 @@ package pg
 
 import (
 	"database/sql"
-	"fmt"
 	"sort"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
@@ -10,56 +9,28 @@ import (
 	"github.com/lainio/err2"
 )
 
-func sqlWhereTenantAsc(orderBy string) string {
-	return " WHERE tenant_id=$1 " + sqlOrderByAsc(orderBy)
-}
-
-func sqlWhereTenantDesc(orderBy string) string {
-	return " WHERE tenant_id=$1 " + sqlOrderByDesc(orderBy)
-}
-
-func sqlWhereTenantAscAfter(orderBy string) string {
-	return " WHERE tenant_id=$1 AND cursor > $2" + sqlOrderByAsc(orderBy)
-}
-
-func sqlWhereTenantDescAfter(orderBy string) string {
-	return " WHERE tenant_id=$1 AND cursor > $2" + sqlOrderByDesc(orderBy)
-}
-
-func sqlWhereTenantAscBefore(orderBy string) string {
-	return " WHERE tenant_id=$1 AND cursor < $2" + sqlOrderByAsc(orderBy)
-}
-
-func sqlWhereTenantDescBefore(orderBy string) string {
-	return " WHERE tenant_id=$1 AND cursor < $2" + sqlOrderByDesc(orderBy)
-}
-
-func sqlConnectionFields(tableName string) string {
-	if tableName != "" {
-		tableName += "."
-	}
-	columnCount := 7
-	args := make([]interface{}, columnCount)
-	for i := 0; i < columnCount; i++ {
-		args[i] = tableName
-	}
-	q := fmt.Sprintf("%sid, %stenant_id, %sour_did,"+
-		" %stheir_did, %stheir_endpoint, %stheir_label, %sinvited", args...)
-	return q
-}
-
 var (
-	sqlConnectionBaseFields = sqlConnectionFields("")
+	connectionFields        = []string{"id", "tenant_id", "our_did", "their_did", "their_endpoint", "their_label", "invited"}
+	sqlConnectionBaseFields = sqlFields("", connectionFields)
 	sqlConnectionInsert     = "INSERT INTO connection " + "(" + sqlConnectionBaseFields + ") " +
 		"VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, created, cursor"
 	sqlConnectionSelect = "SELECT " + sqlConnectionBaseFields +
 		", connection.created, connection.approved, connection.cursor FROM connection"
+
+	connectionQueryInfo = &queryInfo{
+		Asc:        sqlConnectionSelect + " WHERE tenant_id=$1 " + sqlOrderByCursorAsc + " $2",
+		Desc:       sqlConnectionSelect + " WHERE tenant_id=$1 " + sqlOrderByCursorDesc + " $2",
+		AfterAsc:   sqlConnectionSelect + " WHERE tenant_id=$1 AND cursor > $2" + sqlOrderByCursorAsc + " $3",
+		AfterDesc:  sqlConnectionSelect + " WHERE tenant_id=$1 AND cursor > $2" + sqlOrderByCursorDesc + " $3",
+		BeforeAsc:  sqlConnectionSelect + " WHERE tenant_id=$1 AND cursor < $2" + sqlOrderByCursorAsc + " $3",
+		BeforeDesc: sqlConnectionSelect + " WHERE tenant_id=$1 AND cursor < $2" + sqlOrderByCursorDesc + " $3",
+	}
 )
 
 func (pg *Database) getConnectionForObject(objectName, columnName, objectID, tenantID string) (c *model.Connection, err error) {
 	defer returnErr("getConnectionForObject", &err)
 
-	sqlConnectionJoinSelect := "SELECT " + sqlConnectionFields("connection") +
+	sqlConnectionJoinSelect := "SELECT " + sqlFields("connection", connectionFields) +
 		", connection.created, connection.approved, connection.cursor FROM connection"
 	sqlConnectionSelectByObjectID := sqlConnectionJoinSelect +
 		" INNER JOIN " + objectName + " ON " + objectName +
@@ -148,18 +119,7 @@ func (pg *Database) GetConnection(id, tenantID string) (c *model.Connection, err
 func (pg *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (c *model.Connections, err error) {
 	defer returnErr("GetConnections", &err)
 
-	query, args := getBatchQuery(&queryInfo{
-		Asc:        sqlConnectionSelect + sqlWhereTenantAsc("") + " $2",
-		Desc:       sqlConnectionSelect + sqlWhereTenantDesc("") + " $2",
-		AfterAsc:   sqlConnectionSelect + sqlWhereTenantAscAfter("") + " $3",
-		AfterDesc:  sqlConnectionSelect + sqlWhereTenantDescAfter("") + " $3",
-		BeforeAsc:  sqlConnectionSelect + sqlWhereTenantAscBefore("") + " $3",
-		BeforeDesc: sqlConnectionSelect + sqlWhereTenantDescBefore("") + " $3",
-	},
-		info,
-		tenantID,
-		[]interface{}{},
-	)
+	query, args := getBatchQuery(connectionQueryInfo, info, tenantID, []interface{}{})
 
 	rows, err := pg.db.Query(query, args...)
 	err2.Check(err)
