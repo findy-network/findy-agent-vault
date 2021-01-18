@@ -14,9 +14,9 @@ type Agents struct {
 
 type Agent struct {
 	*base
-	AgentID      string `faker:"agentId"`
-	Label        string `faker:"first_name"`
-	RawJWT       string `faker:"-"`
+	AgentID      string  `faker:"agentId"`
+	Label        string  `faker:"first_name"`
+	RawJWT       *string `faker:"-"`
 	LastAccessed time.Time
 }
 
