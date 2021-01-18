@@ -19,18 +19,23 @@ const (
 	sqlAgentSelectByAgentID = sqlAgentSelect + " WHERE agent_id=$1"
 )
 
+var (
+	sqlAgentJwtNotNullAsc   = " raw_jwt IS NOT NULL " + sqlOrderByCursorAsc
+	sqlAgentjJwtNotNullDesc = " raw_jwt IS NOT NULL " + sqlOrderByCursorDesc
+	agentQueryInfo          = &queryInfo{
+		Asc:        sqlAgentSelect + " WHERE " + sqlAgentJwtNotNullAsc + " $1",
+		Desc:       sqlAgentSelect + " WHERE " + sqlAgentjJwtNotNullDesc + " $1",
+		AfterAsc:   sqlAgentSelect + " WHERE cursor > $1 AND" + sqlAgentJwtNotNullAsc + " $2",
+		AfterDesc:  sqlAgentSelect + " WHERE cursor > $1 AND" + sqlAgentjJwtNotNullDesc + " $2",
+		BeforeAsc:  sqlAgentSelect + " WHERE cursor < $1 AND" + sqlAgentJwtNotNullAsc + " $2",
+		BeforeDesc: sqlAgentSelect + " WHERE cursor < $1 AND" + sqlAgentjJwtNotNullDesc + " $2",
+	}
+)
+
 func (pg *Database) GetListenerAgents(info *paginator.BatchInfo) (a *model.Agents, err error) {
 	defer returnErr("GetListenerAgents", &err)
 
-	jwtNotNull := " raw_jwt IS NOT NULL "
-	query, args := getBatchQuery(&queryInfo{
-		Asc:        sqlAgentSelect + " WHERE " + jwtNotNull + sqlOrderByAsc("") + " $1",
-		Desc:       sqlAgentSelect + " WHERE " + jwtNotNull + sqlOrderByDesc("") + " $1",
-		AfterAsc:   sqlAgentSelect + " WHERE cursor > $1 AND" + jwtNotNull + sqlOrderByAsc("") + " $2",
-		AfterDesc:  sqlAgentSelect + " WHERE cursor > $1 AND" + jwtNotNull + sqlOrderByDesc("") + " $2",
-		BeforeAsc:  sqlAgentSelect + " WHERE cursor < $1 AND" + jwtNotNull + sqlOrderByAsc("") + " $2",
-		BeforeDesc: sqlAgentSelect + " WHERE cursor < $1 AND" + jwtNotNull + sqlOrderByDesc("") + " $2",
-	},
+	query, args := getBatchQuery(agentQueryInfo,
 		info,
 		"",
 		[]interface{}{},

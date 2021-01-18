@@ -25,6 +25,9 @@ const (
 	sqlLessThan    = " < "
 	sqlAsc         = "ASC"
 	sqlDesc        = "DESC"
+
+	sqlOrderByCursorAsc  = " ORDER BY cursor ASC LIMIT"
+	sqlOrderByCursorDesc = " ORDER BY cursor DESC LIMIT"
 )
 
 type PostgresErrorCode string
@@ -101,20 +104,6 @@ func getBatchQuery(
 
 	args = append(args, batch.Count+1)
 	return query, args
-}
-
-func sqlOrderByAsc(orderBy string) string {
-	if orderBy != "" {
-		orderBy = ", " + orderBy
-	}
-	return fmt.Sprintf(" ORDER BY cursor ASC %s LIMIT", orderBy)
-}
-
-func sqlOrderByDesc(orderBy string) string {
-	if orderBy != "" {
-		orderBy = ", " + orderBy
-	}
-	return fmt.Sprintf(" ORDER BY cursor DESC %s LIMIT", orderBy)
 }
 
 type Database struct {
@@ -196,4 +185,18 @@ func (pg *Database) getCount(
 	err2.Check(err)
 
 	return
+}
+
+func sqlFields(tableName string, fields []string) string {
+	if tableName != "" {
+		tableName += "."
+	}
+	q := ""
+	for i, field := range fields {
+		if i != 0 {
+			q += ","
+		}
+		q += tableName + field
+	}
+	return q
 }
