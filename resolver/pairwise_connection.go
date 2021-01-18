@@ -8,7 +8,7 @@ import (
 	"github.com/lainio/err2"
 )
 
-func (r *pairwiseConnectionResolver) totalCount(ctx context.Context, obj *model.PairwiseConnection) (c int, err error) {
+func (r *pairwiseConnectionResolver) totalCount(ctx context.Context, _ *model.PairwiseConnection) (c int, err error) {
 	defer err2.Return(&err)
 
 	// TODO: store agent data to context?
