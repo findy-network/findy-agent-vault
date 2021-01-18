@@ -85,20 +85,13 @@ linters:
     - whitespace
 issues:
   exclude-rules:
-    - path: tools/data
-      linters:
-        - dupl
-        - lll
-        - govet
-    - path: vault_
-      linters:
-        - dupl
     - path: _test.go
       linters:
         - dupl
     - path: db/store/pg/pg.go
       linters:
         - gocritic
+      text: "ptrToRefParam:"
     - path: db/fake/
       linters:
         - dupl
@@ -108,7 +101,6 @@ issues:
     - path: db/store/mock
       linters:
         - dupl
-        - unused
     - path: db/model
       linters:
         - dupl
@@ -126,9 +118,6 @@ issues:
     - path: resolver/pairwise.go
       linters:
         - dupl
-    - path: resolver/pairwise_connection.go
-      linters:
-        - unparam
     - path: resolver/resolver_test.go
       linters:
         - staticcheck

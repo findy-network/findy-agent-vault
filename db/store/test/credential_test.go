@@ -1,7 +1,6 @@
 package test
 
 import (
-	"math"
 	"sort"
 	"testing"
 	"time"
@@ -55,16 +54,10 @@ func validateCredential(t *testing.T, exp, got *model.Credential) {
 	if got.InitiatedByUs != exp.InitiatedByUs {
 		t.Errorf("Credential InitiatedByUs mismatch expected %v got %v", exp.InitiatedByUs, got.InitiatedByUs)
 	}
-	if time.Since(got.Created) > time.Second {
-		t.Errorf("Timestamp not in threshold %v", got.Created)
-	}
 	validateTimestap(t, exp.Approved, got.Approved, "Approved")
 	validateTimestap(t, exp.Issued, got.Issued, "Issued")
 	validateTimestap(t, exp.Failed, got.Failed, "Failed")
-	created := uint64(math.Round(float64(got.Created.UnixNano()) / float64(time.Millisecond.Nanoseconds())))
-	if got.Cursor != created {
-		t.Errorf("Cursor mismatch %v %v", got.Cursor, created)
-	}
+	validateCreatedTS(t, got.Cursor, &got.Created)
 	validateAttributes(t, exp.Attributes, got.Attributes)
 }
 

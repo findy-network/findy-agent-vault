@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"sort"
 	"testing"
-	"time"
 
 	"github.com/findy-network/findy-agent-vault/db/fake"
 
@@ -40,13 +39,7 @@ func validateConnection(t *testing.T, exp, got *model.Connection) {
 	if got.Invited != exp.Invited {
 		t.Errorf("Connection invited mismatch expected %v got %v", exp.Invited, got.Invited)
 	}
-	if time.Since(got.Created) > time.Second {
-		t.Errorf("Timestamp not in threshold %v", got.Created)
-	}
-	created := model.TimeToCursor(&got.Created)
-	if got.Cursor != created {
-		t.Errorf("Cursor mismatch %v %v", got.Cursor, created)
-	}
+	validateCreatedTS(t, got.Cursor, &got.Created)
 }
 
 func TestAddConnection(t *testing.T) {

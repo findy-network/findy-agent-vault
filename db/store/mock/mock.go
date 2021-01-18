@@ -35,15 +35,6 @@ func InitState() store.DB {
 	return newData()
 }
 
-func (m *mockItems) sort() {
-	m.connections.sort()
-	m.credentials.sort()
-	m.proofs.sort()
-	m.messages.sort()
-	m.events.sort()
-	m.jobs.sort()
-}
-
 type apiObject interface {
 	Identifier() string
 	Created() uint64

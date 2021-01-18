@@ -1,7 +1,6 @@
 package test
 
 import (
-	"math"
 	"sort"
 	"testing"
 	"time"
@@ -42,13 +41,7 @@ func validateJob(t *testing.T, exp, got *model.Job) {
 		t.Errorf("Job initiatedByUs mismatch expected %v got %v", exp.InitiatedByUs, got.InitiatedByUs)
 	}
 
-	if time.Since(got.Created) > time.Second {
-		t.Errorf("Timestamp not in threshold %v", got.Created)
-	}
-	created := uint64(math.Round(float64(got.Created.UnixNano()) / float64(time.Millisecond.Nanoseconds())))
-	if got.Cursor != created {
-		t.Errorf("Cursor mismatch %v %v", got.Cursor, created)
-	}
+	validateCreatedTS(t, got.Cursor, &got.Created)
 }
 
 func validateJobs(t *testing.T, expCount int, exp, got *model.Jobs) {

@@ -10,7 +10,6 @@ import (
 const (
 	AgencyTypeMock      = "MOCK"
 	AgencyTypeFindyGRPC = "FINDY_GRPC"
-	// TODO: is legacy needed?
 )
 
 func InitAgency(agencyType string, listener model.Listener, agents []*model.Agent, config *utils.Configuration) model.Agency {
