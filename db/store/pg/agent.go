@@ -20,8 +20,9 @@ const (
 )
 
 var (
-	sqlAgentJwtNotNullAsc   = " raw_jwt IS NOT NULL " + sqlOrderByCursorAsc
-	sqlAgentjJwtNotNullDesc = " raw_jwt IS NOT NULL " + sqlOrderByCursorDesc
+	sqlJwtNotSet            = " raw_jwt IS NOT NULL AND raw_jwt != ''"
+	sqlAgentJwtNotNullAsc   = sqlJwtNotSet + sqlOrderByCursorAsc
+	sqlAgentjJwtNotNullDesc = sqlJwtNotSet + sqlOrderByCursorDesc
 	agentQueryInfo          = &queryInfo{
 		Asc:        sqlAgentSelect + " WHERE " + sqlAgentJwtNotNullAsc + " $1",
 		Desc:       sqlAgentSelect + " WHERE " + sqlAgentjJwtNotNullDesc + " $1",
