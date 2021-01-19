@@ -146,10 +146,12 @@ func (m *mockListener) UpdateProof(job *model.JobInfo, approvedMs, verifiedMs, f
 }
 
 var (
-	findy = &Agency{
+	tlsPath     = "../../.github/workflows/cert"
+	dialOptions = []grpc.DialOption{grpc.WithContextDialer(dialer())}
+	findy       = &Agency{
 		vault:   &mockListener{},
-		tlsPath: "../../.github/workflows/cert",
-		options: []grpc.DialOption{grpc.WithContextDialer(dialer())},
+		tlsPath: tlsPath,
+		options: dialOptions,
 	}
 	agent = &model.Agent{RawJWT: jwt.BuildJWT("test-user")}
 
@@ -172,7 +174,7 @@ func TestMain(m *testing.M) {
 
 func TestInit(t *testing.T) {
 	const testClientID = "test"
-	testAgency := &Agency{options: []grpc.DialOption{grpc.WithContextDialer(dialer())}}
+	testAgency := &Agency{options: dialOptions, tlsPath: tlsPath}
 	testAgency.Init(
 		&mockListener{},
 		[]*model.Agent{{AgentID: testClientID, TenantID: testClientID}},
