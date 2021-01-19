@@ -148,6 +148,7 @@ func (m *mockListener) UpdateProof(job *model.JobInfo, approvedMs, verifiedMs, f
 var (
 	findy = &Agency{
 		vault:   &mockListener{},
+		tlsPath: "../../.github/workflows/cert",
 		options: []grpc.DialOption{grpc.WithContextDialer(dialer())},
 	}
 	agent = &model.Agent{RawJWT: jwt.BuildJWT("test-user")}
