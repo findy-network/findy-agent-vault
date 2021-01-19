@@ -12,8 +12,8 @@ import (
 	"github.com/lainio/err2"
 )
 
-func userListenClient(a *model.Agent) client.Conn {
-	config := client.BuildClientConnBase("", agencyHost, agencyPort, nil)
+func (f *Agency) userListenClient(a *model.Agent) client.Conn {
+	config := client.BuildClientConnBase("", agencyHost, agencyPort, f.options)
 	return client.TryOpen(a.AgentID, config)
 }
 
@@ -156,8 +156,10 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 	defer err2.Return(&err)
 	// TODO: cancellation, reconnect
 
-	conn := userListenClient(a)
+	conn := f.userListenClient(a)
 
+	// Error in registration is not notified here, instead all relevant info comes
+	// in stream callback from now on
 	ch, err := conn.Listen(f.ctx, &agency.ClientID{Id: a.TenantID})
 	err2.Check(err)
 
