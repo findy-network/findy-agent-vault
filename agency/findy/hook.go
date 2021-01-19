@@ -20,7 +20,7 @@ func (f *Agency) adminClient(user string) (conn *grpc.ClientConn, err error) {
 
 	utils.LogLow().Infoln("client with user:", user)
 
-	cfg := client.BuildClientConnBase("", agencyHost, agencyPort, f.options)
+	cfg := client.BuildClientConnBase(f.tlsPath, agencyHost, agencyPort, f.options)
 	token := auth.BuildJWT(user)
 	cfg.JWT = token
 

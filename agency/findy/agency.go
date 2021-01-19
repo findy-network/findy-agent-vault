@@ -24,11 +24,12 @@ const (
 type Agency struct {
 	vault   model.Listener
 	ctx     context.Context
+	tlsPath string
 	options []grpc.DialOption
 }
 
 func (f *Agency) userCmdConn(a *model.Agent) client.Conn {
-	config := client.BuildClientConnBase("", agencyHost, agencyPort, f.options)
+	config := client.BuildClientConnBase(f.tlsPath, agencyHost, agencyPort, f.options)
 	return client.TryAuthOpen(a.RawJWT, config)
 }
 

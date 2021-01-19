@@ -13,7 +13,7 @@ import (
 )
 
 func (f *Agency) userListenClient(a *model.Agent) client.Conn {
-	config := client.BuildClientConnBase("", agencyHost, agencyPort, f.options)
+	config := client.BuildClientConnBase(f.tlsPath, agencyHost, agencyPort, f.options)
 	return client.TryOpen(a.AgentID, config)
 }
 
