@@ -46,6 +46,8 @@ func (f *Agency) handleStatus(
 	job *model.JobInfo, notification *agency.Notification,
 	status *agency.ProtocolStatus,
 ) {
+	// TODO: check status (failed/successful?)
+
 	now := utils.CurrentTimeMs()
 	switch notification.ProtocolType {
 	case agency.Protocol_CONNECT:
