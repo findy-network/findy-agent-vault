@@ -186,7 +186,6 @@ func TestInit(t *testing.T) {
 		t.Errorf("psm hook registration failed")
 	}
 	found := false
-	fmt.Println(mockAgencyServer.clientIDs)
 	for _, clientID := range mockAgencyServer.clientIDs {
 		if clientID == testClientID {
 			found = true
