@@ -15,12 +15,12 @@ import (
 	"google.golang.org/grpc"
 )
 
-func adminClient(user string) (conn *grpc.ClientConn, err error) {
+func (f *Agency) adminClient(user string) (conn *grpc.ClientConn, err error) {
 	defer err2.Return(&err)
 
 	utils.LogLow().Infoln("client with user:", user)
 
-	cfg := client.BuildClientConnBase("", agencyHost, agencyPort, nil)
+	cfg := client.BuildClientConnBase("", agencyHost, agencyPort, f.options)
 	token := auth.BuildJWT(user)
 	cfg.JWT = token
 
@@ -35,12 +35,14 @@ func (f *Agency) listenAdminHook() (err error) {
 	// TODO: cancellation, reconnect
 	glog.Info("Start listening to PSM events.")
 
-	conn, err := adminClient("findy-root")
+	conn, err := f.adminClient("findy-root")
 	err2.Check(err)
 	opsClient := ops.NewAgencyClient(conn)
 
 	statusCh := make(chan *agency.ProtocolStatus)
 
+	// Error in registration is not notified here, instead all relevant info comes
+	// in stream callback from now on
 	stream, err := opsClient.PSMHook(f.ctx, &ops.DataHook{Id: uuid.New().String()})
 	err2.Check(err)
 	utils.LogMed().Infoln("successful start of listen PSM hook id:")

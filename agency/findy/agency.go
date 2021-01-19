@@ -37,6 +37,8 @@ func (f *Agency) userCmdPw(a *model.Agent, connectionID string) *async.Pairwise 
 }
 
 func (f *Agency) Init(listener model.Listener, agents []*model.Agent, config *utils.Configuration) {
+	jwt.SetJWTSecret(config.JWTKey)
+
 	f.ctx = context.Background()
 	f.vault = listener
 	// TODO: release protocol when saved
@@ -50,7 +52,6 @@ func (f *Agency) Init(listener model.Listener, agents []*model.Agent, config *ut
 			glog.Error(err)
 		}
 	}
-	jwt.SetJWTSecret(config.JWTKey)
 }
 
 func (f *Agency) AddAgent(agent *model.Agent) error {
@@ -64,7 +65,7 @@ func (f *Agency) Invite(a *model.Agent) (invitation, id string, err error) {
 	cmd := agency.NewAgentClient(conn)
 	id = uuid.New().String()
 
-	res, err := cmd.CreateInvitation(f.ctx, &agency.InvitationBase{Label: a.Label, Id: id})
+	res, err := cmd.CreateInvitation(context.Background(), &agency.InvitationBase{Label: a.Label, Id: id})
 	err2.Check(err)
 
 	invitation = res.JsonStr
