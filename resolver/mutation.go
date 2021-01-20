@@ -176,7 +176,7 @@ func (r *mutationResolver) addRandomMessage(ctx context.Context) (ok bool, err e
 			ConnectionID: connectionID,
 		}
 
-		r.AddMessage(job, message.Message, message.SentByMe)
+		r.AddMessage(job, &agency.Message{Message: message.Message, SentByMe: message.SentByMe})
 		ok = true
 	}
 
@@ -206,15 +206,17 @@ func (r *mutationResolver) addRandomCredential(ctx context.Context) (ok bool, er
 
 		r.AddCredential(
 			job,
-			credential.Role,
-			credential.SchemaID,
-			credential.CredDefID,
-			credential.Attributes,
-			credential.InitiatedByUs,
+			&agency.Credential{
+				Role:          credential.Role,
+				SchemaID:      credential.SchemaID,
+				CredDefID:     credential.CredDefID,
+				Attributes:    credential.Attributes,
+				InitiatedByUs: credential.InitiatedByUs,
+			},
 		)
 		time.AfterFunc(time.Second, func() {
 			now := utils.CurrentTimeMs()
-			r.UpdateCredential(job, &now, &now, nil)
+			r.UpdateCredential(job, &agency.CredentialUpdate{ApprovedMs: &now, IssuedMs: &now})
 		})
 		ok = true
 	}
@@ -245,13 +247,18 @@ func (r *mutationResolver) addRandomProof(ctx context.Context) (ok bool, err err
 
 		r.AddProof(
 			job,
-			proof.Role,
-			proof.Attributes,
-			proof.InitiatedByUs,
+			&agency.Proof{
+				Role:          proof.Role,
+				Attributes:    proof.Attributes,
+				InitiatedByUs: proof.InitiatedByUs,
+			},
 		)
 		time.AfterFunc(time.Second, func() {
 			now := utils.CurrentTimeMs()
-			r.UpdateProof(job, &now, &now, nil)
+			r.UpdateProof(job, &agency.ProofUpdate{
+				ApprovedMs: &now,
+				VerifiedMs: &now,
+			})
 		})
 		ok = true
 	}

@@ -148,7 +148,7 @@ func (r *Resolver) updateJob(job *dbModel.Job, description string) (err error) {
 	return
 }
 
-func (r *Resolver) AddConnection(info *agency.JobInfo, ourDID, theirDID, theirEndpoint, theirLabel string) {
+func (r *Resolver) AddConnection(info *agency.JobInfo, data *agency.Connection) {
 	defer err2.Catch(func(err error) {
 		glog.Errorf("Encountered error when adding connection %s", err.Error())
 	})
@@ -162,10 +162,10 @@ func (r *Resolver) AddConnection(info *agency.JobInfo, ourDID, theirDID, theirEn
 
 	connection, err := r.db.AddConnection(
 		dbModel.NewConnection(info.ConnectionID, info.TenantID, &dbModel.Connection{
-			OurDid:        ourDID,
-			TheirDid:      theirDID,
-			TheirEndpoint: theirEndpoint,
-			TheirLabel:    theirLabel,
+			OurDid:        data.OurDID,
+			TheirDid:      data.TheirDID,
+			TheirEndpoint: data.TheirEndpoint,
+			TheirLabel:    data.TheirLabel,
 			Approved:      &now, // TODO: get approved from agency
 			Invited:       job.InitiatedByUs,
 		}))
@@ -182,14 +182,14 @@ func (r *Resolver) AddConnection(info *agency.JobInfo, ourDID, theirDID, theirEn
 	))
 }
 
-func (r *Resolver) AddMessage(info *agency.JobInfo, message string, sentByMe bool) {
+func (r *Resolver) AddMessage(info *agency.JobInfo, data *agency.Message) {
 	defer err2.Catch(func(err error) {
 		glog.Errorf("Encountered error when adding message %s", err.Error())
 	})
 	msg, err := r.db.AddMessage(dbModel.NewMessage(info.TenantID, &dbModel.Message{
 		ConnectionID: info.ConnectionID,
-		Message:      message,
-		SentByMe:     sentByMe,
+		Message:      data.Message,
+		SentByMe:     data.SentByMe,
 	}))
 	err2.Check(err)
 
@@ -197,40 +197,34 @@ func (r *Resolver) AddMessage(info *agency.JobInfo, message string, sentByMe boo
 		ConnectionID:      &info.ConnectionID,
 		ProtocolType:      model.ProtocolTypeBasicMessage,
 		ProtocolMessageID: &msg.ID,
-		InitiatedByUs:     sentByMe,
+		InitiatedByUs:     data.SentByMe,
 		Status:            model.JobStatusComplete,
 		Result:            model.JobResultSuccess,
 	}), msg.Description()))
 }
 
-func (r *Resolver) UpdateMessage(info *agency.JobInfo, delivered bool) {
+func (r *Resolver) UpdateMessage(info *agency.JobInfo, update *agency.MessageUpdate) {
 	// TODO
 }
 
-func (r *Resolver) AddCredential(
-	info *agency.JobInfo,
-	role model.CredentialRole,
-	schemaID, credDefID string,
-	attributes []*model.CredentialValue,
-	initiatedByUs bool,
-) {
+func (r *Resolver) AddCredential(info *agency.JobInfo, data *agency.Credential) {
 	defer err2.Catch(func(err error) {
 		glog.Errorf("Encountered error when adding credential %s", err.Error())
 	})
 	credential, err := r.db.AddCredential(dbModel.NewCredential(info.TenantID, &dbModel.Credential{
 		ConnectionID:  info.ConnectionID,
-		Role:          role,
-		SchemaID:      schemaID,
-		CredDefID:     credDefID,
-		Attributes:    attributes,
-		InitiatedByUs: initiatedByUs,
+		Role:          data.Role,
+		SchemaID:      data.SchemaID,
+		CredDefID:     data.CredDefID,
+		Attributes:    data.Attributes,
+		InitiatedByUs: data.InitiatedByUs,
 	}))
 	err2.Check(err)
 
 	utils.LogMed().Infof("Add credential %s for tenant %s", credential.ID, info.TenantID)
 
 	status := model.JobStatusWaiting
-	if !initiatedByUs {
+	if !data.InitiatedByUs {
 		status = model.JobStatusPending
 	}
 
@@ -238,13 +232,13 @@ func (r *Resolver) AddCredential(
 		ConnectionID:         &info.ConnectionID,
 		ProtocolType:         model.ProtocolTypeCredential,
 		ProtocolCredentialID: &credential.ID,
-		InitiatedByUs:        initiatedByUs,
+		InitiatedByUs:        data.InitiatedByUs,
 		Status:               status,
 		Result:               model.JobResultNone,
 	}), credential.Description()))
 }
 
-func (r *Resolver) UpdateCredential(info *agency.JobInfo, approvedMs, issuedMs, failedMs *int64) {
+func (r *Resolver) UpdateCredential(info *agency.JobInfo, update *agency.CredentialUpdate) {
 	defer err2.Catch(func(err error) {
 		glog.Errorf("Encountered error when updating credential %s", err.Error())
 	})
@@ -258,13 +252,13 @@ func (r *Resolver) UpdateCredential(info *agency.JobInfo, approvedMs, issuedMs, 
 	err2.Check(err)
 
 	if credential.Approved == nil {
-		credential.Approved = utils.TimestampToTime(approvedMs)
+		credential.Approved = utils.TimestampToTime(update.ApprovedMs)
 	}
 	if credential.Issued == nil {
-		credential.Issued = utils.TimestampToTime(issuedMs)
+		credential.Issued = utils.TimestampToTime(update.IssuedMs)
 	}
 	if credential.Failed == nil {
-		credential.Failed = utils.TimestampToTime(failedMs)
+		credential.Failed = utils.TimestampToTime(update.FailedMs)
 	}
 
 	credential, err = r.db.UpdateCredential(credential)
@@ -288,24 +282,24 @@ func (r *Resolver) UpdateCredential(info *agency.JobInfo, approvedMs, issuedMs, 
 	err2.Check(r.updateJob(job, credential.Description()))
 }
 
-func (r *Resolver) AddProof(info *agency.JobInfo, role model.ProofRole, attributes []*model.ProofAttribute, initiatedByUs bool) {
+func (r *Resolver) AddProof(info *agency.JobInfo, data *agency.Proof) {
 	defer err2.Catch(func(err error) {
 		glog.Errorf("Encountered error when adding proof %s", err.Error())
 	})
 
 	proof, err := r.db.AddProof(dbModel.NewProof(info.TenantID, &dbModel.Proof{
 		ConnectionID:  info.ConnectionID,
-		Role:          role,
-		Attributes:    attributes,
+		Role:          data.Role,
+		Attributes:    data.Attributes,
 		Result:        false,
-		InitiatedByUs: initiatedByUs,
+		InitiatedByUs: data.InitiatedByUs,
 	}))
 	err2.Check(err)
 
 	utils.LogMed().Infof("Add proof %s for tenant %s", proof.ID, info.TenantID)
 
 	status := model.JobStatusWaiting
-	if !initiatedByUs {
+	if !data.InitiatedByUs {
 		status = model.JobStatusPending
 	}
 
@@ -313,13 +307,13 @@ func (r *Resolver) AddProof(info *agency.JobInfo, role model.ProofRole, attribut
 		ConnectionID:    &info.ConnectionID,
 		ProtocolType:    model.ProtocolTypeProof,
 		ProtocolProofID: &proof.ID,
-		InitiatedByUs:   initiatedByUs,
+		InitiatedByUs:   data.InitiatedByUs,
 		Status:          status,
 		Result:          model.JobResultNone,
 	}), proof.Description()))
 }
 
-func (r *Resolver) UpdateProof(info *agency.JobInfo, approvedMs, verifiedMs, failedMs *int64) {
+func (r *Resolver) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) {
 	defer err2.Catch(func(err error) {
 		glog.Errorf("Encountered error when updating proof %s", err.Error())
 	})
@@ -332,13 +326,13 @@ func (r *Resolver) UpdateProof(info *agency.JobInfo, approvedMs, verifiedMs, fai
 	err2.Check(err)
 
 	if proof.Approved == nil {
-		proof.Approved = utils.TimestampToTime(approvedMs)
+		proof.Approved = utils.TimestampToTime(data.ApprovedMs)
 	}
 	if proof.Verified == nil {
-		proof.Verified = utils.TimestampToTime(verifiedMs)
+		proof.Verified = utils.TimestampToTime(data.VerifiedMs)
 	}
 	if proof.Failed == nil {
-		proof.Failed = utils.TimestampToTime(failedMs)
+		proof.Failed = utils.TimestampToTime(data.FailedMs)
 	}
 
 	proof, err = r.db.UpdateProof(proof)

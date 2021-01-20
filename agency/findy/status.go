@@ -59,10 +59,12 @@ func (f *Agency) handleStatus(
 
 		f.vault.AddConnection(
 			job,
-			connection.MyDid,
-			connection.TheirDid,
-			connection.TheirEndpoint,
-			connection.TheirLabel,
+			&model.Connection{
+				OurDID:        connection.MyDid,
+				TheirDID:      connection.TheirDid,
+				TheirEndpoint: connection.TheirEndpoint,
+				TheirLabel:    connection.TheirLabel,
+			},
 		)
 
 	case agency.Protocol_BASIC_MESSAGE:
@@ -74,23 +76,25 @@ func (f *Agency) handleStatus(
 
 		f.vault.AddMessage(
 			job,
-			message.Content,
-			message.SentByMe,
+			&model.Message{
+				Message:  message.Content,
+				SentByMe: message.SentByMe,
+			},
 			// TODO: delivered?
 		)
 	case agency.Protocol_ISSUE:
 		f.vault.UpdateCredential(
 			job,
-			nil,
-			&now,
-			nil,
+			&model.CredentialUpdate{
+				IssuedMs: &now,
+			},
 		)
 	case agency.Protocol_PROOF:
 		f.vault.UpdateProof(
 			job,
-			nil,
-			&now,
-			nil,
+			&model.ProofUpdate{
+				VerifiedMs: &now,
+			},
 		)
 	case agency.Protocol_NONE:
 	case agency.Protocol_TRUST_PING:
@@ -122,7 +126,17 @@ func (f *Agency) handleAction(
 			})
 		}
 		// TODO: what if we are issuer?
-		f.vault.AddCredential(job, role, credential.SchemaId, credential.CredDefId, values, false)
+		f.vault.AddCredential(
+			job,
+			&model.Credential{
+				Role:          role,
+				SchemaID:      credential.SchemaId,
+				CredDefID:     credential.CredDefId,
+				Attributes:    values,
+				InitiatedByUs: false,
+			},
+		)
+
 	case agency.Protocol_PROOF:
 		proof := status.GetProof()
 		if proof == nil {
@@ -144,7 +158,11 @@ func (f *Agency) handleAction(
 			})
 		}
 		// TODO: what if we are verifier?
-		f.vault.AddProof(job, role, attributes, false)
+		f.vault.AddProof(job, &model.Proof{
+			Role:          role,
+			Attributes:    attributes,
+			InitiatedByUs: false,
+		})
 	case agency.Protocol_NONE:
 	case agency.Protocol_TRUST_PING:
 	case agency.Protocol_CONNECT:

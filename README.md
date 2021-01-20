@@ -27,3 +27,29 @@ API requests should contain this token in header field for the authentication to
 ```
 {"Authorization": "Bearer <TOKEN>"}
 ```
+
+## Unit testing
+
+Unit tests assume postgres is running on port 5433.
+
+Launch default postgres container by declaring password for postgres user:
+```bash
+export FAV_DB_PASSWORD="mysecretpassword"
+```
+
+and running
+
+```
+make init-test
+```
+
+You can run all unit tests with command
+
+```bash
+go test ./...
+````
+
+For linting, you need to install [golangci-lint](https://golangci-lint.run/usage/install/#local-installation)
+
+`make check` builds, tests and lints the code.
+
