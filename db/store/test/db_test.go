@@ -158,7 +158,8 @@ func validateCreatedTS(t *testing.T, cursor uint64, ts *time.Time) {
 		t.Errorf("Timestamp not in threshold %v", ts)
 	}
 	created := model.TimeToCursor(ts)
-	if uint64(math.Abs(float64(cursor-created))) > 1 {
-		t.Errorf("Cursor mismatch %v %v", cursor, created)
+	diff := uint64(math.Abs(float64(cursor - created)))
+	if diff > 1 {
+		t.Errorf("Cursor mismatch %v %v (%v)", cursor, created, diff)
 	}
 }

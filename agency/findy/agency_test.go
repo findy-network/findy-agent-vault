@@ -12,7 +12,6 @@ import (
 	"github.com/findy-network/findy-agent-api/grpc/agency"
 	"github.com/findy-network/findy-agent-api/grpc/ops"
 	"github.com/findy-network/findy-agent-vault/agency/model"
-	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/findy-network/findy-grpc/jwt"
 	"github.com/findy-network/findy-grpc/rpc"
@@ -47,7 +46,7 @@ func (*mockServer) Start(context.Context, *agency.Protocol) (*agency.ProtocolID,
 	return &agency.ProtocolID{Id: testID}, nil
 }
 func (*mockServer) Status(context.Context, *agency.ProtocolID) (*agency.ProtocolStatus, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Status not implemented")
+	return &agency.ProtocolStatus{}, nil
 }
 func (*mockServer) Resume(context.Context, *agency.ProtocolState) (*agency.ProtocolID, error) {
 	return &agency.ProtocolID{Id: testID}, nil
@@ -117,32 +116,28 @@ type mockListener struct {
 	proofTS int64
 }
 
-func (m *mockListener) AddConnection(job *model.JobInfo, ourDID, theirDID, theirEndpoint, theirLabel string) {
+func (m *mockListener) AddConnection(job *model.JobInfo, connection *model.Connection) {
 	panic("Not implemented")
 }
-func (m *mockListener) AddMessage(job *model.JobInfo, message string, sentByMe bool) {
+func (m *mockListener) AddMessage(job *model.JobInfo, message *model.Message) {
 	panic("Not implemented")
 }
-func (m *mockListener) UpdateMessage(job *model.JobInfo, delivered bool) { panic("Not implemented") }
-
-func (m *mockListener) AddCredential(
-	job *model.JobInfo,
-	role graph.CredentialRole,
-	schemaID, credDefID string,
-	attributes []*graph.CredentialValue,
-	initiatedByUs bool,
-) {
+func (m *mockListener) UpdateMessage(job *model.JobInfo, update *model.MessageUpdate) {
 	panic("Not implemented")
-}
-func (m *mockListener) UpdateCredential(job *model.JobInfo, approvedMs, issuedMs, failedMs *int64) {
-	m.credTS = *approvedMs
 }
 
-func (m *mockListener) AddProof(job *model.JobInfo, role graph.ProofRole, attributes []*graph.ProofAttribute, initiatedByUs bool) {
+func (m *mockListener) AddCredential(job *model.JobInfo, credential *model.Credential) {
 	panic("Not implemented")
 }
-func (m *mockListener) UpdateProof(job *model.JobInfo, approvedMs, verifiedMs, failedMs *int64) {
-	m.proofTS = *approvedMs
+func (m *mockListener) UpdateCredential(job *model.JobInfo, update *model.CredentialUpdate) {
+	m.credTS = *update.ApprovedMs
+}
+
+func (m *mockListener) AddProof(job *model.JobInfo, proof *model.Proof) {
+	panic("Not implemented")
+}
+func (m *mockListener) UpdateProof(job *model.JobInfo, update *model.ProofUpdate) {
+	m.proofTS = *update.ApprovedMs
 }
 
 var (
@@ -181,7 +176,7 @@ func TestInit(t *testing.T) {
 		&utils.Configuration{JWTKey: "mySuperSecretKeyLol"},
 	)
 	// Wait for a while that calls complete
-	time.Sleep(time.Millisecond)
+	time.Sleep(time.Millisecond * 100)
 	if mockAgencyServer.hookID == "" {
 		t.Errorf("psm hook registration failed")
 	}

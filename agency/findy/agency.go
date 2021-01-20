@@ -107,7 +107,6 @@ func (f *Agency) resume(
 	job *model.JobInfo,
 	accept bool,
 	protocol agency.Protocol_Type,
-	update func(*model.JobInfo, *int64, *int64, *int64),
 ) (err error) {
 	defer err2.Return(&err) // TODO: do not leak internal errors to client
 
@@ -131,16 +130,23 @@ func (f *Agency) resume(
 	})
 	err2.Check(err)
 
-	now := utils.CurrentTimeMs()
-	update(job, &now, nil, nil)
-
 	return err
 }
 
 func (f *Agency) ResumeCredentialOffer(a *model.Agent, job *model.JobInfo, accept bool) (err error) {
-	return f.resume(a, job, accept, agency.Protocol_ISSUE, f.vault.UpdateCredential)
+	defer err2.Return(&err)
+	err2.Check(f.resume(a, job, accept, agency.Protocol_ISSUE))
+
+	now := utils.CurrentTimeMs()
+	f.vault.UpdateCredential(job, &model.CredentialUpdate{ApprovedMs: &now})
+	return err
 }
 
 func (f *Agency) ResumeProofRequest(a *model.Agent, job *model.JobInfo, accept bool) (err error) {
-	return f.resume(a, job, accept, agency.Protocol_PROOF, f.vault.UpdateProof)
+	defer err2.Return(&err)
+	err2.Check(f.resume(a, job, accept, agency.Protocol_PROOF))
+
+	now := utils.CurrentTimeMs()
+	f.vault.UpdateProof(job, &model.ProofUpdate{ApprovedMs: &now})
+	return err
 }

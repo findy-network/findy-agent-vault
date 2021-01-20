@@ -1,6 +1,7 @@
 package findy
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/findy-network/findy-agent-api/grpc/agency"
@@ -10,177 +11,261 @@ import (
 )
 
 type statusListener struct {
-	// connection
-	connJobID     string
-	myDID         string
-	theirDID      string
-	theirEndpoint string
-	theirLabel    string
+	connJob    *model.JobInfo
+	connection *model.Connection
 
-	// message
-	msgJobID       string
-	messageContent string
-	sentByMe       bool
+	msgJob  *model.JobInfo
+	message *model.Message
 
-	// cred
-	issueJobID string
-	issued     int64
+	credUpdateJob *model.JobInfo
+	credUpdate    *model.CredentialUpdate
 
-	// proof
-	proofJobID string
-	verified   int64
+	proofUpdateJob *model.JobInfo
+	proofUpdate    *model.ProofUpdate
+
+	credentialJob *model.JobInfo
+	credential    *model.Credential
+
+	proofJob *model.JobInfo
+	proof    *model.Proof
 }
 
-func (s *statusListener) AddConnection(job *model.JobInfo, ourDID, theirDID, theirEndpoint, theirLabel string) {
-	s.connJobID = job.JobID
-	s.myDID = ourDID
-	s.theirDID = theirDID
-	s.theirEndpoint = theirEndpoint
-	s.theirLabel = theirLabel
+func (s *statusListener) AddConnection(job *model.JobInfo, connection *model.Connection) {
+	s.connJob = job
+	s.connection = connection
 }
 
-func (s *statusListener) AddMessage(job *model.JobInfo, message string, sentByMe bool) {
-	s.msgJobID = job.JobID
-	s.messageContent = message
-	s.sentByMe = sentByMe
+func (s *statusListener) AddMessage(job *model.JobInfo, message *model.Message) {
+	s.msgJob = job
+	s.message = message
 }
 
-func (s *statusListener) UpdateMessage(job *model.JobInfo, delivered bool) { panic("Not implemented") }
-
-func (s *statusListener) AddCredential(
-	job *model.JobInfo,
-	role graph.CredentialRole,
-	schemaID, credDefID string,
-	attributes []*graph.CredentialValue,
-	initiatedByUs bool,
-) {
-	panic("Not implemented")
-}
-func (s *statusListener) UpdateCredential(job *model.JobInfo, approvedMs, issuedMs, failedMs *int64) {
-	s.issueJobID = job.JobID
-	s.issued = *issuedMs
-}
-
-func (s *statusListener) AddProof(job *model.JobInfo, role graph.ProofRole, attributes []*graph.ProofAttribute, initiatedByUs bool) {
+func (s *statusListener) UpdateMessage(job *model.JobInfo, update *model.MessageUpdate) {
 	panic("Not implemented")
 }
 
-func (s *statusListener) UpdateProof(job *model.JobInfo, approvedMs, verifiedMs, failedMs *int64) {
-	s.proofJobID = job.JobID
-	s.verified = *verifiedMs
+func (s *statusListener) AddCredential(job *model.JobInfo, credential *model.Credential) {
+	s.credentialJob = job
+	s.credential = credential
+}
+func (s *statusListener) UpdateCredential(job *model.JobInfo, update *model.CredentialUpdate) {
+	s.credUpdateJob = job
+	s.credUpdate = update
+}
+
+func (s *statusListener) AddProof(job *model.JobInfo, proof *model.Proof) {
+	s.proofJob = job
+	s.proof = proof
+}
+
+func (s *statusListener) UpdateProof(job *model.JobInfo, update *model.ProofUpdate) {
+	s.proofUpdateJob = job
+	s.proofUpdate = update
 }
 
 func TestHandleConnectionStatus(t *testing.T) {
-	const (
-		jobID         = "conn-job-id"
-		myDID         = "myDID"
-		theirDID      = "theirDID"
-		theirEndpoint = "theirEndpoint"
-		theirLabel    = "theirLabel"
+	var (
+		testJob        = &model.JobInfo{JobID: "conn-job-id"}
+		testConnection = &model.Connection{
+			OurDID:        "myDID",
+			TheirDID:      "theirDID",
+			TheirEndpoint: "theirEndpoint",
+			TheirLabel:    "theirLabel",
+		}
 	)
 	listener := &statusListener{}
 	testFindy := &Agency{vault: listener}
 	testFindy.handleStatus(
-		&model.JobInfo{JobID: jobID},
+		&model.JobInfo{JobID: testJob.JobID},
 		&agency.Notification{ProtocolType: agency.Protocol_CONNECT},
 		&agency.ProtocolStatus{
 			Status: &agency.ProtocolStatus_Connection_{Connection: &agency.ProtocolStatus_Connection{
 				Id:            "pwName",
-				MyDid:         myDID,
-				TheirDid:      theirDID,
-				TheirEndpoint: theirEndpoint,
-				TheirLabel:    theirLabel,
+				MyDid:         testConnection.OurDID,
+				TheirDid:      testConnection.TheirDID,
+				TheirEndpoint: testConnection.TheirEndpoint,
+				TheirLabel:    testConnection.TheirLabel,
 			},
 			},
 		})
 
-	if jobID != listener.connJobID {
-		t.Errorf("Mismatch on connection status job id, expected %v, got %v", jobID, listener.connJobID)
+	if !reflect.DeepEqual(testJob, listener.connJob) {
+		t.Errorf("Mismatch in connection job  expected: %v  got: %v", testJob, listener.connJob)
 	}
-	if myDID != listener.myDID {
-		t.Errorf("Mismatch on connection status my did, expected %v, got %v", myDID, listener.myDID)
-	}
-	if theirDID != listener.theirDID {
-		t.Errorf("Mismatch on connection status their did, expected %v, got %v", theirDID, listener.theirDID)
-	}
-	if theirEndpoint != listener.theirEndpoint {
-		t.Errorf("Mismatch on connection status their endpoint, expected %v, got %v", theirEndpoint, listener.theirEndpoint)
-	}
-	if theirLabel != listener.theirLabel {
-		t.Errorf("Mismatch on connection status their label, expected %v, got %v", theirLabel, listener.theirLabel)
+	if !reflect.DeepEqual(testConnection, listener.connection) {
+		t.Errorf("Mismatch in connection  expected: %v  got: %v", testConnection, listener.connection)
 	}
 }
 
 func TestHandleBasicMessageStatus(t *testing.T) {
-	const (
-		jobID          = "msg-job-id"
-		messageContent = "messageContent"
-		sentByMe       = false
+	var (
+		testJob     = &model.JobInfo{JobID: "msg-job-id"}
+		testMessage = &model.Message{Message: "messageContent"}
 	)
 	listener := &statusListener{}
 	testFindy := &Agency{vault: listener}
 	testFindy.handleStatus(
-		&model.JobInfo{JobID: jobID},
+		&model.JobInfo{JobID: testJob.JobID},
 		&agency.Notification{ProtocolType: agency.Protocol_BASIC_MESSAGE},
 		&agency.ProtocolStatus{
 			Status: &agency.ProtocolStatus_BasicMessage_{BasicMessage: &agency.ProtocolStatus_BasicMessage{
-				Content:  messageContent,
-				SentByMe: sentByMe,
+				Content:  testMessage.Message,
+				SentByMe: testMessage.SentByMe,
 			},
 			},
 		})
 
-	if jobID != listener.msgJobID {
-		t.Errorf("Mismatch on message status job id, expected %v, got %v", jobID, listener.msgJobID)
+	if !reflect.DeepEqual(testJob, listener.msgJob) {
+		t.Errorf("Mismatch in message job  expected: %v  got: %v", testJob, listener.msgJob)
 	}
-	if messageContent != listener.messageContent {
-		t.Errorf("Mismatch on message status job id, expected %v, got %v", messageContent, listener.messageContent)
-	}
-	if sentByMe != listener.sentByMe {
-		t.Errorf("Mismatch on message status sent by me, expected %v, got %v", sentByMe, listener.sentByMe)
+	if !reflect.DeepEqual(testMessage, listener.message) {
+		t.Errorf("Mismatch in message  expected: %v  got: %v", testMessage, listener.message)
 	}
 }
 
 func TestHandleCredentialStatus(t *testing.T) {
 	var (
-		jobID = "issue-job-id"
-		now   = utils.CurrentTimeMs()
+		now        = utils.CurrentTimeMs()
+		testJob    = &model.JobInfo{JobID: "issue-job-id"}
+		testUpdate = &model.CredentialUpdate{IssuedMs: &now}
 	)
 	listener := &statusListener{}
 	testFindy := &Agency{vault: listener}
 	testFindy.handleStatus(
-		&model.JobInfo{JobID: jobID},
+		&model.JobInfo{JobID: testJob.JobID},
 		&agency.Notification{ProtocolType: agency.Protocol_ISSUE},
 		&agency.ProtocolStatus{
 			Status: &agency.ProtocolStatus_Issue_{Issue: &agency.ProtocolStatus_Issue{}},
 		})
 
-	if jobID != listener.issueJobID {
-		t.Errorf("Mismatch on issue status job id, expected %v, got %v", jobID, listener.issueJobID)
+	if !reflect.DeepEqual(testJob, listener.credUpdateJob) {
+		t.Errorf("Mismatch in cred update job  expected: %v  got: %v", testJob, listener.credUpdateJob)
 	}
-	if now != listener.issued {
-		t.Errorf("Mismatch on issue status issued ts, expected %v, got %v", now, listener.issued)
+	if !reflect.DeepEqual(testUpdate, listener.credUpdate) {
+		t.Errorf("Mismatch in cred update  expected: %v  got: %v", testUpdate, listener.credUpdate)
 	}
 }
 
 func TestHandleProofStatus(t *testing.T) {
 	var (
-		jobID = "proof-job-id"
-		now   = utils.CurrentTimeMs()
+		now        = utils.CurrentTimeMs()
+		testJob    = &model.JobInfo{JobID: "proof-job-id"}
+		testUpdate = &model.ProofUpdate{VerifiedMs: &now}
 	)
 	listener := &statusListener{}
 	testFindy := &Agency{vault: listener}
 	testFindy.handleStatus(
-		&model.JobInfo{JobID: jobID},
+		&model.JobInfo{JobID: testJob.JobID},
 		&agency.Notification{ProtocolType: agency.Protocol_PROOF},
 		&agency.ProtocolStatus{
 			Status: &agency.ProtocolStatus_Proof{Proof: &agency.Protocol_Proof{}},
 		})
 
-	if jobID != listener.proofJobID {
-		t.Errorf("Mismatch on proof status job id, expected %v, got %v", jobID, listener.proofJobID)
+	if !reflect.DeepEqual(testJob, listener.proofUpdateJob) {
+		t.Errorf("Mismatch in proof update job  expected: %v  got: %v", testJob, listener.proofUpdateJob)
 	}
-	if now != listener.verified {
-		t.Errorf("Mismatch on proof status issued ts, expected %v, got %v", now, listener.verified)
+	if !reflect.DeepEqual(testUpdate, listener.proofUpdate) {
+		t.Errorf("Mismatch in proof update  expected: %v  got: %v", testUpdate, listener.proofUpdate)
+	}
+}
+
+func TestHandleCredentialAction(t *testing.T) {
+	var (
+		testJob        = &model.JobInfo{JobID: "cred-job-id"}
+		testCredential = &model.Credential{
+			Role:      graph.CredentialRoleHolder,
+			SchemaID:  "schema-id",
+			CredDefID: "cred-def-id",
+			Attributes: []*graph.CredentialValue{{
+				Name:  "attribute-name",
+				Value: "attribute-value",
+			}},
+			InitiatedByUs: false,
+		}
+	)
+	listener := &statusListener{}
+	testFindy := &Agency{vault: listener}
+	testFindy.handleAction(
+		&model.JobInfo{JobID: testJob.JobID},
+		&agency.Notification{
+			ProtocolType: agency.Protocol_ISSUE,
+			Role:         agency.Protocol_ADDRESSEE,
+		},
+		&agency.ProtocolStatus{
+			Status: &agency.ProtocolStatus_Issue_{
+				Issue: &agency.ProtocolStatus_Issue{
+					SchemaId:  testCredential.SchemaID,
+					CredDefId: testCredential.CredDefID,
+					Attrs: []*agency.Protocol_Attribute{
+						{
+							Name:  testCredential.Attributes[0].Name,
+							Value: testCredential.Attributes[0].Value,
+						},
+					},
+				},
+			},
+		})
+
+	if !reflect.DeepEqual(testJob, listener.credentialJob) {
+		t.Errorf("Mismatch in cred job  expected: %v  got: %v", testJob, listener.credentialJob)
+	}
+	if !reflect.DeepEqual(testCredential, listener.credential) {
+		t.Errorf("Mismatch in cred update  expected: %v  got: %v", testCredential, listener.credential)
+	}
+}
+
+func TestHandleProofAction(t *testing.T) {
+	var (
+		value     = ""
+		testJob   = &model.JobInfo{JobID: "cred-job-id"}
+		testProof = &model.Proof{
+			Role: graph.ProofRoleProver,
+			Attributes: []*graph.ProofAttribute{{
+				Name:      "attribute-name",
+				CredDefID: "cred-def-id",
+				Value:     &value,
+			}},
+			InitiatedByUs: false,
+		}
+	)
+	listener := &statusListener{}
+	testFindy := &Agency{vault: listener}
+	testFindy.handleAction(
+		&model.JobInfo{JobID: testJob.JobID},
+		&agency.Notification{
+			ProtocolType: agency.Protocol_PROOF,
+			Role:         agency.Protocol_ADDRESSEE,
+		},
+		&agency.ProtocolStatus{
+			Status: &agency.ProtocolStatus_Proof{
+				Proof: &agency.Protocol_Proof{
+					Attrs: []*agency.Protocol_Proof_Attr{
+						{
+							Name:      testProof.Attributes[0].Name,
+							CredDefId: testProof.Attributes[0].CredDefID,
+						},
+					},
+				},
+			},
+		})
+
+	if !reflect.DeepEqual(testJob, listener.proofJob) {
+		t.Errorf("Mismatch in proof job  expected: %v  got: %v", testJob, listener.proofJob)
+	}
+	if !reflect.DeepEqual(testProof, listener.proof) {
+		t.Errorf("Mismatch in proof update  expected: %v  got: %v", testProof, listener.proof)
+	}
+}
+
+func TestGetStatus(t *testing.T) {
+	status, ok := findy.getStatus(findy.userCmdConn(agent), &agency.Notification{
+		ProtocolType: agency.Protocol_PROOF,
+		Role:         agency.Protocol_ADDRESSEE,
+	})
+	if !ok {
+		t.Errorf("Failed to fetch status")
+	}
+	if status == nil {
+		t.Errorf("Received nil status")
 	}
 }
