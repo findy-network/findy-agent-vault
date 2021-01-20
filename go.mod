@@ -12,6 +12,7 @@ require (
 	github.com/form3tech-oss/jwt-go v3.2.2+incompatible
 	github.com/golang-migrate/migrate/v4 v4.14.1
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
+	github.com/golang/mock v1.4.4
 	github.com/google/uuid v1.1.5
 	github.com/gorilla/websocket v1.4.2
 	github.com/lainio/err2 v0.5.0
