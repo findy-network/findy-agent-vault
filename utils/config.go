@@ -23,6 +23,7 @@ type Configuration struct {
 	UseMockDB        bool
 	UseMockAgency    bool
 	GenerateFakeData bool
+	UsePlayground    bool
 }
 
 func LoadConfig() *Configuration {

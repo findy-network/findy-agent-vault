@@ -4,7 +4,6 @@ import (
 	"github.com/findy-network/findy-agent-vault/agency/findy"
 	"github.com/findy-network/findy-agent-vault/agency/mock"
 	"github.com/findy-network/findy-agent-vault/agency/model"
-	"github.com/findy-network/findy-agent-vault/utils"
 )
 
 const (
@@ -12,7 +11,7 @@ const (
 	AgencyTypeFindyGRPC = "FINDY_GRPC"
 )
 
-func InitAgency(agencyType string, listener model.Listener, agents []*model.Agent, config *utils.Configuration) model.Agency {
+func Create(agencyType string) model.Agency {
 	register := make(map[string]model.Agency)
 
 	register[AgencyTypeFindyGRPC] = &findy.Agency{}
@@ -24,6 +23,5 @@ func InitAgency(agencyType string, listener model.Listener, agents []*model.Agen
 		panic("Invalid agency type: " + agencyType)
 	}
 
-	a.Init(listener, agents, config)
 	return a
 }

@@ -1,6 +1,6 @@
 linters-settings:
   dupl:
-    threshold: 100
+    threshold: 225
   funlen:
     lines: 100
     statements: 50
@@ -92,41 +92,25 @@ issues:
       linters:
         - gocritic
       text: "ptrToRefParam:"
-    - path: db/fake/
-      linters:
-        - dupl
     - path: db/store/pg/
       linters:
         - dupl
     - path: db/store/mock
       linters:
         - dupl
-    - path: db/model
-      linters:
-        - dupl
     - path: resolver/schema.resolvers.go
       linters:
-        - dupl
         - gocritic
         - lll
-    - path: resolver/resolver.go
+    - path: resolver/test/doc_test.go
       linters:
-        - dupl
-    - path: resolver/query.go
-      linters:
-        - dupl
-    - path: resolver/pairwise.go
-      linters:
-        - dupl
-    - path: resolver/resolver_test.go
-      linters:
-        - staticcheck
         - golint
+        - staticcheck
     - linters:
         - gocritic
       text: "unnecessaryDefer:"
 run:
 service:
-  golangci-lint-version: 1.31.x # use the fixed version to not introduce new linters unexpectedly
+  golangci-lint-version: 1.35.x # use the fixed version to not introduce new linters unexpectedly
   prepare:
     - echo "here I can run custom commands, but no preparation needed for this repo"

@@ -40,6 +40,7 @@ func main() {
 	config.UseMockDB = true
 	config.UseMockAgency = true
 	config.GenerateFakeData = true
+	config.UsePlayground = true
 	srv = server.NewServer(resolver.InitResolver(config), config.JWTKey)
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
