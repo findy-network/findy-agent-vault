@@ -5,7 +5,62 @@ import (
 	"time"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
+	"github.com/findy-network/findy-agent-vault/paginator"
 )
+
+func TestGetListenerAgents(t *testing.T) {
+	token := "jwt-token"
+	testAgent1 := model.NewAgent(nil)
+	testAgent1.AgentID = "agentID1"
+	testAgent1.Label = "agentLabel1"
+	testAgent1.RawJWT = &token
+
+	testAgent2 := model.NewAgent(nil)
+	testAgent2.AgentID = "agentID2"
+	testAgent2.Label = "agentLabel2"
+	testAgent2.RawJWT = nil
+
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("get listener agents "+s.name, func(t *testing.T) {
+			a1, err := s.db.AddAgent(testAgent1)
+			if err != nil {
+				t.Errorf("Failed to add agent %s", err.Error())
+			}
+			a2, err := s.db.AddAgent(testAgent2)
+			if err != nil {
+				t.Errorf("Failed to add agent %s", err.Error())
+			}
+
+			pagination := paginator.BatchInfo{Count: 5}
+			agents, err := s.db.GetListenerAgents(&pagination)
+
+			if err != nil {
+				t.Errorf("Failed to get listener agents %s", err.Error())
+			} else {
+				if len(agents.Agents) < 1 {
+					t.Errorf("Agents count mismatch got %v, expected at least 1", len(agents.Agents))
+				}
+				foundWithToken := false
+				foundWithoutToken := false
+				for _, a := range agents.Agents {
+					if a.ID == a1.ID {
+						foundWithToken = true
+					}
+					if a.ID == a2.ID {
+						foundWithoutToken = true
+					}
+				}
+				if !foundWithToken {
+					t.Errorf("Did not receive listener agent")
+				}
+				if foundWithoutToken {
+					t.Errorf("Received listener agent without token")
+				}
+			}
+		})
+	}
+}
 
 func TestAddAgent(t *testing.T) {
 	for index := range DBs {
@@ -27,7 +82,7 @@ func TestAddAgent(t *testing.T) {
 					t.Errorf("Agent label mismatch expected %s got %s", testAgent.Label, a.Label)
 				}
 				if a.RawJWT != testAgent.RawJWT {
-					t.Errorf("Agent RawJWT mismatch expected %s got %s", testAgent.RawJWT, a.RawJWT)
+					t.Errorf("Agent RawJWT mismatch expected %v got %v", testAgent.RawJWT, a.RawJWT)
 				}
 				if a.ID == "" {
 					t.Errorf("Invalid agent id %s", a.ID)

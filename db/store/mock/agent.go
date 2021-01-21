@@ -48,7 +48,7 @@ func (m *mockData) GetListenerAgents(info *paginator.BatchInfo) (*model.Agents, 
 	agents.sort()
 
 	state, hasNextPage, hasPreviousPage := agents.getObjects(info, func(item apiObject) bool {
-		return item.Agent().RawJWT != ""
+		return item.Agent().RawJWT != nil
 	})
 	res := make([]*model.Agent, len(state.objects))
 	for i := range state.objects {

@@ -1,11 +1,9 @@
 package test
 
 import (
-	"math"
 	"reflect"
 	"sort"
 	"testing"
-	"time"
 
 	"github.com/findy-network/findy-agent-vault/db/fake"
 	"github.com/findy-network/findy-agent-vault/db/model"
@@ -46,13 +44,7 @@ func validateMessage(t *testing.T, exp, got *model.Message) {
 		t.Errorf("Message SentByMe mismatch expected %v got %v", exp.SentByMe, got.SentByMe)
 	}
 	validateBoolPtr(t, exp.Delivered, got.Delivered, "Delivered")
-	if time.Since(got.Created) > time.Second {
-		t.Errorf("Timestamp not in threshold %v", got.Created)
-	}
-	created := uint64(math.Round(float64(got.Created.UnixNano()) / float64(time.Millisecond.Nanoseconds())))
-	if got.Cursor != created {
-		t.Errorf("Cursor mismatch %v %v", got.Cursor, created)
-	}
+	validateCreatedTS(t, got.Cursor, &got.Created)
 }
 
 func validateMessages(t *testing.T, expCount int, exp, got *model.Messages) {
