@@ -13,6 +13,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/google/uuid"
 	"github.com/lainio/err2"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -21,20 +22,24 @@ const (
 )
 
 type Agency struct {
-	vault model.Listener
-	ctx   context.Context
+	vault   model.Listener
+	ctx     context.Context
+	tlsPath string
+	options []grpc.DialOption
 }
 
-func userCmdConn(a *model.Agent) client.Conn {
-	config := client.BuildClientConnBase("", agencyHost, agencyPort, nil)
+func (f *Agency) userCmdConn(a *model.Agent) client.Conn {
+	config := client.BuildClientConnBase(f.tlsPath, agencyHost, agencyPort, f.options)
 	return client.TryAuthOpen(a.RawJWT, config)
 }
 
-func userCmdPw(a *model.Agent, connectionID string) *async.Pairwise {
-	return async.NewPairwise(userCmdConn(a), connectionID)
+func (f *Agency) userCmdPw(a *model.Agent, connectionID string) *async.Pairwise {
+	return async.NewPairwise(f.userCmdConn(a), connectionID)
 }
 
 func (f *Agency) Init(listener model.Listener, agents []*model.Agent, config *utils.Configuration) {
+	jwt.SetJWTSecret(config.JWTKey)
+
 	f.ctx = context.Background()
 	f.vault = listener
 	// TODO: release protocol when saved
@@ -48,7 +53,6 @@ func (f *Agency) Init(listener model.Listener, agents []*model.Agent, config *ut
 			glog.Error(err)
 		}
 	}
-	jwt.SetJWTSecret(config.JWTKey)
 }
 
 func (f *Agency) AddAgent(agent *model.Agent) error {
@@ -56,13 +60,13 @@ func (f *Agency) AddAgent(agent *model.Agent) error {
 }
 
 func (f *Agency) Invite(a *model.Agent) (invitation, id string, err error) {
-	conn := userCmdConn(a)
+	conn := f.userCmdConn(a)
 	defer conn.Close()
 
 	cmd := agency.NewAgentClient(conn)
 	id = uuid.New().String()
 
-	res, err := cmd.CreateInvitation(f.ctx, &agency.InvitationBase{Label: a.Label, Id: id})
+	res, err := cmd.CreateInvitation(context.Background(), &agency.InvitationBase{Label: a.Label, Id: id})
 	err2.Check(err)
 
 	invitation = res.JsonStr
@@ -76,7 +80,7 @@ func (f *Agency) Connect(a *model.Agent, strInvitation string) (id string, err e
 	inv := model.Invitation{}
 	err2.Check(json.Unmarshal([]byte(strInvitation), &inv))
 
-	connect := userCmdPw(a, "")
+	connect := f.userCmdPw(a, "")
 	defer connect.Close()
 
 	connect.Label = a.Label
@@ -89,7 +93,7 @@ func (f *Agency) Connect(a *model.Agent, strInvitation string) (id string, err e
 func (f *Agency) SendMessage(a *model.Agent, connectionID, message string) (id string, err error) {
 	defer err2.Return(&err) // TODO: do not leak internal errors to client
 
-	pairwise := userCmdPw(a, connectionID)
+	pairwise := f.userCmdPw(a, connectionID)
 	defer pairwise.Close()
 
 	protocolID, err := pairwise.BasicMessage(context.Background(), message)
@@ -99,68 +103,50 @@ func (f *Agency) SendMessage(a *model.Agent, connectionID, message string) (id s
 }
 
 func (f *Agency) resume(
-	conn client.Conn,
-	id string,
+	a *model.Agent,
+	job *model.JobInfo,
+	accept bool,
 	protocol agency.Protocol_Type,
-	state agency.ProtocolState_State,
-) (*agency.ProtocolID, error) {
+) (err error) {
+	defer err2.Return(&err) // TODO: do not leak internal errors to client
+
+	conn := f.userCmdConn(a)
+	defer conn.Close()
+
+	state := agency.ProtocolState_NACK
+	if accept {
+		state = agency.ProtocolState_ACK
+	}
+
 	ctx := context.Background()
 	didComm := agency.NewDIDCommClient(conn)
-	return didComm.Resume(ctx, &agency.ProtocolState{
+	_, err = didComm.Resume(ctx, &agency.ProtocolState{
 		ProtocolId: &agency.ProtocolID{
 			TypeId: protocol,
 			Role:   agency.Protocol_RESUME,
-			Id:     id,
+			Id:     job.JobID,
 		},
 		State: state,
 	})
+	err2.Check(err)
+
+	return err
 }
 
 func (f *Agency) ResumeCredentialOffer(a *model.Agent, job *model.JobInfo, accept bool) (err error) {
-	defer err2.Return(&err) // TODO: do not leak internal errors to client
-
-	conn := userCmdConn(a)
-	defer conn.Close()
-
-	state := agency.ProtocolState_NACK
-	if accept {
-		state = agency.ProtocolState_ACK
-	}
-
-	_, err = f.resume(conn, job.JobID, agency.Protocol_ISSUE, state)
-	err2.Check(err)
+	defer err2.Return(&err)
+	err2.Check(f.resume(a, job, accept, agency.Protocol_ISSUE))
 
 	now := utils.CurrentTimeMs()
-	f.vault.UpdateCredential(
-		job,
-		&now,
-		nil,
-		nil,
-	)
-
-	return
+	f.vault.UpdateCredential(job, &model.CredentialUpdate{ApprovedMs: &now})
+	return err
 }
 
 func (f *Agency) ResumeProofRequest(a *model.Agent, job *model.JobInfo, accept bool) (err error) {
-	defer err2.Return(&err) // TODO: do not leak internal errors to client
-
-	conn := userCmdConn(a)
-	defer conn.Close()
-
-	state := agency.ProtocolState_NACK
-	if accept {
-		state = agency.ProtocolState_ACK
-	}
-
-	_, err = f.resume(conn, job.JobID, agency.Protocol_PROOF, state)
-	err2.Check(err)
+	defer err2.Return(&err)
+	err2.Check(f.resume(a, job, accept, agency.Protocol_PROOF))
 
 	now := utils.CurrentTimeMs()
-	f.vault.UpdateProof(
-		job,
-		&now,
-		nil,
-		nil,
-	)
-	return
+	f.vault.UpdateProof(job, &model.ProofUpdate{ApprovedMs: &now})
+	return err
 }

@@ -75,3 +75,6 @@ remod:
 	rm go*
 	go mod init
 	go build ./...
+
+single_test:
+	go test -run TestConnect ./...

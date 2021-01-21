@@ -1,7 +1,6 @@
 package model
 
 import (
-	"github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/utils"
 )
 
@@ -9,25 +8,6 @@ type JobInfo struct {
 	TenantID     string
 	JobID        string
 	ConnectionID string
-}
-
-type Listener interface {
-	AddConnection(job *JobInfo, ourDID, theirDID, theirEndpoint, theirLabel string)
-
-	AddMessage(job *JobInfo, message string, sentByMe bool)
-	UpdateMessage(job *JobInfo, delivered bool)
-
-	AddCredential(
-		job *JobInfo,
-		role model.CredentialRole,
-		schemaID, credDefID string,
-		attributes []*model.CredentialValue,
-		initiatedByUs bool,
-	)
-	UpdateCredential(job *JobInfo, approvedMs, issuedMs, failedMs *int64)
-
-	AddProof(job *JobInfo, role model.ProofRole, attributes []*model.ProofAttribute, initiatedByUs bool)
-	UpdateProof(job *JobInfo, approvedMs, verifiedMs, failedMs *int64)
 }
 
 type Agent struct {

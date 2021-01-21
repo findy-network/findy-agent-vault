@@ -2,7 +2,6 @@ package pg
 
 import (
 	"database/sql"
-	"fmt"
 	"sort"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
@@ -11,23 +10,10 @@ import (
 	"github.com/lainio/err2"
 )
 
-func sqlJobFields(tableName string) string {
-	if tableName != "" {
-		tableName += "."
-	}
-	columnCount := 12
-	args := make([]interface{}, columnCount)
-	for i := 0; i < columnCount; i++ {
-		args[i] = tableName
-	}
-	q := fmt.Sprintf("%sid, %stenant_id, %sprotocol_type,"+
-		" %sprotocol_connection_id, %sprotocol_credential_id, %sprotocol_proof_id, %sprotocol_message_id,"+
-		" %sconnection_id, %sstatus, %sresult, %sinitiated_by_us, %supdated", args...)
-	return q
-}
-
 var (
-	sqlJobBaseFields = sqlJobFields("")
+	jobFields = []string{"id", "tenant_id", "protocol_type", "protocol_connection_id", "protocol_credential_id", "protocol_proof_id",
+		"protocol_message_id", "connection_id", "status", "result", "initiated_by_us", "updated"}
+	sqlJobBaseFields = sqlFields("", jobFields)
 	sqlJobInsert     = "INSERT INTO job " + "(" + sqlJobBaseFields + ") " +
 		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, (now() at time zone 'UTC')) RETURNING id, created, cursor"
 	sqlJobSelect = "SELECT " + sqlJobBaseFields + ", created, cursor FROM"
@@ -36,7 +22,7 @@ var (
 func (pg *Database) getJobForObject(objectName, objectID, tenantID string) (j *model.Job, err error) {
 	defer returnErr("getJobForObject", &err)
 
-	sqlJobSelectJoin := "SELECT " + sqlJobFields("job") + ", job.created, job.cursor FROM"
+	sqlJobSelectJoin := "SELECT " + sqlFields("job", jobFields) + ", job.created, job.cursor FROM"
 	sqlJobSelectByObjectID := sqlJobSelectJoin +
 		" job INNER JOIN " + objectName + " ON " + objectName +
 		".job_id=job.id WHERE " + objectName + ".id = $1 AND job.tenant_id = $2"
@@ -222,7 +208,7 @@ func (pg *Database) getJobsForQuery(
 func sqlJobBatchWhere(fetchAll bool, cursorParam, connectionParam, limitParam string, desc, before bool) string {
 	const whereTenantID = " WHERE tenant_id=$1 "
 	whereStatus := " AND status != 'COMPLETE' "
-	cursorOrder := sqlOrderByAsc("")
+	cursorOrder := sqlOrderByCursorAsc
 	cursor := ""
 	connection := ""
 	compareChar := sqlGreaterThan
@@ -242,7 +228,7 @@ func sqlJobBatchWhere(fetchAll bool, cursorParam, connectionParam, limitParam st
 		}
 	}
 	if desc {
-		cursorOrder = sqlOrderByDesc("")
+		cursorOrder = sqlOrderByCursorDesc
 	}
 	where := whereTenantID + cursor + connection + whereStatus
 	return sqlJobSelect + " job " + where + cursorOrder + " " + limitParam

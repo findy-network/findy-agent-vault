@@ -1,7 +1,6 @@
 package test
 
 import (
-	"math"
 	"sort"
 	"testing"
 	"time"
@@ -53,16 +52,11 @@ func validateProof(t *testing.T, exp, got *model.Proof) {
 	if got.Result != exp.Result {
 		t.Errorf("Proof Result mismatch expected %v got %v", exp.Result, got.Result)
 	}
-	if time.Since(got.Created) > time.Second {
-		t.Errorf("Timestamp not in threshold %v", got.Created)
-	}
 	validateTimestap(t, exp.Approved, got.Approved, "Approved")
 	validateTimestap(t, exp.Verified, got.Verified, "Verified")
 	validateTimestap(t, exp.Failed, got.Failed, "Failed")
-	created := uint64(math.Round(float64(got.Created.UnixNano()) / float64(time.Millisecond.Nanoseconds())))
-	if got.Cursor != created {
-		t.Errorf("Cursor mismatch %v %v", got.Cursor, created)
-	}
+	validateCreatedTS(t, got.Cursor, &got.Created)
+
 	validateProofAttributes(t, exp.Attributes, got.Attributes)
 }
 

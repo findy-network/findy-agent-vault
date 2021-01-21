@@ -54,7 +54,12 @@ func (m *Mock) Connect(a *model.Agent, strInvitation string) (id string, err err
 
 	time.AfterFunc(time.Second, func() {
 		connection := fake.Connection(a.TenantID)
-		m.listener.AddConnection(job, connection.OurDid, connection.TheirDid, connection.TheirEndpoint, connection.TheirLabel)
+		m.listener.AddConnection(job, &model.Connection{
+			OurDID:        connection.OurDid,
+			TheirDID:      connection.TheirDid,
+			TheirEndpoint: connection.TheirEndpoint,
+			TheirLabel:    connection.TheirLabel,
+		})
 	})
 
 	return
@@ -67,10 +72,16 @@ func (m *Mock) SendMessage(a *model.Agent, connectionID, message string) (id str
 
 	job := &model.JobInfo{TenantID: a.TenantID, JobID: id, ConnectionID: connectionID}
 
-	m.listener.AddMessage(job, message, true)
+	m.listener.AddMessage(job, &model.Message{
+		Message:  message,
+		SentByMe: true,
+	})
 	time.AfterFunc(time.Second, func() {
 		message := fake.Message(a.TenantID, connectionID)
-		m.listener.AddMessage(job, message.Message, false)
+		m.listener.AddMessage(job, &model.Message{
+			Message:  message.Message,
+			SentByMe: false,
+		})
 	})
 	return
 }

@@ -296,8 +296,17 @@ func fakeJob(
 	job.ConnectionID = &connectionID
 	job.ProtocolConnectionID = utils.CopyStrPtr(protocolConnectionID)
 	job.ProtocolCredentialID = utils.CopyStrPtr(protocolCredentialID)
+	if job.ProtocolCredentialID != nil {
+		job.ProtocolType = graph.ProtocolTypeCredential
+	}
 	job.ProtocolProofID = utils.CopyStrPtr(protocolProofID)
+	if job.ProtocolProofID != nil {
+		job.ProtocolType = graph.ProtocolTypeProof
+	}
 	job.ProtocolMessageID = utils.CopyStrPtr(protocolMessageID)
+	if job.ProtocolMessageID != nil {
+		job.ProtocolType = graph.ProtocolTypeBasicMessage
+	}
 	return job
 }
 

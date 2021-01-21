@@ -2,7 +2,6 @@ package pg
 
 import (
 	"database/sql"
-	"fmt"
 	"sort"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
@@ -10,22 +9,10 @@ import (
 	"github.com/lainio/err2"
 )
 
-func sqlMessageFields(tableName string) string {
-	if tableName != "" {
-		tableName += "."
-	}
-	columnCount := 5
-	args := make([]interface{}, columnCount)
-	for i := 0; i < columnCount; i++ {
-		args[i] = tableName
-	}
-	q := fmt.Sprintf("%stenant_id, %sconnection_id,"+
-		" %smessage, %ssent_by_me, %sdelivered", args...)
-	return q
-}
-
 var (
-	sqlBaseMessageFields = sqlMessageFields("")
+	messageFields = []string{"tenant_id", "connection_id", "message", "sent_by_me", "delivered"}
+
+	sqlBaseMessageFields = sqlFields("", messageFields)
 	sqlMessageInsert     = "INSERT INTO message " + "(" + sqlBaseMessageFields + ") " +
 		"VALUES ($1, $2, $3, $4, $5) RETURNING id, created, cursor"
 	sqlMessageSelect = "SELECT id, " + sqlBaseMessageFields + ", created, cursor FROM"
@@ -35,7 +22,7 @@ func (pg *Database) getMessageForObject(objectName, columnName, objectID, tenant
 	defer returnErr("getMessageForObject", &err)
 
 	sqlMessageSelectByObjectID := "SELECT message.id, " +
-		sqlMessageFields("message") + ", message.created, message.cursor FROM" +
+		sqlFields("message", messageFields) + ", message.created, message.cursor FROM" +
 		" message INNER JOIN " + objectName + " ON " + objectName +
 		"." + columnName + "=message.id WHERE " + objectName + ".id = $1 AND message.tenant_id = $2"
 
@@ -199,7 +186,7 @@ func (pg *Database) getMessagesForQuery(
 
 func sqlMessageBatchWhere(cursorParam, connectionParam, limitParam string, desc, before bool) string {
 	const whereTenantID = " WHERE tenant_id=$1 "
-	cursorOrder := sqlOrderByAsc("")
+	cursorOrder := sqlOrderByCursorAsc
 	cursor := ""
 	connection := ""
 	compareChar := sqlGreaterThan
@@ -216,7 +203,7 @@ func sqlMessageBatchWhere(cursorParam, connectionParam, limitParam string, desc,
 		}
 	}
 	if desc {
-		cursorOrder = sqlOrderByDesc("")
+		cursorOrder = sqlOrderByCursorDesc
 	}
 	where := whereTenantID + cursor + connection
 	return sqlMessageSelect + " message " + where + cursorOrder + " " + limitParam

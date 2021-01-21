@@ -1,6 +1,7 @@
 package test
 
 import (
+	"math"
 	"os"
 	"testing"
 	"time"
@@ -150,4 +151,15 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 	teardown()
 	os.Exit(code)
+}
+
+func validateCreatedTS(t *testing.T, cursor uint64, ts *time.Time) {
+	if time.Since(*ts) > time.Second {
+		t.Errorf("Timestamp not in threshold %v", ts)
+	}
+	created := model.TimeToCursor(ts)
+	diff := uint64(math.Abs(float64(cursor - created)))
+	if diff > 1 {
+		t.Errorf("Cursor mismatch %v %v (%v)", cursor, created, diff)
+	}
 }
