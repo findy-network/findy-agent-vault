@@ -11,155 +11,155 @@ import (
 )
 
 func (r *basicMessageResolver) Connection(ctx context.Context, obj *model.BasicMessage) (*model.Pairwise, error) {
-	return r.connection(ctx, obj)
+	return r.resolvers.message.Connection(ctx, obj)
 }
 
 func (r *basicMessageConnectionResolver) TotalCount(ctx context.Context, obj *model.BasicMessageConnection) (int, error) {
-	return r.totalCount(ctx, obj)
+	return r.resolvers.messageConnection.TotalCount(ctx, obj)
 }
 
 func (r *credentialResolver) Connection(ctx context.Context, obj *model.Credential) (*model.Pairwise, error) {
-	return r.connection(ctx, obj)
+	return r.resolvers.credential.Connection(ctx, obj)
 }
 
 func (r *credentialConnectionResolver) TotalCount(ctx context.Context, obj *model.CredentialConnection) (int, error) {
-	return r.totalCount(ctx, obj)
+	return r.resolvers.credentialConnection.TotalCount(ctx, obj)
 }
 
 func (r *eventResolver) Job(ctx context.Context, obj *model.Event) (*model.JobEdge, error) {
-	return r.job(ctx, obj)
+	return r.resolvers.event.Job(ctx, obj)
 }
 
 func (r *eventResolver) Connection(ctx context.Context, obj *model.Event) (*model.Pairwise, error) {
-	return r.connection(ctx, obj)
+	return r.resolvers.event.Connection(ctx, obj)
 }
 
 func (r *eventConnectionResolver) TotalCount(ctx context.Context, obj *model.EventConnection) (int, error) {
-	return r.totalCount(ctx, obj)
+	return r.resolvers.eventConnection.TotalCount(ctx, obj)
 }
 
 func (r *jobResolver) Output(ctx context.Context, obj *model.Job) (*model.JobOutput, error) {
-	return r.output(ctx, obj)
+	return r.resolvers.job.Output(ctx, obj)
 }
 
 func (r *jobConnectionResolver) TotalCount(ctx context.Context, obj *model.JobConnection) (int, error) {
-	return r.totalCount(ctx, obj)
+	return r.resolvers.jobConnection.TotalCount(ctx, obj)
 }
 
 func (r *mutationResolver) MarkEventRead(ctx context.Context, input model.MarkReadInput) (*model.Event, error) {
-	return r.markEventRead(ctx, input)
+	return r.resolvers.mutation.MarkEventRead(ctx, input)
 }
 
 func (r *mutationResolver) Invite(ctx context.Context) (*model.InvitationResponse, error) {
-	return r.invite(ctx)
+	return r.resolvers.mutation.Invite(ctx)
 }
 
 func (r *mutationResolver) Connect(ctx context.Context, input model.ConnectInput) (*model.Response, error) {
-	return r.connect(ctx, input)
+	return r.resolvers.mutation.Connect(ctx, input)
 }
 
 func (r *mutationResolver) SendMessage(ctx context.Context, input model.MessageInput) (*model.Response, error) {
-	return r.sendMessage(ctx, input)
+	return r.resolvers.mutation.SendMessage(ctx, input)
 }
 
 func (r *mutationResolver) Resume(ctx context.Context, input model.ResumeJobInput) (*model.Response, error) {
-	return r.resume(ctx, input)
+	return r.resolvers.mutation.Resume(ctx, input)
 }
 
 func (r *mutationResolver) AddRandomEvent(ctx context.Context) (bool, error) {
-	return r.addRandomEvent(ctx)
+	return r.resolvers.playground.AddRandomEvent(ctx)
 }
 
 func (r *mutationResolver) AddRandomMessage(ctx context.Context) (bool, error) {
-	return r.addRandomMessage(ctx)
+	return r.resolvers.playground.AddRandomMessage(ctx)
 }
 
 func (r *mutationResolver) AddRandomCredential(ctx context.Context) (bool, error) {
-	return r.addRandomCredential(ctx)
+	return r.resolvers.playground.AddRandomCredential(ctx)
 }
 
 func (r *mutationResolver) AddRandomProof(ctx context.Context) (bool, error) {
-	return r.addRandomProof(ctx)
+	return r.resolvers.playground.AddRandomProof(ctx)
 }
 
 func (r *pairwiseResolver) Messages(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.BasicMessageConnection, error) {
-	return r.messages(ctx, obj, after, before, first, last)
+	return r.resolvers.pairwise.Messages(ctx, obj, after, before, first, last)
 }
 
 func (r *pairwiseResolver) Credentials(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.CredentialConnection, error) {
-	return r.credentials(ctx, obj, after, before, first, last)
+	return r.resolvers.pairwise.Credentials(ctx, obj, after, before, first, last)
 }
 
 func (r *pairwiseResolver) Proofs(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.ProofConnection, error) {
-	return r.proofs(ctx, obj, after, before, first, last)
+	return r.resolvers.pairwise.Proofs(ctx, obj, after, before, first, last)
 }
 
 func (r *pairwiseResolver) Jobs(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int, completed *bool) (*model.JobConnection, error) {
-	return r.jobs(ctx, obj, after, before, first, last, completed)
+	return r.resolvers.pairwise.Jobs(ctx, obj, after, before, first, last, completed)
 }
 
 func (r *pairwiseResolver) Events(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.EventConnection, error) {
-	return r.events(ctx, obj, after, before, first, last)
+	return r.resolvers.pairwise.Events(ctx, obj, after, before, first, last)
 }
 
 func (r *pairwiseConnectionResolver) TotalCount(ctx context.Context, obj *model.PairwiseConnection) (int, error) {
-	return r.totalCount(ctx, obj)
+	return r.resolvers.pairwiseConnection.TotalCount(ctx, obj)
 }
 
 func (r *proofResolver) Connection(ctx context.Context, obj *model.Proof) (*model.Pairwise, error) {
-	return r.connection(ctx, obj)
+	return r.resolvers.proof.Connection(ctx, obj)
 }
 
 func (r *proofConnectionResolver) TotalCount(ctx context.Context, obj *model.ProofConnection) (int, error) {
-	return r.totalCount(ctx, obj)
+	return r.resolvers.proofConnection.TotalCount(ctx, obj)
 }
 
 func (r *queryResolver) Connections(ctx context.Context, after *string, before *string, first *int, last *int) (*model.PairwiseConnection, error) {
-	return r.connections(ctx, after, before, first, last)
+	return r.resolvers.query.Connections(ctx, after, before, first, last)
 }
 
 func (r *queryResolver) Connection(ctx context.Context, id string) (*model.Pairwise, error) {
-	return r.connection(ctx, id)
+	return r.resolvers.query.Connection(ctx, id)
 }
 
 func (r *queryResolver) Message(ctx context.Context, id string) (*model.BasicMessage, error) {
-	return r.message(ctx, id)
+	return r.resolvers.query.Message(ctx, id)
 }
 
 func (r *queryResolver) Credential(ctx context.Context, id string) (*model.Credential, error) {
-	return r.credential(ctx, id)
+	return r.resolvers.query.Credential(ctx, id)
 }
 
 func (r *queryResolver) Credentials(ctx context.Context, after *string, before *string, first *int, last *int) (*model.CredentialConnection, error) {
-	return r.credentials(ctx, after, before, first, last)
+	return r.resolvers.query.Credentials(ctx, after, before, first, last)
 }
 
 func (r *queryResolver) Proof(ctx context.Context, id string) (*model.Proof, error) {
-	return r.proof(ctx, id)
+	return r.resolvers.query.Proof(ctx, id)
 }
 
 func (r *queryResolver) Events(ctx context.Context, after *string, before *string, first *int, last *int) (*model.EventConnection, error) {
-	return r.events(ctx, after, before, first, last)
+	return r.resolvers.query.Events(ctx, after, before, first, last)
 }
 
 func (r *queryResolver) Event(ctx context.Context, id string) (*model.Event, error) {
-	return r.event(ctx, id)
+	return r.resolvers.query.Event(ctx, id)
 }
 
 func (r *queryResolver) Jobs(ctx context.Context, after *string, before *string, first *int, last *int, completed *bool) (*model.JobConnection, error) {
-	return r.jobs(ctx, after, before, first, last, completed)
+	return r.resolvers.query.Jobs(ctx, after, before, first, last, completed)
 }
 
 func (r *queryResolver) Job(ctx context.Context, id string) (*model.Job, error) {
-	return r.job(ctx, id)
+	return r.resolvers.query.Job(ctx, id)
 }
 
 func (r *queryResolver) User(ctx context.Context) (*model.User, error) {
-	return r.user(ctx)
+	return r.resolvers.query.User(ctx)
 }
 
 func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.EventEdge, error) {
-	return r.eventAdded(ctx)
+	return r.updater.EventAdded(ctx)
 }
 
 // BasicMessage returns generated.BasicMessageResolver implementation.
