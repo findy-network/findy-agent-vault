@@ -14,6 +14,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/resolver"
 	"github.com/findy-network/findy-agent-vault/server"
 	"github.com/findy-network/findy-agent-vault/utils"
+	"github.com/findy-network/findy-grpc/jwt"
 )
 
 var (
@@ -28,8 +29,10 @@ var (
 )
 
 func testContext() context.Context {
-	u := server.NewServer(nil, "test-secret").CreateTestToken("test")
-	ctx := context.WithValue(context.Background(), "user", u)
+	const testValidationKey = "test-secret"
+	uToken := server.NewServer(nil, testValidationKey).CreateTestToken(testValidationKey)
+	ctx := jwt.TokenToContext(context.Background(), "user", &jwt.Token{Raw: uToken})
+
 	return ctx
 }
 
