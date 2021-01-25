@@ -72,8 +72,8 @@ check:
 	golangci-lint run
 
 remod:
-	rm go*
-	go mod init
+	-rm go*
+	go mod init github.com/findy-network/findy-agent-vault
 	go build ./...
 
 single_test:
