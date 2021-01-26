@@ -11,6 +11,7 @@ func TestConfigFromEnv(t *testing.T) {
 		testPort   = 1234
 		testSecret = "test-secret"
 		testHost   = "test-host"
+		testPath   = "test-path"
 	)
 
 	strPort := fmt.Sprintf("%d", testPort)
@@ -20,6 +21,9 @@ func TestConfigFromEnv(t *testing.T) {
 	os.Setenv("FAV_DB_HOST", testHost)
 	os.Setenv("FAV_DB_PORT", strPort)
 	os.Setenv("FAV_DB_PASSWORD", testSecret)
+	os.Setenv("FAV_AGENCY_HOST", testHost)
+	os.Setenv("FAV_AGENCY_PORT", strPort)
+	os.Setenv("FAV_AGENCY_CERT_PATH", testPath)
 
 	config := LoadConfig()
 	if config.ServerPort != testPort {
@@ -39,5 +43,14 @@ func TestConfigFromEnv(t *testing.T) {
 	}
 	if config.DBPassword != testSecret {
 		t.Errorf("db password differs")
+	}
+	if config.AgencyHost != testHost {
+		t.Errorf("agency host differs")
+	}
+	if config.AgencyPort != testPort {
+		t.Errorf("agency port differs")
+	}
+	if config.AgencyCertPath != testPath {
+		t.Errorf("agency cert path differs")
 	}
 }
