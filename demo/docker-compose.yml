@@ -1,0 +1,40 @@
+version: "2"
+services:
+  vault-db:
+    image: postgres:13.1-alpine
+    environment:
+      POSTGRES_PASSWORD: "my-secret-password"
+      POSTGRES_DB: vault
+    volumes:
+      - ./.docker/db/data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  vault:
+    build: ..
+    ports:
+      - "8085:8085"
+    environment:
+      FAV_JWT_KEY: "mySuperSecretKeyLol"
+      FAV_DB_HOST: "vault-db"
+      FAV_DB_PASSWORD: "my-secret-password"
+      FAV_AGENCY_HOST: "agency"
+      FAV_AGENCY_PORT: "50051"
+      FAV_AGENCY_CERT_PATH: "/cert"
+
+  agency:
+    build: .docker/findy-agent-cli/agency
+    ports:
+      - "8080:8080"
+      - "50052:50051"
+    volumes:
+      - .docker/findy-grpc/cert:/cert
+      - ./conf/steward.exported:/steward.exported
+      - ./conf/genesis_transactions:/genesis_transactions
+    environment:
+      FCLI_AGENCY_SALT: "this is only example"
+      FCLI_AGENCY_HOST_ADDRESS: "agency"
+      FCLI_AGENCY_HOST_PORT: "8080"
+      FCLI_AGENCY_GRPC_CERT_PATH: "/cert"
+      FCLI_POOL_NAME: "FINDY_FILE_LEDGER"
+      FCLI_AGENCY_POOL_NAME: "FINDY_FILE_LEDGER"

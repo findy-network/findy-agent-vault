@@ -78,3 +78,9 @@ remod:
 
 single_test:
 	go test -run TestConnect ./...
+
+dbuild:
+	docker build \
+		--build-arg HTTPS_PREFIX=$(HTTPS_PREFIX) \
+		-t findy-agent-vault \
+		.

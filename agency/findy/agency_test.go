@@ -169,11 +169,11 @@ func TestMain(m *testing.M) {
 
 func TestInit(t *testing.T) {
 	const testClientID = "test"
-	testAgency := &Agency{options: dialOptions, tlsPath: tlsPath}
+	testAgency := &Agency{options: dialOptions}
 	testAgency.Init(
 		&mockListener{},
 		[]*model.Agent{{AgentID: testClientID, TenantID: testClientID}},
-		&utils.Configuration{JWTKey: "mySuperSecretKeyLol"},
+		&utils.Configuration{JWTKey: "mySuperSecretKeyLol", AgencyCertPath: tlsPath},
 	)
 	// Wait for a while that calls complete
 	time.Sleep(time.Millisecond * 100)
