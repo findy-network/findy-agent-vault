@@ -16,20 +16,17 @@ import (
 	"google.golang.org/grpc"
 )
 
-const (
-	agencyHost = "localhost"
-	agencyPort = 50051
-)
-
 type Agency struct {
-	vault   model.Listener
-	ctx     context.Context
-	tlsPath string
-	options []grpc.DialOption
+	vault      model.Listener
+	ctx        context.Context
+	agencyHost string
+	agencyPort int
+	tlsPath    string
+	options    []grpc.DialOption
 }
 
 func (f *Agency) userCmdConn(a *model.Agent) client.Conn {
-	config := client.BuildClientConnBase(f.tlsPath, agencyHost, agencyPort, f.options)
+	config := client.BuildClientConnBase(f.tlsPath, f.agencyHost, f.agencyPort, f.options)
 	return client.TryAuthOpen(a.RawJWT, config)
 }
 
@@ -38,6 +35,10 @@ func (f *Agency) userCmdPw(a *model.Agent, connectionID string) *async.Pairwise 
 }
 
 func (f *Agency) Init(listener model.Listener, agents []*model.Agent, config *utils.Configuration) {
+	f.agencyHost = config.AgencyHost
+	f.agencyPort = config.AgencyPort
+	f.tlsPath = config.AgencyCertPath
+
 	jwt.SetJWTSecret(config.JWTKey)
 
 	f.ctx = context.Background()
