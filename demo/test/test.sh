@@ -28,8 +28,6 @@ INVITE1=$(/findy-agent-cli service invitation \
 
 JWT1=$(/jwt-extractor $INVITE1)
 
-echo $JWT1
-
 ######### AGENT 2
 
 /findy-agent-cli service onboard \

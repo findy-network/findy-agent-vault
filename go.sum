@@ -192,6 +192,8 @@ github.com/findy-network/findy-grpc v0.0.0-20210125114245-0ee62b6191ef h1:K0tIZg
 github.com/findy-network/findy-grpc v0.0.0-20210125114245-0ee62b6191ef/go.mod h1:7wsaOZE8iRD6XR4ZxKxQB4yFcEerxRaenzUcyoff8VU=
 github.com/findy-network/findy-grpc v0.0.0-20210127091248-c9d457134cc4 h1:i++FEqabEIc7s4J9TGa0/PjNZhwgMxcDyIAi5xF3wuA=
 github.com/findy-network/findy-grpc v0.0.0-20210127091248-c9d457134cc4/go.mod h1:7wsaOZE8iRD6XR4ZxKxQB4yFcEerxRaenzUcyoff8VU=
+github.com/findy-network/findy-grpc v0.0.0-20210127104251-9687b3532b14 h1:/fXEkEP4DWSf5gukDhDmRW6kt7TntM0zXfEfk83tmHI=
+github.com/findy-network/findy-grpc v0.0.0-20210127104251-9687b3532b14/go.mod h1:7wsaOZE8iRD6XR4ZxKxQB4yFcEerxRaenzUcyoff8VU=
 github.com/findy-network/findy-wrapper-go v0.0.0-20201026120712-dc9ac6619595/go.mod h1:++vXqeWA3CPK7COIC8nsDLF6HSqeQaUIR2b/iCRCNLw=
 github.com/form3tech-oss/jwt-go v3.2.2+incompatible h1:TcekIExNqud5crz4xD2pavyTgWiPvpYe4Xau31I0PRk=
 github.com/form3tech-oss/jwt-go v3.2.2+incompatible/go.mod h1:pbq4aXjuKjdthFRnoDwaVPLA+WlJuPGy+QneDUgJi2k=
