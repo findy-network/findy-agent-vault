@@ -6,18 +6,18 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/model"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
-	"github.com/findy-network/findy-agent-vault/utils"
+	"github.com/findy-network/findy-grpc/jwt"
 )
 
 func GetAgent(ctx context.Context, db DB) (*model.Agent, error) {
-	token, err := utils.ParseToken(ctx)
+	token, err := jwt.TokenFromContext(ctx, "user")
 	if err != nil {
 		return nil, err
 	}
 	a := model.NewAgent(nil)
 	a.AgentID = token.AgentID
 	a.Label = token.Label
-	a.RawJWT = &token.Token
+	a.RawJWT = &token.Raw
 	return db.AddAgent(a)
 }
 

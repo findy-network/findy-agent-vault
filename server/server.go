@@ -14,6 +14,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/findy-network/findy-agent-vault/graph/generated"
 	"github.com/findy-network/findy-agent-vault/utils"
+	jwtMW "github.com/findy-network/findy-grpc/jwt/mw"
 	"github.com/gorilla/websocket"
 )
 
@@ -24,7 +25,7 @@ const (
 
 type VaultServer struct {
 	server      *handler.Server
-	authChecker *jwtChecker
+	authChecker *jwtMW.Middleware
 }
 
 func schema(resolver generated.ResolverRoot) graphql.ExecutableSchema {
@@ -63,7 +64,11 @@ func NewServer(resolver generated.ResolverRoot, jwtSecret string) *VaultServer {
 		Cache: lru.New(persistedQueryCacheSize),
 	})
 
-	authChecker := newJWTChecker(jwtSecret)
+	authChecker := jwtMW.New(&jwtMW.Options{
+		ValidationKey:  jwtSecret,
+		QueryParameter: "access_token",
+		ErrorHandler:   onAuthError,
+	})
 
 	return &VaultServer{
 		server:      srv,
@@ -73,5 +78,5 @@ func NewServer(resolver generated.ResolverRoot, jwtSecret string) *VaultServer {
 
 func (v *VaultServer) Handle() http.Handler {
 	// TODO: figure out CORS policy for our HTTP use case
-	return cors.AllowAll().Handler(logRequest(v.authChecker.handler(v.server)))
+	return cors.AllowAll().Handler(logRequest(v.authChecker.Handler(v.server)))
 }
