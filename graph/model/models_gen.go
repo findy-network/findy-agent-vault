@@ -89,8 +89,11 @@ type EventEdge struct {
 }
 
 type InvitationResponse struct {
-	Invitation string `json:"invitation"`
-	ImageB64   string `json:"imageB64"`
+	ID       string `json:"id"`
+	Label    string `json:"label"`
+	Endpoint string `json:"endpoint"`
+	Raw      string `json:"raw"`
+	ImageB64 string `json:"imageB64"`
 }
 
 type Job struct {

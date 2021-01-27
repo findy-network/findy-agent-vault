@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"encoding/base64"
 	"testing"
 )
 
@@ -146,5 +147,26 @@ func TestGetUser(t *testing.T) {
 	}
 	if u == nil {
 		t.Errorf("Expecting result, received %v", u)
+	}
+}
+
+func TestGetEndpoint(t *testing.T) {
+	const expectedLabel = "findy-issuer"
+	// plain json string
+	e, err := r.Query().Endpoint(testContext(), testInvitation)
+	if err != nil {
+		t.Errorf("Received unexpected error %s", err)
+	}
+	if e == nil || e.Label != expectedLabel {
+		t.Errorf("Expecting valid result, received %v", e)
+	}
+
+	// base64 encoded string
+	e, err = r.Query().Endpoint(testContext(), base64.StdEncoding.EncodeToString([]byte(testInvitation)))
+	if err != nil {
+		t.Errorf("Received unexpected error %s", err)
+	}
+	if e == nil || e.Label != expectedLabel {
+		t.Errorf("Expecting valid result, received %v", e)
 	}
 }

@@ -28,12 +28,3 @@ type Agency interface {
 	ResumeCredentialOffer(a *Agent, job *JobInfo, accept bool) error
 	ResumeProofRequest(a *Agent, job *JobInfo, accept bool) error
 }
-
-// TODO: use invitation struct defined by agency
-type Invitation struct {
-	ServiceEndpoint string   `json:"serviceEndpoint,omitempty" faker:"url"`
-	RecipientKeys   []string `json:"recipientKeys,omitempty" faker:"-"`
-	ID              string   `json:"@id,omitempty" faker:"uuid_hyphenated"`
-	Label           string   `json:"label,omitempty" faker:"first_name"`
-	Type            string   `json:"@type,omitempty" faker:"-"`
-}
