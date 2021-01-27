@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"strings"
@@ -11,6 +12,7 @@ import (
 )
 
 func main() {
+	flag.Parse()
 	var invitation didexchange.Invitation
 	_ = json.Unmarshal([]byte(os.Args[1]), &invitation)
 
