@@ -28,6 +28,8 @@ INVITE1=$(/findy-agent-cli service invitation \
 
 JWT1=$(/jwt-extractor $INVITE1)
 
+echo $JWT1
+
 ######### AGENT 2
 
 /findy-agent-cli service onboard \
@@ -61,7 +63,7 @@ USER1=$(curl \
 RES='{"data":{"user":{"name":"n/a"}}}'
 
 if [ "$USER1" != "$RES" ]; then
-    echo "unexpected user output"
+    echo "unexpected user output $USER1"
     exit 1
 fi
 
@@ -74,7 +76,7 @@ USER2=$(curl \
     $VAULT_URL)
 
 if [ "$USER2" != "$RES" ]; then
-    echo "unexpected user output"
+    echo "unexpected user output $USER2"
     exit 1
 fi
 
@@ -95,7 +97,7 @@ USER1_CONN_COUNT=$(curl \
 RES='{"data":{"connections":{"totalCount":0}}}'
 
 if [ "$USER1_CONN_COUNT" != "$RES" ]; then
-    echo "unexpected connection count for user 1"
+    echo "unexpected connection count for user 1 $USER1_CONN_COUNT"
     exit 1
 fi
 
@@ -108,7 +110,7 @@ USER2_CONN_COUNT=$(curl \
     $VAULT_URL)
 
 if [ "$USER2_CONN_COUNT" != "$RES" ]; then
-    echo "unexpected connection count for user 2"
+    echo "unexpected connection count for user 2 $USER2_CONN_COUNT"
     exit 1
 fi
 
@@ -141,7 +143,7 @@ RES=$(curl \
     $VAULT_URL)
 
 if [ '{"data":{"connect":{"ok":true,"__typename":"Response"}}}' != "$RES" ]; then
-    echo "unexpected connect output"
+    echo "unexpected connect output $RES"
     exit 1
 fi
 
