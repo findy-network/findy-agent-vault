@@ -134,8 +134,11 @@ type ComplexityRoot struct {
 	}
 
 	InvitationResponse struct {
-		ImageB64   func(childComplexity int) int
-		Invitation func(childComplexity int) int
+		Endpoint func(childComplexity int) int
+		ID       func(childComplexity int) int
+		ImageB64 func(childComplexity int) int
+		Label    func(childComplexity int) int
+		Raw      func(childComplexity int) int
 	}
 
 	Job struct {
@@ -258,6 +261,7 @@ type ComplexityRoot struct {
 		Connections func(childComplexity int, after *string, before *string, first *int, last *int) int
 		Credential  func(childComplexity int, id string) int
 		Credentials func(childComplexity int, after *string, before *string, first *int, last *int) int
+		Endpoint    func(childComplexity int, payload string) int
 		Event       func(childComplexity int, id string) int
 		Events      func(childComplexity int, after *string, before *string, first *int, last *int) int
 		Job         func(childComplexity int, id string) int
@@ -345,6 +349,7 @@ type QueryResolver interface {
 	Jobs(ctx context.Context, after *string, before *string, first *int, last *int, completed *bool) (*model.JobConnection, error)
 	Job(ctx context.Context, id string) (*model.Job, error)
 	User(ctx context.Context) (*model.User, error)
+	Endpoint(ctx context.Context, payload string) (*model.InvitationResponse, error)
 }
 type SubscriptionResolver interface {
 	EventAdded(ctx context.Context) (<-chan *model.EventEdge, error)
@@ -687,6 +692,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.EventEdge.Node(childComplexity), true
 
+	case "InvitationResponse.endpoint":
+		if e.complexity.InvitationResponse.Endpoint == nil {
+			break
+		}
+
+		return e.complexity.InvitationResponse.Endpoint(childComplexity), true
+
+	case "InvitationResponse.id":
+		if e.complexity.InvitationResponse.ID == nil {
+			break
+		}
+
+		return e.complexity.InvitationResponse.ID(childComplexity), true
+
 	case "InvitationResponse.imageB64":
 		if e.complexity.InvitationResponse.ImageB64 == nil {
 			break
@@ -694,12 +713,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.InvitationResponse.ImageB64(childComplexity), true
 
-	case "InvitationResponse.invitation":
-		if e.complexity.InvitationResponse.Invitation == nil {
+	case "InvitationResponse.label":
+		if e.complexity.InvitationResponse.Label == nil {
 			break
 		}
 
-		return e.complexity.InvitationResponse.Invitation(childComplexity), true
+		return e.complexity.InvitationResponse.Label(childComplexity), true
+
+	case "InvitationResponse.raw":
+		if e.complexity.InvitationResponse.Raw == nil {
+			break
+		}
+
+		return e.complexity.InvitationResponse.Raw(childComplexity), true
 
 	case "Job.createdMs":
 		if e.complexity.Job.CreatedMs == nil {
@@ -1305,6 +1331,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Credentials(childComplexity, args["after"].(*string), args["before"].(*string), args["first"].(*int), args["last"].(*int)), true
 
+	case "Query.endpoint":
+		if e.complexity.Query.Endpoint == nil {
+			break
+		}
+
+		args, err := ec.field_Query_endpoint_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Endpoint(childComplexity, args["payload"].(string)), true
+
 	case "Query.event":
 		if e.complexity.Query.Event == nil {
 			break
@@ -1746,7 +1784,11 @@ type Response {
 }
 
 type InvitationResponse {
-  invitation: String!
+  id: ID!
+  label: String!
+  endpoint: String!
+
+  raw: String!
   imageB64: String!
 }
 
@@ -1788,6 +1830,7 @@ type Query {
   job(id: ID!): Job
 
   user: User!
+  endpoint(payload: String!): InvitationResponse!
 }
 
 type Mutation {
@@ -2222,6 +2265,21 @@ func (ec *executionContext) field_Query_credentials_args(ctx context.Context, ra
 		}
 	}
 	args["last"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_endpoint_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["payload"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("payload"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["payload"] = arg0
 	return args, nil
 }
 
@@ -3981,7 +4039,7 @@ func (ec *executionContext) _EventEdge_node(ctx context.Context, field graphql.C
 	return ec.marshalNEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEvent(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _InvitationResponse_invitation(ctx context.Context, field graphql.CollectedField, obj *model.InvitationResponse) (ret graphql.Marshaler) {
+func (ec *executionContext) _InvitationResponse_id(ctx context.Context, field graphql.CollectedField, obj *model.InvitationResponse) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3999,7 +4057,112 @@ func (ec *executionContext) _InvitationResponse_invitation(ctx context.Context, 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Invitation, nil
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InvitationResponse_label(ctx context.Context, field graphql.CollectedField, obj *model.InvitationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "InvitationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Label, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InvitationResponse_endpoint(ctx context.Context, field graphql.CollectedField, obj *model.InvitationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "InvitationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Endpoint, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InvitationResponse_raw(ctx context.Context, field graphql.CollectedField, obj *model.InvitationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "InvitationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Raw, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7049,6 +7212,48 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	return ec.marshalNUser2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_endpoint(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_endpoint_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Endpoint(rctx, args["payload"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.InvitationResponse)
+	fc.Result = res
+	return ec.marshalNInvitationResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐInvitationResponse(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -8940,8 +9145,23 @@ func (ec *executionContext) _InvitationResponse(ctx context.Context, sel ast.Sel
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("InvitationResponse")
-		case "invitation":
-			out.Values[i] = ec._InvitationResponse_invitation(ctx, field, obj)
+		case "id":
+			out.Values[i] = ec._InvitationResponse_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "label":
+			out.Values[i] = ec._InvitationResponse_label(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "endpoint":
+			out.Values[i] = ec._InvitationResponse_endpoint(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "raw":
+			out.Values[i] = ec._InvitationResponse_raw(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -9817,6 +10037,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_user(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "endpoint":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_endpoint(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
