@@ -158,6 +158,10 @@ func (r *queryResolver) User(ctx context.Context) (*model.User, error) {
 	return r.resolvers.query.User(ctx)
 }
 
+func (r *queryResolver) Endpoint(ctx context.Context, payload string) (*model.InvitationResponse, error) {
+	return r.resolvers.query.Endpoint(ctx, payload)
+}
+
 func (r *subscriptionResolver) EventAdded(ctx context.Context) (<-chan *model.EventEdge, error) {
 	return r.updater.EventAdded(ctx)
 }

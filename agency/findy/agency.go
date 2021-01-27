@@ -7,6 +7,7 @@ import (
 	"github.com/findy-network/findy-agent-api/grpc/agency"
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/utils"
+	didexchange "github.com/findy-network/findy-agent/std/didexchange/invitation"
 	"github.com/findy-network/findy-grpc/agency/client"
 	"github.com/findy-network/findy-grpc/agency/client/async"
 	"github.com/findy-network/findy-grpc/jwt"
@@ -78,7 +79,7 @@ func (f *Agency) Invite(a *model.Agent) (invitation, id string, err error) {
 func (f *Agency) Connect(a *model.Agent, strInvitation string) (id string, err error) {
 	defer err2.Return(&err) // TODO: do not leak internal errors to client
 
-	inv := model.Invitation{}
+	inv := didexchange.Invitation{}
 	err2.Check(json.Unmarshal([]byte(strInvitation), &inv))
 
 	connect := f.userCmdPw(a, "")

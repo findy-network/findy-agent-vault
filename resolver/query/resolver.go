@@ -2,6 +2,7 @@ package query
 
 import (
 	"context"
+	"encoding/base64"
 
 	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/graph/model"
@@ -214,4 +215,19 @@ func (r *Resolver) User(ctx context.Context) (u *model.User, err error) {
 	utils.LogLow().Infof("queryResolver:User tenant %s", tenant.ID)
 
 	return tenant.ToNode(), nil
+}
+
+func (r *Resolver) Endpoint(ctx context.Context, payload string) (i *model.InvitationResponse, err error) {
+	defer err2.Return(&err)
+
+	tenant, err := r.GetAgent(ctx)
+	err2.Check(err)
+
+	utils.LogLow().Infof("queryResolver:Endpoint tenant %s", tenant.ID)
+
+	if decoded, err := base64.StdEncoding.DecodeString(payload); err == nil {
+		payload = string(decoded)
+	}
+
+	return utils.FromAriesInvitation(payload)
 }
