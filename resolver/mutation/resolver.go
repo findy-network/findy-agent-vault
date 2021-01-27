@@ -57,7 +57,7 @@ func (r *Resolver) Invite(ctx context.Context) (res *model.InvitationResponse, e
 	str, id, err := r.agency.Invite(r.AgencyAuth(tenant))
 	err2.Check(err)
 
-	img, err := utils.StrToQRCode(str)
+	res, err = utils.FromAriesInvitation(str)
 	err2.Check(err)
 
 	err2.Check(r.AddJob(
@@ -69,11 +69,6 @@ func (r *Resolver) Invite(ctx context.Context) (res *model.InvitationResponse, e
 		}),
 		"Created connection invitation",
 	))
-
-	res = &model.InvitationResponse{
-		Invitation: str,
-		ImageB64:   img,
-	}
 
 	return
 }

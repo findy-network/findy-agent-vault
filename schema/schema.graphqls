@@ -251,7 +251,11 @@ type Response {
 }
 
 type InvitationResponse {
-  invitation: String!
+  id: ID!
+  label: String!
+  endpoint: String!
+
+  raw: String!
   imageB64: String!
 }
 
@@ -293,6 +297,7 @@ type Query {
   job(id: ID!): Job
 
   user: User!
+  endpoint(payload: String!): InvitationResponse!
 }
 
 type Mutation {

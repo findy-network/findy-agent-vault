@@ -13,6 +13,14 @@ import (
 	"github.com/lainio/err2"
 )
 
+type Invitation struct {
+	ServiceEndpoint string   `json:"serviceEndpoint,omitempty" faker:"url"`
+	RecipientKeys   []string `json:"recipientKeys,omitempty" faker:"-"`
+	ID              string   `json:"@id,omitempty" faker:"uuid_hyphenated"`
+	Label           string   `json:"label,omitempty" faker:"first_name"`
+	Type            string   `json:"@type,omitempty" faker:"-"`
+}
+
 type Mock struct {
 	listener model.Listener
 }
@@ -28,7 +36,7 @@ func (m *Mock) AddAgent(agent *model.Agent) error {
 func (m *Mock) Invite(a *model.Agent) (result, id string, err error) {
 	defer err2.Return(&err)
 
-	inv := model.Invitation{}
+	inv := Invitation{}
 	err = faker.FakeData(&inv)
 	err2.Check(err)
 
@@ -45,7 +53,7 @@ func (m *Mock) Invite(a *model.Agent) (result, id string, err error) {
 func (m *Mock) Connect(a *model.Agent, strInvitation string) (id string, err error) {
 	defer err2.Return(&err)
 
-	inv := model.Invitation{}
+	inv := Invitation{}
 	err2.Check(json.Unmarshal([]byte(strInvitation), &inv))
 
 	id = inv.ID
