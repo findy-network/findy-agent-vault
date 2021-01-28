@@ -11,6 +11,6 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
       - name: use token
-        run: git config --global url."https://"${{ secrets.https_prefix }}"github.com/".insteadOf "https://github.com/"
+        run: git config --global url."https://"${{ secrets.https_prefix }}"github.com/".insteadOf "git@github.com:""
       - name: checkout cli
         run: git clone git@github.com:findy-network/findy-agent-cli.git .docker/findy-agent-cli
