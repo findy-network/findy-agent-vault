@@ -1,4 +1,5 @@
 BRANCH:=dev
+TIMEOUT?=35
 
 clean:
 	docker-compose down
@@ -23,17 +24,24 @@ up: clone
 prepare-test:
 	-docker-compose down
 	docker-compose up --build -d
-	sleep 35
+	mkdir -p ./test/.docker
+	cp -R .docker/findy-grpc/cert ./test/.docker/cert
 	docker build -t vault-demo-test --build-arg HTTPS_PREFIX=$(HTTPS_PREFIX) ./test
+	sleep $(TIMEOUT)
 
 run-test:
 	docker run --name vault-demo-e2e \
 		--rm -it --network=demo_default \
-		-v $(PWD)/.docker/findy-grpc/cert:/go/src/github.com/findy-network/findy-grpc/cert \
-		-v $(PWD)/test/test.sh:/test.sh \
 		vault-demo-test
 
 test: prepare-test run-test
 
 tree:
 	docker run --rm -it findy-agent-cli tree
+
+test-test:
+	docker run --name vault-demo-e2e \
+		--rm -it --network=demo_default \
+		-v $(PWD)/.docker/findy-grpc/cert:/go/src/github.com/findy-network/findy-grpc/cert \
+		-v $(PWD)/test/test.sh:/test.sh \
+		vault-demo-test
