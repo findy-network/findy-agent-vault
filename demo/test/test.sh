@@ -122,11 +122,11 @@ INVITATION1=$(curl \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $JWT1" \
-    --data '{ "query": "mutation { invite { invitation } }" }' \
+    --data '{ "query": "mutation { invite { raw } }" }' \
     $VAULT_URL)
 
 # parse invitation
-INVITATION1=$(echo $INVITATION1 | sed -e 's/{"data":{"invite":{"invitation":"\(.*\)"}}}/\1/')
+INVITATION1=$(echo $INVITATION1 | sed -e 's/{"data":{"invite":{"raw":"\(.*\)"}}}/\1/')
 
 echo "Connecting to user1..."
 
