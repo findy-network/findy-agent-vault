@@ -19,4 +19,4 @@ jobs:
       - name: build cli
         run: cd demo && make build_cli
       - name: test
-        run: cd demo && make test
+        run: cd demo && make test TIMEOUT=5
