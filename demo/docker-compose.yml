@@ -50,23 +50,22 @@ services:
       - agency
       - vault-db
 
-  auth:
-    build: 
-      context: .docker/findy-grpc
-      args:
-        HTTPS_PREFIX: ${HTTPS_PREFIX}
-    ports:
-      - "8888:8888"
-    volumes:
-      - .docker/findy-grpc/cert:/cert
-    environment:
-      FAA_PORT: "8888"
-      FAA_AGENCY_ADDR: "agency"
-      FAA_AGENCY_PORT: "50051"
-      FAA_DOMAIN: "localhost"
-      FAA_ORIGIN: "http://localhost:8888"
-      FAA_JWT_VERIFICATION_KEY: "mySuperSecretKeyLol"
-    depends_on:
-      - agency
-      - vault-db
+#  auth:
+#    build: 
+#      context: .docker/findy-grpc
+#      args:
+#        HTTPS_PREFIX: ${HTTPS_PREFIX}
+#    ports:
+#      - "8888:8888"
+#    volumes:
+#      - .docker/findy-grpc/cert:/cert
+#    environment:
+#      FAA_PORT: "8888"
+#      FAA_AGENCY_ADDR: "agency"
+#      FAA_AGENCY_PORT: "50051"
+#      FAA_DOMAIN: "localhost"
+#      FAA_ORIGIN: "http://localhost:8888"
+#      FAA_JWT_VERIFICATION_KEY: "mySuperSecretKeyLol"
+#    depends_on:
+#      - agency
 
