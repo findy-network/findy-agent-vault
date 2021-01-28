@@ -31,7 +31,7 @@ prepare-test:
 
 run-test:
 	docker run --name vault-demo-e2e \
-		--rm -it --network=demo_default \
+		--rm -i --network=demo_default \
 		vault-demo-test
 
 test: prepare-test run-test
