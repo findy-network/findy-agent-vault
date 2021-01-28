@@ -3,6 +3,8 @@ on: push
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      HTTPS_PREFIX: ${{ secrets.https_prefix }}
     steps:
       - name: setup
         uses: actions/setup-go@v2
