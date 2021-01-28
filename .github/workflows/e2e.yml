@@ -1,0 +1,16 @@
+name: e2e
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: setup
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.15.x
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: use token
+        run: git config --global url."https://"${{ secrets.https_prefix }}"github.com/".insteadOf "https://github.com/"
+      - name: checkout cli
+        run: git clone git@github.com:findy-network/findy-agent-cli.git .docker/findy-agent-cli
