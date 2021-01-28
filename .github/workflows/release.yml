@@ -1,7 +1,10 @@
-name: e2e
-on: push
+name: release
+on:  
+  push:
+    tags:
+      - '*'
 jobs:
-  test:
+  e2e:
     runs-on: ubuntu-latest
     env:
       HTTPS_PREFIX: ${{ secrets.https_prefix }}
@@ -20,3 +23,13 @@ jobs:
         run: cd demo && make build_cli
       - name: test
         run: cd demo && make test TIMEOUT=5
+  merge:
+    needs: e2e
+    runs-on: ubuntu-latest
+    env:
+      HTTPS_PREFIX: ${{ secrets.https_prefix }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: merge
+        run: git checkout master && git merge dev && git push origin master
