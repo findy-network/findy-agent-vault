@@ -9,10 +9,6 @@ jobs:
     env:
       HTTPS_PREFIX: ${{ secrets.https_prefix }}
     steps:
-      - name: setup
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.15.x
       - name: checkout
         uses: actions/checkout@v2
       - name: use token
@@ -26,10 +22,14 @@ jobs:
   merge:
     needs: e2e
     runs-on: ubuntu-latest
-    env:
-      HTTPS_PREFIX: ${{ secrets.https_prefix }}
     steps:
       - name: checkout
         uses: actions/checkout@v2
+      - run: |
+          git config --global user.name "findy-agent-vault"
+          git config --global user.email "findy-agent-vault"
       - name: merge
-        run: git checkout master && git merge dev && git push origin master
+        run:  |
+          git checkout master
+          git merge dev
+          git push origin master
