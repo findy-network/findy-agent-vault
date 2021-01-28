@@ -25,11 +25,13 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
+        with:
+          ref: master
       - run: |
           git config --global user.name "findy-agent-vault"
           git config --global user.email "findy-agent-vault"
       - name: merge
         run:  |
-          git checkout master
+          git fetch origin dev:dev
           git merge dev
           git push origin master
