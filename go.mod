@@ -21,4 +21,5 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/vektah/gqlparser/v2 v2.1.0
 	google.golang.org/grpc v1.35.0
+	google.golang.org/grpc/examples v0.0.0-20210129004707-0bc741730b81 // indirect
 )
