@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [ -z "$1" ]; then
   echo "ERROR: Give new version name as first argument"
   exit 1
@@ -17,6 +19,8 @@ fi
 
 if [ -z "$(git status --porcelain)" ]; then
   VERSION=v$VERSION_NBR
+  go mod tidy
+  go test ./...
 
   git commit -a -m "Releasing version $VERSION."
   git tag -a $VERSION -m "Version $VERSION"
