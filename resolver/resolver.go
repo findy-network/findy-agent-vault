@@ -7,23 +7,24 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/db/store/mock"
 	"github.com/findy-network/findy-agent-vault/db/store/pg"
-	"github.com/findy-network/findy-agent-vault/resolver/agent"
-	"github.com/findy-network/findy-agent-vault/resolver/credential"
-	"github.com/findy-network/findy-agent-vault/resolver/credentialconn"
-	"github.com/findy-network/findy-agent-vault/resolver/event"
-	"github.com/findy-network/findy-agent-vault/resolver/eventconn"
-	"github.com/findy-network/findy-agent-vault/resolver/job"
-	"github.com/findy-network/findy-agent-vault/resolver/jobconn"
+	"github.com/findy-network/findy-agent-vault/resolver/archive"
 	"github.com/findy-network/findy-agent-vault/resolver/listen"
-	"github.com/findy-network/findy-agent-vault/resolver/message"
-	"github.com/findy-network/findy-agent-vault/resolver/messageconn"
 	"github.com/findy-network/findy-agent-vault/resolver/mutation"
-	"github.com/findy-network/findy-agent-vault/resolver/pairwise"
-	"github.com/findy-network/findy-agent-vault/resolver/pairwiseconn"
 	"github.com/findy-network/findy-agent-vault/resolver/playground"
-	"github.com/findy-network/findy-agent-vault/resolver/proof"
-	"github.com/findy-network/findy-agent-vault/resolver/proofconn"
 	"github.com/findy-network/findy-agent-vault/resolver/query"
+	"github.com/findy-network/findy-agent-vault/resolver/query/agent"
+	"github.com/findy-network/findy-agent-vault/resolver/query/credential"
+	"github.com/findy-network/findy-agent-vault/resolver/query/credentialconn"
+	"github.com/findy-network/findy-agent-vault/resolver/query/event"
+	"github.com/findy-network/findy-agent-vault/resolver/query/eventconn"
+	"github.com/findy-network/findy-agent-vault/resolver/query/job"
+	"github.com/findy-network/findy-agent-vault/resolver/query/jobconn"
+	"github.com/findy-network/findy-agent-vault/resolver/query/message"
+	"github.com/findy-network/findy-agent-vault/resolver/query/messageconn"
+	"github.com/findy-network/findy-agent-vault/resolver/query/pairwise"
+	"github.com/findy-network/findy-agent-vault/resolver/query/pairwiseconn"
+	"github.com/findy-network/findy-agent-vault/resolver/query/proof"
+	"github.com/findy-network/findy-agent-vault/resolver/query/proofconn"
 	"github.com/findy-network/findy-agent-vault/resolver/update"
 	"github.com/findy-network/findy-agent-vault/utils"
 )
@@ -58,6 +59,7 @@ type Resolver struct {
 	agency   agency.Agency
 	updater  *update.Updater
 	listener *listen.Listener
+	archiver *archive.Archiver
 
 	resolvers *controller
 }
@@ -109,7 +111,8 @@ func InitResolver(config *utils.Configuration) *Resolver {
 	r.updater = updater
 
 	r.listener = listen.NewListener(db, r.updater)
-	r.agency.Init(r.listener, agentResolver.FetchAgents(), config)
+	r.archiver = archive.NewArchiver(db)
+	r.agency.Init(r.listener, agentResolver.FetchAgents(), r.archiver, config)
 
 	if config.UsePlayground {
 		r.resolvers.playground = playground.NewResolver(db, agentResolver, r.listener)

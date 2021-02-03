@@ -8,7 +8,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/fake"
 	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/paginator"
-	"github.com/findy-network/findy-agent-vault/resolver/agent"
+	"github.com/findy-network/findy-agent-vault/resolver/query/agent"
 	"github.com/findy-network/findy-agent-vault/resolver/listen"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/google/uuid"

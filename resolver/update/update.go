@@ -3,7 +3,7 @@ package update
 import (
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/db/store"
-	"github.com/findy-network/findy-agent-vault/resolver/agent"
+	"github.com/findy-network/findy-agent-vault/resolver/query/agent"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
 )

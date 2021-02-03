@@ -1,6 +1,7 @@
 package listen
 
 import (
+	"fmt"
 	"time"
 
 	agency "github.com/findy-network/findy-agent-vault/agency/model"
@@ -217,4 +218,18 @@ func getJobStatusForTimestamps(approved, completed, failed *time.Time) (status m
 		result = model.JobResultSuccess
 	}
 	return
+}
+
+func (l *Listener) FailJob(info *agency.JobInfo) {
+	defer err2.Catch(func(err error) {
+		glog.Errorf("Encountered error when failing job %s", err.Error())
+	})
+	job, err := l.db.GetJob(info.JobID, info.TenantID)
+	err2.Check(err)
+
+	utils.LogMed().Infof("Fail job %s for tenant %s", job.ID, info.TenantID)
+	job.Status = model.JobStatusComplete
+	job.Result = model.JobResultFailure
+
+	err2.Check(l.UpdateJob(job, fmt.Sprintf("Protocol %s failed", job.ProtocolType.String())))
 }

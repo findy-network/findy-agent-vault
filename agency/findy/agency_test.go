@@ -136,8 +136,31 @@ func (m *mockListener) UpdateCredential(job *model.JobInfo, update *model.Creden
 func (m *mockListener) AddProof(job *model.JobInfo, proof *model.Proof) {
 	panic("Not implemented")
 }
+
 func (m *mockListener) UpdateProof(job *model.JobInfo, update *model.ProofUpdate) {
 	m.proofTS = *update.ApprovedMs
+}
+
+func (m *mockListener) FailJob(job *model.JobInfo) {
+	panic("Not implemented")
+}
+
+type mockArchiver struct{}
+
+func (m *mockArchiver) ArchiveConnection(info *model.ArchiveInfo, connection *model.Connection) {
+	panic("Not implemented")
+}
+
+func (m *mockArchiver) ArchiveMessage(info *model.ArchiveInfo, message *model.Message) {
+	panic("Not implemented")
+}
+
+func (m *mockArchiver) ArchiveCredential(info *model.ArchiveInfo, credential *model.Credential) {
+	panic("Not implemented")
+}
+
+func (m *mockArchiver) ArchiveProof(info *model.ArchiveInfo, proof *model.Proof) {
+	panic("Not implemented")
 }
 
 var (
@@ -173,6 +196,7 @@ func TestInit(t *testing.T) {
 	testAgency.Init(
 		&mockListener{},
 		[]*model.Agent{{AgentID: testClientID, TenantID: testClientID}},
+		&mockArchiver{},
 		&utils.Configuration{JWTKey: "mySuperSecretKeyLol", AgencyCertPath: tlsPath},
 	)
 	// Wait for a while that calls complete

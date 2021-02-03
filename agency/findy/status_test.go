@@ -63,6 +63,10 @@ func (s *statusListener) UpdateProof(job *model.JobInfo, update *model.ProofUpda
 	s.proofUpdate = update
 }
 
+func (s *statusListener) FailJob(job *model.JobInfo) {
+	panic("Not implemented")
+}
+
 func TestHandleConnectionStatus(t *testing.T) {
 	var (
 		testJob        = &model.JobInfo{JobID: "conn-job-id"}
@@ -79,6 +83,9 @@ func TestHandleConnectionStatus(t *testing.T) {
 		&model.JobInfo{JobID: testJob.JobID},
 		&agency.Notification{ProtocolType: agency.Protocol_CONNECT},
 		&agency.ProtocolStatus{
+			State: &agency.ProtocolState{
+				State: agency.ProtocolState_OK,
+			},
 			Status: &agency.ProtocolStatus_Connection_{Connection: &agency.ProtocolStatus_Connection{
 				Id:            "pwName",
 				MyDid:         testConnection.OurDID,
@@ -108,6 +115,12 @@ func TestHandleBasicMessageStatus(t *testing.T) {
 		&model.JobInfo{JobID: testJob.JobID},
 		&agency.Notification{ProtocolType: agency.Protocol_BASIC_MESSAGE},
 		&agency.ProtocolStatus{
+			State: &agency.ProtocolState{
+				State: agency.ProtocolState_OK,
+				ProtocolId: &agency.ProtocolID{
+					Role: agency.Protocol_ADDRESSEE,
+				},
+			},
 			Status: &agency.ProtocolStatus_BasicMessage_{BasicMessage: &agency.ProtocolStatus_BasicMessage{
 				Content:  testMessage.Message,
 				SentByMe: testMessage.SentByMe,
@@ -135,6 +148,9 @@ func TestHandleCredentialStatus(t *testing.T) {
 		&model.JobInfo{JobID: testJob.JobID},
 		&agency.Notification{ProtocolType: agency.Protocol_ISSUE},
 		&agency.ProtocolStatus{
+			State: &agency.ProtocolState{
+				State: agency.ProtocolState_OK,
+			},
 			Status: &agency.ProtocolStatus_Issue_{Issue: &agency.ProtocolStatus_Issue{}},
 		})
 
@@ -158,6 +174,9 @@ func TestHandleProofStatus(t *testing.T) {
 		&model.JobInfo{JobID: testJob.JobID},
 		&agency.Notification{ProtocolType: agency.Protocol_PROOF},
 		&agency.ProtocolStatus{
+			State: &agency.ProtocolState{
+				State: agency.ProtocolState_OK,
+			},
 			Status: &agency.ProtocolStatus_Proof{Proof: &agency.Protocol_Proof{}},
 		})
 
@@ -192,6 +211,11 @@ func TestHandleCredentialAction(t *testing.T) {
 			Role:         agency.Protocol_ADDRESSEE,
 		},
 		&agency.ProtocolStatus{
+			State: &agency.ProtocolState{
+				ProtocolId: &agency.ProtocolID{
+					Role: agency.Protocol_ADDRESSEE,
+				},
+			},
 			Status: &agency.ProtocolStatus_Issue_{
 				Issue: &agency.ProtocolStatus_Issue{
 					SchemaId:  testCredential.SchemaID,
@@ -237,6 +261,11 @@ func TestHandleProofAction(t *testing.T) {
 			Role:         agency.Protocol_ADDRESSEE,
 		},
 		&agency.ProtocolStatus{
+			State: &agency.ProtocolState{
+				ProtocolId: &agency.ProtocolID{
+					Role: agency.Protocol_ADDRESSEE,
+				},
+			},
 			Status: &agency.ProtocolStatus_Proof{
 				Proof: &agency.Protocol_Proof{
 					Attrs: []*agency.Protocol_Proof_Attr{

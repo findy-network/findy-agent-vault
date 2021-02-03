@@ -19,6 +19,7 @@ import (
 
 type Agency struct {
 	vault      model.Listener
+	archiver   model.Archiver
 	ctx        context.Context
 	agencyHost string
 	agencyPort int
@@ -35,7 +36,12 @@ func (f *Agency) userCmdPw(a *model.Agent, connectionID string) *async.Pairwise 
 	return async.NewPairwise(f.userCmdConn(a), connectionID)
 }
 
-func (f *Agency) Init(listener model.Listener, agents []*model.Agent, config *utils.Configuration) {
+func (f *Agency) Init(
+	listener model.Listener,
+	agents []*model.Agent,
+	archiver model.Archiver,
+	config *utils.Configuration,
+) {
 	f.agencyHost = config.AgencyHost
 	f.agencyPort = config.AgencyPort
 	f.tlsPath = config.AgencyCertPath
@@ -44,6 +50,7 @@ func (f *Agency) Init(listener model.Listener, agents []*model.Agent, config *ut
 
 	f.ctx = context.Background()
 	f.vault = listener
+	f.archiver = archiver
 	// TODO: release protocol when saved
 	err := f.listenAdminHook()
 	if err != nil {
