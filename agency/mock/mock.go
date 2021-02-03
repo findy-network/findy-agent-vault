@@ -23,10 +23,17 @@ type Invitation struct {
 
 type Mock struct {
 	listener model.Listener
+	archiver model.Archiver
 }
 
-func (m *Mock) Init(l model.Listener, agents []*model.Agent, config *utils.Configuration) {
+func (m *Mock) Init(
+	l model.Listener,
+	agents []*model.Agent,
+	archiver model.Archiver,
+	config *utils.Configuration,
+) {
 	m.listener = l
+	m.archiver = archiver
 }
 
 func (m *Mock) AddAgent(agent *model.Agent) error {

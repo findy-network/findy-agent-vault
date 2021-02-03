@@ -5,7 +5,6 @@ import (
 
 	"github.com/findy-network/findy-agent-api/grpc/agency"
 	"github.com/findy-network/findy-agent-vault/agency/model"
-	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/findy-network/findy-grpc/agency/client"
 	"github.com/golang/glog"
@@ -42,46 +41,63 @@ func (f *Agency) getStatus(conn client.Conn, notification *agency.Notification) 
 	return
 }
 
-func (f *Agency) handleStatus(
-	job *model.JobInfo, notification *agency.Notification,
+func (f *Agency) handleProtocolFailure(
+	job *model.JobInfo,
+	notification *agency.Notification,
 	status *agency.ProtocolStatus,
 ) {
-	// TODO: check status (failed/successful?)
+	// TODO: failure reason
+	utils.LogHigh().Infof("Job %s (%s) failed", job.JobID, notification.ProtocolType.String())
+
+	now := utils.CurrentTimeMs()
+	switch notification.ProtocolType {
+	case agency.Protocol_ISSUE:
+		f.vault.UpdateCredential(
+			job,
+			&model.CredentialUpdate{
+				FailedMs: &now,
+			},
+		)
+	case agency.Protocol_PROOF:
+		f.vault.UpdateProof(
+			job,
+			&model.ProofUpdate{
+				FailedMs: &now,
+			},
+		)
+	default:
+		f.vault.FailJob(job)
+	}
+}
+
+func (f *Agency) handleProtocolSuccess(
+	job *model.JobInfo,
+	notification *agency.Notification,
+	status *agency.ProtocolStatus,
+) {
+	utils.LogLow().Infof("Job %s (%s) success", job.JobID, notification.ProtocolType.String())
 
 	now := utils.CurrentTimeMs()
 	switch notification.ProtocolType {
 	case agency.Protocol_CONNECT:
-		connection := status.GetConnection()
+		connection := statusToConnection(status)
 		if connection == nil {
 			glog.Errorf("Received invalid connection object for %s", job.JobID)
 			return
 		}
 
-		f.vault.AddConnection(
-			job,
-			&model.Connection{
-				OurDID:        connection.MyDid,
-				TheirDID:      connection.TheirDid,
-				TheirEndpoint: connection.TheirEndpoint,
-				TheirLabel:    connection.TheirLabel,
-			},
-		)
+		f.vault.AddConnection(job, connection)
 
 	case agency.Protocol_BASIC_MESSAGE:
-		message := status.GetBasicMessage()
+		message := statusToMessage(status)
 		if message == nil {
 			glog.Errorf("Received invalid message object for %s", job.JobID)
 			return
 		}
 
-		f.vault.AddMessage(
-			job,
-			&model.Message{
-				Message:  message.Content,
-				SentByMe: message.SentByMe,
-			},
-			// TODO: delivered?
-		)
+		// TODO: delivered?
+		f.vault.AddMessage(job, message)
+
 	case agency.Protocol_ISSUE:
 		f.vault.UpdateCredential(
 			job,
@@ -101,6 +117,25 @@ func (f *Agency) handleStatus(
 	}
 }
 
+func (f *Agency) handleStatus(
+	job *model.JobInfo,
+	notification *agency.Notification,
+	status *agency.ProtocolStatus,
+) {
+	switch status.State.State {
+	case agency.ProtocolState_ERR:
+		f.handleProtocolFailure(job, notification, status)
+	case agency.ProtocolState_OK:
+		f.handleProtocolSuccess(job, notification, status)
+	default:
+		utils.LogLow().Infof(
+			"Received status update %s: %s",
+			status.State.ProtocolId.GetTypeId().String(),
+			status.State.GetState().String(),
+		)
+	}
+}
+
 func (f *Agency) handleAction(
 	job *model.JobInfo,
 	notification *agency.Notification,
@@ -108,61 +143,23 @@ func (f *Agency) handleAction(
 ) {
 	switch notification.ProtocolType {
 	case agency.Protocol_ISSUE:
-		credential := status.GetIssue()
+		credential := statusToCredential(status)
 		if credential == nil {
 			glog.Errorf("Received invalid credential issue object for %s", job.JobID)
 			return
 		}
-
-		role := graph.CredentialRoleHolder
-		if notification.Role != agency.Protocol_ADDRESSEE {
-			role = graph.CredentialRoleIssuer
-		}
-		values := make([]*graph.CredentialValue, 0)
-		for _, v := range credential.Attrs {
-			values = append(values, &graph.CredentialValue{
-				Name:  v.Name,
-				Value: v.Value,
-			})
-		}
 		// TODO: what if we are issuer?
-		f.vault.AddCredential(
-			job,
-			&model.Credential{
-				Role:          role,
-				SchemaID:      credential.SchemaId,
-				CredDefID:     credential.CredDefId,
-				Attributes:    values,
-				InitiatedByUs: false,
-			},
-		)
+		f.vault.AddCredential(job, credential)
 
 	case agency.Protocol_PROOF:
-		proof := status.GetProof()
+		proof := statusToProof(status)
 		if proof == nil {
 			glog.Errorf("Received invalid proof object for %s", job.JobID)
 			return
 		}
-
-		role := graph.ProofRoleProver
-		if notification.Role != agency.Protocol_ADDRESSEE {
-			role = graph.ProofRoleVerifier
-		}
-		attributes := make([]*graph.ProofAttribute, 0)
-		for _, v := range proof.Attrs {
-			value := "" // TODO: get also values from notification?
-			attributes = append(attributes, &graph.ProofAttribute{
-				Name:      v.Name,
-				Value:     &value,
-				CredDefID: v.CredDefId,
-			})
-		}
 		// TODO: what if we are verifier?
-		f.vault.AddProof(job, &model.Proof{
-			Role:          role,
-			Attributes:    attributes,
-			InitiatedByUs: false,
-		})
+		f.vault.AddProof(job, proof)
+
 	case agency.Protocol_NONE:
 	case agency.Protocol_TRUST_PING:
 	case agency.Protocol_CONNECT:

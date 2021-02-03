@@ -47,4 +47,18 @@ type Listener interface {
 
 	AddProof(job *JobInfo, proof *Proof)
 	UpdateProof(job *JobInfo, update *ProofUpdate)
+
+	FailJob(job *JobInfo)
+}
+
+type ArchiveInfo struct {
+	AgentID      string
+	ConnectionID string
+}
+
+type Archiver interface {
+	ArchiveConnection(info *ArchiveInfo, connection *Connection)
+	ArchiveMessage(info *ArchiveInfo, message *Message)
+	ArchiveCredential(info *ArchiveInfo, credential *Credential)
+	ArchiveProof(info *ArchiveInfo, proof *Proof)
 }

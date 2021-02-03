@@ -24,6 +24,6 @@ func SetLogDefaults() {
 	})
 	err2.Check(flag.Set("logtostderr", "true"))
 	err2.Check(flag.Set("stderrthreshold", "WARNING"))
-	err2.Check(flag.Set("v", "3"))
+	err2.Check(flag.Set("v", "5"))
 	flag.Parse()
 }

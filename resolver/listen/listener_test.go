@@ -8,7 +8,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/db/store"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
-	"github.com/findy-network/findy-agent-vault/resolver/agent"
+	"github.com/findy-network/findy-agent-vault/resolver/query/agent"
 	"github.com/findy-network/findy-agent-vault/resolver/update"
 	gomock "github.com/golang/mock/gomock"
 
