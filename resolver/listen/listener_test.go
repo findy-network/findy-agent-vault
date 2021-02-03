@@ -86,7 +86,7 @@ func TestAddConnection(t *testing.T) {
 
 	l := createListener(m)
 
-	l.AddConnection(job, connection)
+	_ = l.AddConnection(job, connection)
 }
 
 func TestAddMessage(t *testing.T) {
@@ -136,7 +136,7 @@ func TestAddMessage(t *testing.T) {
 
 	l := createListener(m)
 
-	l.AddMessage(job, message)
+	_ = l.AddMessage(job, message)
 }
 
 func TestAddCredential(t *testing.T) {
@@ -195,7 +195,7 @@ func TestAddCredential(t *testing.T) {
 
 	l := createListener(m)
 
-	l.AddCredential(job, credential)
+	_ = l.AddCredential(job, credential)
 }
 
 func TestUpdateCredential(t *testing.T) {
@@ -249,7 +249,7 @@ func TestUpdateCredential(t *testing.T) {
 
 	l := createListener(m)
 
-	l.UpdateCredential(job, credentialUpdate)
+	_ = l.UpdateCredential(job, credentialUpdate)
 }
 
 func TestAddProof(t *testing.T) {
@@ -307,7 +307,7 @@ func TestAddProof(t *testing.T) {
 
 	l := createListener(m)
 
-	l.AddProof(job, proof)
+	_ = l.AddProof(job, proof)
 }
 
 func TestUpdateProof(t *testing.T) {
@@ -361,5 +361,5 @@ func TestUpdateProof(t *testing.T) {
 
 	l := createListener(m)
 
-	l.UpdateProof(job, proofUpdate)
+	_ = l.UpdateProof(job, proofUpdate)
 }

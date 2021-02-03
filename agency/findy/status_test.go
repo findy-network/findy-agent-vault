@@ -30,40 +30,47 @@ type statusListener struct {
 	proof    *model.Proof
 }
 
-func (s *statusListener) AddConnection(job *model.JobInfo, connection *model.Connection) {
+func (s *statusListener) AddConnection(job *model.JobInfo, connection *model.Connection) error {
 	s.connJob = job
 	s.connection = connection
+	return nil
 }
 
-func (s *statusListener) AddMessage(job *model.JobInfo, message *model.Message) {
+func (s *statusListener) AddMessage(job *model.JobInfo, message *model.Message) error {
 	s.msgJob = job
 	s.message = message
+	return nil
 }
 
-func (s *statusListener) UpdateMessage(job *model.JobInfo, update *model.MessageUpdate) {
+func (s *statusListener) UpdateMessage(job *model.JobInfo, update *model.MessageUpdate) error {
 	panic("Not implemented")
 }
 
-func (s *statusListener) AddCredential(job *model.JobInfo, credential *model.Credential) {
+func (s *statusListener) AddCredential(job *model.JobInfo, credential *model.Credential) error {
 	s.credentialJob = job
 	s.credential = credential
+	return nil
 }
-func (s *statusListener) UpdateCredential(job *model.JobInfo, update *model.CredentialUpdate) {
+
+func (s *statusListener) UpdateCredential(job *model.JobInfo, update *model.CredentialUpdate) error {
 	s.credUpdateJob = job
 	s.credUpdate = update
+	return nil
 }
 
-func (s *statusListener) AddProof(job *model.JobInfo, proof *model.Proof) {
+func (s *statusListener) AddProof(job *model.JobInfo, proof *model.Proof) error {
 	s.proofJob = job
 	s.proof = proof
+	return nil
 }
 
-func (s *statusListener) UpdateProof(job *model.JobInfo, update *model.ProofUpdate) {
+func (s *statusListener) UpdateProof(job *model.JobInfo, update *model.ProofUpdate) error {
 	s.proofUpdateJob = job
 	s.proofUpdate = update
+	return nil
 }
 
-func (s *statusListener) FailJob(job *model.JobInfo) {
+func (s *statusListener) FailJob(job *model.JobInfo) error {
 	panic("Not implemented")
 }
 

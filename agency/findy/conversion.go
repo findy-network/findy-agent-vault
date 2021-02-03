@@ -73,7 +73,7 @@ func statusToMessage(status *agency.ProtocolStatus) *model.Message {
 	message := status.GetBasicMessage()
 	if message != nil {
 		return &model.Message{
-			Message:  message.Content,
+			Message: message.Content,
 			// TODO: remove SentByMe from agency API
 			SentByMe: status.State.GetProtocolId().Role != agency.Protocol_ADDRESSEE,
 		}

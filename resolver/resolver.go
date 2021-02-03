@@ -114,7 +114,7 @@ func InitResolver(config *utils.Configuration) *Resolver {
 	r.archiver = archive.NewArchiver(db)
 	r.agency.Init(r.listener, agentResolver.FetchAgents(), r.archiver, config)
 
-	if config.UsePlayground {
+	if config.UseMockAgency {
 		r.resolvers.playground = playground.NewResolver(db, agentResolver, r.listener)
 	}
 

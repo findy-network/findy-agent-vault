@@ -116,32 +116,34 @@ type mockListener struct {
 	proofTS int64
 }
 
-func (m *mockListener) AddConnection(job *model.JobInfo, connection *model.Connection) {
+func (m *mockListener) AddConnection(job *model.JobInfo, connection *model.Connection) error {
 	panic("Not implemented")
 }
-func (m *mockListener) AddMessage(job *model.JobInfo, message *model.Message) {
+func (m *mockListener) AddMessage(job *model.JobInfo, message *model.Message) error {
 	panic("Not implemented")
 }
-func (m *mockListener) UpdateMessage(job *model.JobInfo, update *model.MessageUpdate) {
+func (m *mockListener) UpdateMessage(job *model.JobInfo, update *model.MessageUpdate) error {
 	panic("Not implemented")
 }
 
-func (m *mockListener) AddCredential(job *model.JobInfo, credential *model.Credential) {
+func (m *mockListener) AddCredential(job *model.JobInfo, credential *model.Credential) error {
 	panic("Not implemented")
 }
-func (m *mockListener) UpdateCredential(job *model.JobInfo, update *model.CredentialUpdate) {
+func (m *mockListener) UpdateCredential(job *model.JobInfo, update *model.CredentialUpdate) error {
 	m.credTS = *update.ApprovedMs
+	return nil
 }
 
-func (m *mockListener) AddProof(job *model.JobInfo, proof *model.Proof) {
+func (m *mockListener) AddProof(job *model.JobInfo, proof *model.Proof) error {
 	panic("Not implemented")
 }
 
-func (m *mockListener) UpdateProof(job *model.JobInfo, update *model.ProofUpdate) {
+func (m *mockListener) UpdateProof(job *model.JobInfo, update *model.ProofUpdate) error {
 	m.proofTS = *update.ApprovedMs
+	return nil
 }
 
-func (m *mockListener) FailJob(job *model.JobInfo) {
+func (m *mockListener) FailJob(job *model.JobInfo) error {
 	panic("Not implemented")
 }
 
