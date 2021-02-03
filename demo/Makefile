@@ -2,7 +2,8 @@ BRANCH:=dev
 TIMEOUT?=35
 
 clean:
-	docker-compose down
+	docker-compose -f docker-compose-test.yml down 
+	docker-compose -f docker-compose-dev.yml down 
 	rm -rf .docker
 
 clone:
@@ -18,12 +19,9 @@ clean_cli:
 build_cli:
 	cd .docker/findy-agent-cli && make image
 
-up: clone
-	docker-compose up
-
 prepare-test:
-	-docker-compose down
-	docker-compose up --build -d
+	-docker-compose -f docker-compose-test.yml down
+	docker-compose -f docker-compose-test.yml up --build -d
 	mkdir -p ./test/.docker
 	cp -R .docker/findy-grpc/cert ./test/.docker/cert
 	docker build -t vault-demo-test --build-arg HTTPS_PREFIX=$(HTTPS_PREFIX) ./test
@@ -45,3 +43,13 @@ test-test:
 		-v $(PWD)/.docker/findy-grpc/cert:/go/src/github.com/findy-network/findy-grpc/cert \
 		-v $(PWD)/test/test.sh:/test.sh \
 		vault-demo-test
+
+dev:
+	docker-compose -f docker-compose-dev.yml down
+	docker-compose -f docker-compose-dev.yml up -d
+
+dev_build: clean clean_cli clone build_cli
+	docker-compose -f docker-compose-dev.yml up --build -d
+
+dev_logs:
+	docker-compose -f docker-compose-dev.yml logs --tail="all"

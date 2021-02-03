@@ -147,8 +147,7 @@ func (f *Agency) ResumeCredentialOffer(a *model.Agent, job *model.JobInfo, accep
 	err2.Check(f.resume(a, job, accept, agency.Protocol_ISSUE))
 
 	now := utils.CurrentTimeMs()
-	f.vault.UpdateCredential(job, &model.CredentialUpdate{ApprovedMs: &now})
-	return err
+	return f.vault.UpdateCredential(job, &model.CredentialUpdate{ApprovedMs: &now})
 }
 
 func (f *Agency) ResumeProofRequest(a *model.Agent, job *model.JobInfo, accept bool) (err error) {
@@ -156,6 +155,5 @@ func (f *Agency) ResumeProofRequest(a *model.Agent, job *model.JobInfo, accept b
 	err2.Check(f.resume(a, job, accept, agency.Protocol_PROOF))
 
 	now := utils.CurrentTimeMs()
-	f.vault.UpdateProof(job, &model.ProofUpdate{ApprovedMs: &now})
-	return err
+	return f.vault.UpdateProof(job, &model.ProofUpdate{ApprovedMs: &now})
 }

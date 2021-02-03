@@ -8,8 +8,8 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/fake"
 	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/paginator"
-	"github.com/findy-network/findy-agent-vault/resolver/query/agent"
 	"github.com/findy-network/findy-agent-vault/resolver/listen"
+	"github.com/findy-network/findy-agent-vault/resolver/query/agent"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/google/uuid"
 	"github.com/lainio/err2"
@@ -60,7 +60,7 @@ func (r *Resolver) AddRandomMessage(ctx context.Context) (ok bool, err error) {
 			ConnectionID: connectionID,
 		}
 
-		r.AddMessage(job, &model.Message{Message: message.Message, SentByMe: message.SentByMe})
+		_ = r.AddMessage(job, &model.Message{Message: message.Message, SentByMe: message.SentByMe})
 		ok = true
 	}
 
@@ -88,7 +88,7 @@ func (r *Resolver) AddRandomCredential(ctx context.Context) (ok bool, err error)
 			ConnectionID: connectionID,
 		}
 
-		r.AddCredential(
+		_ = r.AddCredential(
 			job,
 			&model.Credential{
 				Role:          credential.Role,
@@ -100,7 +100,7 @@ func (r *Resolver) AddRandomCredential(ctx context.Context) (ok bool, err error)
 		)
 		time.AfterFunc(time.Second, func() {
 			now := utils.CurrentTimeMs()
-			r.UpdateCredential(job, &model.CredentialUpdate{ApprovedMs: &now, IssuedMs: &now})
+			_ = r.UpdateCredential(job, &model.CredentialUpdate{ApprovedMs: &now, IssuedMs: &now})
 		})
 		ok = true
 	}
@@ -129,7 +129,7 @@ func (r *Resolver) AddRandomProof(ctx context.Context) (ok bool, err error) {
 			ConnectionID: connectionID,
 		}
 
-		r.AddProof(
+		_ = r.AddProof(
 			job,
 			&model.Proof{
 				Role:          proof.Role,
@@ -139,7 +139,7 @@ func (r *Resolver) AddRandomProof(ctx context.Context) (ok bool, err error) {
 		)
 		time.AfterFunc(time.Second, func() {
 			now := utils.CurrentTimeMs()
-			r.UpdateProof(job, &model.ProofUpdate{
+			_ = r.UpdateProof(job, &model.ProofUpdate{
 				ApprovedMs: &now,
 				VerifiedMs: &now,
 			})

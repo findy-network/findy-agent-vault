@@ -26,7 +26,7 @@ type Configuration struct {
 	UseMockDB        bool
 	UseMockAgency    bool
 	GenerateFakeData bool
-	UsePlayground    bool
+	UsePlayground    bool `mapstructure:"use_playground"`
 }
 
 func LoadConfig() *Configuration {
@@ -45,6 +45,7 @@ func LoadConfig() *Configuration {
 	v.SetDefault("agency_host", "localhost")
 	v.SetDefault("agency_port", 50051)
 	v.SetDefault("agency_cert_path", "")
+	v.SetDefault("use_playground", false)
 
 	viper.SetConfigName("config.yaml")
 	viper.AddConfigPath(".")
