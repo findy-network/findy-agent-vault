@@ -9,7 +9,6 @@ import (
 )
 
 func (f *Agency) getStatus(a *model.Agent, notification *agency.Notification) (status *agency.ProtocolStatus, ok bool) {
-
 	cmd := f.userAsyncClient(a)
 
 	status, err := cmd.status(notification.ProtocolId, notification.ProtocolType)
@@ -219,7 +218,6 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 			}
 		}
 	}()
-
 	return err
 }
 

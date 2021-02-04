@@ -48,7 +48,6 @@ func (f *Agency) listenAdminHook() (err error) {
 			// TODO: reconnect?
 		})
 
-		// TODO: fail job if error happens?
 		for {
 			status, ok := <-ch
 			if !ok {
@@ -60,8 +59,7 @@ func (f *Agency) listenAdminHook() (err error) {
 			protocolStatus := status.GetProtocolStatus()
 			info := &model.ArchiveInfo{AgentID: status.GetDID(), ConnectionID: status.GetConnectionId()}
 
-			// TODO: agency returns running?
-			// archive currently only successful protocol runs
+			// archive currently only successful protocol results
 			if protocolStatus.State.State == agency.ProtocolState_OK {
 				f.archive(info, protocolStatus)
 			} else {
