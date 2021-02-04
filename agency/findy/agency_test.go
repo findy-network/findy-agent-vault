@@ -173,13 +173,20 @@ var (
 		tlsPath: tlsPath,
 		options: dialOptions,
 	}
-	agent = &model.Agent{RawJWT: jwt.BuildJWT("test-user")}
+	agent *model.Agent
 
 	mockAgencyServer = &mockServer{clientIDs: make([]string, 0)}
 )
 
 func setup() {
 	utils.SetLogDefaults()
+	findy.Init(
+		&mockListener{},
+		[]*model.Agent{},
+		&mockArchiver{},
+		&utils.Configuration{JWTKey: "mySuperSecretKeyLol", AgencyCertPath: tlsPath},
+	)
+	agent = &model.Agent{RawJWT: jwt.BuildJWT("test-user")}
 }
 
 func teardown() {

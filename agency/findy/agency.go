@@ -51,7 +51,6 @@ func (f *Agency) Init(
 
 	f.vault = listener
 	f.archiver = archiver
-	// TODO: release protocol when saved
 	err := f.listenAdminHook()
 	if err != nil {
 		panic(err)

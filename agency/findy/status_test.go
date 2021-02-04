@@ -87,11 +87,16 @@ func TestHandleConnectionStatus(t *testing.T) {
 	listener := &statusListener{}
 	testFindy := &Agency{vault: listener}
 	testFindy.handleStatus(
+		&model.Agent{},
 		&model.JobInfo{JobID: testJob.JobID},
 		&agency.Notification{ProtocolType: agency.Protocol_CONNECT},
 		&agency.ProtocolStatus{
 			State: &agency.ProtocolState{
 				State: agency.ProtocolState_OK,
+				ProtocolId: &agency.ProtocolID{
+					Id:     testJob.JobID,
+					TypeId: agency.Protocol_CONNECT,
+				},
 			},
 			Status: &agency.ProtocolStatus_Connection_{Connection: &agency.ProtocolStatus_Connection{
 				Id:            "pwName",
@@ -119,6 +124,7 @@ func TestHandleBasicMessageStatus(t *testing.T) {
 	listener := &statusListener{}
 	testFindy := &Agency{vault: listener}
 	testFindy.handleStatus(
+		&model.Agent{},
 		&model.JobInfo{JobID: testJob.JobID},
 		&agency.Notification{ProtocolType: agency.Protocol_BASIC_MESSAGE},
 		&agency.ProtocolStatus{
@@ -152,11 +158,16 @@ func TestHandleCredentialStatus(t *testing.T) {
 	listener := &statusListener{}
 	testFindy := &Agency{vault: listener}
 	testFindy.handleStatus(
+		&model.Agent{},
 		&model.JobInfo{JobID: testJob.JobID},
 		&agency.Notification{ProtocolType: agency.Protocol_ISSUE},
 		&agency.ProtocolStatus{
 			State: &agency.ProtocolState{
 				State: agency.ProtocolState_OK,
+				ProtocolId: &agency.ProtocolID{
+					Id:     testJob.JobID,
+					TypeId: agency.Protocol_ISSUE,
+				},
 			},
 			Status: &agency.ProtocolStatus_Issue_{Issue: &agency.ProtocolStatus_Issue{}},
 		})
@@ -178,11 +189,16 @@ func TestHandleProofStatus(t *testing.T) {
 	listener := &statusListener{}
 	testFindy := &Agency{vault: listener}
 	testFindy.handleStatus(
+		&model.Agent{},
 		&model.JobInfo{JobID: testJob.JobID},
 		&agency.Notification{ProtocolType: agency.Protocol_PROOF},
 		&agency.ProtocolStatus{
 			State: &agency.ProtocolState{
 				State: agency.ProtocolState_OK,
+				ProtocolId: &agency.ProtocolID{
+					Id:     testJob.JobID,
+					TypeId: agency.Protocol_PROOF,
+				},
 			},
 			Status: &agency.ProtocolStatus_Proof{Proof: &agency.Protocol_Proof{}},
 		})
@@ -294,7 +310,7 @@ func TestHandleProofAction(t *testing.T) {
 }
 
 func TestGetStatus(t *testing.T) {
-	status, ok := findy.getStatus(findy.userCmdConn(agent), &agency.Notification{
+	status, ok := findy.getStatus(&model.Agent{}, &agency.Notification{
 		ProtocolType: agency.Protocol_PROOF,
 		Role:         agency.Protocol_ADDRESSEE,
 	})
