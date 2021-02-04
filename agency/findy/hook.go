@@ -4,15 +4,9 @@ import (
 	"github.com/findy-network/findy-agent-api/grpc/agency"
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/utils"
-	"github.com/findy-network/findy-grpc/agency/client"
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
 )
-
-func (f *Agency) adminListenClient() client.Conn {
-	config := client.BuildClientConnBase(f.tlsPath, f.agencyHost, f.agencyPort, f.options)
-	return client.TryOpen("findy-root", config)
-}
 
 func (f *Agency) archive(info *model.ArchiveInfo, status *agency.ProtocolStatus) {
 	switch status.State.ProtocolId.TypeId {
@@ -42,10 +36,10 @@ func (f *Agency) listenAdminHook() (err error) {
 	// TODO: cancellation, reconnect
 	glog.Info("Start listening to PSM events.")
 
-	conn := f.adminListenClient()
+	cmd := f.adminClient()
 	// Error in registration is not notified here, instead all relevant info comes
 	// in stream callback from now on
-	ch, err := conn.PSMHook(f.ctx)
+	ch, err := cmd.psmHook()
 	err2.Check(err)
 
 	go func() {
@@ -59,13 +53,12 @@ func (f *Agency) listenAdminHook() (err error) {
 			status, ok := <-ch
 			if !ok {
 				glog.Warningln("closed from server")
-				conn.Close()
 				break
 			}
 			utils.LogMed().Infoln("received psm hook data for:", status.GetDID())
 
 			protocolStatus := status.GetProtocolStatus()
-			info := &model.ArchiveInfo{AgentID: status.GetDID(), ConnectionID: ""}
+			info := &model.ArchiveInfo{AgentID: status.GetDID(), ConnectionID: status.GetConnectionId()}
 
 			// TODO: agency returns running?
 			// archive currently only successful protocol runs

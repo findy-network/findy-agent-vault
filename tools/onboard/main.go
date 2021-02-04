@@ -14,7 +14,6 @@ func main() {
 	enclave.Init("localhost", 50052)
 
 	u := &enclave.User{Name: fmt.Sprintf("%d-minnie@example.com", clock.CurrentTimeMs())}
-	//u := &enclave.User{Name: "minnie@example.com"}
 	if err := u.AllocateCloudAgent(); err != nil {
 		fmt.Println(err)
 	} else {
