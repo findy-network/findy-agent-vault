@@ -46,6 +46,7 @@ test-test:
 
 dev:
 	docker-compose -f docker-compose-dev.yml down
+	rm -rf .docker/db
 	docker-compose -f docker-compose-dev.yml up -d
 
 dev_build: clean clean_cli clone build_cli

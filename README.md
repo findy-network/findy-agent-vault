@@ -34,6 +34,7 @@ API requests should contain this token in header field for the authentication to
     ```bash
     make dev_build
     ```
+    (After the images have been built with command above, you can restart the env faster with `make env`)
 
 1. Onboard your agent to agency:
 
@@ -57,7 +58,7 @@ API requests should contain this token in header field for the authentication to
     ```bash
     go run main.go
     ```
-1. Open http://localhost:8085 and set token as [instructed](#authentication). Execute graphQL queries with the playground e.g.
+1. Open http://localhost:8085 and set token to headers section as [instructed](#authentication). Execute graphQL queries with the playground e.g.
 
     ```
     { user { id name } }

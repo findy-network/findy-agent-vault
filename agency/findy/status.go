@@ -1,31 +1,18 @@
 package findy
 
 import (
-	"context"
-
 	"github.com/findy-network/findy-agent-api/grpc/agency"
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/utils"
-	"github.com/findy-network/findy-grpc/agency/client"
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
 )
 
-func (f *Agency) userListenClient(a *model.Agent) client.Conn {
-	config := client.BuildClientConnBase(f.tlsPath, f.agencyHost, f.agencyPort, f.options)
-	return client.TryOpen(a.AgentID, config)
-}
+func (f *Agency) getStatus(a *model.Agent, notification *agency.Notification) (status *agency.ProtocolStatus, ok bool) {
 
-func (f *Agency) getStatus(conn client.Conn, notification *agency.Notification) (status *agency.ProtocolStatus, ok bool) {
-	var err error
+	cmd := f.userAsyncClient(a)
 
-	ctx := context.Background()
-	didComm := agency.NewDIDCommClient(conn)
-	status, err = didComm.Status(ctx, &agency.ProtocolID{
-		TypeId:           notification.ProtocolType,
-		Id:               notification.ProtocolId,
-		NotificationTime: notification.Timestamp,
-	})
+	status, err := cmd.status(notification.ProtocolId, notification.ProtocolType)
 
 	if err != nil {
 		glog.Errorf("Unable to fetch protocol status for %s (%s)", notification.ProtocolId, err.Error())
@@ -124,7 +111,7 @@ func (f *Agency) handleProtocolSuccess(
 }
 
 func (f *Agency) handleStatus(
-	conn client.Conn,
+	a *model.Agent,
 	job *model.JobInfo,
 	notification *agency.Notification,
 	status *agency.ProtocolStatus,
@@ -132,11 +119,11 @@ func (f *Agency) handleStatus(
 	switch status.State.State {
 	case agency.ProtocolState_ERR:
 		if f.handleProtocolFailure(job, notification) == nil {
-			f.releaseCompleted(conn, job, notification, status)
+			f.releaseCompleted(a, status.State.ProtocolId.Id, status.State.ProtocolId.TypeId)
 		}
 	case agency.ProtocolState_OK:
 		if f.handleProtocolSuccess(job, notification, status) == nil {
-			f.releaseCompleted(conn, job, notification, status)
+			f.releaseCompleted(a, status.State.ProtocolId.Id, status.State.ProtocolId.TypeId)
 		}
 	default:
 		utils.LogLow().Infof(
@@ -184,11 +171,11 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 	defer err2.Return(&err)
 	// TODO: cancellation, reconnect
 
-	conn := f.userListenClient(a)
+	cmd := f.userAsyncClient(a)
 
 	// Error in registration is not notified here, instead all relevant info comes
 	// in stream callback from now on
-	ch, err := conn.Listen(f.ctx, &agency.ClientID{Id: a.TenantID})
+	ch, err := cmd.listen(a.TenantID)
 	err2.Check(err)
 
 	go func() {
@@ -201,7 +188,6 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 			status, ok := <-ch
 			if !ok {
 				glog.Warningln("closed from server")
-				conn.Close()
 				break
 			}
 			utils.LogMed().Infoln("received notification:",
@@ -215,7 +201,7 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 				ConnectionID: status.Notification.ConnectionId,
 			}
 
-			protocolStatus, ok := f.getStatus(conn, status.Notification)
+			protocolStatus, ok := f.getStatus(a, status.Notification)
 			if !ok {
 				continue
 			}
@@ -224,7 +210,7 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 			case agency.Notification_ACTION_NEEDED:
 				f.handleAction(job, status.Notification, protocolStatus)
 			case agency.Notification_STATUS_UPDATE:
-				f.handleStatus(conn, job, status.Notification, protocolStatus)
+				f.handleStatus(a, job, status.Notification, protocolStatus)
 			case agency.Notification_ANSWER_NEEDED_PING:
 			case agency.Notification_ANSWER_NEEDED_ISSUE_PROPOSE:
 			case agency.Notification_ANSWER_NEEDED_PROOF_PROPOSE:
@@ -237,16 +223,12 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 	return err
 }
 
-func (f *Agency) releaseCompleted(
-	conn client.Conn,
-	job *model.JobInfo,
-	notification *agency.Notification,
-	status *agency.ProtocolStatus,
-) {
+func (f *Agency) releaseCompleted(a *model.Agent, protocolID string, protocolType agency.Protocol_Type) {
 	defer err2.Catch(func(err error) {
 		glog.Errorf("Failure when releasing protocol: %s", err.Error())
 	})
-	cmd := agency.NewDIDCommClient(conn)
-	_, err := cmd.Release(f.ctx, status.State.ProtocolId)
+
+	cmd := f.userAsyncClient(a)
+	_, err := cmd.release(protocolID, protocolType)
 	err2.Check(err)
 }
