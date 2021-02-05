@@ -225,7 +225,6 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 			}
 
 			f.handleNotification(a, job, status.Notification, protocolStatus)
-
 		}
 	}()
 	return err
