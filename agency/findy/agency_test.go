@@ -52,7 +52,7 @@ func (*mockServer) Resume(context.Context, *agency.ProtocolState) (*agency.Proto
 	return &agency.ProtocolID{Id: testID}, nil
 }
 func (*mockServer) Release(context.Context, *agency.ProtocolID) (*agency.ProtocolID, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Release not implemented")
+	return &agency.ProtocolID{Id: testID}, nil
 }
 
 func (m *mockServer) PSMHook(dataHook *ops.DataHook, server ops.Agency_PSMHookServer) error {
@@ -144,24 +144,6 @@ func (m *mockListener) UpdateProof(job *model.JobInfo, update *model.ProofUpdate
 }
 
 func (m *mockListener) FailJob(job *model.JobInfo) error {
-	panic("Not implemented")
-}
-
-type mockArchiver struct{}
-
-func (m *mockArchiver) ArchiveConnection(info *model.ArchiveInfo, connection *model.Connection) {
-	panic("Not implemented")
-}
-
-func (m *mockArchiver) ArchiveMessage(info *model.ArchiveInfo, message *model.Message) {
-	panic("Not implemented")
-}
-
-func (m *mockArchiver) ArchiveCredential(info *model.ArchiveInfo, credential *model.Credential) {
-	panic("Not implemented")
-}
-
-func (m *mockArchiver) ArchiveProof(info *model.ArchiveInfo, proof *model.Proof) {
 	panic("Not implemented")
 }
 

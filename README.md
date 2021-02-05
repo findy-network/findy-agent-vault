@@ -1,6 +1,10 @@
 # findy-agent-vault
 
-Data storage service for findy-agency clients. Service provides GraphQL interface for interaction.
+Vault provides both
+1. Data storage service for findy-agency clients
+1. Abstraction/Convenience layer for [agency protocol APIs](github.com/findy-network/findy-agent-api) which can be used through GraphQL interface.
+
+Vault provides currently only a GraphQL API but intends to support also GRPC in the future. As a findy-agency client you can use also the [findy-agent GRPC APIs](github.com/findy-network/findy-agent-api) directly, but will have to implement possible data storing and indexing capabilities yourself.
 
 ## Running with mock data
 

@@ -17,8 +17,9 @@ import (
 )
 
 type Agency struct {
-	vault    model.Listener
-	archiver model.Archiver
+	currentTimeMs func() int64
+	vault         model.Listener
+	archiver      model.Archiver
 
 	agencyHost string
 	agencyPort int
@@ -36,6 +37,7 @@ func (f *Agency) Init(
 	config *utils.Configuration,
 ) {
 	jwt.SetJWTSecret(config.JWTKey)
+	f.currentTimeMs = utils.CurrentTimeMs
 
 	f.agencyHost = config.AgencyHost
 	f.agencyPort = config.AgencyPort
@@ -133,7 +135,7 @@ func (f *Agency) ResumeCredentialOffer(a *model.Agent, job *model.JobInfo, accep
 	defer err2.Return(&err)
 	err2.Check(f.resume(a, job, accept, agency.Protocol_ISSUE))
 
-	now := utils.CurrentTimeMs()
+	now := f.currentTimeMs()
 	return f.vault.UpdateCredential(job, &model.CredentialUpdate{ApprovedMs: &now})
 }
 
@@ -141,6 +143,6 @@ func (f *Agency) ResumeProofRequest(a *model.Agent, job *model.JobInfo, accept b
 	defer err2.Return(&err)
 	err2.Check(f.resume(a, job, accept, agency.Protocol_PROOF))
 
-	now := utils.CurrentTimeMs()
+	now := f.currentTimeMs()
 	return f.vault.UpdateProof(job, &model.ProofUpdate{ApprovedMs: &now})
 }
