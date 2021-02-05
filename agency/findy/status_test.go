@@ -318,7 +318,6 @@ func TestHandleNotification(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestGetStatus(t *testing.T) {
