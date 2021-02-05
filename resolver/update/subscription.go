@@ -37,7 +37,7 @@ func (s *subscriberRegister) notify(tenantID string, event *dbModel.Event) {
 
 	agentSubscriptions, ok := s.agents[tenantID]
 	if !ok {
-		utils.LogMed().Infof("Skipping notifications, no subscriptions for %s", tenantID)
+		utils.LogTrace().Infof("Skipping notifications, no subscriptions for %s", tenantID)
 		return
 	}
 

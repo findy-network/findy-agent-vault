@@ -1,6 +1,7 @@
 package listen
 
 import (
+	"fmt"
 	"time"
 
 	agency "github.com/findy-network/findy-agent-vault/agency/model"
@@ -22,7 +23,7 @@ func NewListener(db store.DB, updater *update.Updater) *Listener {
 	return &Listener{db, updater}
 }
 
-func (l *Listener) AddConnection(info *agency.JobInfo, data *agency.Connection) {
+func (l *Listener) AddConnection(info *agency.JobInfo, data *agency.Connection) error {
 	defer err2.Catch(func(err error) {
 		glog.Errorf("Encountered error when adding connection %s", err.Error())
 	})
@@ -54,9 +55,10 @@ func (l *Listener) AddConnection(info *agency.JobInfo, data *agency.Connection) 
 		job,
 		"Established connection to "+connection.TheirLabel,
 	))
+	return nil
 }
 
-func (l *Listener) AddMessage(info *agency.JobInfo, data *agency.Message) {
+func (l *Listener) AddMessage(info *agency.JobInfo, data *agency.Message) error {
 	defer err2.Catch(func(err error) {
 		glog.Errorf("Encountered error when adding message %s", err.Error())
 	})
@@ -75,13 +77,15 @@ func (l *Listener) AddMessage(info *agency.JobInfo, data *agency.Message) {
 		Status:            model.JobStatusComplete,
 		Result:            model.JobResultSuccess,
 	}), msg.Description()))
+	return nil
 }
 
-func (l *Listener) UpdateMessage(info *agency.JobInfo, _ *agency.MessageUpdate) {
+func (l *Listener) UpdateMessage(info *agency.JobInfo, _ *agency.MessageUpdate) error {
 	// TODO
+	return nil
 }
 
-func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) {
+func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) error {
 	defer err2.Catch(func(err error) {
 		glog.Errorf("Encountered error when adding credential %s", err.Error())
 	})
@@ -110,9 +114,10 @@ func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) 
 		Status:               status,
 		Result:               model.JobResultNone,
 	}), credential.Description()))
+	return nil
 }
 
-func (l *Listener) UpdateCredential(info *agency.JobInfo, data *agency.CredentialUpdate) {
+func (l *Listener) UpdateCredential(info *agency.JobInfo, data *agency.CredentialUpdate) error {
 	defer err2.Catch(func(err error) {
 		glog.Errorf("Encountered error when updating credential %s", err.Error())
 	})
@@ -141,9 +146,10 @@ func (l *Listener) UpdateCredential(info *agency.JobInfo, data *agency.Credentia
 	job.Status, job.Result = getJobStatusForTimestamps(credential.Approved, credential.Issued, credential.Failed)
 
 	err2.Check(l.UpdateJob(job, credential.Description()))
+	return nil
 }
 
-func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) {
+func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) error {
 	defer err2.Catch(func(err error) {
 		glog.Errorf("Encountered error when adding proof %s", err.Error())
 	})
@@ -172,9 +178,10 @@ func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) {
 		Status:          status,
 		Result:          model.JobResultNone,
 	}), proof.Description()))
+	return nil
 }
 
-func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) {
+func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) error {
 	defer err2.Catch(func(err error) {
 		glog.Errorf("Encountered error when updating proof %s", err.Error())
 	})
@@ -202,6 +209,7 @@ func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) {
 	job.Status, job.Result = getJobStatusForTimestamps(proof.Approved, proof.Verified, proof.Failed)
 
 	err2.Check(l.UpdateJob(job, proof.Description()))
+	return nil
 }
 
 func getJobStatusForTimestamps(approved, completed, failed *time.Time) (status model.JobStatus, result model.JobResult) {
@@ -217,4 +225,19 @@ func getJobStatusForTimestamps(approved, completed, failed *time.Time) (status m
 		result = model.JobResultSuccess
 	}
 	return
+}
+
+func (l *Listener) FailJob(info *agency.JobInfo) error {
+	defer err2.Catch(func(err error) {
+		glog.Errorf("Encountered error when failing job %s", err.Error())
+	})
+	job, err := l.db.GetJob(info.JobID, info.TenantID)
+	err2.Check(err)
+
+	utils.LogMed().Infof("Fail job %s for tenant %s", job.ID, info.TenantID)
+	job.Status = model.JobStatusComplete
+	job.Result = model.JobResultFailure
+
+	err2.Check(l.UpdateJob(job, fmt.Sprintf("Protocol %s failed", job.ProtocolType.String())))
+	return nil
 }

@@ -37,14 +37,28 @@ type ProofUpdate struct {
 }
 
 type Listener interface {
-	AddConnection(job *JobInfo, connection *Connection)
+	AddConnection(job *JobInfo, connection *Connection) error
 
-	AddMessage(job *JobInfo, message *Message)
-	UpdateMessage(job *JobInfo, update *MessageUpdate)
+	AddMessage(job *JobInfo, message *Message) error
+	UpdateMessage(job *JobInfo, update *MessageUpdate) error
 
-	AddCredential(job *JobInfo, credential *Credential)
-	UpdateCredential(job *JobInfo, update *CredentialUpdate)
+	AddCredential(job *JobInfo, credential *Credential) error
+	UpdateCredential(job *JobInfo, update *CredentialUpdate) error
 
-	AddProof(job *JobInfo, proof *Proof)
-	UpdateProof(job *JobInfo, update *ProofUpdate)
+	AddProof(job *JobInfo, proof *Proof) error
+	UpdateProof(job *JobInfo, update *ProofUpdate) error
+
+	FailJob(job *JobInfo) error
+}
+
+type ArchiveInfo struct {
+	AgentID      string
+	ConnectionID string
+}
+
+type Archiver interface {
+	ArchiveConnection(info *ArchiveInfo, connection *Connection)
+	ArchiveMessage(info *ArchiveInfo, message *Message)
+	ArchiveCredential(info *ArchiveInfo, credential *Credential)
+	ArchiveProof(info *ArchiveInfo, proof *Proof)
 }
