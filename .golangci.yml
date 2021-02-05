@@ -1,6 +1,8 @@
 linters-settings:
   dupl:
     threshold: 225
+  exhaustive:
+    default-signifies-exhaustive: true
   funlen:
     lines: 100
     statements: 50
@@ -106,6 +108,9 @@ issues:
       linters:
         - golint
         - staticcheck
+    - path: agency/findy/status_test.go
+      linters:
+        - funlen
     - linters:
         - gocritic
       text: "unnecessaryDefer:"

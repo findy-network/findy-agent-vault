@@ -12,11 +12,13 @@ const (
 	logLevelHigh   = 1
 	logLevelMedium = 3
 	logLevelLow    = 5
+	logLevelTrace  = 7
 )
 
-func LogHigh() glog.Verbose { return glog.V(logLevelHigh) }
-func LogMed() glog.Verbose  { return glog.V(logLevelMedium) }
-func LogLow() glog.Verbose  { return glog.V(logLevelLow) }
+func LogHigh() glog.Verbose  { return glog.V(logLevelHigh) }
+func LogMed() glog.Verbose   { return glog.V(logLevelMedium) }
+func LogLow() glog.Verbose   { return glog.V(logLevelLow) }
+func LogTrace() glog.Verbose { return glog.V(logLevelTrace) }
 
 func SetLogDefaults() {
 	defer err2.Catch(func(err error) {
@@ -24,6 +26,6 @@ func SetLogDefaults() {
 	})
 	err2.Check(flag.Set("logtostderr", "true"))
 	err2.Check(flag.Set("stderrthreshold", "WARNING"))
-	err2.Check(flag.Set("v", "3"))
+	err2.Check(flag.Set("v", "5"))
 	flag.Parse()
 }

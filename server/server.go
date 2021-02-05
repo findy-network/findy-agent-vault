@@ -34,7 +34,7 @@ func schema(resolver generated.ResolverRoot) graphql.ExecutableSchema {
 
 func logRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		utils.LogLow().Infof("received request: %s %s", r.Method, r.URL.String())
+		utils.LogTrace().Infof("received request: %s %s", r.Method, r.URL.String())
 		next.ServeHTTP(w, r)
 	})
 }

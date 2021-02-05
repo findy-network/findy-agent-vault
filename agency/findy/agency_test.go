@@ -52,7 +52,7 @@ func (*mockServer) Resume(context.Context, *agency.ProtocolState) (*agency.Proto
 	return &agency.ProtocolID{Id: testID}, nil
 }
 func (*mockServer) Release(context.Context, *agency.ProtocolID) (*agency.ProtocolID, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Release not implemented")
+	return &agency.ProtocolID{Id: testID}, nil
 }
 
 func (m *mockServer) PSMHook(dataHook *ops.DataHook, server ops.Agency_PSMHookServer) error {
@@ -116,28 +116,35 @@ type mockListener struct {
 	proofTS int64
 }
 
-func (m *mockListener) AddConnection(job *model.JobInfo, connection *model.Connection) {
+func (m *mockListener) AddConnection(job *model.JobInfo, connection *model.Connection) error {
 	panic("Not implemented")
 }
-func (m *mockListener) AddMessage(job *model.JobInfo, message *model.Message) {
+func (m *mockListener) AddMessage(job *model.JobInfo, message *model.Message) error {
 	panic("Not implemented")
 }
-func (m *mockListener) UpdateMessage(job *model.JobInfo, update *model.MessageUpdate) {
+func (m *mockListener) UpdateMessage(job *model.JobInfo, update *model.MessageUpdate) error {
 	panic("Not implemented")
 }
 
-func (m *mockListener) AddCredential(job *model.JobInfo, credential *model.Credential) {
+func (m *mockListener) AddCredential(job *model.JobInfo, credential *model.Credential) error {
 	panic("Not implemented")
 }
-func (m *mockListener) UpdateCredential(job *model.JobInfo, update *model.CredentialUpdate) {
+func (m *mockListener) UpdateCredential(job *model.JobInfo, update *model.CredentialUpdate) error {
 	m.credTS = *update.ApprovedMs
+	return nil
 }
 
-func (m *mockListener) AddProof(job *model.JobInfo, proof *model.Proof) {
+func (m *mockListener) AddProof(job *model.JobInfo, proof *model.Proof) error {
 	panic("Not implemented")
 }
-func (m *mockListener) UpdateProof(job *model.JobInfo, update *model.ProofUpdate) {
+
+func (m *mockListener) UpdateProof(job *model.JobInfo, update *model.ProofUpdate) error {
 	m.proofTS = *update.ApprovedMs
+	return nil
+}
+
+func (m *mockListener) FailJob(job *model.JobInfo) error {
+	panic("Not implemented")
 }
 
 var (
@@ -148,13 +155,20 @@ var (
 		tlsPath: tlsPath,
 		options: dialOptions,
 	}
-	agent = &model.Agent{RawJWT: jwt.BuildJWT("test-user")}
+	agent *model.Agent
 
 	mockAgencyServer = &mockServer{clientIDs: make([]string, 0)}
 )
 
 func setup() {
 	utils.SetLogDefaults()
+	findy.Init(
+		&mockListener{},
+		[]*model.Agent{},
+		&mockArchiver{},
+		&utils.Configuration{JWTKey: "mySuperSecretKeyLol", AgencyCertPath: tlsPath},
+	)
+	agent = &model.Agent{RawJWT: jwt.BuildJWT("test-user")}
 }
 
 func teardown() {
@@ -173,6 +187,7 @@ func TestInit(t *testing.T) {
 	testAgency.Init(
 		&mockListener{},
 		[]*model.Agent{{AgentID: testClientID, TenantID: testClientID}},
+		&mockArchiver{},
 		&utils.Configuration{JWTKey: "mySuperSecretKeyLol", AgencyCertPath: tlsPath},
 	)
 	// Wait for a while that calls complete

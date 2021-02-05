@@ -23,10 +23,17 @@ type Invitation struct {
 
 type Mock struct {
 	listener model.Listener
+	archiver model.Archiver
 }
 
-func (m *Mock) Init(l model.Listener, agents []*model.Agent, config *utils.Configuration) {
+func (m *Mock) Init(
+	l model.Listener,
+	agents []*model.Agent,
+	archiver model.Archiver,
+	config *utils.Configuration,
+) {
 	m.listener = l
+	m.archiver = archiver
 }
 
 func (m *Mock) AddAgent(agent *model.Agent) error {
@@ -62,7 +69,7 @@ func (m *Mock) Connect(a *model.Agent, strInvitation string) (id string, err err
 
 	time.AfterFunc(time.Second, func() {
 		connection := fake.Connection(a.TenantID)
-		m.listener.AddConnection(job, &model.Connection{
+		_ = m.listener.AddConnection(job, &model.Connection{
 			OurDID:        connection.OurDid,
 			TheirDID:      connection.TheirDid,
 			TheirEndpoint: connection.TheirEndpoint,
@@ -80,13 +87,13 @@ func (m *Mock) SendMessage(a *model.Agent, connectionID, message string) (id str
 
 	job := &model.JobInfo{TenantID: a.TenantID, JobID: id, ConnectionID: connectionID}
 
-	m.listener.AddMessage(job, &model.Message{
+	_ = m.listener.AddMessage(job, &model.Message{
 		Message:  message,
 		SentByMe: true,
 	})
 	time.AfterFunc(time.Second, func() {
 		message := fake.Message(a.TenantID, connectionID)
-		m.listener.AddMessage(job, &model.Message{
+		_ = m.listener.AddMessage(job, &model.Message{
 			Message:  message.Message,
 			SentByMe: false,
 		})

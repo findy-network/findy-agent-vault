@@ -18,7 +18,7 @@ type Agent struct {
 }
 
 type Agency interface {
-	Init(l Listener, agents []*Agent, config *utils.Configuration)
+	Init(l Listener, agents []*Agent, archiver Archiver, config *utils.Configuration)
 	AddAgent(agent *Agent) error
 
 	Invite(a *Agent) (string, string, error)

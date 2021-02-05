@@ -1,11 +1,11 @@
-package message
+package job
 
 import (
 	"context"
 
 	"github.com/findy-network/findy-agent-vault/db/store"
-	"github.com/findy-network/findy-agent-vault/graph/model"
-	"github.com/findy-network/findy-agent-vault/resolver/agent"
+	graph "github.com/findy-network/findy-agent-vault/graph/model"
+	"github.com/findy-network/findy-agent-vault/resolver/query/agent"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
 )
@@ -19,20 +19,20 @@ func NewResolver(db store.DB, agentResolver *agent.Resolver) *Resolver {
 	return &Resolver{db, agentResolver}
 }
 
-func (r *Resolver) Connection(ctx context.Context, obj *model.BasicMessage) (c *model.Pairwise, err error) {
+func (r *Resolver) Output(ctx context.Context, obj *graph.Job) (o *graph.JobOutput, err error) {
 	defer err2.Return(&err)
 
 	tenant, err := r.GetAgent(ctx)
 	err2.Check(err)
 
 	utils.LogLow().Infof(
-		"basicMessageResolver:Connection for tenant %s, message: %s",
+		"jobResolver:Output for tenant %s, event: %s",
 		tenant.ID,
 		obj.ID,
 	)
 
-	connection, err := r.db.GetConnectionForMessage(obj.ID, tenant.ID)
+	output, err := r.db.GetJobOutput(obj.ID, tenant.ID, obj.Protocol)
 	err2.Check(err)
 
-	return connection.ToNode(), nil
+	return output.ToEdges(), nil
 }

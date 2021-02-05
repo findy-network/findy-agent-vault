@@ -1,32 +1,17 @@
 package findy
 
 import (
-	"context"
-
 	"github.com/findy-network/findy-agent-api/grpc/agency"
 	"github.com/findy-network/findy-agent-vault/agency/model"
-	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/utils"
-	"github.com/findy-network/findy-grpc/agency/client"
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
 )
 
-func (f *Agency) userListenClient(a *model.Agent) client.Conn {
-	config := client.BuildClientConnBase(f.tlsPath, f.agencyHost, f.agencyPort, f.options)
-	return client.TryOpen(a.AgentID, config)
-}
+func (f *Agency) getStatus(a *model.Agent, notification *agency.Notification) (status *agency.ProtocolStatus, ok bool) {
+	cmd := f.userAsyncClient(a)
 
-func (f *Agency) getStatus(conn client.Conn, notification *agency.Notification) (status *agency.ProtocolStatus, ok bool) {
-	var err error
-
-	ctx := context.Background()
-	didComm := agency.NewDIDCommClient(conn)
-	status, err = didComm.Status(ctx, &agency.ProtocolID{
-		TypeId:           notification.ProtocolType,
-		Id:               notification.ProtocolId,
-		NotificationTime: notification.Timestamp,
-	})
+	status, err := cmd.status(notification.ProtocolId, notification.ProtocolType)
 
 	if err != nil {
 		glog.Errorf("Unable to fetch protocol status for %s (%s)", notification.ProtocolId, err.Error())
@@ -42,62 +27,109 @@ func (f *Agency) getStatus(conn client.Conn, notification *agency.Notification) 
 	return
 }
 
-func (f *Agency) handleStatus(
-	job *model.JobInfo, notification *agency.Notification,
-	status *agency.ProtocolStatus,
-) {
-	// TODO: check status (failed/successful?)
+func (f *Agency) handleProtocolFailure(
+	job *model.JobInfo,
+	notification *agency.Notification,
+) (err error) {
+	err2.Return(&err)
 
-	now := utils.CurrentTimeMs()
+	// TODO: failure reason
+	utils.LogHigh().Infof("Job %s (%s) failed", job.JobID, notification.ProtocolType.String())
+
+	now := f.currentTimeMs()
+	switch notification.ProtocolType {
+	case agency.Protocol_ISSUE:
+		err2.Check(f.vault.UpdateCredential(
+			job,
+			&model.CredentialUpdate{
+				FailedMs: &now,
+			},
+		))
+	case agency.Protocol_PROOF:
+		err2.Check(f.vault.UpdateProof(
+			job,
+			&model.ProofUpdate{
+				FailedMs: &now,
+			},
+		))
+	default:
+		err2.Check(f.vault.FailJob(job))
+	}
+	return
+}
+
+func (f *Agency) handleProtocolSuccess(
+	job *model.JobInfo,
+	notification *agency.Notification,
+	status *agency.ProtocolStatus,
+) (err error) {
+	err2.Return(&err)
+
+	utils.LogLow().Infof("Job %s (%s) success", job.JobID, notification.ProtocolType.String())
+
+	now := f.currentTimeMs()
 	switch notification.ProtocolType {
 	case agency.Protocol_CONNECT:
-		connection := status.GetConnection()
+		connection := statusToConnection(status)
 		if connection == nil {
 			glog.Errorf("Received invalid connection object for %s", job.JobID)
 			return
 		}
 
-		f.vault.AddConnection(
-			job,
-			&model.Connection{
-				OurDID:        connection.MyDid,
-				TheirDID:      connection.TheirDid,
-				TheirEndpoint: connection.TheirEndpoint,
-				TheirLabel:    connection.TheirLabel,
-			},
-		)
+		err2.Check(f.vault.AddConnection(job, connection))
 
 	case agency.Protocol_BASIC_MESSAGE:
-		message := status.GetBasicMessage()
+		message := statusToMessage(status)
 		if message == nil {
 			glog.Errorf("Received invalid message object for %s", job.JobID)
 			return
 		}
 
-		f.vault.AddMessage(
-			job,
-			&model.Message{
-				Message:  message.Content,
-				SentByMe: message.SentByMe,
-			},
-			// TODO: delivered?
-		)
+		// TODO: delivered?
+		err2.Check(f.vault.AddMessage(job, message))
+
 	case agency.Protocol_ISSUE:
-		f.vault.UpdateCredential(
+		err2.Check(f.vault.UpdateCredential(
 			job,
 			&model.CredentialUpdate{
 				IssuedMs: &now,
 			},
-		)
+		))
 	case agency.Protocol_PROOF:
-		f.vault.UpdateProof(
+		err2.Check(f.vault.UpdateProof(
 			job,
 			&model.ProofUpdate{
 				VerifiedMs: &now,
 			},
-		)
+		))
 	case agency.Protocol_NONE:
 	case agency.Protocol_TRUST_PING:
+	}
+
+	return nil
+}
+
+func (f *Agency) handleStatus(
+	a *model.Agent,
+	job *model.JobInfo,
+	notification *agency.Notification,
+	status *agency.ProtocolStatus,
+) {
+	switch status.State.State {
+	case agency.ProtocolState_ERR:
+		if f.handleProtocolFailure(job, notification) == nil {
+			f.releaseCompleted(a, status.State.ProtocolId.Id, status.State.ProtocolId.TypeId)
+		}
+	case agency.ProtocolState_OK:
+		if f.handleProtocolSuccess(job, notification, status) == nil {
+			f.releaseCompleted(a, status.State.ProtocolId.Id, status.State.ProtocolId.TypeId)
+		}
+	default:
+		utils.LogLow().Infof(
+			"Received status update %s: %s",
+			status.State.ProtocolId.GetTypeId().String(),
+			status.State.GetState().String(),
+		)
 	}
 }
 
@@ -108,61 +140,23 @@ func (f *Agency) handleAction(
 ) {
 	switch notification.ProtocolType {
 	case agency.Protocol_ISSUE:
-		credential := status.GetIssue()
+		credential := statusToCredential(status)
 		if credential == nil {
 			glog.Errorf("Received invalid credential issue object for %s", job.JobID)
 			return
 		}
-
-		role := graph.CredentialRoleHolder
-		if notification.Role != agency.Protocol_ADDRESSEE {
-			role = graph.CredentialRoleIssuer
-		}
-		values := make([]*graph.CredentialValue, 0)
-		for _, v := range credential.Attrs {
-			values = append(values, &graph.CredentialValue{
-				Name:  v.Name,
-				Value: v.Value,
-			})
-		}
 		// TODO: what if we are issuer?
-		f.vault.AddCredential(
-			job,
-			&model.Credential{
-				Role:          role,
-				SchemaID:      credential.SchemaId,
-				CredDefID:     credential.CredDefId,
-				Attributes:    values,
-				InitiatedByUs: false,
-			},
-		)
+		_ = f.vault.AddCredential(job, credential)
 
 	case agency.Protocol_PROOF:
-		proof := status.GetProof()
+		proof := statusToProof(status)
 		if proof == nil {
 			glog.Errorf("Received invalid proof object for %s", job.JobID)
 			return
 		}
-
-		role := graph.ProofRoleProver
-		if notification.Role != agency.Protocol_ADDRESSEE {
-			role = graph.ProofRoleVerifier
-		}
-		attributes := make([]*graph.ProofAttribute, 0)
-		for _, v := range proof.Attrs {
-			value := "" // TODO: get also values from notification?
-			attributes = append(attributes, &graph.ProofAttribute{
-				Name:      v.Name,
-				Value:     &value,
-				CredDefID: v.CredDefId,
-			})
-		}
 		// TODO: what if we are verifier?
-		f.vault.AddProof(job, &model.Proof{
-			Role:          role,
-			Attributes:    attributes,
-			InitiatedByUs: false,
-		})
+		_ = f.vault.AddProof(job, proof)
+
 	case agency.Protocol_NONE:
 	case agency.Protocol_TRUST_PING:
 	case agency.Protocol_CONNECT:
@@ -172,15 +166,34 @@ func (f *Agency) handleAction(
 	}
 }
 
+func (f *Agency) handleNotification(
+	a *model.Agent,
+	job *model.JobInfo,
+	notification *agency.Notification,
+	status *agency.ProtocolStatus,
+) {
+	switch notification.TypeId {
+	case agency.Notification_ACTION_NEEDED:
+		f.handleAction(job, notification, status)
+	case agency.Notification_STATUS_UPDATE:
+		f.handleStatus(a, job, notification, status)
+	case agency.Notification_ANSWER_NEEDED_PING:
+	case agency.Notification_ANSWER_NEEDED_ISSUE_PROPOSE:
+	case agency.Notification_ANSWER_NEEDED_PROOF_PROPOSE:
+	case agency.Notification_ANSWER_NEEDED_PROOF_VERIFY:
+		// TODO?
+	}
+}
+
 func (f *Agency) listenAgent(a *model.Agent) (err error) {
 	defer err2.Return(&err)
 	// TODO: cancellation, reconnect
 
-	conn := f.userListenClient(a)
+	cmd := f.userAsyncClient(a)
 
 	// Error in registration is not notified here, instead all relevant info comes
 	// in stream callback from now on
-	ch, err := conn.Listen(f.ctx, &agency.ClientID{Id: a.TenantID})
+	ch, err := cmd.listen(a.TenantID)
 	err2.Check(err)
 
 	go func() {
@@ -189,12 +202,10 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 			// TODO: reconnect?
 		})
 
-		// TODO: fail job if error happens?
 		for {
 			status, ok := <-ch
 			if !ok {
 				glog.Warningln("closed from server")
-				conn.Close()
 				break
 			}
 			utils.LogMed().Infoln("received notification:",
@@ -208,24 +219,23 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 				ConnectionID: status.Notification.ConnectionId,
 			}
 
-			protocolStatus, ok := f.getStatus(conn, status.Notification)
+			protocolStatus, ok := f.getStatus(a, status.Notification)
 			if !ok {
 				continue
 			}
 
-			switch status.Notification.TypeId {
-			case agency.Notification_ACTION_NEEDED:
-				f.handleAction(job, status.Notification, protocolStatus)
-			case agency.Notification_STATUS_UPDATE:
-				f.handleStatus(job, status.Notification, protocolStatus)
-			case agency.Notification_ANSWER_NEEDED_PING:
-			case agency.Notification_ANSWER_NEEDED_ISSUE_PROPOSE:
-			case agency.Notification_ANSWER_NEEDED_PROOF_PROPOSE:
-			case agency.Notification_ANSWER_NEEDED_PROOF_VERIFY:
-				// TODO?
-			}
+			f.handleNotification(a, job, status.Notification, protocolStatus)
 		}
 	}()
-
 	return err
+}
+
+func (f *Agency) releaseCompleted(a *model.Agent, protocolID string, protocolType agency.Protocol_Type) {
+	defer err2.Catch(func(err error) {
+		glog.Errorf("Failure when releasing protocol: %s", err.Error())
+	})
+
+	cmd := f.userAsyncClient(a)
+	_, err := cmd.release(protocolID, protocolType)
+	err2.Check(err)
 }

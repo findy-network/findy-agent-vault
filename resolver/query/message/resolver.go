@@ -1,11 +1,11 @@
-package credentialconn
+package message
 
 import (
 	"context"
 
 	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/graph/model"
-	"github.com/findy-network/findy-agent-vault/resolver/agent"
+	"github.com/findy-network/findy-agent-vault/resolver/query/agent"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
 )
@@ -19,20 +19,20 @@ func NewResolver(db store.DB, agentResolver *agent.Resolver) *Resolver {
 	return &Resolver{db, agentResolver}
 }
 
-func (r *Resolver) TotalCount(ctx context.Context, obj *model.CredentialConnection) (c int, err error) {
+func (r *Resolver) Connection(ctx context.Context, obj *model.BasicMessage) (c *model.Pairwise, err error) {
 	defer err2.Return(&err)
 
 	tenant, err := r.GetAgent(ctx)
 	err2.Check(err)
 
 	utils.LogLow().Infof(
-		"credentialConnectionResolver:TotalCount for tenant %s, connection: %v",
+		"basicMessageResolver:Connection for tenant %s, message: %s",
 		tenant.ID,
-		obj.ConnectionID,
+		obj.ID,
 	)
 
-	count, err := r.db.GetCredentialCount(tenant.ID, obj.ConnectionID)
+	connection, err := r.db.GetConnectionForMessage(obj.ID, tenant.ID)
 	err2.Check(err)
 
-	return count, nil
+	return connection.ToNode(), nil
 }
