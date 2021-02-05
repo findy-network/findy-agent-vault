@@ -36,7 +36,7 @@ func (f *Agency) handleProtocolFailure(
 	// TODO: failure reason
 	utils.LogHigh().Infof("Job %s (%s) failed", job.JobID, notification.ProtocolType.String())
 
-	now := utils.CurrentTimeMs()
+	now := f.currentTimeMs()
 	switch notification.ProtocolType {
 	case agency.Protocol_ISSUE:
 		err2.Check(f.vault.UpdateCredential(
@@ -67,7 +67,7 @@ func (f *Agency) handleProtocolSuccess(
 
 	utils.LogLow().Infof("Job %s (%s) success", job.JobID, notification.ProtocolType.String())
 
-	now := utils.CurrentTimeMs()
+	now := f.currentTimeMs()
 	switch notification.ProtocolType {
 	case agency.Protocol_CONNECT:
 		connection := statusToConnection(status)
@@ -166,6 +166,25 @@ func (f *Agency) handleAction(
 	}
 }
 
+func (f *Agency) handleNotification(
+	a *model.Agent,
+	job *model.JobInfo,
+	notification *agency.Notification,
+	status *agency.ProtocolStatus,
+) {
+	switch notification.TypeId {
+	case agency.Notification_ACTION_NEEDED:
+		f.handleAction(job, notification, status)
+	case agency.Notification_STATUS_UPDATE:
+		f.handleStatus(a, job, notification, status)
+	case agency.Notification_ANSWER_NEEDED_PING:
+	case agency.Notification_ANSWER_NEEDED_ISSUE_PROPOSE:
+	case agency.Notification_ANSWER_NEEDED_PROOF_PROPOSE:
+	case agency.Notification_ANSWER_NEEDED_PROOF_VERIFY:
+		// TODO?
+	}
+}
+
 func (f *Agency) listenAgent(a *model.Agent) (err error) {
 	defer err2.Return(&err)
 	// TODO: cancellation, reconnect
@@ -205,17 +224,8 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 				continue
 			}
 
-			switch status.Notification.TypeId {
-			case agency.Notification_ACTION_NEEDED:
-				f.handleAction(job, status.Notification, protocolStatus)
-			case agency.Notification_STATUS_UPDATE:
-				f.handleStatus(a, job, status.Notification, protocolStatus)
-			case agency.Notification_ANSWER_NEEDED_PING:
-			case agency.Notification_ANSWER_NEEDED_ISSUE_PROPOSE:
-			case agency.Notification_ANSWER_NEEDED_PROOF_PROPOSE:
-			case agency.Notification_ANSWER_NEEDED_PROOF_VERIFY:
-				// TODO?
-			}
+			f.handleNotification(a, job, status.Notification, protocolStatus)
+
 		}
 	}()
 	return err
