@@ -32,6 +32,7 @@ type DB interface {
 	GetConnection(id, tenantID string) (*model.Connection, error)
 	GetConnections(info *paginator.BatchInfo, tenantID string) (connections *model.Connections, err error)
 	GetConnectionCount(tenantID string) (int, error)
+	ArchiveConnection(c *model.Connection) (*model.Connection, error)
 
 	AddCredential(c *model.Credential) (*model.Credential, error)
 	UpdateCredential(c *model.Credential) (*model.Credential, error)
@@ -39,6 +40,7 @@ type DB interface {
 	GetCredentials(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Credentials, err error)
 	GetCredentialCount(tenantID string, connectionID *string) (int, error)
 	GetConnectionForCredential(id, tenantID string) (*model.Connection, error)
+	ArchiveCredential(c *model.Credential) (*model.Credential, error)
 
 	AddProof(p *model.Proof) (*model.Proof, error)
 	UpdateProof(p *model.Proof) (*model.Proof, error)
@@ -46,6 +48,7 @@ type DB interface {
 	GetProofs(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Proofs, err error)
 	GetProofCount(tenantID string, connectionID *string) (int, error)
 	GetConnectionForProof(id, tenantID string) (*model.Connection, error)
+	ArchiveProof(p *model.Proof) (*model.Proof, error)
 
 	AddMessage(m *model.Message) (*model.Message, error)
 	UpdateMessage(m *model.Message) (*model.Message, error)
@@ -53,6 +56,7 @@ type DB interface {
 	GetMessages(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Messages, err error)
 	GetMessageCount(tenantID string, connectionID *string) (int, error)
 	GetConnectionForMessage(id, tenantID string) (*model.Connection, error)
+	ArchiveMessage(m *model.Message) (*model.Message, error)
 
 	AddEvent(e *model.Event) (*model.Event, error)
 	MarkEventRead(id, tenantID string) (*model.Event, error)

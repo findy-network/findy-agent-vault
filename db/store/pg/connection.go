@@ -178,3 +178,7 @@ func (pg *Database) GetConnectionCount(tenantID string) (count int, err error) {
 	err2.Check(err)
 	return
 }
+
+func (pg *Database) ArchiveConnection(c *model.Connection) (*model.Connection, error) {
+	return nil, nil
+}

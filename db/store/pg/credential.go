@@ -365,3 +365,7 @@ func (pg *Database) GetCredentialCount(tenantID string, connectionID *string) (c
 func (pg *Database) GetConnectionForCredential(id, tenantID string) (*model.Connection, error) {
 	return pg.getConnectionForObject("credential", "connection_id", id, tenantID)
 }
+
+func (pg *Database) ArchiveCredential(c *model.Credential) (*model.Credential, error) {
+	return nil, nil
+}

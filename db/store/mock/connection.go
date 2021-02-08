@@ -80,3 +80,7 @@ func (m *mockData) GetConnectionCount(tenantID string) (int, error) {
 
 	return agent.connections.count(nil), nil
 }
+
+func (m *mockData) ArchiveConnection(c *model.Connection) (*model.Connection, error) {
+	return nil, nil
+}
