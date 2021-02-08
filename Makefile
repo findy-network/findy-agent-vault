@@ -84,3 +84,6 @@ dbuild:
 		--build-arg HTTPS_PREFIX=$(HTTPS_PREFIX) \
 		-t findy-agent-vault \
 		.
+
+gen_mock:
+	~/go/bin/mockgen -package listen -source ./db/store/db.go DB > ./resolver/listen/listener_mock_store_test.go
