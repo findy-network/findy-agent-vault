@@ -129,3 +129,7 @@ func (m *mockData) GetConnectionForMessage(id, tenantID string) (*model.Connecti
 	}
 	return m.GetConnection(message.ConnectionID, tenantID)
 }
+
+func (m *mockData) ArchiveMessage(msg *model.Message) (*model.Message, error) {
+	return nil, nil
+}

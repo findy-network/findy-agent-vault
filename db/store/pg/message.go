@@ -258,3 +258,7 @@ func (pg *Database) GetMessageCount(tenantID string, connectionID *string) (coun
 func (pg *Database) GetConnectionForMessage(id, tenantID string) (*model.Connection, error) {
 	return pg.getConnectionForObject("message", "connection_id", id, tenantID)
 }
+
+func (pg *Database) ArchiveMessage(m *model.Message) (*model.Message, error) {
+	return nil, nil
+}

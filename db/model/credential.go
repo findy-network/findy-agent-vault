@@ -25,6 +25,7 @@ type Credential struct {
 	Approved      *time.Time `faker:"-"`
 	Issued        *time.Time `faker:"-"`
 	Failed        *time.Time `faker:"-"`
+	Archived      *time.Time `faker:"-"`
 }
 
 func NewCredential(tenantID string, c *Credential) *Credential {

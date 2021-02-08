@@ -20,7 +20,8 @@ type Connection struct {
 	TheirEndpoint string `faker:"url"`
 	TheirLabel    string `faker:"organisationLabel"`
 	Invited       bool
-	Approved      *time.Time
+	Approved      *time.Time `faker:"-"`
+	Archived      *time.Time `faker:"-"`
 }
 
 func EmptyConnection() *Connection {

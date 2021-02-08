@@ -143,3 +143,7 @@ func (m *mockData) GetConnectionForProof(id, tenantID string) (*model.Connection
 	}
 	return m.GetConnection(proof.ConnectionID, tenantID)
 }
+
+func (m *mockData) ArchiveProof(p *model.Proof) (*model.Proof, error) {
+	return nil, nil
+}

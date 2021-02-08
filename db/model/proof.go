@@ -24,6 +24,7 @@ type Proof struct {
 	Approved      *time.Time `faker:"-"`
 	Verified      *time.Time `faker:"-"`
 	Failed        *time.Time `faker:"-"`
+	Archived      *time.Time `faker:"-"`
 }
 
 func NewProof(tenantID string, p *Proof) *Proof {

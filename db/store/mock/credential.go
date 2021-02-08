@@ -143,3 +143,7 @@ func (m *mockData) GetConnectionForCredential(id, tenantID string) (*model.Conne
 	}
 	return m.GetConnection(credential.ConnectionID, tenantID)
 }
+
+func (m *mockData) ArchiveCredential(c *model.Credential) (*model.Credential, error) {
+	return nil, nil
+}

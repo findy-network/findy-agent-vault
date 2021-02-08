@@ -363,3 +363,7 @@ func (pg *Database) GetProofCount(tenantID string, connectionID *string) (count 
 func (pg *Database) GetConnectionForProof(id, tenantID string) (*model.Connection, error) {
 	return pg.getConnectionForObject("proof", "connection_id", id, tenantID)
 }
+
+func (pg *Database) ArchiveProof(p *model.Proof) (*model.Proof, error) {
+	return nil, nil
+}
