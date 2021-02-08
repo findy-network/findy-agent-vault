@@ -10,7 +10,6 @@ import (
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/resolver/update"
 	"github.com/findy-network/findy-agent-vault/utils"
-	"github.com/golang/glog"
 	"github.com/lainio/err2"
 )
 
@@ -23,10 +22,8 @@ func NewListener(db store.DB, updater *update.Updater) *Listener {
 	return &Listener{db, updater}
 }
 
-func (l *Listener) AddConnection(info *agency.JobInfo, data *agency.Connection) error {
-	defer err2.Catch(func(err error) {
-		glog.Errorf("Encountered error when adding connection %s", err.Error())
-	})
+func (l *Listener) AddConnection(info *agency.JobInfo, data *agency.Connection) (err error) {
+	defer err2.Return(&err)
 
 	utils.LogMed().Infof("Add connection %s for tenant %s", info.ConnectionID, info.TenantID)
 
@@ -58,10 +55,9 @@ func (l *Listener) AddConnection(info *agency.JobInfo, data *agency.Connection) 
 	return nil
 }
 
-func (l *Listener) AddMessage(info *agency.JobInfo, data *agency.Message) error {
-	defer err2.Catch(func(err error) {
-		glog.Errorf("Encountered error when adding message %s", err.Error())
-	})
+func (l *Listener) AddMessage(info *agency.JobInfo, data *agency.Message) (err error) {
+	defer err2.Return(&err)
+
 	msg, err := l.db.AddMessage(dbModel.NewMessage(info.TenantID, &dbModel.Message{
 		ConnectionID: info.ConnectionID,
 		Message:      data.Message,
@@ -80,15 +76,14 @@ func (l *Listener) AddMessage(info *agency.JobInfo, data *agency.Message) error 
 	return nil
 }
 
-func (l *Listener) UpdateMessage(info *agency.JobInfo, _ *agency.MessageUpdate) error {
+func (l *Listener) UpdateMessage(info *agency.JobInfo, _ *agency.MessageUpdate) (err error) {
 	// TODO
 	return nil
 }
 
-func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) error {
-	defer err2.Catch(func(err error) {
-		glog.Errorf("Encountered error when adding credential %s", err.Error())
-	})
+func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) (err error) {
+	defer err2.Return(&err)
+
 	credential, err := l.db.AddCredential(dbModel.NewCredential(info.TenantID, &dbModel.Credential{
 		ConnectionID:  info.ConnectionID,
 		Role:          data.Role,
@@ -117,10 +112,8 @@ func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) 
 	return nil
 }
 
-func (l *Listener) UpdateCredential(info *agency.JobInfo, data *agency.CredentialUpdate) error {
-	defer err2.Catch(func(err error) {
-		glog.Errorf("Encountered error when updating credential %s", err.Error())
-	})
+func (l *Listener) UpdateCredential(info *agency.JobInfo, data *agency.CredentialUpdate) (err error) {
+	defer err2.Return(&err)
 
 	job, err := l.db.GetJob(info.JobID, info.TenantID)
 	err2.Check(err)
@@ -149,10 +142,8 @@ func (l *Listener) UpdateCredential(info *agency.JobInfo, data *agency.Credentia
 	return nil
 }
 
-func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) error {
-	defer err2.Catch(func(err error) {
-		glog.Errorf("Encountered error when adding proof %s", err.Error())
-	})
+func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error) {
+	defer err2.Return(&err)
 
 	proof, err := l.db.AddProof(dbModel.NewProof(info.TenantID, &dbModel.Proof{
 		ConnectionID:  info.ConnectionID,
@@ -181,10 +172,9 @@ func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) error {
 	return nil
 }
 
-func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) error {
-	defer err2.Catch(func(err error) {
-		glog.Errorf("Encountered error when updating proof %s", err.Error())
-	})
+func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) (err error) {
+	defer err2.Return(&err)
+
 	job, err := l.db.GetJob(info.JobID, info.TenantID)
 	err2.Check(err)
 
@@ -227,10 +217,9 @@ func getJobStatusForTimestamps(approved, completed, failed *time.Time) (status m
 	return
 }
 
-func (l *Listener) FailJob(info *agency.JobInfo) error {
-	defer err2.Catch(func(err error) {
-		glog.Errorf("Encountered error when failing job %s", err.Error())
-	})
+func (l *Listener) FailJob(info *agency.JobInfo) (err error) {
+	defer err2.Return(&err)
+
 	job, err := l.db.GetJob(info.JobID, info.TenantID)
 	err2.Check(err)
 

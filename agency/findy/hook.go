@@ -61,7 +61,16 @@ func (f *Agency) adminStatusLoop(ch chan *ops.AgencyStatus) {
 		utils.LogMed().Infoln("received psm hook data for:", status.GetDID())
 
 		protocolStatus := status.GetProtocolStatus()
-		info := &model.ArchiveInfo{AgentID: status.GetDID(), ConnectionID: status.GetConnectionId()}
+		jobID := protocolStatus.State.ProtocolId.Id
+
+		// TODO: pass also timestamps: when protocol was started/approved/sent/issued/verified etc.
+		// revise this when we have "a real client" for the archive
+		info := &model.ArchiveInfo{
+			AgentID:       status.GetDID(),
+			ConnectionID:  status.GetConnectionId(),
+			JobID:         jobID,
+			InitiatedByUs: protocolStatus.State.ProtocolId.Role == agency.Protocol_INITIATOR,
+		}
 
 		// archive currently only successful protocol results
 		if protocolStatus.State.State == agency.ProtocolState_OK {
