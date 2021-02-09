@@ -142,7 +142,7 @@ func (pg *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
 	if rows.Next() {
 		a, err = readRowToAgent(rows)
 	} else {
-		err = fmt.Errorf("not found agent for tenant id %v (agent id %v)", *id, *agentID)
+		err = fmt.Errorf("not found agent for tenant id %v (agent id %v)", id, agentID)
 	}
 	err2.Check(err)
 
