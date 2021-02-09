@@ -2,6 +2,7 @@ package pg
 
 import (
 	"database/sql"
+	"fmt"
 	"sort"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
@@ -33,10 +34,9 @@ func (pg *Database) getJobForObject(objectName, objectID, tenantID string) (j *m
 
 	if rows.Next() {
 		j, err = readRowToJob(rows)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("not found job for %s id %s", objectName, objectID)
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	return
@@ -65,10 +65,9 @@ func (pg *Database) AddJob(j *model.Job) (n *model.Job, err error) {
 	n = model.NewJob(j.ID, j.TenantID, j)
 	if rows.Next() {
 		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("no rows returned from insert job query")
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	return n, err
@@ -100,10 +99,9 @@ func (pg *Database) UpdateJob(arg *model.Job) (j *model.Job, err error) {
 
 	if rows.Next() {
 		j, err = readRowToJob(rows)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("no rows returned from update job query")
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	return j, err
@@ -142,10 +140,9 @@ func (pg *Database) GetJob(id, tenantID string) (job *model.Job, err error) {
 
 	if rows.Next() {
 		job, err = readRowToJob(rows)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("no rows returned from select job query (%s)", id)
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	return

@@ -119,10 +119,9 @@ func (pg *Database) AddProof(p *model.Proof) (n *model.Proof, err error) {
 	n = model.NewProof(p.TenantID, p)
 	if rows.Next() {
 		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("no rows returned from insert proof query")
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	attributes, err := pg.addProofAttributes(n.ID, n.Attributes)

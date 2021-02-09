@@ -102,10 +102,9 @@ func (pg *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
 	n = model.NewAgent(a)
 	if rows.Next() {
 		err = rows.Scan(&n.ID, &n.AgentID, &n.Label, &n.RawJWT, &n.Created, &n.LastAccessed)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("no rows returned from insert agent query")
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	n.TenantID = n.ID
@@ -114,15 +113,17 @@ func (pg *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
 }
 
 func readRowToAgent(rows *sql.Rows) (a *model.Agent, err error) {
+	defer err2.Annotate("readRowToAgent", &err)
+
 	a = model.NewAgent(nil)
-	err = rows.Scan(
+	err2.Check(rows.Scan(
 		&a.ID, &a.AgentID, &a.Label, &a.RawJWT, &a.Created, &a.LastAccessed,
-	)
+	))
 	return
 }
 
 func (pg *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
-	defer returnErr("GetAgent", &err)
+	defer err2.Annotate("GetAgent", &err)
 
 	if id == nil && agentID == nil {
 		panic(fmt.Errorf("either id or agent id is required"))
@@ -140,10 +141,9 @@ func (pg *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
 
 	if rows.Next() {
 		a, err = readRowToAgent(rows)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("not found agent for tenant id %v (agent id %v)", *id, *agentID)
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	a.TenantID = a.ID

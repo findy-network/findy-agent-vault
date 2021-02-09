@@ -2,6 +2,7 @@ package pg
 
 import (
 	"database/sql"
+	"fmt"
 	"sort"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
@@ -42,10 +43,9 @@ func (pg *Database) getConnectionForObject(objectName, columnName, objectID, ten
 
 	if rows.Next() {
 		c, err = readRowToConnection(rows)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("not found connection for %s id %s", objectName, objectID)
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	return
@@ -70,10 +70,9 @@ func (pg *Database) AddConnection(c *model.Connection) (n *model.Connection, err
 	n = model.NewConnection(c.ID, c.TenantID, c)
 	if rows.Next() {
 		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("no rows returned from insert connection query")
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	return
@@ -107,10 +106,9 @@ func (pg *Database) GetConnection(id, tenantID string) (c *model.Connection, err
 
 	if rows.Next() {
 		c, err = readRowToConnection(rows)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("no rows returned from select connection query (%s)", id)
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	return
