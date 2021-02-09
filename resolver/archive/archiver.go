@@ -26,7 +26,7 @@ func (a *Archiver) ArchiveConnection(info *agency.ArchiveInfo, data *agency.Conn
 	err2.Check(err)
 
 	utils.LogMed().Infof("Archiving connection %+v for tenant %s", data, agent.TenantID)
-	job, err := a.db.GetJob(info.JobID, agent.TenantID)
+	_, err = a.db.GetJob(info.JobID, agent.TenantID)
 	err2.Check(err)
 
 	// 1. Check if we have a job with the id -> if ok, mark done - success
