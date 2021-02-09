@@ -25,7 +25,7 @@ func (a *Archiver) ArchiveConnection(info *agency.ArchiveInfo, data *agency.Conn
 	agent, err := a.db.GetAgent(nil, &info.AgentID)
 	err2.Check(err)
 
-	utils.LogMed().Infof("Archiving connection %s for tenant %s", info.ConnectionID, agent.TenantID)
+	utils.LogMed().Infof("Archiving connection %+v for tenant %s", data, agent.TenantID)
 
 	_, err = a.db.ArchiveConnection(
 		model.NewConnection(info.ConnectionID, agent.TenantID, &model.Connection{

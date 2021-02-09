@@ -2,6 +2,7 @@ package pg
 
 import (
 	"database/sql"
+	"fmt"
 	"sort"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
@@ -33,10 +34,9 @@ func (pg *Database) AddEvent(e *model.Event) (n *model.Event, err error) {
 	n = model.NewEvent(e.TenantID, e)
 	if rows.Next() {
 		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("no rows returned from insert event query")
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	return n, err
@@ -58,10 +58,9 @@ func (pg *Database) MarkEventRead(id, tenantID string) (e *model.Event, err erro
 
 	if rows.Next() {
 		e, err = readRowToEvent(rows)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("no rows returned from mark event query")
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	return e, err
@@ -95,10 +94,9 @@ func (pg *Database) GetEvent(id, tenantID string) (e *model.Event, err error) {
 
 	if rows.Next() {
 		e, err = readRowToEvent(rows)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("no rows returned from select event query (%s)", id)
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	return

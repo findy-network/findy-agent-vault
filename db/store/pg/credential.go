@@ -119,10 +119,9 @@ func (pg *Database) AddCredential(c *model.Credential) (n *model.Credential, err
 	n = model.NewCredential(c.TenantID, c)
 	if rows.Next() {
 		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("no rows returned from insert credential query")
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	attributes, err := pg.addCredentialAttributes(n.ID, n.Attributes)

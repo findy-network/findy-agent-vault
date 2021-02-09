@@ -2,6 +2,7 @@ package pg
 
 import (
 	"database/sql"
+	"fmt"
 	"sort"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
@@ -32,10 +33,9 @@ func (pg *Database) getMessageForObject(objectName, columnName, objectID, tenant
 
 	if rows.Next() {
 		c, err = readRowToMessage(rows)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("not found message for %s id %s", objectName, objectID)
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	return
@@ -74,10 +74,9 @@ func (pg *Database) AddMessage(arg *model.Message) (n *model.Message, err error)
 	n = model.NewMessage(arg.TenantID, arg)
 	if rows.Next() {
 		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("no rows returned from insert message query")
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	return n, err
@@ -100,10 +99,9 @@ func (pg *Database) UpdateMessage(arg *model.Message) (m *model.Message, err err
 
 	if rows.Next() {
 		m, err = readRowToMessage(rows)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("no rows returned from update message query")
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	return m, err
@@ -121,10 +119,9 @@ func (pg *Database) GetMessage(id, tenantID string) (m *model.Message, err error
 	m = model.NewMessage("", nil)
 	if rows.Next() {
 		m, err = readRowToMessage(rows)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("no rows returned from select message query (%s)", id)
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	return

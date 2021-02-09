@@ -6,6 +6,7 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // blank for migrate driver
@@ -110,11 +111,18 @@ type Database struct {
 	db *sql.DB
 }
 
-func InitDB(migratePath, host, password string, port int, reset bool) store.DB {
+func InitDB(migratePath string, config *utils.Configuration, reset bool) store.DB {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbName)
-	sqlDB, err := sql.Open("postgres", psqlInfo)
+		config.DBHost, config.DBPort, user, config.DBPassword, dbName)
+
+	var sqlDB *sql.DB
+	var err error
+	if config.DBTracing {
+		sqlDB, err = initTraceHook(psqlInfo)
+	} else {
+		sqlDB, err = sql.Open("postgres", psqlInfo)
+	}
 	err2.Check(err)
 
 	driver, err := postgres.WithInstance(sqlDB, &postgres.Config{})
@@ -148,7 +156,7 @@ func InitDB(migratePath, host, password string, port int, reset bool) store.DB {
 	err = sqlDB.Ping()
 	err2.Check(err)
 
-	glog.Infof("successfully connected to postgres %s:%d\n", host, port)
+	glog.Infof("successfully connected to postgres %s:%d\n", config.DBHost, config.DBPort)
 	return &Database{db: sqlDB}
 }
 
@@ -178,10 +186,9 @@ func (pg *Database) getCount(
 
 	if rows.Next() {
 		err = rows.Scan(&count)
-		err2.Check(err)
+	} else {
+		err = fmt.Errorf("no rows returned from select count query (%s)", tableName)
 	}
-
-	err = rows.Err()
 	err2.Check(err)
 
 	return

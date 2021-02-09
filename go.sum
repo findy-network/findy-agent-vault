@@ -231,22 +231,6 @@ github.com/findy-network/findy-grpc v0.0.0-20210108131015-372836897ab4/go.mod h1
 github.com/findy-network/findy-grpc v0.0.0-20210127104251-9687b3532b14 h1:/fXEkEP4DWSf5gukDhDmRW6kt7TntM0zXfEfk83tmHI=
 github.com/findy-network/findy-grpc v0.0.0-20210127104251-9687b3532b14/go.mod h1:7wsaOZE8iRD6XR4ZxKxQB4yFcEerxRaenzUcyoff8VU=
 github.com/findy-network/findy-grpc v0.1.1-0.20210203141715-ccf403a220d6/go.mod h1:VcgZIo4MIzKIcfq5at0xibA8asynjvfXwCkwQksPHUw=
-github.com/findy-network/findy-grpc v0.1.1-0.20210203142944-94e6146f96c7 h1:T4mG81APkEfZwv3BTt+Gw7uhB45dN3ucz7f1jDZse7E=
-github.com/findy-network/findy-grpc v0.1.1-0.20210203142944-94e6146f96c7/go.mod h1:VcgZIo4MIzKIcfq5at0xibA8asynjvfXwCkwQksPHUw=
-github.com/findy-network/findy-grpc v0.1.1-0.20210204082358-21f9414e0519 h1:ZSToCem39VdHSSTrrGj08C7Szl3sCSeZcMIoKx+CCEI=
-github.com/findy-network/findy-grpc v0.1.1-0.20210204082358-21f9414e0519/go.mod h1:VcgZIo4MIzKIcfq5at0xibA8asynjvfXwCkwQksPHUw=
-github.com/findy-network/findy-grpc v0.1.1-0.20210204084533-9d24b6a863ea h1:ZTfnmR+v0meJyA76dtGb76LpkTN6TSdaXhwtKEWDSo4=
-github.com/findy-network/findy-grpc v0.1.1-0.20210204084533-9d24b6a863ea/go.mod h1:VcgZIo4MIzKIcfq5at0xibA8asynjvfXwCkwQksPHUw=
-github.com/findy-network/findy-grpc v0.1.1-0.20210204085842-6f5f42a0668f h1:dTSGQPQFs2oegzDRL6YJQjt7QfJxKh/4TnkylKXeKaM=
-github.com/findy-network/findy-grpc v0.1.1-0.20210204085842-6f5f42a0668f/go.mod h1:VcgZIo4MIzKIcfq5at0xibA8asynjvfXwCkwQksPHUw=
-github.com/findy-network/findy-grpc v0.1.1-0.20210204091148-d5944266bf1a h1:8RgplmyPA60cSU20OtMVyCPsX0DvgUJ2MtsEMJjvC5o=
-github.com/findy-network/findy-grpc v0.1.1-0.20210204091148-d5944266bf1a/go.mod h1:VcgZIo4MIzKIcfq5at0xibA8asynjvfXwCkwQksPHUw=
-github.com/findy-network/findy-grpc v0.1.1-0.20210204093752-70119e597053 h1:y76WJfMJ5z8mjK7nSrGYdnwZa2fV+N7QcZOE0NGl8Uo=
-github.com/findy-network/findy-grpc v0.1.1-0.20210204093752-70119e597053/go.mod h1:VcgZIo4MIzKIcfq5at0xibA8asynjvfXwCkwQksPHUw=
-github.com/findy-network/findy-grpc v0.1.1-0.20210204110743-d551e2c348f1 h1:9+cEHbsbP/dqs7KQUZp2/1B20kmTjz8dHkRlrdvaeWw=
-github.com/findy-network/findy-grpc v0.1.1-0.20210204110743-d551e2c348f1/go.mod h1:VcgZIo4MIzKIcfq5at0xibA8asynjvfXwCkwQksPHUw=
-github.com/findy-network/findy-grpc v0.1.1-0.20210204112624-935adf8c9f79 h1:sqqe1qHqSGCG/j1w8qqrG+t28V6EFNvQ/jQtswsrHHA=
-github.com/findy-network/findy-grpc v0.1.1-0.20210204112624-935adf8c9f79/go.mod h1:VcgZIo4MIzKIcfq5at0xibA8asynjvfXwCkwQksPHUw=
 github.com/findy-network/findy-grpc v0.1.1-0.20210204154122-80251d5a3be5 h1:TwNz5zbQTjqDw45g7ok3GBXZLVdoL+sZE7oBkfU4GFE=
 github.com/findy-network/findy-grpc v0.1.1-0.20210204154122-80251d5a3be5/go.mod h1:VcgZIo4MIzKIcfq5at0xibA8asynjvfXwCkwQksPHUw=
 github.com/findy-network/findy-wrapper-go v0.0.0-20201026120712-dc9ac6619595 h1:b5KmemLHfR5m7KJX4gYC5+UIX5H9sPu0mYHlEb7/PPM=
@@ -259,6 +243,8 @@ github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4
 github.com/fsouza/fake-gcs-server v1.17.0/go.mod h1:D1rTE4YCyHFNa99oyJJ5HyclvN/0uQR+pM/VdlL83bw=
 github.com/fxamacker/cbor/v2 v2.2.0 h1:6eXqdDDe588rSYAi1HfZKbx6YYQO4mxQ9eC6xYpU/JQ=
 github.com/fxamacker/cbor/v2 v2.2.0/go.mod h1:TA1xS00nchWmaBnEIxPSE5oHLuJBAVvqrtAnWBwBCVo=
+github.com/gchaincl/sqlhooks/v2 v2.0.1 h1:j9WZAq1Tx/xngDfEdsgUww+o9iY3rLOYGYhYWcFxdmI=
+github.com/gchaincl/sqlhooks/v2 v2.0.1/go.mod h1:Qv7HXjGB9TehamVK52yW5H+a0RRhprIj3ESTcWOG2jw=
 github.com/getsentry/raven-go v0.0.0-20180121060056-563b81fc02b7/go.mod h1:KungGk8q33+aIAZUIVWZDr2OfAEBsO49PX4NzFV5kcQ=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-chi/chi v3.3.2+incompatible/go.mod h1:eB3wogJHnLi3x/kFX2A+IbTBlXxmMeXJVKy9tTv1XzQ=
@@ -279,6 +265,7 @@ github.com/go-ole/go-ole v1.2.1/go.mod h1:7FAglXiTm7HKlQRDeOQ6ZNUHidzCWXuZWq/1dT
 github.com/go-sql-driver/mysql v1.3.0/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
 github.com/go-sql-driver/mysql v1.4.0/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
 github.com/go-sql-driver/mysql v1.4.1/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
+github.com/go-sql-driver/mysql v1.5.0 h1:ozyZYNQW3x3HtqT1jira07DN2PArx2v7/mN66gGcHOs=
 github.com/go-sql-driver/mysql v1.5.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=
 github.com/go-stack/stack v1.8.0/go.mod h1:v0f6uXyyMGvRgIKkXu+yp6POWl0qKG85gN/melR3HDY=
 github.com/go-test/deep v1.0.7/go.mod h1:QV8Hv/iy04NyLBxAdO9njL0iVPN1S4d/A3NVv1V36o8=
@@ -630,6 +617,7 @@ github.com/mattn/go-runewidth v0.0.6/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m
 github.com/mattn/go-sqlite3 v1.9.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOqkbpncsNc=
 github.com/mattn/go-sqlite3 v1.10.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOqkbpncsNc=
 github.com/mattn/go-sqlite3 v1.11.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOqkbpncsNc=
+github.com/mattn/go-sqlite3 v1.12.0 h1:u/x3mp++qUxvYfulZ4HKOvVO0JWhk7HtE8lWhbGz/Do=
 github.com/mattn/go-sqlite3 v1.12.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOqkbpncsNc=
 github.com/mattn/goveralls v0.0.2/go.mod h1:8d1ZMHsd7fW6IRPKQh46F2WRpyib5/X4FOpevwGNQEw=
 github.com/matttproud/golang_protobuf_extensions v1.0.1 h1:4hp9jkHxhMHkqkrB3Ix0jegS5sx/RkqARlsWZ6pIwiU=
