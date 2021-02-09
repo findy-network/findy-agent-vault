@@ -1,7 +1,10 @@
 package findy
 
 import (
+	"time"
+
 	"github.com/findy-network/findy-agent-api/grpc/agency"
+	"github.com/findy-network/findy-agent-api/grpc/ops"
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/golang/glog"
@@ -30,10 +33,52 @@ func (f *Agency) archive(info *model.ArchiveInfo, status *agency.ProtocolStatus)
 	}
 }
 
+func (f *Agency) startHookOrWait() {
+	const waitTime = 5
+	for {
+		err := f.listenAdminHook()
+		if err == nil {
+			break
+		}
+		glog.Warningf("listenAdminHook: cannot connect server, reconnecting after %d secs...", waitTime)
+		time.Sleep(waitTime * time.Second)
+	}
+}
+
+func (f *Agency) adminStatusLoop(ch chan *ops.AgencyStatus) {
+	defer err2.Catch(func(err error) {
+		glog.Errorf("Recovered error in psm hook routine: %s", err.Error())
+		go f.adminStatusLoop(ch)
+	})
+
+	for {
+		status, ok := <-ch
+		if !ok {
+			glog.Warningln("listenAdminHook: server lost, try reconnecting...")
+			f.startHookOrWait()
+			break
+		}
+		utils.LogMed().Infoln("received psm hook data for:", status.GetDID())
+
+		protocolStatus := status.GetProtocolStatus()
+		info := &model.ArchiveInfo{AgentID: status.GetDID(), ConnectionID: status.GetConnectionId()}
+
+		// archive currently only successful protocol results
+		if protocolStatus.State.State == agency.ProtocolState_OK {
+			f.archive(info, protocolStatus)
+		} else {
+			utils.LogLow().Infof(
+				"Skipping archiving for protocol run %s in state %s",
+				protocolStatus.State.ProtocolId.TypeId,
+				protocolStatus.State.State,
+			)
+		}
+	}
+}
+
 func (f *Agency) listenAdminHook() (err error) {
 	defer err2.Return(&err)
 
-	// TODO: cancellation, reconnect
 	glog.Info("Start listening to PSM events.")
 
 	cmd := f.adminClient()
@@ -42,34 +87,6 @@ func (f *Agency) listenAdminHook() (err error) {
 	ch, err := cmd.psmHook()
 	err2.Check(err)
 
-	go func() {
-		defer err2.Catch(func(err error) {
-			glog.Errorf("Recovered error in psm hook routine: %s", err.Error())
-			// TODO: reconnect?
-		})
-
-		for {
-			status, ok := <-ch
-			if !ok {
-				glog.Warningln("closed from server")
-				break
-			}
-			utils.LogMed().Infoln("received psm hook data for:", status.GetDID())
-
-			protocolStatus := status.GetProtocolStatus()
-			info := &model.ArchiveInfo{AgentID: status.GetDID(), ConnectionID: status.GetConnectionId()}
-
-			// archive currently only successful protocol results
-			if protocolStatus.State.State == agency.ProtocolState_OK {
-				f.archive(info, protocolStatus)
-			} else {
-				utils.LogLow().Infof(
-					"Skipping archiving for protocol run %s in state %s",
-					protocolStatus.State.ProtocolId.TypeId,
-					protocolStatus.State.State,
-				)
-			}
-		}
-	}()
+	go f.adminStatusLoop(ch)
 	return nil
 }
