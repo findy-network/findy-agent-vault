@@ -134,8 +134,7 @@ func (pg *Database) getMessagesForQuery(
 		m.Messages = append(m.Messages, message)
 	}
 
-	err = rows.Err()
-	err2.Check(err)
+	err2.Check(rows.Err())
 
 	if batch.Count < len(m.Messages) {
 		m.Messages = m.Messages[:batch.Count]

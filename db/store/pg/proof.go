@@ -67,8 +67,7 @@ func (pg *Database) getProofForObject(objectName, columnName, objectID, tenantID
 		err2.Check(err)
 	}
 
-	err = rows.Err()
-	err2.Check(err)
+	err2.Check(rows.Err())
 
 	return
 }
@@ -93,8 +92,7 @@ func (pg *Database) addProofAttributes(id string, attributes []*graph.ProofAttri
 		index++
 	}
 
-	err = rows.Err()
-	err2.Check(err)
+	err2.Check(rows.Err())
 
 	return attributes, nil
 }
@@ -206,8 +204,7 @@ func (pg *Database) GetProof(id, tenantID string) (p *model.Proof, err error) {
 		err2.Check(err)
 	}
 
-	err = rows.Err()
-	err2.Check(err)
+	err2.Check(rows.Err())
 
 	return
 }
@@ -250,8 +247,7 @@ func (pg *Database) getProofsForQuery(
 		p.Proofs = append(p.Proofs, prevProof)
 	}
 
-	err = rows.Err()
-	err2.Check(err)
+	err2.Check(rows.Err())
 
 	if batch.Count < len(p.Proofs) {
 		p.Proofs = p.Proofs[:batch.Count]
