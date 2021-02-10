@@ -187,31 +187,48 @@ func (f *Agency) handleNotification(
 	}
 }
 
-func (f *Agency) startListeningOrWait(a *model.Agent) {
+func (f *Agency) startListeningOrWait(a *model.Agent, retryCount int) int {
+	const maxCount = 5
 	const waitTime = 5
-	for {
-		err := f.listenAgent(a)
-		if err == nil {
-			break
+
+	if retryCount < maxCount {
+		glog.Warningln("listenAgent: channel closed, try reconnecting...", retryCount)
+		retryCount++
+		for {
+			err := f.listenAgentWithRetry(a, retryCount)
+			if err == nil {
+				break
+			}
+			glog.Warningf("listenAgent: cannot connect server, reconnecting after %d secs...", waitTime)
+			time.Sleep(waitTime * time.Second)
 		}
-		glog.Warningf("listenAgent: cannot connect server, reconnecting after %d secs...", waitTime)
-		time.Sleep(waitTime * time.Second)
 	}
+
+	return retryCount
 }
 
-func (f *Agency) agentStatusLoop(a *model.Agent, ch chan *agency.AgentStatus) {
+func (f *Agency) agentStatusLoop(a *model.Agent, ch chan *agency.AgentStatus, retryCount int) {
 	defer err2.Catch(func(err error) {
 		glog.Errorf("Recovered error in agent listener routine: %s, continue listening...", err.Error())
-		go f.agentStatusLoop(a, ch)
+
+		go f.agentStatusLoop(a, ch, 0)
 	})
 
 	for {
 		status, ok := <-ch
 		if !ok {
-			glog.Warningln("listenAgent: server lost, try reconnecting...")
-			f.startListeningOrWait(a)
+			retryCount = f.startListeningOrWait(a, retryCount)
 			break
 		}
+
+		if status.Notification == nil {
+			glog.Warningf("Received status with no notification: %+v", status)
+			continue
+		}
+
+		// successful round -> reset retry counter
+		retryCount = 0
+
 		utils.LogMed().Infoln("received notification:",
 			status.Notification.TypeId,
 			status.Notification.Role,
@@ -233,6 +250,10 @@ func (f *Agency) agentStatusLoop(a *model.Agent, ch chan *agency.AgentStatus) {
 }
 
 func (f *Agency) listenAgent(a *model.Agent) (err error) {
+	return f.listenAgentWithRetry(a, 0)
+}
+
+func (f *Agency) listenAgentWithRetry(a *model.Agent, retryCount int) (err error) {
 	defer err2.Return(&err)
 
 	cmd := f.userAsyncClient(a)
@@ -242,7 +263,7 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 	ch, err := cmd.listen(a.TenantID)
 	err2.Check(err)
 
-	go f.agentStatusLoop(a, ch)
+	go f.agentStatusLoop(a, ch, retryCount)
 
 	return err
 }
