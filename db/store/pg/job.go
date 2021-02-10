@@ -2,7 +2,6 @@ package pg
 
 import (
 	"database/sql"
-	"fmt"
 	"sort"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
@@ -28,16 +27,13 @@ func (pg *Database) getJobForObject(objectName, objectID, tenantID string) (j *m
 		" job INNER JOIN " + objectName + " ON " + objectName +
 		".job_id=job.id WHERE " + objectName + ".id = $1 AND job.tenant_id = $2"
 
-	rows, err := pg.db.Query(sqlJobSelectByObjectID, objectID, tenantID)
-	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		j, err = readRowToJob(rows)
-	} else {
-		err = fmt.Errorf("not found job for %s id %s", objectName, objectID)
-	}
-	err2.Check(err)
+	j = model.NewJob("", "", nil)
+	err2.Check(pg.doQuery(
+		readRowToJob(j),
+		sqlJobSelectByObjectID,
+		objectID,
+		tenantID,
+	))
 
 	return
 }
@@ -45,7 +41,11 @@ func (pg *Database) getJobForObject(objectName, objectID, tenantID string) (j *m
 func (pg *Database) AddJob(j *model.Job) (n *model.Job, err error) {
 	defer returnErr("AddJob", &err)
 
-	rows, err := pg.db.Query(
+	n = model.NewJob(j.ID, j.TenantID, j)
+	err2.Check(pg.doQuery(
+		func(rows *sql.Rows) error {
+			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
+		},
 		sqlJobInsert,
 		j.ID,
 		j.TenantID,
@@ -58,17 +58,7 @@ func (pg *Database) AddJob(j *model.Job) (n *model.Job, err error) {
 		j.Status,
 		j.Result,
 		j.InitiatedByUs,
-	)
-	err2.Check(err)
-	defer rows.Close()
-
-	n = model.NewJob(j.ID, j.TenantID, j)
-	if rows.Next() {
-		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
-	} else {
-		err = fmt.Errorf("no rows returned from insert job query")
-	}
-	err2.Check(err)
+	))
 
 	return n, err
 }
@@ -82,7 +72,9 @@ func (pg *Database) UpdateJob(arg *model.Job) (j *model.Job, err error) {
 		" WHERE id = $8 AND tenant_id = $9" +
 		" RETURNING " + sqlJobBaseFields + ", created, cursor"
 
-	rows, err := pg.db.Query(
+	j = model.NewJob("", "", nil)
+	err2.Check(pg.doQuery(
+		readRowToJob(j),
 		sqlJobUpdate,
 		arg.ProtocolConnectionID,
 		arg.ProtocolCredentialID,
@@ -93,40 +85,34 @@ func (pg *Database) UpdateJob(arg *model.Job) (j *model.Job, err error) {
 		arg.Result,
 		arg.ID,
 		arg.TenantID,
-	)
-	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		j, err = readRowToJob(rows)
-	} else {
-		err = fmt.Errorf("no rows returned from update job query")
-	}
-	err2.Check(err)
-
+	))
 	return j, err
 }
 
-func readRowToJob(rows *sql.Rows) (*model.Job, error) {
-	n := model.NewJob("", "", nil)
+func rowToJob(rows *sql.Rows) (n *model.Job, err error) {
+	n = model.NewJob("", "", nil)
+	return n, readRowToJob(n)(rows)
+}
 
-	err := rows.Scan(
-		&n.ID,
-		&n.TenantID,
-		&n.ProtocolType,
-		&n.ProtocolConnectionID,
-		&n.ProtocolCredentialID,
-		&n.ProtocolProofID,
-		&n.ProtocolMessageID,
-		&n.ConnectionID,
-		&n.Status,
-		&n.Result,
-		&n.InitiatedByUs,
-		&n.Updated,
-		&n.Created,
-		&n.Cursor,
-	)
-	return n, err
+func readRowToJob(n *model.Job) func(*sql.Rows) error {
+	return func(rows *sql.Rows) error {
+		return rows.Scan(
+			&n.ID,
+			&n.TenantID,
+			&n.ProtocolType,
+			&n.ProtocolConnectionID,
+			&n.ProtocolCredentialID,
+			&n.ProtocolProofID,
+			&n.ProtocolMessageID,
+			&n.ConnectionID,
+			&n.Status,
+			&n.Result,
+			&n.InitiatedByUs,
+			&n.Updated,
+			&n.Created,
+			&n.Cursor,
+		)
+	}
 }
 
 func (pg *Database) GetJob(id, tenantID string) (job *model.Job, err error) {
@@ -134,16 +120,13 @@ func (pg *Database) GetJob(id, tenantID string) (job *model.Job, err error) {
 
 	sqlJobSelectByID := sqlJobSelect + " job WHERE id=$1 AND tenant_id=$2"
 
-	rows, err := pg.db.Query(sqlJobSelectByID, id, tenantID)
-	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		job, err = readRowToJob(rows)
-	} else {
-		err = fmt.Errorf("no rows returned from select job query (%s)", id)
-	}
-	err2.Check(err)
+	job = model.NewJob("", "", nil)
+	err2.Check(pg.doQuery(
+		readRowToJob(job),
+		sqlJobSelectByID,
+		id,
+		tenantID,
+	))
 
 	return
 }
@@ -168,7 +151,7 @@ func (pg *Database) getJobsForQuery(
 	}
 	var job *model.Job
 	for rows.Next() {
-		job, err = readRowToJob(rows)
+		job, err = rowToJob(rows)
 		err2.Check(err)
 		j.Jobs = append(j.Jobs, job)
 	}

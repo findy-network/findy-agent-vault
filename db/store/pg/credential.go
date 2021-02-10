@@ -104,7 +104,12 @@ func (pg *Database) AddCredential(c *model.Credential) (n *model.Credential, err
 	if len(c.Attributes) == 0 {
 		panic("Attributes are always required for credential.")
 	}
-	rows, err := pg.db.Query(
+
+	n = model.NewCredential(c.TenantID, c)
+	err2.Check(pg.doQuery(
+		func(rows *sql.Rows) error {
+			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
+		},
 		sqlCredentialInsert,
 		c.TenantID,
 		c.ConnectionID,
@@ -112,17 +117,7 @@ func (pg *Database) AddCredential(c *model.Credential) (n *model.Credential, err
 		c.SchemaID,
 		c.CredDefID,
 		c.InitiatedByUs,
-	)
-	err2.Check(err)
-	defer rows.Close()
-
-	n = model.NewCredential(c.TenantID, c)
-	if rows.Next() {
-		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
-	} else {
-		err = fmt.Errorf("no rows returned from insert credential query")
-	}
-	err2.Check(err)
+	))
 
 	attributes, err := pg.addCredentialAttributes(n.ID, n.Attributes)
 	err2.Check(err)

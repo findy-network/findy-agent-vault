@@ -53,13 +53,12 @@ func (pg *Database) GetListenerAgents(info *paginator.BatchInfo) (a *model.Agent
 	}
 	var agent *model.Agent
 	for rows.Next() {
-		agent, err = readRowToAgent(rows)
+		agent, err = rowToAgent(rows)
 		err2.Check(err)
 		a.Agents = append(a.Agents, agent)
 	}
 
-	err = rows.Err()
-	err2.Check(err)
+	err2.Check(rows.Err())
 
 	if info.Count < len(a.Agents) {
 		a.Agents = a.Agents[:info.Count]
@@ -90,36 +89,32 @@ func (pg *Database) GetListenerAgents(info *paginator.BatchInfo) (a *model.Agent
 func (pg *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
 	defer returnErr("AddAgent", &err)
 
-	rows, err := pg.db.Query(
+	n = model.NewAgent(a)
+
+	err2.Check(pg.doQuery(
+		readRowToAgent(n),
 		sqlAgentInsert,
 		a.AgentID,
 		a.Label,
 		a.RawJWT,
-	)
-	err2.Check(err)
-	defer rows.Close()
-
-	n = model.NewAgent(a)
-	if rows.Next() {
-		err = rows.Scan(&n.ID, &n.AgentID, &n.Label, &n.RawJWT, &n.Created, &n.LastAccessed)
-	} else {
-		err = fmt.Errorf("no rows returned from insert agent query")
-	}
-	err2.Check(err)
+	))
 
 	n.TenantID = n.ID
 
 	return
 }
 
-func readRowToAgent(rows *sql.Rows) (a *model.Agent, err error) {
-	defer err2.Annotate("readRowToAgent", &err)
-
+func rowToAgent(rows *sql.Rows) (a *model.Agent, err error) {
 	a = model.NewAgent(nil)
-	err2.Check(rows.Scan(
-		&a.ID, &a.AgentID, &a.Label, &a.RawJWT, &a.Created, &a.LastAccessed,
-	))
-	return
+	return a, readRowToAgent(a)(rows)
+}
+
+func readRowToAgent(a *model.Agent) func(*sql.Rows) error {
+	return func(rows *sql.Rows) error {
+		return rows.Scan(
+			&a.ID, &a.AgentID, &a.Label, &a.RawJWT, &a.Created, &a.LastAccessed,
+		)
+	}
 }
 
 func (pg *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
@@ -134,17 +129,9 @@ func (pg *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
 		query = sqlAgentSelectByAgentID
 		queryID = agentID
 	}
+	a = model.NewAgent(nil)
 
-	rows, err := pg.db.Query(query, *queryID)
-	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		a, err = readRowToAgent(rows)
-	} else {
-		err = fmt.Errorf("not found agent for tenant id %v (agent id %v)", id, agentID)
-	}
-	err2.Check(err)
+	err2.Check(pg.doQuery(readRowToAgent(a), query, *queryID))
 
 	a.TenantID = a.ID
 

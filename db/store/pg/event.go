@@ -2,7 +2,6 @@ package pg
 
 import (
 	"database/sql"
-	"fmt"
 	"sort"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
@@ -20,24 +19,18 @@ const (
 func (pg *Database) AddEvent(e *model.Event) (n *model.Event, err error) {
 	defer returnErr("AddEvent", &err)
 
-	rows, err := pg.db.Query(
+	n = model.NewEvent(e.TenantID, e)
+	err2.Check(pg.doQuery(
+		func(rows *sql.Rows) error {
+			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
+		},
 		sqlEventInsert,
 		e.TenantID,
 		e.ConnectionID,
 		e.JobID,
 		e.Description,
 		e.Read,
-	)
-	err2.Check(err)
-	defer rows.Close()
-
-	n = model.NewEvent(e.TenantID, e)
-	if rows.Next() {
-		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
-	} else {
-		err = fmt.Errorf("no rows returned from insert event query")
-	}
-	err2.Check(err)
+	))
 
 	return n, err
 }
@@ -48,38 +41,35 @@ func (pg *Database) MarkEventRead(id, tenantID string) (e *model.Event, err erro
 	const sqlEventUpdate = "UPDATE event SET read=true WHERE id = $1 AND tenant_id = $2" +
 		" RETURNING id," + sqlEventFields + ", created, cursor"
 
-	rows, err := pg.db.Query(
+	e = model.NewEvent("", nil)
+	err2.Check(pg.doQuery(
+		readRowToEvent(e),
 		sqlEventUpdate,
 		id,
 		tenantID,
-	)
-	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		e, err = readRowToEvent(rows)
-	} else {
-		err = fmt.Errorf("no rows returned from mark event query")
-	}
-	err2.Check(err)
+	))
 
 	return e, err
 }
 
-func readRowToEvent(rows *sql.Rows) (*model.Event, error) {
-	n := model.NewEvent("", nil)
+func rowToEvent(rows *sql.Rows) (e *model.Event, err error) {
+	e = model.NewEvent("", nil)
+	return e, readRowToEvent(e)(rows)
+}
 
-	err := rows.Scan(
-		&n.ID,
-		&n.TenantID,
-		&n.ConnectionID,
-		&n.JobID,
-		&n.Description,
-		&n.Read,
-		&n.Created,
-		&n.Cursor,
-	)
-	return n, err
+func readRowToEvent(n *model.Event) func(*sql.Rows) error {
+	return func(rows *sql.Rows) error {
+		return rows.Scan(
+			&n.ID,
+			&n.TenantID,
+			&n.ConnectionID,
+			&n.JobID,
+			&n.Description,
+			&n.Read,
+			&n.Created,
+			&n.Cursor,
+		)
+	}
 }
 
 func (pg *Database) GetEvent(id, tenantID string) (e *model.Event, err error) {
@@ -88,16 +78,13 @@ func (pg *Database) GetEvent(id, tenantID string) (e *model.Event, err error) {
 	const sqlEventSelectByID = sqlEventSelect + " event" +
 		" WHERE event.id=$1 AND tenant_id=$2"
 
-	rows, err := pg.db.Query(sqlEventSelectByID, id, tenantID)
-	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		e, err = readRowToEvent(rows)
-	} else {
-		err = fmt.Errorf("no rows returned from select event query (%s)", id)
-	}
-	err2.Check(err)
+	e = model.NewEvent("", nil)
+	err2.Check(pg.doQuery(
+		readRowToEvent(e),
+		sqlEventSelectByID,
+		id,
+		tenantID,
+	))
 
 	return
 }
@@ -122,7 +109,7 @@ func (pg *Database) getEventsForQuery(
 	}
 	var event *model.Event
 	for rows.Next() {
-		event, err = readRowToEvent(rows)
+		event, err = rowToEvent(rows)
 		err2.Check(err)
 		e.Events = append(e.Events, event)
 	}

@@ -2,7 +2,6 @@ package pg
 
 import (
 	"database/sql"
-	"fmt"
 	"sort"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
@@ -19,7 +18,7 @@ var (
 	sqlMessageSelect = "SELECT id, " + sqlBaseMessageFields + ", created, cursor FROM"
 )
 
-func (pg *Database) getMessageForObject(objectName, columnName, objectID, tenantID string) (c *model.Message, err error) {
+func (pg *Database) getMessageForObject(objectName, columnName, objectID, tenantID string) (m *model.Message, err error) {
 	defer returnErr("getMessageForObject", &err)
 
 	sqlMessageSelectByObjectID := "SELECT message.id, " +
@@ -27,57 +26,52 @@ func (pg *Database) getMessageForObject(objectName, columnName, objectID, tenant
 		" message INNER JOIN " + objectName + " ON " + objectName +
 		"." + columnName + "=message.id WHERE " + objectName + ".id = $1 AND message.tenant_id = $2"
 
-	rows, err := pg.db.Query(sqlMessageSelectByObjectID, objectID, tenantID)
-	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		c, err = readRowToMessage(rows)
-	} else {
-		err = fmt.Errorf("not found message for %s id %s", objectName, objectID)
-	}
-	err2.Check(err)
+	m = model.NewMessage("", nil)
+	err2.Check(pg.doQuery(
+		readRowToMessage(m),
+		sqlMessageSelectByObjectID,
+		objectID,
+		tenantID,
+	))
 
 	return
 }
 
-func readRowToMessage(rows *sql.Rows) (*model.Message, error) {
-	n := model.NewMessage("", nil)
+func rowToMessage(rows *sql.Rows) (n *model.Message, err error) {
+	n = model.NewMessage("", nil)
+	return n, readRowToMessage(n)(rows)
+}
 
-	err := rows.Scan(
-		&n.ID,
-		&n.TenantID,
-		&n.ConnectionID,
-		&n.Message,
-		&n.SentByMe,
-		&n.Delivered,
-		&n.Created,
-		&n.Cursor,
-	)
-	return n, err
+func readRowToMessage(n *model.Message) func(*sql.Rows) error {
+	return func(rows *sql.Rows) error {
+		return rows.Scan(
+			&n.ID,
+			&n.TenantID,
+			&n.ConnectionID,
+			&n.Message,
+			&n.SentByMe,
+			&n.Delivered,
+			&n.Created,
+			&n.Cursor,
+		)
+	}
 }
 
 func (pg *Database) AddMessage(arg *model.Message) (n *model.Message, err error) {
 	defer returnErr("AddMessage", &err)
 
-	rows, err := pg.db.Query(
+	n = model.NewMessage(arg.TenantID, arg)
+	err2.Check(pg.doQuery(
+		func(rows *sql.Rows) error {
+			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
+		},
 		sqlMessageInsert,
 		arg.TenantID,
 		arg.ConnectionID,
 		arg.Message,
 		arg.SentByMe,
 		arg.Delivered,
-	)
-	err2.Check(err)
-	defer rows.Close()
-
-	n = model.NewMessage(arg.TenantID, arg)
-	if rows.Next() {
-		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
-	} else {
-		err = fmt.Errorf("no rows returned from insert message query")
-	}
-	err2.Check(err)
+	))
 
 	return n, err
 }
@@ -88,22 +82,14 @@ func (pg *Database) UpdateMessage(arg *model.Message) (m *model.Message, err err
 	sqlMessageUpdate := "UPDATE message SET delivered=$1 WHERE id = $2 AND tenant_id = $3" +
 		" RETURNING id," + sqlBaseMessageFields + ", created, cursor"
 
-	rows, err := pg.db.Query(
+	m = model.NewMessage("", nil)
+	err2.Check(pg.doQuery(
+		readRowToMessage(m),
 		sqlMessageUpdate,
 		arg.Delivered,
 		arg.ID,
 		arg.TenantID,
-	)
-	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		m, err = readRowToMessage(rows)
-	} else {
-		err = fmt.Errorf("no rows returned from update message query")
-	}
-	err2.Check(err)
-
+	))
 	return m, err
 }
 
@@ -112,17 +98,13 @@ func (pg *Database) GetMessage(id, tenantID string) (m *model.Message, err error
 
 	sqlMessageSelectByID := sqlMessageSelect + " message WHERE id=$1 AND tenant_id=$2"
 
-	rows, err := pg.db.Query(sqlMessageSelectByID, id, tenantID)
-	err2.Check(err)
-	defer rows.Close()
-
 	m = model.NewMessage("", nil)
-	if rows.Next() {
-		m, err = readRowToMessage(rows)
-	} else {
-		err = fmt.Errorf("no rows returned from select message query (%s)", id)
-	}
-	err2.Check(err)
+	err2.Check(pg.doQuery(
+		readRowToMessage(m),
+		sqlMessageSelectByID,
+		id,
+		tenantID,
+	))
 
 	return
 }
@@ -147,7 +129,7 @@ func (pg *Database) getMessagesForQuery(
 	}
 	var message *model.Message
 	for rows.Next() {
-		message, err = readRowToMessage(rows)
+		message, err = rowToMessage(rows)
 		err2.Check(err)
 		m.Messages = append(m.Messages, message)
 	}

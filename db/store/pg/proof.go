@@ -105,24 +105,19 @@ func (pg *Database) AddProof(p *model.Proof) (n *model.Proof, err error) {
 	if len(p.Attributes) == 0 {
 		panic("Attributes are always required for proof.")
 	}
-	rows, err := pg.db.Query(
+
+	n = model.NewProof(p.TenantID, p)
+	err2.Check(pg.doQuery(
+		func(rows *sql.Rows) error {
+			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
+		},
 		sqlProofInsert,
 		p.TenantID,
 		p.ConnectionID,
 		p.Role,
 		p.InitiatedByUs,
 		p.Result,
-	)
-	err2.Check(err)
-	defer rows.Close()
-
-	n = model.NewProof(p.TenantID, p)
-	if rows.Next() {
-		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
-	} else {
-		err = fmt.Errorf("no rows returned from insert proof query")
-	}
-	err2.Check(err)
+	))
 
 	attributes, err := pg.addProofAttributes(n.ID, n.Attributes)
 	err2.Check(err)
