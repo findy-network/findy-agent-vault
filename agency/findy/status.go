@@ -1,6 +1,8 @@
 package findy
 
 import (
+	"time"
+
 	"github.com/findy-network/findy-agent-api/grpc/agency"
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/utils"
@@ -185,9 +187,53 @@ func (f *Agency) handleNotification(
 	}
 }
 
+func (f *Agency) startListeningOrWait(a *model.Agent) {
+	const waitTime = 5
+	for {
+		err := f.listenAgent(a)
+		if err == nil {
+			break
+		}
+		glog.Warningf("listenAgent: cannot connect server, reconnecting after %d secs...", waitTime)
+		time.Sleep(waitTime * time.Second)
+	}
+}
+
+func (f *Agency) agentStatusLoop(a *model.Agent, ch chan *agency.AgentStatus) {
+	defer err2.Catch(func(err error) {
+		glog.Errorf("Recovered error in agent listener routine: %s, continue listening...", err.Error())
+		go f.agentStatusLoop(a, ch)
+	})
+
+	for {
+		status, ok := <-ch
+		if !ok {
+			glog.Warningln("listenAgent: server lost, try reconnecting...")
+			f.startListeningOrWait(a)
+			break
+		}
+		utils.LogMed().Infoln("received notification:",
+			status.Notification.TypeId,
+			status.Notification.Role,
+			status.Notification.ProtocolId)
+
+		job := &model.JobInfo{
+			TenantID:     a.TenantID,
+			JobID:        status.Notification.ProtocolId,
+			ConnectionID: status.Notification.ConnectionId,
+		}
+
+		protocolStatus, ok := f.getStatus(a, status.Notification)
+		if !ok {
+			continue
+		}
+
+		f.handleNotification(a, job, status.Notification, protocolStatus)
+	}
+}
+
 func (f *Agency) listenAgent(a *model.Agent) (err error) {
 	defer err2.Return(&err)
-	// TODO: cancellation, reconnect
 
 	cmd := f.userAsyncClient(a)
 
@@ -196,37 +242,8 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 	ch, err := cmd.listen(a.TenantID)
 	err2.Check(err)
 
-	go func() {
-		defer err2.Catch(func(err error) {
-			glog.Errorf("Recovered error in listener routine: %s", err.Error())
-			// TODO: reconnect?
-		})
+	go f.agentStatusLoop(a, ch)
 
-		for {
-			status, ok := <-ch
-			if !ok {
-				glog.Warningln("closed from server")
-				break
-			}
-			utils.LogMed().Infoln("received notification:",
-				status.Notification.TypeId,
-				status.Notification.Role,
-				status.Notification.ProtocolId)
-
-			job := &model.JobInfo{
-				TenantID:     a.TenantID,
-				JobID:        status.Notification.ProtocolId,
-				ConnectionID: status.Notification.ConnectionId,
-			}
-
-			protocolStatus, ok := f.getStatus(a, status.Notification)
-			if !ok {
-				continue
-			}
-
-			f.handleNotification(a, job, status.Notification, protocolStatus)
-		}
-	}()
 	return err
 }
 
