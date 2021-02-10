@@ -114,8 +114,7 @@ func (pg *Database) getEventsForQuery(
 		e.Events = append(e.Events, event)
 	}
 
-	err = rows.Err()
-	err2.Check(err)
+	err2.Check(rows.Err())
 
 	if batch.Count < len(e.Events) {
 		e.Events = e.Events[:batch.Count]

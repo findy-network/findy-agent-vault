@@ -156,8 +156,7 @@ func (pg *Database) getJobsForQuery(
 		j.Jobs = append(j.Jobs, job)
 	}
 
-	err = rows.Err()
-	err2.Check(err)
+	err2.Check(rows.Err())
 
 	if batch.Count < len(j.Jobs) {
 		j.Jobs = j.Jobs[:batch.Count]

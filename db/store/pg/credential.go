@@ -66,8 +66,7 @@ func (pg *Database) getCredentialForObject(objectName, columnName, objectID, ten
 		err2.Check(err)
 	}
 
-	err = rows.Err()
-	err2.Check(err)
+	err2.Check(rows.Err())
 
 	return
 }
@@ -92,8 +91,7 @@ func (pg *Database) addCredentialAttributes(id string, attributes []*graph.Crede
 		index++
 	}
 
-	err = rows.Err()
-	err2.Check(err)
+	err2.Check(rows.Err())
 
 	return attributes, nil
 }
@@ -206,8 +204,7 @@ func (pg *Database) GetCredential(id, tenantID string) (c *model.Credential, err
 		err2.Check(err)
 	}
 
-	err = rows.Err()
-	err2.Check(err)
+	err2.Check(rows.Err())
 
 	return
 }
@@ -252,8 +249,7 @@ func (pg *Database) getCredentialsForQuery(
 		c.Credentials = append(c.Credentials, prevCredential)
 	}
 
-	err = rows.Err()
-	err2.Check(err)
+	err2.Check(rows.Err())
 
 	if batch.Count < len(c.Credentials) {
 		c.Credentials = c.Credentials[:batch.Count]
