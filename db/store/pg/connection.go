@@ -2,7 +2,6 @@ package pg
 
 import (
 	"database/sql"
-	"fmt"
 	"sort"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
@@ -37,16 +36,13 @@ func (pg *Database) getConnectionForObject(objectName, columnName, objectID, ten
 		" INNER JOIN " + objectName + " ON " + objectName +
 		"." + columnName + "=connection.id WHERE " + objectName + ".id = $1 AND connection.tenant_id = $2"
 
-	rows, err := pg.db.Query(sqlConnectionSelectByObjectID, objectID, tenantID)
-	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		c, err = readRowToConnection(rows)
-	} else {
-		err = fmt.Errorf("not found connection for %s id %s", objectName, objectID)
-	}
-	err2.Check(err)
+	c = model.EmptyConnection()
+	err2.Check(pg.doQuery(
+		readRowToConnection(c),
+		sqlConnectionSelectByObjectID,
+		objectID,
+		tenantID,
+	))
 
 	return
 }
@@ -54,7 +50,11 @@ func (pg *Database) getConnectionForObject(objectName, columnName, objectID, ten
 func (pg *Database) AddConnection(c *model.Connection) (n *model.Connection, err error) {
 	defer returnErr("AddConnection", &err)
 
-	rows, err := pg.db.Query(
+	n = model.NewConnection(c.ID, c.TenantID, c)
+	err2.Check(pg.doQuery(
+		func(rows *sql.Rows) error {
+			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
+		},
 		sqlConnectionInsert,
 		c.ID,
 		c.TenantID,
@@ -63,36 +63,31 @@ func (pg *Database) AddConnection(c *model.Connection) (n *model.Connection, err
 		c.TheirEndpoint,
 		c.TheirLabel,
 		c.Invited,
-	)
-	err2.Check(err)
-	defer rows.Close()
-
-	n = model.NewConnection(c.ID, c.TenantID, c)
-	if rows.Next() {
-		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
-	} else {
-		err = fmt.Errorf("no rows returned from insert connection query")
-	}
-	err2.Check(err)
+	))
 
 	return
 }
 
-func readRowToConnection(rows *sql.Rows) (c *model.Connection, err error) {
+func rowToConnection(rows *sql.Rows) (c *model.Connection, err error) {
 	c = model.EmptyConnection()
-	err = rows.Scan(
-		&c.ID,
-		&c.TenantID,
-		&c.OurDid,
-		&c.TheirDid,
-		&c.TheirEndpoint,
-		&c.TheirLabel,
-		&c.Invited,
-		&c.Created,
-		&c.Approved,
-		&c.Cursor,
-	)
-	return
+	return c, readRowToConnection(c)(rows)
+}
+
+func readRowToConnection(c *model.Connection) func(*sql.Rows) error {
+	return func(rows *sql.Rows) error {
+		return rows.Scan(
+			&c.ID,
+			&c.TenantID,
+			&c.OurDid,
+			&c.TheirDid,
+			&c.TheirEndpoint,
+			&c.TheirLabel,
+			&c.Invited,
+			&c.Created,
+			&c.Approved,
+			&c.Cursor,
+		)
+	}
 }
 
 func (pg *Database) GetConnection(id, tenantID string) (c *model.Connection, err error) {
@@ -100,16 +95,13 @@ func (pg *Database) GetConnection(id, tenantID string) (c *model.Connection, err
 
 	sqlConnectionSelectByID := sqlConnectionSelect + " WHERE id=$1 AND tenant_id=$2"
 
-	rows, err := pg.db.Query(sqlConnectionSelectByID, id, tenantID)
-	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		c, err = readRowToConnection(rows)
-	} else {
-		err = fmt.Errorf("no rows returned from select connection query (%s)", id)
-	}
-	err2.Check(err)
+	c = model.EmptyConnection()
+	err2.Check(pg.doQuery(
+		readRowToConnection(c),
+		sqlConnectionSelectByID,
+		id,
+		tenantID,
+	))
 
 	return
 }
@@ -130,13 +122,12 @@ func (pg *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (
 	}
 	var connection *model.Connection
 	for rows.Next() {
-		connection, err = readRowToConnection(rows)
+		connection, err = rowToConnection(rows)
 		err2.Check(err)
 		c.Connections = append(c.Connections, connection)
 	}
 
-	err = rows.Err()
-	err2.Check(err)
+	err2.Check(rows.Err())
 
 	if info.Count < len(c.Connections) {
 		c.Connections = c.Connections[:info.Count]

@@ -180,16 +180,13 @@ func (pg *Database) getCount(
 		args = append(args, *connectionID)
 	}
 
-	rows, err := pg.db.Query(query, args...)
-	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		err = rows.Scan(&count)
-	} else {
-		err = fmt.Errorf("no rows returned from select count query (%s)", tableName)
-	}
-	err2.Check(err)
+	err2.Check(pg.doQuery(
+		func(rows *sql.Rows) error {
+			return rows.Scan(&count)
+		},
+		query,
+		args...,
+	))
 
 	return
 }
@@ -206,4 +203,22 @@ func sqlFields(tableName string, fields []string) string {
 		q += tableName + field
 	}
 	return q
+}
+
+func (pg *Database) doQuery(scan func(*sql.Rows) error, query string, args ...interface{}) (err error) {
+	defer err2.Return(&err)
+
+	rows, err := pg.db.Query(query, args...)
+	err2.Check(err)
+	defer rows.Close()
+
+	if rows.Next() {
+		err = scan(rows)
+	} else {
+		err = fmt.Errorf("no rows returned")
+	}
+	err2.Check(err)
+	err2.Check(rows.Err())
+
+	return nil
 }

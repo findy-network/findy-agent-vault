@@ -217,7 +217,7 @@ func (f *Agency) agentStatusLoop(a *model.Agent, ch chan *agency.AgentStatus, re
 	for {
 		status, ok := <-ch
 		if !ok {
-			retryCount = f.startListeningOrWait(a, retryCount)
+			f.startListeningOrWait(a, retryCount)
 			break
 		}
 
