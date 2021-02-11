@@ -153,18 +153,17 @@ func (mr *MockDBMockRecorder) GetConnectionCount(tenantID interface{}) *gomock.C
 }
 
 // ArchiveConnection mocks base method
-func (m *MockDB) ArchiveConnection(c *model.Connection) (*model.Connection, error) {
+func (m *MockDB) ArchiveConnection(id, tenantID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ArchiveConnection", c)
-	ret0, _ := ret[0].(*model.Connection)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "ArchiveConnection", id, tenantID)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // ArchiveConnection indicates an expected call of ArchiveConnection
-func (mr *MockDBMockRecorder) ArchiveConnection(c interface{}) *gomock.Call {
+func (mr *MockDBMockRecorder) ArchiveConnection(id, tenantID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ArchiveConnection", reflect.TypeOf((*MockDB)(nil).ArchiveConnection), c)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ArchiveConnection", reflect.TypeOf((*MockDB)(nil).ArchiveConnection), id, tenantID)
 }
 
 // AddCredential mocks base method
@@ -258,18 +257,17 @@ func (mr *MockDBMockRecorder) GetConnectionForCredential(id, tenantID interface{
 }
 
 // ArchiveCredential mocks base method
-func (m *MockDB) ArchiveCredential(c *model.Credential) (*model.Credential, error) {
+func (m *MockDB) ArchiveCredential(id, tenantID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ArchiveCredential", c)
-	ret0, _ := ret[0].(*model.Credential)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "ArchiveCredential", id, tenantID)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // ArchiveCredential indicates an expected call of ArchiveCredential
-func (mr *MockDBMockRecorder) ArchiveCredential(c interface{}) *gomock.Call {
+func (mr *MockDBMockRecorder) ArchiveCredential(id, tenantID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ArchiveCredential", reflect.TypeOf((*MockDB)(nil).ArchiveCredential), c)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ArchiveCredential", reflect.TypeOf((*MockDB)(nil).ArchiveCredential), id, tenantID)
 }
 
 // AddProof mocks base method
@@ -363,18 +361,17 @@ func (mr *MockDBMockRecorder) GetConnectionForProof(id, tenantID interface{}) *g
 }
 
 // ArchiveProof mocks base method
-func (m *MockDB) ArchiveProof(p *model.Proof) (*model.Proof, error) {
+func (m *MockDB) ArchiveProof(id, tenantID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ArchiveProof", p)
-	ret0, _ := ret[0].(*model.Proof)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "ArchiveProof", id, tenantID)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // ArchiveProof indicates an expected call of ArchiveProof
-func (mr *MockDBMockRecorder) ArchiveProof(p interface{}) *gomock.Call {
+func (mr *MockDBMockRecorder) ArchiveProof(id, tenantID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ArchiveProof", reflect.TypeOf((*MockDB)(nil).ArchiveProof), p)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ArchiveProof", reflect.TypeOf((*MockDB)(nil).ArchiveProof), id, tenantID)
 }
 
 // AddMessage mocks base method
@@ -468,18 +465,17 @@ func (mr *MockDBMockRecorder) GetConnectionForMessage(id, tenantID interface{}) 
 }
 
 // ArchiveMessage mocks base method
-func (m_2 *MockDB) ArchiveMessage(m *model.Message) (*model.Message, error) {
-	m_2.ctrl.T.Helper()
-	ret := m_2.ctrl.Call(m_2, "ArchiveMessage", m)
-	ret0, _ := ret[0].(*model.Message)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+func (m *MockDB) ArchiveMessage(id, tenantID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ArchiveMessage", id, tenantID)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // ArchiveMessage indicates an expected call of ArchiveMessage
-func (mr *MockDBMockRecorder) ArchiveMessage(m interface{}) *gomock.Call {
+func (mr *MockDBMockRecorder) ArchiveMessage(id, tenantID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ArchiveMessage", reflect.TypeOf((*MockDB)(nil).ArchiveMessage), m)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ArchiveMessage", reflect.TypeOf((*MockDB)(nil).ArchiveMessage), id, tenantID)
 }
 
 // AddEvent mocks base method

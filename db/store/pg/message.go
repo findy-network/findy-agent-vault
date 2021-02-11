@@ -6,20 +6,19 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
 )
 
 var (
-	messageFields = []string{"tenant_id", "connection_id", "message", "sent_by_me", "delivered"}
+	messageFields = []string{"tenant_id", "connection_id", "message", "sent_by_me", "delivered", "archived"}
 
 	sqlBaseMessageFields = sqlFields("", messageFields)
-	sqlMessageInsert     = "INSERT INTO message " + "(" + sqlBaseMessageFields + ") " +
-		"VALUES ($1, $2, $3, $4, $5) RETURNING id, created, cursor"
-	sqlMessageSelect = "SELECT id, " + sqlBaseMessageFields + ", created, cursor FROM"
+	sqlMessageSelect     = "SELECT id, " + sqlBaseMessageFields + ", created, cursor FROM"
 )
 
 func (pg *Database) getMessageForObject(objectName, columnName, objectID, tenantID string) (m *model.Message, err error) {
-	defer returnErr("getMessageForObject", &err)
+	defer err2.Annotate("getMessageForObject", &err)
 
 	sqlMessageSelectByObjectID := "SELECT message.id, " +
 		sqlFields("message", messageFields) + ", message.created, message.cursor FROM" +
@@ -51,6 +50,7 @@ func readRowToMessage(n *model.Message) func(*sql.Rows) error {
 			&n.Message,
 			&n.SentByMe,
 			&n.Delivered,
+			&n.Archived,
 			&n.Created,
 			&n.Cursor,
 		)
@@ -58,7 +58,12 @@ func readRowToMessage(n *model.Message) func(*sql.Rows) error {
 }
 
 func (pg *Database) AddMessage(arg *model.Message) (n *model.Message, err error) {
-	defer returnErr("AddMessage", &err)
+	defer err2.Annotate("AddMessage", &err)
+
+	var (
+		sqlMessageInsert = "INSERT INTO message " + "(" + sqlBaseMessageFields + ") " +
+			"VALUES (" + sqlArguments(messageFields) + ") RETURNING " + sqlInsertFields
+	)
 
 	n = model.NewMessage(arg.TenantID, arg)
 	err2.Check(pg.doQuery(
@@ -71,13 +76,14 @@ func (pg *Database) AddMessage(arg *model.Message) (n *model.Message, err error)
 		arg.Message,
 		arg.SentByMe,
 		arg.Delivered,
+		arg.Archived,
 	))
 
 	return n, err
 }
 
 func (pg *Database) UpdateMessage(arg *model.Message) (m *model.Message, err error) {
-	defer returnErr("UpdateMessage", &err)
+	defer err2.Annotate("UpdateMessage", &err)
 
 	sqlMessageUpdate := "UPDATE message SET delivered=$1 WHERE id = $2 AND tenant_id = $3" +
 		" RETURNING id," + sqlBaseMessageFields + ", created, cursor"
@@ -94,7 +100,7 @@ func (pg *Database) UpdateMessage(arg *model.Message) (m *model.Message, err err
 }
 
 func (pg *Database) GetMessage(id, tenantID string) (m *model.Message, err error) {
-	defer returnErr("GetMessage", &err)
+	defer err2.Annotate("GetMessage", &err)
 
 	sqlMessageSelectByID := sqlMessageSelect + " message WHERE id=$1 AND tenant_id=$2"
 
@@ -115,7 +121,7 @@ func (pg *Database) getMessagesForQuery(
 	tenantID string,
 	initialArgs []interface{},
 ) (m *model.Messages, err error) {
-	defer returnErr("GetMessages", &err)
+	defer err2.Annotate("GetMessages", &err)
 
 	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
 	rows, err := pg.db.Query(query, args...)
@@ -217,7 +223,7 @@ func (pg *Database) GetMessages(info *paginator.BatchInfo, tenantID string, conn
 }
 
 func (pg *Database) GetMessageCount(tenantID string, connectionID *string) (count int, err error) {
-	defer returnErr("GetMessageCount", &err)
+	defer err2.Annotate("GetMessageCount", &err)
 	const (
 		sqlMessageBatchWhere           = " WHERE tenant_id=$1 "
 		sqlMessageBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2"
@@ -237,6 +243,22 @@ func (pg *Database) GetConnectionForMessage(id, tenantID string) (*model.Connect
 	return pg.getConnectionForObject("message", "connection_id", id, tenantID)
 }
 
-func (pg *Database) ArchiveMessage(m *model.Message) (*model.Message, error) {
-	return nil, nil
+func (pg *Database) ArchiveMessage(id, tenantID string) (err error) {
+	defer err2.Annotate("ArchiveMessage", &err)
+
+	var (
+		sqlMessageArchive = "UPDATE message SET archived=$1 WHERE id = $2 and tenant_id = $3 RETURNING id"
+	)
+
+	now := utils.CurrentTime()
+	err2.Check(pg.doQuery(
+		func(rows *sql.Rows) error {
+			return rows.Scan(&id)
+		},
+		sqlMessageArchive,
+		now,
+		id,
+		tenantID,
+	))
+	return
 }

@@ -50,6 +50,7 @@ func (m *Message) copy() (n *Message) {
 	n.Message = m.Message
 	n.SentByMe = m.SentByMe
 	n.Delivered = delivered
+	n.Archived = copyTime(m.Archived)
 	return n
 }
 

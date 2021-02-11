@@ -11,13 +11,16 @@ import (
 
 const (
 	sqlEventFields = "tenant_id, connection_id, job_id, description, read"
-	sqlEventInsert = "INSERT INTO event " + "(" + sqlEventFields + ") " +
-		"VALUES ($1, $2, $3, $4, $5) RETURNING id, created, cursor"
 	sqlEventSelect = "SELECT id, " + sqlEventFields + ", created, cursor FROM"
 )
 
+var (
+	sqlEventInsert = "INSERT INTO event " + "(" + sqlEventFields + ") " +
+		"VALUES ($1, $2, $3, $4, $5) RETURNING " + sqlInsertFields
+)
+
 func (pg *Database) AddEvent(e *model.Event) (n *model.Event, err error) {
-	defer returnErr("AddEvent", &err)
+	defer err2.Annotate("AddEvent", &err)
 
 	n = model.NewEvent(e.TenantID, e)
 	err2.Check(pg.doQuery(
@@ -36,7 +39,7 @@ func (pg *Database) AddEvent(e *model.Event) (n *model.Event, err error) {
 }
 
 func (pg *Database) MarkEventRead(id, tenantID string) (e *model.Event, err error) {
-	defer returnErr("MarkEventRead", &err)
+	defer err2.Annotate("MarkEventRead", &err)
 
 	const sqlEventUpdate = "UPDATE event SET read=true WHERE id = $1 AND tenant_id = $2" +
 		" RETURNING id," + sqlEventFields + ", created, cursor"
@@ -73,7 +76,7 @@ func readRowToEvent(n *model.Event) func(*sql.Rows) error {
 }
 
 func (pg *Database) GetEvent(id, tenantID string) (e *model.Event, err error) {
-	defer returnErr("GetEvent", &err)
+	defer err2.Annotate("GetEvent", &err)
 
 	const sqlEventSelectByID = sqlEventSelect + " event" +
 		" WHERE event.id=$1 AND tenant_id=$2"
@@ -95,7 +98,7 @@ func (pg *Database) getEventsForQuery(
 	tenantID string,
 	initialArgs []interface{},
 ) (e *model.Events, err error) {
-	defer returnErr("GetEvents", &err)
+	defer err2.Annotate("GetEvents", &err)
 
 	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
 	rows, err := pg.db.Query(query, args...)
@@ -197,7 +200,7 @@ func (pg *Database) GetEvents(info *paginator.BatchInfo, tenantID string, connec
 }
 
 func (pg *Database) GetEventCount(tenantID string, connectionID *string) (count int, err error) {
-	defer returnErr("GetEventCount", &err)
+	defer err2.Annotate("GetEventCount", &err)
 	const (
 		sqlEventBatchWhere           = " WHERE tenant_id=$1 "
 		sqlEventBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2"

@@ -7,6 +7,7 @@ import (
 	"github.com/bxcodec/faker/v3"
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/findy-network/findy-agent-vault/utils"
 )
 
 type mockProof struct {
@@ -144,6 +145,22 @@ func (m *mockData) GetConnectionForProof(id, tenantID string) (*model.Connection
 	return m.GetConnection(proof.ConnectionID, tenantID)
 }
 
-func (m *mockData) ArchiveProof(p *model.Proof) (*model.Proof, error) {
-	return nil, nil
+func (m *mockData) ArchiveProof(id, tenantID string) error {
+	agent := m.agents.get(tenantID)
+
+	object := agent.proofs.objectForID(id)
+	if object == nil {
+		return errors.New("not found proof for id: " + id)
+	}
+
+	now := utils.CurrentTime()
+
+	n := model.NewProof(tenantID, object.Proof())
+	n.Archived = &now
+
+	if !agent.proofs.replaceObjectForID(id, newProof(n)) {
+		panic("proof not found")
+	}
+
+	return nil
 }

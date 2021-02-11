@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/findy-network/findy-agent-vault/db/fake"
+	"github.com/findy-network/findy-agent-vault/utils"
+	"github.com/lainio/err2/assert"
 
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/google/uuid"
@@ -40,6 +42,8 @@ func validateConnection(t *testing.T, exp, got *model.Connection) {
 		t.Errorf("Connection invited mismatch expected %v got %v", exp.Invited, got.Invited)
 	}
 	validateCreatedTS(t, got.Cursor, &got.Created)
+	validateTimestap(t, exp.Approved, got.Approved, "Approved")
+	validateTimestap(t, exp.Archived, got.Archived, "Archived")
 }
 
 func TestAddConnection(t *testing.T) {
@@ -60,7 +64,7 @@ func TestAddConnection(t *testing.T) {
 			if err != nil {
 				t.Errorf("Error fetching connection %s", err.Error())
 			} else if !reflect.DeepEqual(&c, &got) {
-				t.Errorf("Mismatch in fetched connection expected: %v  got: %v", c, got)
+				t.Errorf("Mismatch in fetched connection expected: %+v  got: %+v", c, got)
 			}
 		})
 	}
@@ -195,22 +199,24 @@ func TestArchiveConnection(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("archive connection "+s.name, func(t *testing.T) {
-			/*s.testConnection = model.NewConnection(uuid.New().String(), s.testConnection.TenantID, s.testConnection)
+			s.testConnection = model.NewConnection(uuid.New().String(), s.testConnection.TenantID, s.testConnection)
 			// Add data
-			c, err := s.db.ArchiveConnection(s.testConnection)
+			c, err := s.db.AddConnection(s.testConnection)
+			assert.D.True(err == nil)
+
+			// Archive object
+			now := utils.CurrentTime()
+			err = s.db.ArchiveConnection(c.ID, c.TenantID)
 			if err != nil {
 				t.Errorf("Failed to archive connection %s", err.Error())
-			} else {
-				validateConnection(t, s.testConnection, c)
 			}
 
 			// Get data for id
-			got, err := s.db.GetConnection(c.ID, s.testTenantID)
-			if err != nil {
-				t.Errorf("Error fetching connection %s", err.Error())
-			} else if !reflect.DeepEqual(&c, &got) {
-				t.Errorf("Mismatch in fetched connection expected: %v  got: %v", c, got)
-			}*/
+			got, err := s.db.GetConnection(c.ID, c.TenantID)
+			assert.D.True(err == nil)
+
+			c.Archived = &now
+			validateConnection(t, c, got)
 		})
 	}
 }

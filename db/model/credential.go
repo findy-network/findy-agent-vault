@@ -64,6 +64,7 @@ func (c *Credential) copy() (n *Credential) {
 	n.Approved = copyTime(c.Approved)
 	n.Issued = copyTime(c.Issued)
 	n.Failed = copyTime(c.Failed)
+	n.Archived = copyTime(c.Archived)
 	n.Attributes = attributes
 
 	return n

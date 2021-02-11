@@ -34,7 +34,7 @@ var (
 )
 
 func (pg *Database) GetListenerAgents(info *paginator.BatchInfo) (a *model.Agents, err error) {
-	defer returnErr("GetListenerAgents", &err)
+	defer err2.Annotate("GetListenerAgents", &err)
 
 	query, args := getBatchQuery(agentQueryInfo,
 		info,
@@ -87,7 +87,7 @@ func (pg *Database) GetListenerAgents(info *paginator.BatchInfo) (a *model.Agent
 }
 
 func (pg *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
-	defer returnErr("AddAgent", &err)
+	defer err2.Annotate("AddAgent", &err)
 
 	n = model.NewAgent(a)
 

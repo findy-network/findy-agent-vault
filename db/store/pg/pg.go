@@ -13,7 +13,6 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
-	"github.com/lib/pq"
 )
 
 const (
@@ -31,34 +30,17 @@ const (
 	sqlOrderByCursorDesc = " ORDER BY cursor DESC LIMIT"
 )
 
-type PostgresErrorCode string
-
-const (
-	PostgresErrorUniqueViolation PostgresErrorCode = "unique_violation"
+var (
+	sqlInsertFields = sqlFields("", []string{"id", "created", "cursor"})
 )
 
-type PostgresError struct {
-	operation string
-	code      PostgresErrorCode
-	error     *pq.Error
+type pgError struct {
+	error
+	code store.ErrCode
 }
 
-func returnErr(op string, err *error) {
-	if r := recover(); r != nil {
-		e, ok := r.(error)
-		if !ok {
-			panic(r)
-		}
-		*err = e
-	}
-
-	if pgErr, ok := (*err).(*pq.Error); ok {
-		*err = &PostgresError{operation: op, code: PostgresErrorCode(pgErr.Code.Name()), error: pgErr}
-	}
-}
-
-func (e *PostgresError) Error() string {
-	return e.error.Error()
+func (e *pgError) Code() store.ErrCode {
+	return e.code
 }
 
 type queryInfo struct {
@@ -205,6 +187,17 @@ func sqlFields(tableName string, fields []string) string {
 	return q
 }
 
+func sqlArguments(fields []string) string {
+	q := ""
+	for i := range fields {
+		if i != 0 {
+			q += ","
+		}
+		q += fmt.Sprintf("$%d", i+1)
+	}
+	return q
+}
+
 func (pg *Database) doQuery(scan func(*sql.Rows) error, query string, args ...interface{}) (err error) {
 	defer err2.Return(&err)
 
@@ -215,7 +208,9 @@ func (pg *Database) doQuery(scan func(*sql.Rows) error, query string, args ...in
 	if rows.Next() {
 		err = scan(rows)
 	} else {
-		err = fmt.Errorf("no rows returned")
+		err = pgError{
+			fmt.Errorf("no rows returned"), store.NotExists,
+		}
 	}
 	err2.Check(err)
 	err2.Check(rows.Err())

@@ -9,6 +9,26 @@ import (
 	"github.com/findy-network/findy-grpc/jwt"
 )
 
+type ErrCode uint32
+
+const (
+	Ok        ErrCode = 0
+	Unknown   ErrCode = 1
+	NotExists ErrCode = 2
+)
+
+func ErrorCode(err error) ErrCode {
+	if err == nil {
+		return Ok
+	}
+	if dbErr, ok := err.(interface {
+		Code() ErrCode
+	}); ok {
+		return dbErr.Code()
+	}
+	return Unknown
+}
+
 func GetAgent(ctx context.Context, db DB) (*model.Agent, error) {
 	token, err := jwt.TokenFromContext(ctx, "user")
 	if err != nil {
@@ -32,7 +52,7 @@ type DB interface {
 	GetConnection(id, tenantID string) (*model.Connection, error)
 	GetConnections(info *paginator.BatchInfo, tenantID string) (connections *model.Connections, err error)
 	GetConnectionCount(tenantID string) (int, error)
-	ArchiveConnection(c *model.Connection) (*model.Connection, error)
+	ArchiveConnection(id, tenantID string) error
 
 	AddCredential(c *model.Credential) (*model.Credential, error)
 	UpdateCredential(c *model.Credential) (*model.Credential, error)
@@ -40,7 +60,7 @@ type DB interface {
 	GetCredentials(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Credentials, err error)
 	GetCredentialCount(tenantID string, connectionID *string) (int, error)
 	GetConnectionForCredential(id, tenantID string) (*model.Connection, error)
-	ArchiveCredential(c *model.Credential) (*model.Credential, error)
+	ArchiveCredential(id, tenantID string) error
 
 	AddProof(p *model.Proof) (*model.Proof, error)
 	UpdateProof(p *model.Proof) (*model.Proof, error)
@@ -48,7 +68,7 @@ type DB interface {
 	GetProofs(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Proofs, err error)
 	GetProofCount(tenantID string, connectionID *string) (int, error)
 	GetConnectionForProof(id, tenantID string) (*model.Connection, error)
-	ArchiveProof(p *model.Proof) (*model.Proof, error)
+	ArchiveProof(id, tenantID string) error
 
 	AddMessage(m *model.Message) (*model.Message, error)
 	UpdateMessage(m *model.Message) (*model.Message, error)
@@ -56,7 +76,7 @@ type DB interface {
 	GetMessages(info *paginator.BatchInfo, tenantID string, connectionID *string) (connections *model.Messages, err error)
 	GetMessageCount(tenantID string, connectionID *string) (int, error)
 	GetConnectionForMessage(id, tenantID string) (*model.Connection, error)
-	ArchiveMessage(m *model.Message) (*model.Message, error)
+	ArchiveMessage(id, tenantID string) error
 
 	AddEvent(e *model.Event) (*model.Event, error)
 	MarkEventRead(id, tenantID string) (*model.Event, error)

@@ -15,12 +15,12 @@ var (
 		"protocol_message_id", "connection_id", "status", "result", "initiated_by_us", "updated"}
 	sqlJobBaseFields = sqlFields("", jobFields)
 	sqlJobInsert     = "INSERT INTO job " + "(" + sqlJobBaseFields + ") " +
-		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, (now() at time zone 'UTC')) RETURNING id, created, cursor"
+		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, (now() at time zone 'UTC')) RETURNING " + sqlInsertFields
 	sqlJobSelect = "SELECT " + sqlJobBaseFields + ", created, cursor FROM"
 )
 
 func (pg *Database) getJobForObject(objectName, objectID, tenantID string) (j *model.Job, err error) {
-	defer returnErr("getJobForObject", &err)
+	defer err2.Annotate("getJobForObject", &err)
 
 	sqlJobSelectJoin := "SELECT " + sqlFields("job", jobFields) + ", job.created, job.cursor FROM"
 	sqlJobSelectByObjectID := sqlJobSelectJoin +
@@ -39,7 +39,7 @@ func (pg *Database) getJobForObject(objectName, objectID, tenantID string) (j *m
 }
 
 func (pg *Database) AddJob(j *model.Job) (n *model.Job, err error) {
-	defer returnErr("AddJob", &err)
+	defer err2.Annotate("AddJob", &err)
 
 	n = model.NewJob(j.ID, j.TenantID, j)
 	err2.Check(pg.doQuery(
@@ -64,7 +64,7 @@ func (pg *Database) AddJob(j *model.Job) (n *model.Job, err error) {
 }
 
 func (pg *Database) UpdateJob(arg *model.Job) (j *model.Job, err error) {
-	defer returnErr("UpdateJob", &err)
+	defer err2.Annotate("UpdateJob", &err)
 
 	sqlJobUpdate := "UPDATE job " +
 		"SET protocol_connection_id=$1, protocol_credential_id=$2, protocol_proof_id=$3, protocol_message_id=$4," +
@@ -116,7 +116,7 @@ func readRowToJob(n *model.Job) func(*sql.Rows) error {
 }
 
 func (pg *Database) GetJob(id, tenantID string) (job *model.Job, err error) {
-	defer returnErr("GetJob", &err)
+	defer err2.Annotate("GetJob", &err)
 
 	sqlJobSelectByID := sqlJobSelect + " job WHERE id=$1 AND tenant_id=$2"
 
@@ -137,7 +137,7 @@ func (pg *Database) getJobsForQuery(
 	tenantID string,
 	initialArgs []interface{},
 ) (j *model.Jobs, err error) {
-	defer returnErr("GetJobs", &err)
+	defer err2.Annotate("GetJobs", &err)
 
 	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
 	rows, err := pg.db.Query(query, args...)
@@ -245,7 +245,7 @@ func (pg *Database) GetJobs(info *paginator.BatchInfo, tenantID string, connecti
 }
 
 func (pg *Database) GetJobCount(tenantID string, connectionID *string, completed *bool) (count int, err error) {
-	defer returnErr("GetJobCount", &err)
+	defer err2.Annotate("GetJobCount", &err)
 	const (
 		sqlJobBatchWhere              = " WHERE tenant_id=$1 AND status != 'COMPLETE'"
 		sqlJobBatchWhereConnection    = " WHERE tenant_id=$1 AND connection_id=$2 AND status != 'COMPLETE'"
