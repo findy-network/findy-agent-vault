@@ -9,6 +9,8 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/model"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/findy-network/findy-agent-vault/utils"
+	"github.com/lainio/err2/assert"
 )
 
 func validateAttributes(t *testing.T, exp, got []*graph.CredentialValue) {
@@ -57,6 +59,7 @@ func validateCredential(t *testing.T, exp, got *model.Credential) {
 	validateTimestap(t, exp.Approved, got.Approved, "Approved")
 	validateTimestap(t, exp.Issued, got.Issued, "Issued")
 	validateTimestap(t, exp.Failed, got.Failed, "Failed")
+	validateTimestap(t, exp.Archived, got.Archived, "Archived")
 	validateCreatedTS(t, got.Cursor, &got.Created)
 	validateAttributes(t, exp.Attributes, got.Attributes)
 }
@@ -315,6 +318,34 @@ func TestGetConnectionForCredential(t *testing.T) {
 			} else {
 				validateConnection(t, connection, got)
 			}
+		})
+	}
+}
+
+func TestArchiveCredential(t *testing.T) {
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("archive credential "+s.name, func(t *testing.T) {
+			testCredential = model.NewCredential(s.testTenantID, testCredential)
+			testCredential.TenantID = s.testTenantID
+			testCredential.ConnectionID = s.testConnectionID
+
+			// Add data
+			c, err := s.db.AddCredential(testCredential)
+			assert.D.True(err == nil)
+
+			now := utils.CurrentTime()
+			err = s.db.ArchiveCredential(c.ID, c.TenantID)
+			if err != nil {
+				t.Errorf("Failed to archive credential %s", err.Error())
+			}
+
+			// Get data for id
+			got, err := s.db.GetCredential(c.ID, c.TenantID)
+			assert.D.True(err == nil)
+
+			c.Archived = &now
+			validateCredential(t, c, got)
 		})
 	}
 }

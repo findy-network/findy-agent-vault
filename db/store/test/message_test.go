@@ -8,6 +8,8 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/fake"
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/findy-network/findy-agent-vault/utils"
+	"github.com/lainio/err2/assert"
 )
 
 func validateBoolPtr(t *testing.T, exp, got *bool, name string) {
@@ -45,6 +47,7 @@ func validateMessage(t *testing.T, exp, got *model.Message) {
 	}
 	validateBoolPtr(t, exp.Delivered, got.Delivered, "Delivered")
 	validateCreatedTS(t, got.Cursor, &got.Created)
+	validateTimestap(t, exp.Archived, got.Archived, "Archived")
 }
 
 func validateMessages(t *testing.T, expCount int, exp, got *model.Messages) {
@@ -298,6 +301,34 @@ func TestGetConnectionForMessage(t *testing.T) {
 			} else {
 				validateConnection(t, connection, got)
 			}
+		})
+	}
+}
+
+func TestArchiveMessage(t *testing.T) {
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("archive message "+s.name, func(t *testing.T) {
+			testMessage = model.NewMessage(s.testTenantID, testMessage)
+			testMessage.TenantID = s.testTenantID
+			testMessage.ConnectionID = s.testConnectionID
+
+			// Add data
+			m, err := s.db.AddMessage(testMessage)
+			assert.D.True(err == nil)
+
+			now := utils.CurrentTime()
+			err = s.db.ArchiveMessage(m.ID, m.TenantID)
+			if err != nil {
+				t.Errorf("Failed to archive message %s", err.Error())
+			}
+
+			// Get data for id
+			got, err := s.db.GetMessage(m.ID, m.TenantID)
+			assert.D.True(err == nil)
+
+			m.Archived = &now
+			validateMessage(t, m, got)
 		})
 	}
 }

@@ -54,6 +54,7 @@ func (c *Connection) copy() (n *Connection) {
 	n.TheirLabel = c.TheirLabel
 	n.Invited = c.Invited
 	n.Approved = copyTime(c.Approved)
+	n.Archived = copyTime(c.Archived)
 	return n
 }
 

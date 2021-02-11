@@ -6,16 +6,17 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
 )
 
 var (
-	connectionFields        = []string{"id", "tenant_id", "our_did", "their_did", "their_endpoint", "their_label", "invited"}
+	connectionFields        = []string{"id", "tenant_id", "our_did", "their_did", "their_endpoint", "their_label", "invited", "archived"}
+	connectionExtraFields   = []string{"created", "approved", "cursor"}
 	sqlConnectionBaseFields = sqlFields("", connectionFields)
 	sqlConnectionInsert     = "INSERT INTO connection " + "(" + sqlConnectionBaseFields + ") " +
-		"VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, created, cursor"
-	sqlConnectionSelect = "SELECT " + sqlConnectionBaseFields +
-		", connection.created, connection.approved, connection.cursor FROM connection"
+		"VALUES (" + sqlArguments(connectionFields) + ") RETURNING " + sqlInsertFields
+	sqlConnectionSelect = "SELECT " + sqlConnectionBaseFields + ", " + sqlFields("connection", connectionExtraFields) + " FROM connection"
 
 	connectionQueryInfo = &queryInfo{
 		Asc:        sqlConnectionSelect + " WHERE tenant_id=$1 " + sqlOrderByCursorAsc + " $2",
@@ -28,7 +29,7 @@ var (
 )
 
 func (pg *Database) getConnectionForObject(objectName, columnName, objectID, tenantID string) (c *model.Connection, err error) {
-	defer returnErr("getConnectionForObject", &err)
+	defer err2.Annotate("getConnectionForObject", &err)
 
 	sqlConnectionJoinSelect := "SELECT " + sqlFields("connection", connectionFields) +
 		", connection.created, connection.approved, connection.cursor FROM connection"
@@ -48,7 +49,7 @@ func (pg *Database) getConnectionForObject(objectName, columnName, objectID, ten
 }
 
 func (pg *Database) AddConnection(c *model.Connection) (n *model.Connection, err error) {
-	defer returnErr("AddConnection", &err)
+	defer err2.Annotate("AddConnection", &err)
 
 	n = model.NewConnection(c.ID, c.TenantID, c)
 	err2.Check(pg.doQuery(
@@ -63,6 +64,7 @@ func (pg *Database) AddConnection(c *model.Connection) (n *model.Connection, err
 		c.TheirEndpoint,
 		c.TheirLabel,
 		c.Invited,
+		c.Archived,
 	))
 
 	return
@@ -75,7 +77,9 @@ func rowToConnection(rows *sql.Rows) (c *model.Connection, err error) {
 
 func readRowToConnection(c *model.Connection) func(*sql.Rows) error {
 	return func(rows *sql.Rows) error {
-		return rows.Scan(
+		var archived sql.NullTime
+
+		err := rows.Scan(
 			&c.ID,
 			&c.TenantID,
 			&c.OurDid,
@@ -83,15 +87,21 @@ func readRowToConnection(c *model.Connection) func(*sql.Rows) error {
 			&c.TheirEndpoint,
 			&c.TheirLabel,
 			&c.Invited,
+			&archived,
 			&c.Created,
 			&c.Approved,
 			&c.Cursor,
 		)
+
+		if archived.Valid {
+			c.Archived = &archived.Time
+		}
+		return err
 	}
 }
 
 func (pg *Database) GetConnection(id, tenantID string) (c *model.Connection, err error) {
-	defer returnErr("GetConnection", &err)
+	defer err2.Annotate("GetConnection", &err)
 
 	sqlConnectionSelectByID := sqlConnectionSelect + " WHERE id=$1 AND tenant_id=$2"
 
@@ -107,7 +117,7 @@ func (pg *Database) GetConnection(id, tenantID string) (c *model.Connection, err
 }
 
 func (pg *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (c *model.Connections, err error) {
-	defer returnErr("GetConnections", &err)
+	defer err2.Annotate("GetConnections", &err)
 
 	query, args := getBatchQuery(connectionQueryInfo, info, tenantID, []interface{}{})
 
@@ -156,7 +166,7 @@ func (pg *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (
 }
 
 func (pg *Database) GetConnectionCount(tenantID string) (count int, err error) {
-	defer returnErr("GetCredentialCount", &err)
+	defer err2.Annotate("GetCredentialCount", &err)
 	count, err = pg.getCount(
 		"connection",
 		" WHERE tenant_id=$1 ",
@@ -168,6 +178,22 @@ func (pg *Database) GetConnectionCount(tenantID string) (count int, err error) {
 	return
 }
 
-func (pg *Database) ArchiveConnection(c *model.Connection) (*model.Connection, error) {
-	return nil, nil
+func (pg *Database) ArchiveConnection(id, tenantID string) (err error) {
+	defer err2.Annotate("ArchiveConnection", &err)
+
+	var (
+		sqlConnectionArchive = "UPDATE connection SET archived=$1 WHERE id = $2 and tenant_id = $3 RETURNING " +
+			sqlConnectionBaseFields + "," + sqlFields("", connectionExtraFields)
+	)
+
+	now := utils.CurrentTime()
+	n := model.NewConnection(id, tenantID, nil)
+	err2.Check(pg.doQuery(
+		readRowToConnection(n),
+		sqlConnectionArchive,
+		now,
+		id,
+		tenantID,
+	))
+	return
 }

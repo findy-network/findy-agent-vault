@@ -6,6 +6,7 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/findy-network/findy-agent-vault/utils"
 )
 
 type mockConnection struct {
@@ -81,6 +82,22 @@ func (m *mockData) GetConnectionCount(tenantID string) (int, error) {
 	return agent.connections.count(nil), nil
 }
 
-func (m *mockData) ArchiveConnection(c *model.Connection) (*model.Connection, error) {
-	return nil, nil
+func (m *mockData) ArchiveConnection(id, tenantID string) error {
+	agent := m.agents.get(tenantID)
+
+	object := agent.connections.objectForID(id)
+	if object == nil {
+		return errors.New("not found connection for id: " + id)
+	}
+
+	now := utils.CurrentTime()
+
+	n := model.NewConnection(id, tenantID, object.Connection())
+	n.Archived = &now
+
+	if !agent.connections.replaceObjectForID(id, newConnection(n)) {
+		panic("connection not found")
+	}
+
+	return nil
 }

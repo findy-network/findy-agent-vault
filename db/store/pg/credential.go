@@ -8,6 +8,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/model"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
 )
 
@@ -34,12 +35,14 @@ func constructCredentialAttributeInsert(count int) string {
 }
 
 var (
-	credentialFields        = []string{"tenant_id", "connection_id", "role", "schema_id", "cred_def_id", "initiated_by_us"}
+	credentialFields      = []string{"tenant_id", "connection_id", "role", "schema_id", "cred_def_id", "initiated_by_us", "archived"}
+	credentialExtraFields = []string{"created", "approved", "issued", "failed", "cursor"}
+
 	sqlCredentialBaseFields = sqlFields("", credentialFields)
 	sqlCredentialInsert     = "INSERT INTO credential " + "(" + sqlCredentialBaseFields + ") " +
-		"VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created, cursor"
-	sqlCredentialSelect = "SELECT credential.id, " + sqlCredentialBaseFields +
-		", created, approved, issued, failed, cursor, credential_attribute.id, name, value FROM"
+		"VALUES (" + sqlArguments(credentialFields) + ") RETURNING " + sqlInsertFields
+	sqlCredentialSelect = "SELECT credential.id, " + sqlCredentialBaseFields + "," + sqlFields("", credentialExtraFields) +
+		", credential_attribute.id, name, value FROM"
 )
 
 const (
@@ -47,11 +50,11 @@ const (
 )
 
 func (pg *Database) getCredentialForObject(objectName, columnName, objectID, tenantID string) (c *model.Credential, err error) {
-	defer returnErr("getCredentialForObject", &err)
+	defer err2.Annotate("getCredentialForObject", &err)
 
-	sqlCredentialJoinSelect := "SELECT credential.id, " + sqlFields("credential", credentialFields) +
-		", credential.created, credential.approved, credential.issued, credential.failed, credential.cursor," +
-		" credential_attribute.id, credential_attribute.name, credential_attribute.value FROM"
+	sqlCredentialJoinSelect := "SELECT credential.id, " +
+		sqlFields("credential", credentialFields) + "," + sqlFields("credential", credentialExtraFields) +
+		", credential_attribute.id, credential_attribute.name, credential_attribute.value FROM"
 	sqlCredentialSelectByObjectID := sqlCredentialJoinSelect + " credential " + sqlCredentialJoin +
 		" INNER JOIN " + objectName + " ON " + objectName +
 		"." + columnName + "=credential.id WHERE " + objectName + ".id = $1 AND credential.tenant_id = $2"
@@ -72,7 +75,7 @@ func (pg *Database) getCredentialForObject(objectName, columnName, objectID, ten
 }
 
 func (pg *Database) addCredentialAttributes(id string, attributes []*graph.CredentialValue) (a []*graph.CredentialValue, err error) {
-	defer returnErr("addCredentialAttributes", &err)
+	defer err2.Annotate("addCredentialAttributes", &err)
 
 	query := constructCredentialAttributeInsert(len(attributes))
 	args := make([]interface{}, 0)
@@ -97,7 +100,7 @@ func (pg *Database) addCredentialAttributes(id string, attributes []*graph.Crede
 }
 
 func (pg *Database) AddCredential(c *model.Credential) (n *model.Credential, err error) {
-	defer returnErr("AddCredential", &err)
+	defer err2.Annotate("AddCredential", &err)
 
 	if len(c.Attributes) == 0 {
 		panic("Attributes are always required for credential.")
@@ -115,6 +118,7 @@ func (pg *Database) AddCredential(c *model.Credential) (n *model.Credential, err
 		c.SchemaID,
 		c.CredDefID,
 		c.InitiatedByUs,
+		c.Archived,
 	))
 
 	attributes, err := pg.addCredentialAttributes(n.ID, n.Attributes)
@@ -125,7 +129,7 @@ func (pg *Database) AddCredential(c *model.Credential) (n *model.Credential, err
 }
 
 func (pg *Database) UpdateCredential(c *model.Credential) (n *model.Credential, err error) {
-	defer returnErr("UpdateCredential", &err)
+	defer err2.Annotate("UpdateCredential", &err)
 
 	const sqlCredentialUpdate = "UPDATE credential SET approved=$1, issued=$2, failed=$3 WHERE id = $4" // TODO: tenant_id, connection_id?
 
@@ -156,6 +160,7 @@ func readRowToCredential(rows *sql.Rows, previous *model.Credential) (*model.Cre
 		&n.SchemaID,
 		&n.CredDefID,
 		&n.InitiatedByUs,
+		&n.Archived,
 		&n.Created,
 		&approved,
 		&issued,
@@ -188,7 +193,7 @@ func readRowToCredential(rows *sql.Rows, previous *model.Credential) (*model.Cre
 }
 
 func (pg *Database) GetCredential(id, tenantID string) (c *model.Credential, err error) {
-	defer returnErr("GetCredential", &err)
+	defer err2.Annotate("GetCredential", &err)
 
 	sqlCredentialSelectByID := sqlCredentialSelect + " credential" + sqlCredentialJoin +
 		" WHERE credential.id=$1 AND tenant_id=$2" +
@@ -216,7 +221,7 @@ func (pg *Database) getCredentialsForQuery(
 
 	initialArgs []interface{},
 ) (c *model.Credentials, err error) {
-	defer returnErr("GetCredentials", &err)
+	defer err2.Annotate("GetCredentials", &err)
 
 	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
 	rows, err := pg.db.Query(query, args...)
@@ -336,7 +341,7 @@ func (pg *Database) GetCredentials(info *paginator.BatchInfo, tenantID string, c
 }
 
 func (pg *Database) GetCredentialCount(tenantID string, connectionID *string) (count int, err error) {
-	defer returnErr("GetCredentialCount", &err)
+	defer err2.Annotate("GetCredentialCount", &err)
 	const (
 		sqlCredentialBatchWhere           = " WHERE tenant_id=$1 AND issued IS NOT NULL "
 		sqlCredentialBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2 AND issued IS NOT NULL "
@@ -356,6 +361,22 @@ func (pg *Database) GetConnectionForCredential(id, tenantID string) (*model.Conn
 	return pg.getConnectionForObject("credential", "connection_id", id, tenantID)
 }
 
-func (pg *Database) ArchiveCredential(c *model.Credential) (*model.Credential, error) {
-	return nil, nil
+func (pg *Database) ArchiveCredential(id, tenantID string) (err error) {
+	defer err2.Annotate("ArchiveCredential", &err)
+
+	var (
+		sqlCredentialArchive = "UPDATE credential SET archived=$1 WHERE id = $2 and tenant_id = $3 RETURNING id"
+	)
+
+	now := utils.CurrentTime()
+	err2.Check(pg.doQuery(
+		func(rows *sql.Rows) error {
+			return rows.Scan(&id)
+		},
+		sqlCredentialArchive,
+		now,
+		id,
+		tenantID,
+	))
+	return
 }

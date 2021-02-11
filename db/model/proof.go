@@ -64,6 +64,7 @@ func (p *Proof) copy() (n *Proof) {
 	n.Verified = copyTime(p.Verified)
 	n.Failed = copyTime(p.Failed)
 	n.Attributes = attributes
+	n.Archived = copyTime(p.Archived)
 
 	return n
 }
