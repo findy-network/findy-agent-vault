@@ -67,7 +67,7 @@ func validateTimestap(t *testing.T, exp, got *time.Time, name string) {
 	fail := false
 	if got != exp {
 		fail = true
-		if got != nil && exp != nil && got.Sub(*exp) < time.Microsecond {
+		if got != nil && exp != nil && got.Sub(*exp) < (time.Microsecond*100) {
 			fail = false
 		}
 	}
@@ -94,7 +94,12 @@ func validateStrPtr(t *testing.T, exp, got *string, name string) {
 }
 
 func setup() {
-	utils.SetLogDefaults()
+	logLevel := "5"
+	logQueries := false
+	if logQueries {
+		logLevel = "7"
+	}
+	utils.SetLogConfig(&utils.Configuration{LogLevel: logLevel})
 
 	testAgent := model.NewAgent(nil)
 	testAgent.AgentID = "testAgentID"
@@ -108,7 +113,15 @@ func setup() {
 	testConnection.Invited = false
 
 	DBs = append(DBs, []*testableDB{{
-		db:             pg.InitDB("file://../../migrations", "localhost", os.Getenv("FAV_DB_PASSWORD"), 5433, true),
+		db: pg.InitDB(
+			"file://../../migrations",
+			&utils.Configuration{
+				DBHost:     "localhost",
+				DBPassword: os.Getenv("FAV_DB_PASSWORD"),
+				DBPort:     5433,
+				DBTracing:  logQueries,
+			},
+			true),
 		name:           "pg",
 		testConnection: testConnection,
 	}, {

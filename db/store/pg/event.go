@@ -11,95 +11,83 @@ import (
 
 const (
 	sqlEventFields = "tenant_id, connection_id, job_id, description, read"
-	sqlEventInsert = "INSERT INTO event " + "(" + sqlEventFields + ") " +
-		"VALUES ($1, $2, $3, $4, $5) RETURNING id, created, cursor"
 	sqlEventSelect = "SELECT id, " + sqlEventFields + ", created, cursor FROM"
 )
 
-func (pg *Database) AddEvent(e *model.Event) (n *model.Event, err error) {
-	defer returnErr("AddEvent", &err)
+var (
+	sqlEventInsert = "INSERT INTO event " + "(" + sqlEventFields + ") " +
+		"VALUES ($1, $2, $3, $4, $5) RETURNING " + sqlInsertFields
+)
 
-	rows, err := pg.db.Query(
+func (pg *Database) AddEvent(e *model.Event) (n *model.Event, err error) {
+	defer err2.Annotate("AddEvent", &err)
+
+	n = model.NewEvent(e.TenantID, e)
+	err2.Check(pg.doQuery(
+		func(rows *sql.Rows) error {
+			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
+		},
 		sqlEventInsert,
 		e.TenantID,
 		e.ConnectionID,
 		e.JobID,
 		e.Description,
 		e.Read,
-	)
-	err2.Check(err)
-	defer rows.Close()
-
-	n = model.NewEvent(e.TenantID, e)
-	if rows.Next() {
-		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
-		err2.Check(err)
-	}
-
-	err = rows.Err()
-	err2.Check(err)
+	))
 
 	return n, err
 }
 
 func (pg *Database) MarkEventRead(id, tenantID string) (e *model.Event, err error) {
-	defer returnErr("MarkEventRead", &err)
+	defer err2.Annotate("MarkEventRead", &err)
 
 	const sqlEventUpdate = "UPDATE event SET read=true WHERE id = $1 AND tenant_id = $2" +
 		" RETURNING id," + sqlEventFields + ", created, cursor"
 
-	rows, err := pg.db.Query(
+	e = model.NewEvent("", nil)
+	err2.Check(pg.doQuery(
+		readRowToEvent(e),
 		sqlEventUpdate,
 		id,
 		tenantID,
-	)
-	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		e, err = readRowToEvent(rows)
-		err2.Check(err)
-	}
-
-	err = rows.Err()
-	err2.Check(err)
+	))
 
 	return e, err
 }
 
-func readRowToEvent(rows *sql.Rows) (*model.Event, error) {
-	n := model.NewEvent("", nil)
+func rowToEvent(rows *sql.Rows) (e *model.Event, err error) {
+	e = model.NewEvent("", nil)
+	return e, readRowToEvent(e)(rows)
+}
 
-	err := rows.Scan(
-		&n.ID,
-		&n.TenantID,
-		&n.ConnectionID,
-		&n.JobID,
-		&n.Description,
-		&n.Read,
-		&n.Created,
-		&n.Cursor,
-	)
-	return n, err
+func readRowToEvent(n *model.Event) func(*sql.Rows) error {
+	return func(rows *sql.Rows) error {
+		return rows.Scan(
+			&n.ID,
+			&n.TenantID,
+			&n.ConnectionID,
+			&n.JobID,
+			&n.Description,
+			&n.Read,
+			&n.Created,
+			&n.Cursor,
+		)
+	}
 }
 
 func (pg *Database) GetEvent(id, tenantID string) (e *model.Event, err error) {
-	defer returnErr("GetEvent", &err)
+	defer err2.Annotate("GetEvent", &err)
 
 	const sqlEventSelectByID = sqlEventSelect + " event" +
 		" WHERE event.id=$1 AND tenant_id=$2"
 
-	rows, err := pg.db.Query(sqlEventSelectByID, id, tenantID)
-	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		e, err = readRowToEvent(rows)
-		err2.Check(err)
-	}
-
-	err = rows.Err()
-	err2.Check(err)
+	e = model.NewEvent("", nil)
+	err2.Check(pg.doQuery(
+		readRowToEvent(e),
+		sqlEventSelectByID,
+		id,
+		tenantID,
+	))
 
 	return
 }
@@ -110,7 +98,7 @@ func (pg *Database) getEventsForQuery(
 	tenantID string,
 	initialArgs []interface{},
 ) (e *model.Events, err error) {
-	defer returnErr("GetEvents", &err)
+	defer err2.Annotate("GetEvents", &err)
 
 	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
 	rows, err := pg.db.Query(query, args...)
@@ -124,13 +112,12 @@ func (pg *Database) getEventsForQuery(
 	}
 	var event *model.Event
 	for rows.Next() {
-		event, err = readRowToEvent(rows)
+		event, err = rowToEvent(rows)
 		err2.Check(err)
 		e.Events = append(e.Events, event)
 	}
 
-	err = rows.Err()
-	err2.Check(err)
+	err2.Check(rows.Err())
 
 	if batch.Count < len(e.Events) {
 		e.Events = e.Events[:batch.Count]
@@ -213,7 +200,7 @@ func (pg *Database) GetEvents(info *paginator.BatchInfo, tenantID string, connec
 }
 
 func (pg *Database) GetEventCount(tenantID string, connectionID *string) (count int, err error) {
-	defer returnErr("GetEventCount", &err)
+	defer err2.Annotate("GetEventCount", &err)
 	const (
 		sqlEventBatchWhere           = " WHERE tenant_id=$1 "
 		sqlEventBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2"

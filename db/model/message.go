@@ -1,6 +1,8 @@
 package model
 
 import (
+	"time"
+
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 )
@@ -17,6 +19,7 @@ type Message struct {
 	Message      string `faker:"sentence"`
 	SentByMe     bool
 	Delivered    *bool
+	Archived     *time.Time `faker:"-"`
 }
 
 func NewMessage(tenantID string, m *Message) *Message {
@@ -47,6 +50,7 @@ func (m *Message) copy() (n *Message) {
 	n.Message = m.Message
 	n.SentByMe = m.SentByMe
 	n.Delivered = delivered
+	n.Archived = copyTime(m.Archived)
 	return n
 }
 

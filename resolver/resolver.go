@@ -69,13 +69,7 @@ func InitResolver(config *utils.Configuration) *Resolver {
 	if config.UseMockDB {
 		db = mock.InitState()
 	} else {
-		db = pg.InitDB(
-			"file://db/migrations",
-			config.DBHost,
-			config.DBPassword,
-			config.DBPort,
-			false,
-		)
+		db = pg.InitDB("file://db/migrations", config, false)
 	}
 	if config.GenerateFakeData {
 		fake.AddData(db)

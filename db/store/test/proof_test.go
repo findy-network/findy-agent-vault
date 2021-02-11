@@ -9,6 +9,8 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/model"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/findy-network/findy-agent-vault/utils"
+	"github.com/lainio/err2/assert"
 )
 
 func validateProofAttributes(t *testing.T, exp, got []*graph.ProofAttribute) {
@@ -55,6 +57,7 @@ func validateProof(t *testing.T, exp, got *model.Proof) {
 	validateTimestap(t, exp.Approved, got.Approved, "Approved")
 	validateTimestap(t, exp.Verified, got.Verified, "Verified")
 	validateTimestap(t, exp.Failed, got.Failed, "Failed")
+	validateTimestap(t, exp.Archived, got.Archived, "Archived")
 	validateCreatedTS(t, got.Cursor, &got.Created)
 
 	validateProofAttributes(t, exp.Attributes, got.Attributes)
@@ -314,6 +317,34 @@ func TestGetConnectionForProof(t *testing.T) {
 			} else {
 				validateConnection(t, connection, got)
 			}
+		})
+	}
+}
+
+func TestArchiveProof(t *testing.T) {
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("archive proof "+s.name, func(t *testing.T) {
+			testProof = model.NewProof(s.testTenantID, testProof)
+			testProof.TenantID = s.testTenantID
+			testProof.ConnectionID = s.testConnectionID
+
+			// Add data
+			p, err := s.db.AddProof(testProof)
+			assert.D.True(err == nil)
+
+			now := utils.CurrentTime()
+			err = s.db.ArchiveProof(p.ID, p.TenantID)
+			if err != nil {
+				t.Errorf("Failed to archive proof %s", err.Error())
+			}
+
+			// Get data for id
+			got, err := s.db.GetProof(p.ID, p.TenantID)
+			assert.D.True(err == nil)
+
+			p.Archived = &now
+			validateProof(t, p, got)
 		})
 	}
 }

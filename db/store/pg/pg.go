@@ -6,13 +6,13 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // blank for migrate driver
 
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
-	"github.com/lib/pq"
 )
 
 const (
@@ -30,34 +30,17 @@ const (
 	sqlOrderByCursorDesc = " ORDER BY cursor DESC LIMIT"
 )
 
-type PostgresErrorCode string
-
-const (
-	PostgresErrorUniqueViolation PostgresErrorCode = "unique_violation"
+var (
+	sqlInsertFields = sqlFields("", []string{"id", "created", "cursor"})
 )
 
-type PostgresError struct {
-	operation string
-	code      PostgresErrorCode
-	error     *pq.Error
+type pgError struct {
+	error
+	code store.ErrCode
 }
 
-func returnErr(op string, err *error) {
-	if r := recover(); r != nil {
-		e, ok := r.(error)
-		if !ok {
-			panic(r)
-		}
-		*err = e
-	}
-
-	if pgErr, ok := (*err).(*pq.Error); ok {
-		*err = &PostgresError{operation: op, code: PostgresErrorCode(pgErr.Code.Name()), error: pgErr}
-	}
-}
-
-func (e *PostgresError) Error() string {
-	return e.error.Error()
+func (e *pgError) Code() store.ErrCode {
+	return e.code
 }
 
 type queryInfo struct {
@@ -110,11 +93,18 @@ type Database struct {
 	db *sql.DB
 }
 
-func InitDB(migratePath, host, password string, port int, reset bool) store.DB {
+func InitDB(migratePath string, config *utils.Configuration, reset bool) store.DB {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbName)
-	sqlDB, err := sql.Open("postgres", psqlInfo)
+		config.DBHost, config.DBPort, user, config.DBPassword, dbName)
+
+	var sqlDB *sql.DB
+	var err error
+	if config.DBTracing {
+		sqlDB, err = initTraceHook(psqlInfo)
+	} else {
+		sqlDB, err = sql.Open("postgres", psqlInfo)
+	}
 	err2.Check(err)
 
 	driver, err := postgres.WithInstance(sqlDB, &postgres.Config{})
@@ -148,7 +138,7 @@ func InitDB(migratePath, host, password string, port int, reset bool) store.DB {
 	err = sqlDB.Ping()
 	err2.Check(err)
 
-	glog.Infof("successfully connected to postgres %s:%d\n", host, port)
+	glog.Infof("successfully connected to postgres %s:%d\n", config.DBHost, config.DBPort)
 	return &Database{db: sqlDB}
 }
 
@@ -172,17 +162,13 @@ func (pg *Database) getCount(
 		args = append(args, *connectionID)
 	}
 
-	rows, err := pg.db.Query(query, args...)
-	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		err = rows.Scan(&count)
-		err2.Check(err)
-	}
-
-	err = rows.Err()
-	err2.Check(err)
+	err2.Check(pg.doQuery(
+		func(rows *sql.Rows) error {
+			return rows.Scan(&count)
+		},
+		query,
+		args...,
+	))
 
 	return
 }
@@ -199,4 +185,35 @@ func sqlFields(tableName string, fields []string) string {
 		q += tableName + field
 	}
 	return q
+}
+
+func sqlArguments(fields []string) string {
+	q := ""
+	for i := range fields {
+		if i != 0 {
+			q += ","
+		}
+		q += fmt.Sprintf("$%d", i+1)
+	}
+	return q
+}
+
+func (pg *Database) doQuery(scan func(*sql.Rows) error, query string, args ...interface{}) (err error) {
+	defer err2.Return(&err)
+
+	rows, err := pg.db.Query(query, args...)
+	err2.Check(err)
+	defer rows.Close()
+
+	if rows.Next() {
+		err = scan(rows)
+	} else {
+		err = pgError{
+			fmt.Errorf("no rows returned"), store.NotExists,
+		}
+	}
+	err2.Check(err)
+	err2.Check(rows.Err())
+
+	return nil
 }

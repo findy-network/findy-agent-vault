@@ -20,13 +20,15 @@ type Configuration struct {
 	DBHost           string `mapstructure:"db_host"`
 	DBPort           int    `mapstructure:"db_port"`
 	DBPassword       string `mapstructure:"db_password"`
+	DBTracing        bool   `mapstructure:"db_tracing"`
 	AgencyHost       string `mapstructure:"agency_host"`
 	AgencyPort       int    `mapstructure:"agency_port"`
 	AgencyCertPath   string `mapstructure:"agency_cert_path"`
 	UseMockDB        bool
 	UseMockAgency    bool
 	GenerateFakeData bool
-	UsePlayground    bool `mapstructure:"use_playground"`
+	UsePlayground    bool   `mapstructure:"use_playground"`
+	LogLevel         string `mapstructure:"log_level"`
 }
 
 func LoadConfig() *Configuration {
@@ -42,10 +44,12 @@ func LoadConfig() *Configuration {
 	v.SetDefault("db_host", "localhost")
 	v.SetDefault("db_port", 5432)
 	v.SetDefault("db_password", "")
+	v.SetDefault("db_tracing", false)
 	v.SetDefault("agency_host", "localhost")
 	v.SetDefault("agency_port", 50051)
 	v.SetDefault("agency_cert_path", "")
 	v.SetDefault("use_playground", false)
+	v.SetDefault("log_level", "5")
 
 	viper.SetConfigName("config.yaml")
 	viper.AddConfigPath(".")
@@ -61,5 +65,6 @@ func LoadConfig() *Configuration {
 	err2.Check(v.Unmarshal(&config))
 
 	config.Address = fmt.Sprintf(":%d", config.ServerPort)
+	SetLogConfig(&config)
 	return &config
 }

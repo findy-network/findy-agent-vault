@@ -24,6 +24,7 @@ type Proof struct {
 	Approved      *time.Time `faker:"-"`
 	Verified      *time.Time `faker:"-"`
 	Failed        *time.Time `faker:"-"`
+	Archived      *time.Time `faker:"-"`
 }
 
 func NewProof(tenantID string, p *Proof) *Proof {
@@ -63,6 +64,7 @@ func (p *Proof) copy() (n *Proof) {
 	n.Verified = copyTime(p.Verified)
 	n.Failed = copyTime(p.Failed)
 	n.Attributes = attributes
+	n.Archived = copyTime(p.Archived)
 
 	return n
 }
