@@ -40,7 +40,7 @@ func AddMessages(db store.DB, tenantID, connectionID string, count int) []*model
 		newMessages[index] = c
 	}
 
-	utils.LogMed().Infof("Generated %d messages for tenant %s", len(newMessages), tenantID)
+	utils.LogTrace().Infof("Generated %d messages for tenant %s", len(newMessages), tenantID)
 
 	return newMessages
 }
@@ -61,7 +61,7 @@ func AddEvents(db store.DB, tenantID, connectionID string, jobID *string, count 
 		newEvents[index] = c
 	}
 
-	utils.LogMed().Infof("Generated %d events for tenant %s", len(newEvents), tenantID)
+	utils.LogTrace().Infof("Generated %d events for tenant %s", len(newEvents), tenantID)
 
 	return newEvents
 }
@@ -108,7 +108,7 @@ func AddCredentials(db store.DB, tenantID, connectionID string, count int) []*mo
 		newCredentials[index] = c
 	}
 
-	utils.LogMed().Infof("Generated %d credentials for tenant %s", len(newCredentials), tenantID)
+	utils.LogTrace().Infof("Generated %d credentials for tenant %s", len(newCredentials), tenantID)
 
 	return newCredentials
 }
@@ -135,7 +135,7 @@ func AddProofs(db store.DB, tenantID, connectionID string, count int) []*model.P
 		newProofs[index] = p
 	}
 
-	utils.LogMed().Infof("Generated %d proofs for tenant %s", len(newProofs), tenantID)
+	utils.LogTrace().Infof("Generated %d proofs for tenant %s", len(newProofs), tenantID)
 
 	return newProofs
 }
@@ -155,7 +155,7 @@ func AddConnections(db store.DB, tenantID string, count int) []*model.Connection
 		newConnections[index] = c
 	}
 
-	utils.LogMed().Infof("Generated %d connections for tenant %s", len(newConnections), tenantID)
+	utils.LogTrace().Infof("Generated %d connections for tenant %s", len(newConnections), tenantID)
 
 	return newConnections
 }
@@ -170,7 +170,7 @@ func AddAgent(db store.DB) *model.Agent {
 	agent, err = db.AddAgent(agent)
 	err2.Check(err)
 
-	utils.LogMed().Infof("Generated tenant %s with agent id %s", agent.ID, agent.AgentID)
+	utils.LogTrace().Infof("Generated tenant %s with agent id %s", agent.ID, agent.AgentID)
 	return agent
 }
 
@@ -217,7 +217,7 @@ func addJobs(
 		newJobs[index] = c
 	}
 
-	utils.LogMed().Infof("Generated %d jobs for tenant %s", len(newJobs), tenantID)
+	utils.LogTrace().Infof("Generated %d jobs for tenant %s", len(newJobs), tenantID)
 
 	return newJobs
 }

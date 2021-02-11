@@ -7,6 +7,7 @@ import (
 	"github.com/bxcodec/faker/v3"
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/findy-network/findy-agent-vault/utils"
 )
 
 type mockMessage struct {
@@ -128,4 +129,24 @@ func (m *mockData) GetConnectionForMessage(id, tenantID string) (*model.Connecti
 		return nil, err
 	}
 	return m.GetConnection(message.ConnectionID, tenantID)
+}
+
+func (m *mockData) ArchiveMessage(id, tenantID string) error {
+	agent := m.agents.get(tenantID)
+
+	object := agent.messages.objectForID(id)
+	if object == nil {
+		return errors.New("not found message for id: " + id)
+	}
+
+	now := utils.CurrentTime()
+
+	n := model.NewMessage(tenantID, object.Message())
+	n.Archived = &now
+
+	if !agent.messages.replaceObjectForID(id, newMessage(n)) {
+		panic("message not found")
+	}
+
+	return nil
 }

@@ -52,8 +52,10 @@ type Listener interface {
 }
 
 type ArchiveInfo struct {
-	AgentID      string
-	ConnectionID string
+	AgentID       string
+	JobID         string
+	ConnectionID  string
+	InitiatedByUs bool
 }
 
 type Archiver interface {

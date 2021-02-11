@@ -21,11 +21,19 @@ func LogLow() glog.Verbose   { return glog.V(logLevelLow) }
 func LogTrace() glog.Verbose { return glog.V(logLevelTrace) }
 
 func SetLogDefaults() {
+	logParse("5")
+}
+
+func SetLogConfig(config *Configuration) {
+	logParse(config.LogLevel)
+}
+
+func logParse(level string) {
 	defer err2.Catch(func(err error) {
 		fmt.Println("ERROR:", err)
 	})
 	err2.Check(flag.Set("logtostderr", "true"))
 	err2.Check(flag.Set("stderrthreshold", "WARNING"))
-	err2.Check(flag.Set("v", "5"))
+	err2.Check(flag.Set("v", level))
 	flag.Parse()
 }

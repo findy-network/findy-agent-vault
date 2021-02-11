@@ -25,6 +25,7 @@ type Credential struct {
 	Approved      *time.Time `faker:"-"`
 	Issued        *time.Time `faker:"-"`
 	Failed        *time.Time `faker:"-"`
+	Archived      *time.Time `faker:"-"`
 }
 
 func NewCredential(tenantID string, c *Credential) *Credential {
@@ -63,6 +64,7 @@ func (c *Credential) copy() (n *Credential) {
 	n.Approved = copyTime(c.Approved)
 	n.Issued = copyTime(c.Issued)
 	n.Failed = copyTime(c.Failed)
+	n.Archived = copyTime(c.Archived)
 	n.Attributes = attributes
 
 	return n

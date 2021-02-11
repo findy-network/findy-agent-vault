@@ -6,126 +6,111 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
 )
 
 var (
-	messageFields = []string{"tenant_id", "connection_id", "message", "sent_by_me", "delivered"}
+	messageFields = []string{"tenant_id", "connection_id", "message", "sent_by_me", "delivered", "archived"}
 
 	sqlBaseMessageFields = sqlFields("", messageFields)
-	sqlMessageInsert     = "INSERT INTO message " + "(" + sqlBaseMessageFields + ") " +
-		"VALUES ($1, $2, $3, $4, $5) RETURNING id, created, cursor"
-	sqlMessageSelect = "SELECT id, " + sqlBaseMessageFields + ", created, cursor FROM"
+	sqlMessageSelect     = "SELECT id, " + sqlBaseMessageFields + ", created, cursor FROM"
 )
 
-func (pg *Database) getMessageForObject(objectName, columnName, objectID, tenantID string) (c *model.Message, err error) {
-	defer returnErr("getMessageForObject", &err)
+func (pg *Database) getMessageForObject(objectName, columnName, objectID, tenantID string) (m *model.Message, err error) {
+	defer err2.Annotate("getMessageForObject", &err)
 
 	sqlMessageSelectByObjectID := "SELECT message.id, " +
 		sqlFields("message", messageFields) + ", message.created, message.cursor FROM" +
 		" message INNER JOIN " + objectName + " ON " + objectName +
 		"." + columnName + "=message.id WHERE " + objectName + ".id = $1 AND message.tenant_id = $2"
 
-	rows, err := pg.db.Query(sqlMessageSelectByObjectID, objectID, tenantID)
-	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		c, err = readRowToMessage(rows)
-		err2.Check(err)
-	}
-
-	err = rows.Err()
-	err2.Check(err)
+	m = model.NewMessage("", nil)
+	err2.Check(pg.doQuery(
+		readRowToMessage(m),
+		sqlMessageSelectByObjectID,
+		objectID,
+		tenantID,
+	))
 
 	return
 }
 
-func readRowToMessage(rows *sql.Rows) (*model.Message, error) {
-	n := model.NewMessage("", nil)
+func rowToMessage(rows *sql.Rows) (n *model.Message, err error) {
+	n = model.NewMessage("", nil)
+	return n, readRowToMessage(n)(rows)
+}
 
-	err := rows.Scan(
-		&n.ID,
-		&n.TenantID,
-		&n.ConnectionID,
-		&n.Message,
-		&n.SentByMe,
-		&n.Delivered,
-		&n.Created,
-		&n.Cursor,
-	)
-	return n, err
+func readRowToMessage(n *model.Message) func(*sql.Rows) error {
+	return func(rows *sql.Rows) error {
+		return rows.Scan(
+			&n.ID,
+			&n.TenantID,
+			&n.ConnectionID,
+			&n.Message,
+			&n.SentByMe,
+			&n.Delivered,
+			&n.Archived,
+			&n.Created,
+			&n.Cursor,
+		)
+	}
 }
 
 func (pg *Database) AddMessage(arg *model.Message) (n *model.Message, err error) {
-	defer returnErr("AddMessage", &err)
+	defer err2.Annotate("AddMessage", &err)
 
-	rows, err := pg.db.Query(
+	var (
+		sqlMessageInsert = "INSERT INTO message " + "(" + sqlBaseMessageFields + ") " +
+			"VALUES (" + sqlArguments(messageFields) + ") RETURNING " + sqlInsertFields
+	)
+
+	n = model.NewMessage(arg.TenantID, arg)
+	err2.Check(pg.doQuery(
+		func(rows *sql.Rows) error {
+			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
+		},
 		sqlMessageInsert,
 		arg.TenantID,
 		arg.ConnectionID,
 		arg.Message,
 		arg.SentByMe,
 		arg.Delivered,
-	)
-	err2.Check(err)
-	defer rows.Close()
-
-	n = model.NewMessage(arg.TenantID, arg)
-	if rows.Next() {
-		err = rows.Scan(&n.ID, &n.Created, &n.Cursor)
-		err2.Check(err)
-	}
-
-	err = rows.Err()
-	err2.Check(err)
+		arg.Archived,
+	))
 
 	return n, err
 }
 
 func (pg *Database) UpdateMessage(arg *model.Message) (m *model.Message, err error) {
-	defer returnErr("UpdateMessage", &err)
+	defer err2.Annotate("UpdateMessage", &err)
 
 	sqlMessageUpdate := "UPDATE message SET delivered=$1 WHERE id = $2 AND tenant_id = $3" +
 		" RETURNING id," + sqlBaseMessageFields + ", created, cursor"
 
-	rows, err := pg.db.Query(
+	m = model.NewMessage("", nil)
+	err2.Check(pg.doQuery(
+		readRowToMessage(m),
 		sqlMessageUpdate,
 		arg.Delivered,
 		arg.ID,
 		arg.TenantID,
-	)
-	err2.Check(err)
-	defer rows.Close()
-
-	if rows.Next() {
-		m, err = readRowToMessage(rows)
-		err2.Check(err)
-	}
-
-	err = rows.Err()
-	err2.Check(err)
-
+	))
 	return m, err
 }
 
 func (pg *Database) GetMessage(id, tenantID string) (m *model.Message, err error) {
-	defer returnErr("GetMessage", &err)
+	defer err2.Annotate("GetMessage", &err)
 
 	sqlMessageSelectByID := sqlMessageSelect + " message WHERE id=$1 AND tenant_id=$2"
 
-	rows, err := pg.db.Query(sqlMessageSelectByID, id, tenantID)
-	err2.Check(err)
-	defer rows.Close()
-
 	m = model.NewMessage("", nil)
-	if rows.Next() {
-		m, err = readRowToMessage(rows)
-		err2.Check(err)
-	}
-
-	err = rows.Err()
-	err2.Check(err)
+	err2.Check(pg.doQuery(
+		readRowToMessage(m),
+		sqlMessageSelectByID,
+		id,
+		tenantID,
+	))
 
 	return
 }
@@ -136,7 +121,7 @@ func (pg *Database) getMessagesForQuery(
 	tenantID string,
 	initialArgs []interface{},
 ) (m *model.Messages, err error) {
-	defer returnErr("GetMessages", &err)
+	defer err2.Annotate("GetMessages", &err)
 
 	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
 	rows, err := pg.db.Query(query, args...)
@@ -150,13 +135,12 @@ func (pg *Database) getMessagesForQuery(
 	}
 	var message *model.Message
 	for rows.Next() {
-		message, err = readRowToMessage(rows)
+		message, err = rowToMessage(rows)
 		err2.Check(err)
 		m.Messages = append(m.Messages, message)
 	}
 
-	err = rows.Err()
-	err2.Check(err)
+	err2.Check(rows.Err())
 
 	if batch.Count < len(m.Messages) {
 		m.Messages = m.Messages[:batch.Count]
@@ -239,7 +223,7 @@ func (pg *Database) GetMessages(info *paginator.BatchInfo, tenantID string, conn
 }
 
 func (pg *Database) GetMessageCount(tenantID string, connectionID *string) (count int, err error) {
-	defer returnErr("GetMessageCount", &err)
+	defer err2.Annotate("GetMessageCount", &err)
 	const (
 		sqlMessageBatchWhere           = " WHERE tenant_id=$1 "
 		sqlMessageBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2"
@@ -257,4 +241,24 @@ func (pg *Database) GetMessageCount(tenantID string, connectionID *string) (coun
 
 func (pg *Database) GetConnectionForMessage(id, tenantID string) (*model.Connection, error) {
 	return pg.getConnectionForObject("message", "connection_id", id, tenantID)
+}
+
+func (pg *Database) ArchiveMessage(id, tenantID string) (err error) {
+	defer err2.Annotate("ArchiveMessage", &err)
+
+	var (
+		sqlMessageArchive = "UPDATE message SET archived=$1 WHERE id = $2 and tenant_id = $3 RETURNING id"
+	)
+
+	now := utils.CurrentTime()
+	err2.Check(pg.doQuery(
+		func(rows *sql.Rows) error {
+			return rows.Scan(&id)
+		},
+		sqlMessageArchive,
+		now,
+		id,
+		tenantID,
+	))
+	return
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/bxcodec/faker/v3"
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/findy-network/findy-agent-vault/utils"
 )
 
 type mockCredential struct {
@@ -142,4 +143,24 @@ func (m *mockData) GetConnectionForCredential(id, tenantID string) (*model.Conne
 		return nil, err
 	}
 	return m.GetConnection(credential.ConnectionID, tenantID)
+}
+
+func (m *mockData) ArchiveCredential(id, tenantID string) error {
+	agent := m.agents.get(tenantID)
+
+	object := agent.credentials.objectForID(id)
+	if object == nil {
+		return errors.New("not found credential for id: " + id)
+	}
+
+	now := utils.CurrentTime()
+
+	n := model.NewCredential(tenantID, object.Credential())
+	n.Archived = &now
+
+	if !agent.credentials.replaceObjectForID(id, newCredential(n)) {
+		panic("credential not found")
+	}
+
+	return nil
 }
