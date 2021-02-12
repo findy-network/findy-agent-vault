@@ -19,7 +19,7 @@ type Credential struct {
 	ConnectionID  string
 	Role          model.CredentialRole `faker:"oneof: HOLDER, HOLDER"`
 	SchemaID      string
-	CredDefID     string
+	CredDefID     string                   `faker:"oneof: credDefId1, credDefId2, credDefId3"`
 	Attributes    []*model.CredentialValue `faker:"credentialAttributes"`
 	InitiatedByUs bool
 	Approved      *time.Time `faker:"-"`

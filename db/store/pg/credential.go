@@ -10,6 +10,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/assert"
 )
 
 func constructCredentialAttributeInsert(count int) string {
@@ -369,6 +370,8 @@ func (pg *Database) ArchiveCredential(id, tenantID string) (err error) {
 func (pg *Database) SearchCredentials(tenantID string, proof *graph.Proof) (res []*graph.ProvableAttribute, err error) {
 	defer err2.Annotate("SearchCredentials", &err)
 
+	assert.P.NotEmpty(proof.Attributes, "cannot search credentials for empty proof")
+
 	credDefs := ""
 	names := ""
 	for _, attr := range proof.Attributes {
@@ -426,6 +429,7 @@ func (pg *Database) SearchCredentials(tenantID string, proof *graph.Proof) (res 
 				})
 			}
 		}
+		res = append(res, provableAttr)
 	}
 
 	return res, err
