@@ -28,7 +28,7 @@ func (pg *Database) getJobForObject(objectName, objectID, tenantID string) (j *m
 		".job_id=job.id WHERE " + objectName + ".id = $1 AND job.tenant_id = $2"
 
 	j = model.NewJob("", "", nil)
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		readRowToJob(j),
 		sqlJobSelectByObjectID,
 		objectID,
@@ -42,7 +42,7 @@ func (pg *Database) AddJob(j *model.Job) (n *model.Job, err error) {
 	defer err2.Annotate("AddJob", &err)
 
 	n = model.NewJob(j.ID, j.TenantID, j)
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
 		},
@@ -73,7 +73,7 @@ func (pg *Database) UpdateJob(arg *model.Job) (j *model.Job, err error) {
 		" RETURNING " + sqlJobBaseFields + ", created, cursor"
 
 	j = model.NewJob("", "", nil)
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		readRowToJob(j),
 		sqlJobUpdate,
 		arg.ProtocolConnectionID,
@@ -121,7 +121,7 @@ func (pg *Database) GetJob(id, tenantID string) (job *model.Job, err error) {
 	sqlJobSelectByID := sqlJobSelect + " job WHERE id=$1 AND tenant_id=$2"
 
 	job = model.NewJob("", "", nil)
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		readRowToJob(job),
 		sqlJobSelectByID,
 		id,
@@ -140,9 +140,6 @@ func (pg *Database) getJobsForQuery(
 	defer err2.Annotate("GetJobs", &err)
 
 	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
-	rows, err := pg.db.Query(query, args...)
-	err2.Check(err)
-	defer rows.Close()
 
 	j = &model.Jobs{
 		Jobs:            make([]*model.Job, 0),
@@ -150,13 +147,13 @@ func (pg *Database) getJobsForQuery(
 		HasPreviousPage: false,
 	}
 	var job *model.Job
-	for rows.Next() {
+	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+		defer err2.Return(&err)
 		job, err = rowToJob(rows)
 		err2.Check(err)
 		j.Jobs = append(j.Jobs, job)
-	}
-
-	err2.Check(rows.Err())
+		return
+	}, query, args...))
 
 	if batch.Count < len(j.Jobs) {
 		j.Jobs = j.Jobs[:batch.Count]

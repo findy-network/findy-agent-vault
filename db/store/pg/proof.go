@@ -57,17 +57,13 @@ func (pg *Database) getProofForObject(objectName, columnName, objectID, tenantID
 		" INNER JOIN " + objectName + " ON " + objectName +
 		"." + columnName + "=proof.id WHERE " + objectName + ".id = $1 AND proof.tenant_id = $2"
 
-	rows, err := pg.db.Query(sqlProofSelectByObjectID, objectID, tenantID)
-	err2.Check(err)
-	defer rows.Close()
-
 	c = model.NewProof("", nil)
-	for rows.Next() {
+	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+		defer err2.Return(&err)
 		c, err = readRowToProof(rows, c)
 		err2.Check(err)
-	}
-
-	err2.Check(rows.Err())
+		return
+	}, sqlProofSelectByObjectID, objectID, tenantID))
 
 	return
 }
@@ -82,18 +78,14 @@ func (pg *Database) addProofAttributes(id string, attributes []*graph.ProofAttri
 		args = append(args, []interface{}{id, a.Name, "", a.CredDefID, index}...)
 	}
 
-	rows, err := pg.db.Query(query, args...)
-	err2.Check(err)
-	defer rows.Close()
-
 	index := 0
-	for rows.Next() {
+	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+		defer err2.Return(&err)
 		err = rows.Scan(&attributes[index].ID)
 		err2.Check(err)
 		index++
-	}
-
-	err2.Check(rows.Err())
+		return
+	}, query, args...))
 
 	return attributes, nil
 }
@@ -111,7 +103,7 @@ func (pg *Database) AddProof(p *model.Proof) (n *model.Proof, err error) {
 	)
 
 	n = model.NewProof(p.TenantID, p)
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
 		},
@@ -204,17 +196,13 @@ func (pg *Database) GetProof(id, tenantID string) (p *model.Proof, err error) {
 		" WHERE proof.id=$1 AND tenant_id=$2" +
 		" ORDER BY proof_attribute.index"
 
-	rows, err := pg.db.Query(sqlProofSelectByID, id, tenantID)
-	err2.Check(err)
-	defer rows.Close()
-
 	p = model.NewProof("", nil)
-	for rows.Next() {
+	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+		defer err2.Return(&err)
 		p, err = readRowToProof(rows, p)
 		err2.Check(err)
-	}
-
-	err2.Check(rows.Err())
+		return
+	}, sqlProofSelectByID, id, tenantID))
 
 	return
 }
@@ -228,9 +216,6 @@ func (pg *Database) getProofsForQuery(
 	defer err2.Annotate("GetProofs", &err)
 
 	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
-	rows, err := pg.db.Query(query, args...)
-	err2.Check(err)
-	defer rows.Close()
 
 	p = &model.Proofs{
 		Proofs:          make([]*model.Proof, 0),
@@ -239,14 +224,16 @@ func (pg *Database) getProofsForQuery(
 	}
 	prevProof := model.NewProof("", nil)
 	var proof *model.Proof
-	for rows.Next() {
+	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+		defer err2.Return(&err)
 		proof, err = readRowToProof(rows, prevProof)
 		err2.Check(err)
 		if prevProof.ID != "" && prevProof.ID != proof.ID {
 			p.Proofs = append(p.Proofs, prevProof)
 		}
 		prevProof = proof
-	}
+		return
+	}, query, args...))
 
 	// ensure also last proof is added
 	lastProofID := ""
@@ -256,8 +243,6 @@ func (pg *Database) getProofsForQuery(
 	if prevProof.ID != lastProofID {
 		p.Proofs = append(p.Proofs, prevProof)
 	}
-
-	err2.Check(rows.Err())
 
 	if batch.Count < len(p.Proofs) {
 		p.Proofs = p.Proofs[:batch.Count]
@@ -372,7 +357,7 @@ func (pg *Database) ArchiveProof(id, tenantID string) (err error) {
 	)
 
 	now := utils.CurrentTime()
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&id)
 		},

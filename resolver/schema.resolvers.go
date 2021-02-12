@@ -107,12 +107,12 @@ func (r *pairwiseConnectionResolver) TotalCount(ctx context.Context, obj *model.
 	return r.resolvers.pairwiseConnection.TotalCount(ctx, obj)
 }
 
-func (r *proofResolver) Connection(ctx context.Context, obj *model.Proof) (*model.Pairwise, error) {
-	return r.resolvers.proof.Connection(ctx, obj)
+func (r *proofResolver) Provable(ctx context.Context, obj *model.Proof) (*model.Provable, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *proofAttributeResolver) Credentials(ctx context.Context, obj *model.ProofAttribute) ([]*model.CredentialMatch, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *proofResolver) Connection(ctx context.Context, obj *model.Proof) (*model.Pairwise, error) {
+	return r.resolvers.proof.Connection(ctx, obj)
 }
 
 func (r *proofConnectionResolver) TotalCount(ctx context.Context, obj *model.ProofConnection) (int, error) {
@@ -215,11 +215,6 @@ func (r *Resolver) PairwiseConnection() generated.PairwiseConnectionResolver {
 // Proof returns generated.ProofResolver implementation.
 func (r *Resolver) Proof() generated.ProofResolver { return &proofResolver{r} }
 
-// ProofAttribute returns generated.ProofAttributeResolver implementation.
-func (r *Resolver) ProofAttribute() generated.ProofAttributeResolver {
-	return &proofAttributeResolver{r}
-}
-
 // ProofConnection returns generated.ProofConnectionResolver implementation.
 func (r *Resolver) ProofConnection() generated.ProofConnectionResolver {
 	return &proofConnectionResolver{r}
@@ -243,7 +238,6 @@ type mutationResolver struct{ *Resolver }
 type pairwiseResolver struct{ *Resolver }
 type pairwiseConnectionResolver struct{ *Resolver }
 type proofResolver struct{ *Resolver }
-type proofAttributeResolver struct{ *Resolver }
 type proofConnectionResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }

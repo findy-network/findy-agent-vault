@@ -26,7 +26,7 @@ func (pg *Database) getMessageForObject(objectName, columnName, objectID, tenant
 		"." + columnName + "=message.id WHERE " + objectName + ".id = $1 AND message.tenant_id = $2"
 
 	m = model.NewMessage("", nil)
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		readRowToMessage(m),
 		sqlMessageSelectByObjectID,
 		objectID,
@@ -66,7 +66,7 @@ func (pg *Database) AddMessage(arg *model.Message) (n *model.Message, err error)
 	)
 
 	n = model.NewMessage(arg.TenantID, arg)
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
 		},
@@ -89,7 +89,7 @@ func (pg *Database) UpdateMessage(arg *model.Message) (m *model.Message, err err
 		" RETURNING id," + sqlBaseMessageFields + ", created, cursor"
 
 	m = model.NewMessage("", nil)
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		readRowToMessage(m),
 		sqlMessageUpdate,
 		arg.Delivered,
@@ -105,7 +105,7 @@ func (pg *Database) GetMessage(id, tenantID string) (m *model.Message, err error
 	sqlMessageSelectByID := sqlMessageSelect + " message WHERE id=$1 AND tenant_id=$2"
 
 	m = model.NewMessage("", nil)
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		readRowToMessage(m),
 		sqlMessageSelectByID,
 		id,
@@ -124,9 +124,6 @@ func (pg *Database) getMessagesForQuery(
 	defer err2.Annotate("GetMessages", &err)
 
 	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
-	rows, err := pg.db.Query(query, args...)
-	err2.Check(err)
-	defer rows.Close()
 
 	m = &model.Messages{
 		Messages:        make([]*model.Message, 0),
@@ -134,13 +131,13 @@ func (pg *Database) getMessagesForQuery(
 		HasPreviousPage: false,
 	}
 	var message *model.Message
-	for rows.Next() {
+	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+		defer err2.Return(&err)
 		message, err = rowToMessage(rows)
 		err2.Check(err)
 		m.Messages = append(m.Messages, message)
-	}
-
-	err2.Check(rows.Err())
+		return
+	}, query, args...))
 
 	if batch.Count < len(m.Messages) {
 		m.Messages = m.Messages[:batch.Count]
@@ -251,7 +248,7 @@ func (pg *Database) ArchiveMessage(id, tenantID string) (err error) {
 	)
 
 	now := utils.CurrentTime()
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&id)
 		},

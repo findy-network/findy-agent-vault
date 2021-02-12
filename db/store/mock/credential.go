@@ -6,6 +6,7 @@ import (
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/findy-network/findy-agent-vault/db/model"
+	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
 )
@@ -163,4 +164,8 @@ func (m *mockData) ArchiveCredential(id, tenantID string) error {
 	}
 
 	return nil
+}
+
+func (m *mockData) SearchCredentials(tenantID string, proof *graph.Proof) ([]*graph.ProvableAttribute, error) {
+	return nil, nil
 }
