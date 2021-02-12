@@ -5,7 +5,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/findy-network/findy-agent-vault/graph/generated"
 	"github.com/findy-network/findy-agent-vault/graph/model"
@@ -108,7 +107,7 @@ func (r *pairwiseConnectionResolver) TotalCount(ctx context.Context, obj *model.
 }
 
 func (r *proofResolver) Provable(ctx context.Context, obj *model.Proof) (*model.Provable, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.resolvers.proof.Provable(ctx, obj)
 }
 
 func (r *proofResolver) Connection(ctx context.Context, obj *model.Proof) (*model.Pairwise, error) {

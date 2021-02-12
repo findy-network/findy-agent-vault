@@ -9,6 +9,7 @@ import (
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
+	"github.com/lainio/err2/assert"
 )
 
 type mockCredential struct {
@@ -167,5 +168,25 @@ func (m *mockData) ArchiveCredential(id, tenantID string) error {
 }
 
 func (m *mockData) SearchCredentials(tenantID string, proof *graph.Proof) ([]*graph.ProvableAttribute, error) {
-	return nil, nil
+	assert.D.NotEmpty(proof.Attributes, "cannot search credentials for empty proof")
+
+	agent := m.agents.get(tenantID)
+
+	creds, _ := agent.getCredentials(
+		&paginator.BatchInfo{Count: 1},
+		func(item apiObject) bool {
+			return item.Credential().CredDefID == proof.Attributes[0].CredDefID
+		})
+
+	// TODO
+	item1 := &graph.ProvableAttribute{
+		ID:          "id1",
+		Attribute:   proof.Attributes[0],
+		Credentials: []*graph.CredentialMatch{{ID: "id", CredentialID: creds.Credentials[0].ID, Value: ""}}}
+	item2 := &graph.ProvableAttribute{
+		ID:          "id2",
+		Attribute:   proof.Attributes[1],
+		Credentials: []*graph.CredentialMatch{},
+	}
+	return []*graph.ProvableAttribute{item1, item2}, nil
 }
