@@ -258,14 +258,12 @@ func TestAddProof(t *testing.T) {
 
 	m := NewMockDB(ctrl)
 	var (
-		value = ""
 		job   = &agency.JobInfo{JobID: "job-id", TenantID: "tenant-id", ConnectionID: "connection-id"}
 		proof = &agency.Proof{
 			Role: graph.ProofRoleProver,
 			Attributes: []*graph.ProofAttribute{{
 				Name:      "attribute-name",
 				CredDefID: "cred-def-id",
-				Value:     &value,
 			}},
 			InitiatedByUs: false,
 		}

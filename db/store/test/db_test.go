@@ -43,8 +43,8 @@ var (
 		InitiatedByUs: false,
 		Result:        true,
 		Attributes: []*graph.ProofAttribute{
-			{Name: "name1", Value: nil, CredDefID: "cred_def_id"},
-			{Name: "name2", Value: nil, CredDefID: "cred_def_id"},
+			{Name: "name1", CredDefID: "cred_def_id"},
+			{Name: "name2", CredDefID: "cred_def_id"},
 		},
 	})
 	testMessage *model.Message = model.NewMessage("", &model.Message{

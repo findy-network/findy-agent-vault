@@ -120,8 +120,14 @@ enum ProofRole {
 type ProofAttribute {
   id: ID!
   name: String!
-  value: String
   credDefId: String!
+  credentials: [CredentialMatch]!
+}
+
+type CredentialMatch {
+  id: ID!
+  credential: Credential!
+  value: String!
 }
 
 type Proof {
