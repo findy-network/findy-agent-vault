@@ -270,6 +270,21 @@ func (mr *MockDBMockRecorder) ArchiveCredential(id, tenantID interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ArchiveCredential", reflect.TypeOf((*MockDB)(nil).ArchiveCredential), id, tenantID)
 }
 
+// SearchCredentials mocks base method
+func (m *MockDB) SearchCredentials(tenantID string, proof *model0.Proof) ([]*model0.ProvableAttribute, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchCredentials", tenantID, proof)
+	ret0, _ := ret[0].([]*model0.ProvableAttribute)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchCredentials indicates an expected call of SearchCredentials
+func (mr *MockDBMockRecorder) SearchCredentials(tenantID, proof interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchCredentials", reflect.TypeOf((*MockDB)(nil).SearchCredentials), tenantID, proof)
+}
+
 // AddProof mocks base method
 func (m *MockDB) AddProof(p *model.Proof) (*model.Proof, error) {
 	m.ctrl.T.Helper()

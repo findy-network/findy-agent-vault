@@ -38,7 +38,7 @@ func (pg *Database) getConnectionForObject(objectName, columnName, objectID, ten
 		"." + columnName + "=connection.id WHERE " + objectName + ".id = $1 AND connection.tenant_id = $2"
 
 	c = model.EmptyConnection()
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		readRowToConnection(c),
 		sqlConnectionSelectByObjectID,
 		objectID,
@@ -52,7 +52,7 @@ func (pg *Database) AddConnection(c *model.Connection) (n *model.Connection, err
 	defer err2.Annotate("AddConnection", &err)
 
 	n = model.NewConnection(c.ID, c.TenantID, c)
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
 		},
@@ -106,7 +106,7 @@ func (pg *Database) GetConnection(id, tenantID string) (c *model.Connection, err
 	sqlConnectionSelectByID := sqlConnectionSelect + " WHERE id=$1 AND tenant_id=$2"
 
 	c = model.EmptyConnection()
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		readRowToConnection(c),
 		sqlConnectionSelectByID,
 		id,
@@ -121,23 +121,19 @@ func (pg *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (
 
 	query, args := getBatchQuery(connectionQueryInfo, info, tenantID, []interface{}{})
 
-	rows, err := pg.db.Query(query, args...)
-	err2.Check(err)
-	defer rows.Close()
-
 	c = &model.Connections{
 		Connections:     make([]*model.Connection, 0),
 		HasNextPage:     false,
 		HasPreviousPage: false,
 	}
 	var connection *model.Connection
-	for rows.Next() {
+	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+		defer err2.Return(&err)
 		connection, err = rowToConnection(rows)
 		err2.Check(err)
 		c.Connections = append(c.Connections, connection)
-	}
-
-	err2.Check(rows.Err())
+		return
+	}, query, args...))
 
 	if info.Count < len(c.Connections) {
 		c.Connections = c.Connections[:info.Count]
@@ -188,7 +184,7 @@ func (pg *Database) ArchiveConnection(id, tenantID string) (err error) {
 
 	now := utils.CurrentTime()
 	n := model.NewConnection(id, tenantID, nil)
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		readRowToConnection(n),
 		sqlConnectionArchive,
 		now,

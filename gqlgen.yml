@@ -78,9 +78,7 @@ models:
     fields:
       connection:
         resolver: true
-  ProofAttribute:
-    fields:
-      credentials:
+      provable:
         resolver: true
   Event:
     fields:

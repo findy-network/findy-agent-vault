@@ -36,3 +36,31 @@ func (r *Resolver) Connection(ctx context.Context, obj *model.Proof) (c *model.P
 
 	return connection.ToNode(), nil
 }
+
+func (r *Resolver) Provable(ctx context.Context, obj *model.Proof) (res *model.Provable, err error) {
+	defer err2.Return(&err)
+
+	tenant, err := r.GetAgent(ctx)
+	err2.Check(err)
+
+	utils.LogLow().Infof(
+		"proofResolver:Provable for tenant %s, proof : %s",
+		tenant.ID,
+		obj.ID,
+	)
+
+	res = &model.Provable{ID: obj.ID}
+
+	res.Attributes, err = r.db.SearchCredentials(tenant.ID, obj)
+	err2.Check(err)
+
+	credsFound := true
+	for _, attr := range res.Attributes {
+		if len(attr.Credentials) == 0 {
+			credsFound = false
+			break
+		}
+	}
+	res.Provable = credsFound
+	return
+}
