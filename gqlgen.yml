@@ -78,6 +78,10 @@ models:
     fields:
       connection:
         resolver: true
+  ProofAttribute:
+    fields:
+      credentials:
+        resolver: true
   Event:
     fields:
       connection:

@@ -24,7 +24,6 @@ func validateProofAttributes(t *testing.T, exp, got []*graph.ProofAttribute) {
 		if a.Name != exp[index].Name {
 			t.Errorf("Proof attribute name mismatch: expected %s got %s.", exp[index].Name, a.Name)
 		}
-		validateStrPtr(t, exp[index].Value, a.Value, "proof attribute value")
 		if a.CredDefID != exp[index].CredDefID {
 			t.Errorf("Proof attribute cred def mismatch: expected %s got %s.", exp[index].CredDefID, a.CredDefID)
 		}

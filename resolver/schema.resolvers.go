@@ -5,6 +5,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/findy-network/findy-agent-vault/graph/generated"
 	"github.com/findy-network/findy-agent-vault/graph/model"
@@ -110,6 +111,10 @@ func (r *proofResolver) Connection(ctx context.Context, obj *model.Proof) (*mode
 	return r.resolvers.proof.Connection(ctx, obj)
 }
 
+func (r *proofAttributeResolver) Credentials(ctx context.Context, obj *model.ProofAttribute) ([]*model.CredentialMatch, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *proofConnectionResolver) TotalCount(ctx context.Context, obj *model.ProofConnection) (int, error) {
 	return r.resolvers.proofConnection.TotalCount(ctx, obj)
 }
@@ -210,6 +215,11 @@ func (r *Resolver) PairwiseConnection() generated.PairwiseConnectionResolver {
 // Proof returns generated.ProofResolver implementation.
 func (r *Resolver) Proof() generated.ProofResolver { return &proofResolver{r} }
 
+// ProofAttribute returns generated.ProofAttributeResolver implementation.
+func (r *Resolver) ProofAttribute() generated.ProofAttributeResolver {
+	return &proofAttributeResolver{r}
+}
+
 // ProofConnection returns generated.ProofConnectionResolver implementation.
 func (r *Resolver) ProofConnection() generated.ProofConnectionResolver {
 	return &proofConnectionResolver{r}
@@ -233,6 +243,7 @@ type mutationResolver struct{ *Resolver }
 type pairwiseResolver struct{ *Resolver }
 type pairwiseConnectionResolver struct{ *Resolver }
 type proofResolver struct{ *Resolver }
+type proofAttributeResolver struct{ *Resolver }
 type proofConnectionResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }

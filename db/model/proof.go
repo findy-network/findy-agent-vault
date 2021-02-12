@@ -48,7 +48,6 @@ func (p *Proof) copy() (n *Proof) {
 		attributes[index] = &model.ProofAttribute{
 			ID:        p.Attributes[index].ID,
 			Name:      p.Attributes[index].Name,
-			Value:     p.Attributes[index].Value,
 			CredDefID: p.Attributes[index].CredDefID,
 		}
 	}

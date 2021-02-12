@@ -78,7 +78,8 @@ func (pg *Database) addProofAttributes(id string, attributes []*graph.ProofAttri
 	query := constructProofAttributeInsert(len(attributes))
 	args := make([]interface{}, 0)
 	for index, a := range attributes {
-		args = append(args, []interface{}{id, a.Name, a.Value, a.CredDefID, index}...)
+		// TODO: save values when received
+		args = append(args, []interface{}{id, a.Name, "", a.CredDefID, index}...)
 	}
 
 	rows, err := pg.db.Query(query, args...)
@@ -154,6 +155,8 @@ func readRowToProof(rows *sql.Rows, previous *model.Proof) (*model.Proof, error)
 
 	n := model.NewProof("", nil)
 
+	var value string
+
 	err := rows.Scan(
 		&n.ID,
 		&n.TenantID,
@@ -169,7 +172,7 @@ func readRowToProof(rows *sql.Rows, previous *model.Proof) (*model.Proof, error)
 		&n.Cursor,
 		&a.ID,
 		&a.Name,
-		&a.Value,
+		&value,
 		&a.CredDefID,
 	)
 

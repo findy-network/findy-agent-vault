@@ -48,6 +48,7 @@ type ResolverRoot interface {
 	Pairwise() PairwiseResolver
 	PairwiseConnection() PairwiseConnectionResolver
 	Proof() ProofResolver
+	ProofAttribute() ProofAttributeResolver
 	ProofConnection() ProofConnectionResolver
 	Query() QueryResolver
 	Subscription() SubscriptionResolver
@@ -103,6 +104,12 @@ type ComplexityRoot struct {
 	CredentialEdge struct {
 		Cursor func(childComplexity int) int
 		Node   func(childComplexity int) int
+	}
+
+	CredentialMatch struct {
+		Credential func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Value      func(childComplexity int) int
 	}
 
 	CredentialValue struct {
@@ -237,10 +244,10 @@ type ComplexityRoot struct {
 	}
 
 	ProofAttribute struct {
-		CredDefID func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Name      func(childComplexity int) int
-		Value     func(childComplexity int) int
+		CredDefID   func(childComplexity int) int
+		Credentials func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Name        func(childComplexity int) int
 	}
 
 	ProofConnection struct {
@@ -333,6 +340,9 @@ type PairwiseConnectionResolver interface {
 }
 type ProofResolver interface {
 	Connection(ctx context.Context, obj *model.Proof) (*model.Pairwise, error)
+}
+type ProofAttributeResolver interface {
+	Credentials(ctx context.Context, obj *model.ProofAttribute) ([]*model.CredentialMatch, error)
 }
 type ProofConnectionResolver interface {
 	TotalCount(ctx context.Context, obj *model.ProofConnection) (int, error)
@@ -579,6 +589,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CredentialEdge.Node(childComplexity), true
+
+	case "CredentialMatch.credential":
+		if e.complexity.CredentialMatch.Credential == nil {
+			break
+		}
+
+		return e.complexity.CredentialMatch.Credential(childComplexity), true
+
+	case "CredentialMatch.id":
+		if e.complexity.CredentialMatch.ID == nil {
+			break
+		}
+
+		return e.complexity.CredentialMatch.ID(childComplexity), true
+
+	case "CredentialMatch.value":
+		if e.complexity.CredentialMatch.Value == nil {
+			break
+		}
+
+		return e.complexity.CredentialMatch.Value(childComplexity), true
 
 	case "CredentialValue.id":
 		if e.complexity.CredentialValue.ID == nil {
@@ -1213,6 +1244,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ProofAttribute.CredDefID(childComplexity), true
 
+	case "ProofAttribute.credentials":
+		if e.complexity.ProofAttribute.Credentials == nil {
+			break
+		}
+
+		return e.complexity.ProofAttribute.Credentials(childComplexity), true
+
 	case "ProofAttribute.id":
 		if e.complexity.ProofAttribute.ID == nil {
 			break
@@ -1226,13 +1264,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ProofAttribute.Name(childComplexity), true
-
-	case "ProofAttribute.value":
-		if e.complexity.ProofAttribute.Value == nil {
-			break
-		}
-
-		return e.complexity.ProofAttribute.Value(childComplexity), true
 
 	case "ProofConnection.connectionId":
 		if e.complexity.ProofConnection.ConnectionID == nil {
@@ -1653,8 +1684,14 @@ enum ProofRole {
 type ProofAttribute {
   id: ID!
   name: String!
-  value: String
   credDefId: String!
+  credentials: [CredentialMatch]!
+}
+
+type CredentialMatch {
+  id: ID!
+  credential: Credential!
+  value: String!
 }
 
 type Proof {
@@ -3492,6 +3529,111 @@ func (ec *executionContext) _CredentialEdge_node(ctx context.Context, field grap
 	res := resTmp.(*model.Credential)
 	fc.Result = res
 	return ec.marshalNCredential2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredential(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CredentialMatch_id(ctx context.Context, field graphql.CollectedField, obj *model.CredentialMatch) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CredentialMatch",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CredentialMatch_credential(ctx context.Context, field graphql.CollectedField, obj *model.CredentialMatch) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CredentialMatch",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Credential, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Credential)
+	fc.Result = res
+	return ec.marshalNCredential2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredential(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CredentialMatch_value(ctx context.Context, field graphql.CollectedField, obj *model.CredentialMatch) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CredentialMatch",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CredentialValue_id(ctx context.Context, field graphql.CollectedField, obj *model.CredentialValue) (ret graphql.Marshaler) {
@@ -6472,38 +6614,6 @@ func (ec *executionContext) _ProofAttribute_name(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ProofAttribute_value(ctx context.Context, field graphql.CollectedField, obj *model.ProofAttribute) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ProofAttribute",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Value, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _ProofAttribute_credDefId(ctx context.Context, field graphql.CollectedField, obj *model.ProofAttribute) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6537,6 +6647,41 @@ func (ec *executionContext) _ProofAttribute_credDefId(ctx context.Context, field
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ProofAttribute_credentials(ctx context.Context, field graphql.CollectedField, obj *model.ProofAttribute) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ProofAttribute",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ProofAttribute().Credentials(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.CredentialMatch)
+	fc.Result = res
+	return ec.marshalNCredentialMatch2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialMatch(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ProofConnection_connectionId(ctx context.Context, field graphql.CollectedField, obj *model.ProofConnection) (ret graphql.Marshaler) {
@@ -8954,6 +9099,43 @@ func (ec *executionContext) _CredentialEdge(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var credentialMatchImplementors = []string{"CredentialMatch"}
+
+func (ec *executionContext) _CredentialMatch(ctx context.Context, sel ast.SelectionSet, obj *model.CredentialMatch) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, credentialMatchImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CredentialMatch")
+		case "id":
+			out.Values[i] = ec._CredentialMatch_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "credential":
+			out.Values[i] = ec._CredentialMatch_credential(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+			out.Values[i] = ec._CredentialMatch_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var credentialValueImplementors = []string{"CredentialValue"}
 
 func (ec *executionContext) _CredentialValue(ctx context.Context, sel ast.SelectionSet, obj *model.CredentialValue) graphql.Marshaler {
@@ -9787,20 +9969,32 @@ func (ec *executionContext) _ProofAttribute(ctx context.Context, sel ast.Selecti
 		case "id":
 			out.Values[i] = ec._ProofAttribute_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._ProofAttribute_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
-		case "value":
-			out.Values[i] = ec._ProofAttribute_value(ctx, field, obj)
 		case "credDefId":
 			out.Values[i] = ec._ProofAttribute_credDefId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "credentials":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ProofAttribute_credentials(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -10461,6 +10655,43 @@ func (ec *executionContext) marshalNCredentialConnection2ᚖgithubᚗcomᚋfindy
 		return graphql.Null
 	}
 	return ec._CredentialConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCredentialMatch2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialMatch(ctx context.Context, sel ast.SelectionSet, v []*model.CredentialMatch) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOCredentialMatch2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialMatch(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) unmarshalNCredentialRole2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialRole(ctx context.Context, v interface{}) (model.CredentialRole, error) {
@@ -11229,6 +11460,13 @@ func (ec *executionContext) marshalOCredentialEdge2ᚖgithubᚗcomᚋfindyᚑnet
 		return graphql.Null
 	}
 	return ec._CredentialEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOCredentialMatch2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialMatch(ctx context.Context, sel ast.SelectionSet, v *model.CredentialMatch) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CredentialMatch(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOCredentialValue2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialValue(ctx context.Context, sel ast.SelectionSet, v []*model.CredentialValue) graphql.Marshaler {

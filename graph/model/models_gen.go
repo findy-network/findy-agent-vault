@@ -60,6 +60,12 @@ type CredentialEdge struct {
 	Node   *Credential `json:"node"`
 }
 
+type CredentialMatch struct {
+	ID         string      `json:"id"`
+	Credential *Credential `json:"credential"`
+	Value      string      `json:"value"`
+}
+
 type CredentialValue struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`
@@ -189,10 +195,10 @@ type Proof struct {
 }
 
 type ProofAttribute struct {
-	ID        string  `json:"id"`
-	Name      string  `json:"name"`
-	Value     *string `json:"value"`
-	CredDefID string  `json:"credDefId"`
+	ID          string             `json:"id"`
+	Name        string             `json:"name"`
+	CredDefID   string             `json:"credDefId"`
+	Credentials []*CredentialMatch `json:"credentials"`
 }
 
 type ProofConnection struct {
