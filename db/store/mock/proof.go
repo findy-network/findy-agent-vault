@@ -68,7 +68,7 @@ func (m *mockData) UpdateProof(p *model.Proof) (*model.Proof, error) {
 	proof.Values = p.Values
 
 	if !agent.proofs.replaceObjectForID(p.ID, updated) {
-		return nil, errors.New("not found proof for id: " + p.ID)
+		panic("not found proof for id: " + p.ID)
 	}
 	return updated.Proof(), nil
 }

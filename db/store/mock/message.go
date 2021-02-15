@@ -1,11 +1,11 @@
 package mock
 
 import (
-	"errors"
 	"time"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/findy-network/findy-agent-vault/db/model"
+	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
 )
@@ -55,14 +55,14 @@ func (m *mockData) UpdateMessage(arg *model.Message) (*model.Message, error) {
 
 	object := agent.messages.objectForID(arg.ID)
 	if object == nil {
-		return nil, errors.New("not found message for id: " + arg.ID)
+		return nil, store.NewError(store.ErrCodeNotFound, "not found message for id: "+arg.ID)
 	}
 	updated := object.Copy()
 	message := updated.Message()
 	message.Delivered = arg.Delivered
 
 	if !agent.messages.replaceObjectForID(arg.ID, updated) {
-		return nil, errors.New("not found message for id: " + arg.ID)
+		panic("not found message for id: " + arg.ID)
 	}
 	return updated.Message(), nil
 }
@@ -72,7 +72,7 @@ func (m *mockData) GetMessage(id, tenantID string) (*model.Message, error) {
 
 	msg := agent.messages.objectForID(id)
 	if msg == nil {
-		return nil, errors.New("not found message for id: " + id)
+		return nil, store.NewError(store.ErrCodeNotFound, "not found message for id: "+id)
 	}
 	return msg.Message(), nil
 }
@@ -136,7 +136,7 @@ func (m *mockData) ArchiveMessage(id, tenantID string) error {
 
 	object := agent.messages.objectForID(id)
 	if object == nil {
-		return errors.New("not found message for id: " + id)
+		return store.NewError(store.ErrCodeNotFound, "not found message for id: "+id)
 	}
 
 	now := utils.CurrentTime()
