@@ -240,6 +240,7 @@ type ComplexityRoot struct {
 		Provable      func(childComplexity int) int
 		Result        func(childComplexity int) int
 		Role          func(childComplexity int) int
+		Values        func(childComplexity int) int
 		VerifiedMs    func(childComplexity int) int
 	}
 
@@ -260,6 +261,12 @@ type ComplexityRoot struct {
 	ProofEdge struct {
 		Cursor func(childComplexity int) int
 		Node   func(childComplexity int) int
+	}
+
+	ProofValue struct {
+		AttributeID func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Value       func(childComplexity int) int
 	}
 
 	Provable struct {
@@ -1247,6 +1254,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Proof.Role(childComplexity), true
 
+	case "Proof.values":
+		if e.complexity.Proof.Values == nil {
+			break
+		}
+
+		return e.complexity.Proof.Values(childComplexity), true
+
 	case "Proof.verifiedMs":
 		if e.complexity.Proof.VerifiedMs == nil {
 			break
@@ -1323,6 +1337,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ProofEdge.Node(childComplexity), true
+
+	case "ProofValue.attributeId":
+		if e.complexity.ProofValue.AttributeID == nil {
+			break
+		}
+
+		return e.complexity.ProofValue.AttributeID(childComplexity), true
+
+	case "ProofValue.id":
+		if e.complexity.ProofValue.ID == nil {
+			break
+		}
+
+		return e.complexity.ProofValue.ID(childComplexity), true
+
+	case "ProofValue.value":
+		if e.complexity.ProofValue.Value == nil {
+			break
+		}
+
+		return e.complexity.ProofValue.Value(childComplexity), true
 
 	case "Provable.attributes":
 		if e.complexity.Provable.Attributes == nil {
@@ -1757,10 +1792,17 @@ type CredentialMatch {
   value: String!
 }
 
+type ProofValue {
+  id: ID!
+  attributeId: ID!
+  value: String!
+}
+
 type Proof {
   id: ID!
   role: ProofRole!
   attributes: [ProofAttribute]!
+  values: [ProofValue]!
   provable: Provable!
   initiatedByUs: Boolean!
   result: Boolean!
@@ -6404,6 +6446,41 @@ func (ec *executionContext) _Proof_attributes(ctx context.Context, field graphql
 	return ec.marshalNProofAttribute2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofAttribute(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Proof_values(ctx context.Context, field graphql.CollectedField, obj *model.Proof) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Proof",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Values, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ProofValue)
+	fc.Result = res
+	return ec.marshalNProofValue2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofValue(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Proof_provable(ctx context.Context, field graphql.CollectedField, obj *model.Proof) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6982,6 +7059,111 @@ func (ec *executionContext) _ProofEdge_node(ctx context.Context, field graphql.C
 	res := resTmp.(*model.Proof)
 	fc.Result = res
 	return ec.marshalNProof2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProof(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ProofValue_id(ctx context.Context, field graphql.CollectedField, obj *model.ProofValue) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ProofValue",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ProofValue_attributeId(ctx context.Context, field graphql.CollectedField, obj *model.ProofValue) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ProofValue",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AttributeID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ProofValue_value(ctx context.Context, field graphql.CollectedField, obj *model.ProofValue) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ProofValue",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Provable_id(ctx context.Context, field graphql.CollectedField, obj *model.Provable) (ret graphql.Marshaler) {
@@ -10185,6 +10367,11 @@ func (ec *executionContext) _Proof(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "values":
+			out.Values[i] = ec._Proof_values(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "provable":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -10345,6 +10532,43 @@ func (ec *executionContext) _ProofEdge(ctx context.Context, sel ast.SelectionSet
 			}
 		case "node":
 			out.Values[i] = ec._ProofEdge_node(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var proofValueImplementors = []string{"ProofValue"}
+
+func (ec *executionContext) _ProofValue(ctx context.Context, sel ast.SelectionSet, obj *model.ProofValue) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, proofValueImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ProofValue")
+		case "id":
+			out.Values[i] = ec._ProofValue_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "attributeId":
+			out.Values[i] = ec._ProofValue_attributeId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+			out.Values[i] = ec._ProofValue_value(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -11319,6 +11543,43 @@ func (ec *executionContext) unmarshalNProofRole2githubᚗcomᚋfindyᚑnetwork�
 
 func (ec *executionContext) marshalNProofRole2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofRole(ctx context.Context, sel ast.SelectionSet, v model.ProofRole) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNProofValue2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofValue(ctx context.Context, sel ast.SelectionSet, v []*model.ProofValue) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOProofValue2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofValue(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) unmarshalNProtocolType2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProtocolType(ctx context.Context, v interface{}) (model.ProtocolType, error) {
@@ -12336,6 +12597,13 @@ func (ec *executionContext) marshalOProofEdge2ᚖgithubᚗcomᚋfindyᚑnetwork�
 		return graphql.Null
 	}
 	return ec._ProofEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOProofValue2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofValue(ctx context.Context, sel ast.SelectionSet, v *model.ProofValue) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ProofValue(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOProvableAttribute2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProvableAttribute(ctx context.Context, sel ast.SelectionSet, v *model.ProvableAttribute) graphql.Marshaler {

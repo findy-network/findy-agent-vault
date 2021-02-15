@@ -126,7 +126,10 @@ func (pg *Database) AddProof(p *model.Proof) (n *model.Proof, err error) {
 func (pg *Database) UpdateProof(p *model.Proof) (n *model.Proof, err error) {
 	defer err2.Annotate("UpdateProof", &err)
 
-	const sqlProofUpdate = "UPDATE proof SET approved=$1, verified=$2, failed=$3 WHERE id = $4" // TODO: tenant_id, connection_id?
+	const (
+		sqlProofUpdate          = "UPDATE proof SET approved=$1, verified=$2, failed=$3 WHERE id = $4" // TODO: tenant id + connection id
+		sqlProofAttributeUpdate = "UPDATE proof_attribute SET value = (CASE %s END) WHERE id IN (%s)"
+	)
 
 	_, err = pg.db.Exec(
 		sqlProofUpdate,
@@ -136,6 +139,32 @@ func (pg *Database) UpdateProof(p *model.Proof) (n *model.Proof, err error) {
 		p.ID,
 	)
 	err2.Check(err)
+
+	valueUpdate := ""
+	ids := ""
+	args := make([]interface{}, 0)
+	for i, value := range p.Values {
+		round := i*2 + 1
+		valueUpdate += fmt.Sprintf("WHEN id = $%d THEN $%d ", round, round+1)
+		args = append(args, value.AttributeID, value.Value)
+		if ids != "" {
+			ids += ","
+		}
+		ids += fmt.Sprintf("'%s'", value.AttributeID)
+	}
+
+	if valueUpdate != "" {
+		_, err = pg.db.Exec(
+			fmt.Sprintf(sqlProofAttributeUpdate, valueUpdate, ids),
+			args...,
+		)
+		err2.Check(err)
+	}
+
+	for i, value := range p.Values {
+		p.Values[i].ID = value.AttributeID
+	}
+
 	return p, err
 }
 
@@ -147,7 +176,7 @@ func readRowToProof(rows *sql.Rows, previous *model.Proof) (*model.Proof, error)
 
 	n := model.NewProof("", nil)
 
-	var value string
+	value := &graph.ProofValue{}
 
 	err := rows.Scan(
 		&n.ID,
@@ -164,7 +193,7 @@ func readRowToProof(rows *sql.Rows, previous *model.Proof) (*model.Proof, error)
 		&n.Cursor,
 		&a.ID,
 		&a.Name,
-		&value,
+		&value.Value,
 		&a.CredDefID,
 	)
 
@@ -181,9 +210,17 @@ func readRowToProof(rows *sql.Rows, previous *model.Proof) (*model.Proof, error)
 	n.Attributes = make([]*graph.ProofAttribute, 0)
 	if previous.ID == n.ID {
 		n.Attributes = append(n.Attributes, previous.Attributes...)
-		n.Attributes = append(n.Attributes, a)
-	} else {
-		n.Attributes = append(n.Attributes, a)
+	}
+	n.Attributes = append(n.Attributes, a)
+
+	n.Values = make([]*graph.ProofValue, 0)
+	if value.Value != "" {
+		value.ID = a.ID
+		value.AttributeID = a.ID
+		if previous.ID == n.ID {
+			n.Values = append(n.Values, previous.Values...)
+		}
+		n.Values = append(n.Values, value)
 	}
 
 	return n, err
