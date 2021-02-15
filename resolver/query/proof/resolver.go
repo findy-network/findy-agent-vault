@@ -51,16 +51,21 @@ func (r *Resolver) Provable(ctx context.Context, obj *model.Proof) (res *model.P
 
 	res = &model.Provable{ID: obj.ID}
 
-	res.Attributes, err = r.db.SearchCredentials(tenant.ID, obj)
-	err2.Check(err)
+	provable := false
+	// provable only if not accepted yet
+	if obj.Role == model.ProofRoleProver && obj.ApprovedMs != nil && obj.VerifiedMs != nil {
+		res.Attributes, err = r.db.SearchCredentials(tenant.ID, obj)
+		err2.Check(err)
 
-	credsFound := true
-	for _, attr := range res.Attributes {
-		if len(attr.Credentials) == 0 {
-			credsFound = false
-			break
+		provable = true
+		for _, attr := range res.Attributes {
+			if len(attr.Credentials) == 0 {
+				provable = false
+				break
+			}
 		}
 	}
-	res.Provable = credsFound
-	return
+
+	res.Provable = provable
+	return res, err
 }

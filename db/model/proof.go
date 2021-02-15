@@ -19,6 +19,7 @@ type Proof struct {
 	ConnectionID  string
 	Role          model.ProofRole         `faker:"oneof: PROVER, PROVER"`
 	Attributes    []*model.ProofAttribute `faker:"proofAttributes"`
+	Values        []*model.ProofValue     `faker:"-"`
 	InitiatedByUs bool
 	Result        bool
 	Approved      *time.Time `faker:"-"`
@@ -52,6 +53,15 @@ func (p *Proof) copy() (n *Proof) {
 		}
 	}
 
+	values := make([]*model.ProofValue, len(p.Values))
+	for index := range p.Values {
+		values[index] = &model.ProofValue{
+			ID:          p.Values[index].ID,
+			AttributeID: p.Values[index].AttributeID,
+			Value:       p.Values[index].Value,
+		}
+	}
+
 	if p.base != nil {
 		n.base = p.base.copy()
 	}
@@ -63,6 +73,7 @@ func (p *Proof) copy() (n *Proof) {
 	n.Verified = copyTime(p.Verified)
 	n.Failed = copyTime(p.Failed)
 	n.Attributes = attributes
+	n.Values = values
 	n.Archived = copyTime(p.Archived)
 
 	return n
@@ -89,6 +100,7 @@ func (p *Proof) ToNode() *model.Proof {
 		ID:            p.ID,
 		Role:          p.Role,
 		Attributes:    p.Attributes,
+		Values:        p.Values,
 		InitiatedByUs: p.InitiatedByUs,
 		Result:        p.Result,
 		ApprovedMs:    &approvedMs,

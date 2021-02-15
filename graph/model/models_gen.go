@@ -186,6 +186,7 @@ type Proof struct {
 	ID            string            `json:"id"`
 	Role          ProofRole         `json:"role"`
 	Attributes    []*ProofAttribute `json:"attributes"`
+	Values        []*ProofValue     `json:"values"`
 	Provable      *Provable         `json:"provable"`
 	InitiatedByUs bool              `json:"initiatedByUs"`
 	Result        bool              `json:"result"`
@@ -212,6 +213,12 @@ type ProofConnection struct {
 type ProofEdge struct {
 	Cursor string `json:"cursor"`
 	Node   *Proof `json:"node"`
+}
+
+type ProofValue struct {
+	ID          string `json:"id"`
+	AttributeID string `json:"attributeId"`
+	Value       string `json:"value"`
 }
 
 type Provable struct {

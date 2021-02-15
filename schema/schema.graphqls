@@ -141,10 +141,17 @@ type CredentialMatch {
   value: String!
 }
 
+type ProofValue {
+  id: ID!
+  attributeId: ID!
+  value: String!
+}
+
 type Proof {
   id: ID!
   role: ProofRole!
   attributes: [ProofAttribute]!
+  values: [ProofValue]!
   provable: Provable!
   initiatedByUs: Boolean!
   result: Boolean!
