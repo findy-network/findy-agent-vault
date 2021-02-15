@@ -48,13 +48,14 @@ func (pg *Database) GetListenerAgents(info *paginator.BatchInfo) (a *model.Agent
 		HasPreviousPage: false,
 	}
 	var agent *model.Agent
-	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+	err = pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
 		agent, err = rowToAgent(rows)
 		err2.Check(err)
 		a.Agents = append(a.Agents, agent)
 		return
-	}, query, args...))
+	}, query, args...)
+	err2.Check(err)
 
 	if info.Count < len(a.Agents) {
 		a.Agents = a.Agents[:info.Count]

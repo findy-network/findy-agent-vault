@@ -1,10 +1,10 @@
 package mock
 
 import (
-	"errors"
 	"time"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
+	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
 )
@@ -54,7 +54,7 @@ func (m *mockData) GetConnection(id, tenantID string) (*model.Connection, error)
 
 	c := agent.connections.objectForID(id)
 	if c == nil {
-		return nil, errors.New("not found connection for id: " + id)
+		return nil, store.NewError(store.ErrCodeNotFound, "not found connection for id: "+id)
 	}
 	return c.Connection(), nil
 }
@@ -87,7 +87,7 @@ func (m *mockData) ArchiveConnection(id, tenantID string) error {
 
 	object := agent.connections.objectForID(id)
 	if object == nil {
-		return errors.New("not found connection for id: " + id)
+		return store.NewError(store.ErrCodeNotFound, "not found connection for id: "+id)
 	}
 
 	now := utils.CurrentTime()

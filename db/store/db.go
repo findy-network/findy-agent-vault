@@ -2,6 +2,8 @@ package store
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
@@ -9,24 +11,36 @@ import (
 	"github.com/findy-network/findy-grpc/jwt"
 )
 
-type ErrCode uint32
+type ErrCode string
 
 const (
-	Ok        ErrCode = 0
-	Unknown   ErrCode = 1
-	NotExists ErrCode = 2
+	ErrCodeOk       ErrCode = "OK"
+	ErrCodeNotFound ErrCode = "NOT_FOUND"
+	ErrCodeUnknown  ErrCode = "UNKNOWN"
 )
+
+var allErrCode = []ErrCode{
+	ErrCodeOk,
+	ErrCodeNotFound,
+	ErrCodeUnknown,
+}
+
+func NewError(code ErrCode, fmtString string, args ...interface{}) error {
+	return fmt.Errorf(fmtString+": "+string(code), args...)
+}
 
 func ErrorCode(err error) ErrCode {
 	if err == nil {
-		return Ok
+		return ErrCodeOk
 	}
-	if dbErr, ok := err.(interface {
-		Code() ErrCode
-	}); ok {
-		return dbErr.Code()
+
+	for _, code := range allErrCode {
+		if strings.HasSuffix(err.Error(), string(code)) {
+			return code
+		}
 	}
-	return Unknown
+
+	return ErrCodeUnknown
 }
 
 func GetAgent(ctx context.Context, db DB) (*model.Agent, error) {

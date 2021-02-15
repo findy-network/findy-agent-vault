@@ -34,15 +34,6 @@ var (
 	sqlInsertFields = sqlFields("", []string{"id", "created", "cursor"})
 )
 
-type pgError struct {
-	error
-	code store.ErrCode
-}
-
-func (e *pgError) Code() store.ErrCode {
-	return e.code
-}
-
 type queryInfo struct {
 	Asc        string
 	Desc       string
@@ -208,9 +199,7 @@ func (pg *Database) doRowQuery(scan func(*sql.Rows) error, query string, args ..
 	if rows.Next() {
 		err = scan(rows)
 	} else {
-		err = pgError{
-			fmt.Errorf("no rows returned"), store.NotExists,
-		}
+		err = store.NewError(store.ErrCodeNotFound, "no rows returned")
 	}
 	err2.Check(err)
 	err2.Check(rows.Err())
@@ -232,9 +221,7 @@ func (pg *Database) doRowsQuery(scan func(*sql.Rows) error, query string, args .
 	}
 
 	if scanCount == 0 {
-		err = pgError{
-			fmt.Errorf("no rows returned"), store.NotExists,
-		}
+		err = store.NewError(store.ErrCodeNotFound, "no rows returned")
 	}
 	err2.Check(err)
 	err2.Check(rows.Err())

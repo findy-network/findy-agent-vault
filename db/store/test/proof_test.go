@@ -189,7 +189,6 @@ func TestUpdateProof(t *testing.T) {
 			p.Values = make([]*graph.ProofValue, 0)
 			for _, attr := range p.Attributes {
 				p.Values = append(p.Values, &graph.ProofValue{ID: attr.ID, AttributeID: attr.ID, Value: "value"})
-
 			}
 			_, err = s.db.UpdateProof(p)
 			if err != nil {

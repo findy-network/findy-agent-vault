@@ -1,11 +1,11 @@
 package mock
 
 import (
-	"errors"
 	"time"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/findy-network/findy-agent-vault/db/model"
+	"github.com/findy-network/findy-agent-vault/db/store"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
@@ -60,7 +60,7 @@ func (m *mockData) UpdateCredential(c *model.Credential) (*model.Credential, err
 
 	object := agent.credentials.objectForID(c.ID)
 	if object == nil {
-		return nil, errors.New("not found credential for id: " + c.ID)
+		return nil, store.NewError(store.ErrCodeNotFound, "not found credential for id: "+c.ID)
 	}
 	updated := object.Copy()
 	credential := updated.Credential()
@@ -69,7 +69,7 @@ func (m *mockData) UpdateCredential(c *model.Credential) (*model.Credential, err
 	credential.Failed = c.Failed
 
 	if !agent.credentials.replaceObjectForID(c.ID, updated) {
-		return nil, errors.New("not found credential for id: " + c.ID)
+		panic("not found credential for id: " + c.ID)
 	}
 	return updated.Credential(), nil
 }
@@ -79,7 +79,7 @@ func (m *mockData) GetCredential(id, tenantID string) (*model.Credential, error)
 
 	c := agent.credentials.objectForID(id)
 	if c == nil {
-		return nil, errors.New("not found credential for id: " + id)
+		return nil, store.NewError(store.ErrCodeNotFound, "not found credential for id: "+id)
 	}
 	return c.Credential(), nil
 }
@@ -152,7 +152,7 @@ func (m *mockData) ArchiveCredential(id, tenantID string) error {
 
 	object := agent.credentials.objectForID(id)
 	if object == nil {
-		return errors.New("not found credential for id: " + id)
+		return store.NewError(store.ErrCodeNotFound, "not found credential for id: "+id)
 	}
 
 	now := utils.CurrentTime()

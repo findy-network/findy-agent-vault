@@ -7,6 +7,7 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/db/fake"
 	"github.com/findy-network/findy-agent-vault/db/model"
+	"github.com/findy-network/findy-agent-vault/db/store"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/google/uuid"
@@ -128,6 +129,18 @@ func TestAddJob(t *testing.T) {
 				t.Errorf("Error fetching job  %s", err.Error())
 			} else {
 				validateJob(t, j, got)
+			}
+		})
+	}
+}
+
+func TestGetNonexistentJob(t *testing.T) {
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("get non-existent job  "+s.name, func(t *testing.T) {
+			_, err := s.db.GetJob("b49b092e-2812-4adc-b3da-79a4ebbf864c", s.testTenantID)
+			if err == nil || store.ErrorCode(err) != store.ErrCodeNotFound {
+				t.Errorf("Error fetching non-existent job  %s", err)
 			}
 		})
 	}
