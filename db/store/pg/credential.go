@@ -367,14 +367,17 @@ func (pg *Database) ArchiveCredential(id, tenantID string) (err error) {
 	return
 }
 
-func (pg *Database) SearchCredentials(tenantID string, proof *graph.Proof) (res []*graph.ProvableAttribute, err error) {
+func (pg *Database) SearchCredentials(
+	tenantID string,
+	proofAttributes []*graph.ProofAttribute,
+) (res []*graph.ProvableAttribute, err error) {
 	defer err2.Annotate("SearchCredentials", &err)
 
-	assert.P.NotEmpty(proof.Attributes, "cannot search credentials for empty proof")
+	assert.P.NotEmpty(proofAttributes, "cannot search credentials for empty proof")
 
 	credDefs := ""
 	names := ""
-	for _, attr := range proof.Attributes {
+	for _, attr := range proofAttributes {
 		if attr.CredDefID != "" {
 			if credDefs != "" {
 				credDefs += ","
@@ -415,7 +418,7 @@ func (pg *Database) SearchCredentials(tenantID string, proof *graph.Proof) (res 
 	}, sqlCredentialSearch, tenantID))
 
 	res = make([]*graph.ProvableAttribute, 0)
-	for _, attr := range proof.Attributes {
+	for _, attr := range proofAttributes {
 		provableAttr := &graph.ProvableAttribute{}
 		provableAttr.ID = attr.ID
 		provableAttr.Attribute = attr

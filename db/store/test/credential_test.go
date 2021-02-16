@@ -366,7 +366,7 @@ func TestSearchCredentials(t *testing.T) {
 			proofRequest := &graph.Proof{Attributes: testProof.Attributes}
 			proofRequest.Attributes[0].Name = testCredential.Attributes[0].Name
 			proofRequest.Attributes[0].CredDefID = testCredential.CredDefID
-			res, err := s.db.SearchCredentials(s.testTenantID, proofRequest)
+			res, err := s.db.SearchCredentials(s.testTenantID, proofRequest.Attributes)
 
 			if err != nil {
 				t.Errorf("Encountered error when searching for creds %s", err)

@@ -167,25 +167,25 @@ func (m *mockData) ArchiveCredential(id, tenantID string) error {
 	return nil
 }
 
-func (m *mockData) SearchCredentials(tenantID string, proof *graph.Proof) ([]*graph.ProvableAttribute, error) {
-	assert.D.NotEmpty(proof.Attributes, "cannot search credentials for empty proof")
+func (m *mockData) SearchCredentials(tenantID string, proofAttributes []*graph.ProofAttribute) ([]*graph.ProvableAttribute, error) {
+	assert.D.NotEmpty(proofAttributes, "cannot search credentials for empty proof")
 
 	agent := m.agents.get(tenantID)
 
 	creds, _ := agent.getCredentials(
 		&paginator.BatchInfo{Count: 1},
 		func(item apiObject) bool {
-			return item.Credential().CredDefID == proof.Attributes[0].CredDefID
+			return item.Credential().CredDefID == proofAttributes[0].CredDefID
 		})
 
 	// TODO
 	item1 := &graph.ProvableAttribute{
 		ID:          "id1",
-		Attribute:   proof.Attributes[0],
+		Attribute:   proofAttributes[0],
 		Credentials: []*graph.CredentialMatch{{ID: "id", CredentialID: creds.Credentials[0].ID, Value: ""}}}
 	item2 := &graph.ProvableAttribute{
 		ID:          "id2",
-		Attribute:   proof.Attributes[1],
+		Attribute:   proofAttributes[1],
 		Credentials: []*graph.CredentialMatch{},
 	}
 	return []*graph.ProvableAttribute{item1, item2}, nil

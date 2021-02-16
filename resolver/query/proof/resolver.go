@@ -54,7 +54,7 @@ func (r *Resolver) Provable(ctx context.Context, obj *model.Proof) (res *model.P
 	provable := false
 	// provable only if not accepted yet
 	if obj.Role == model.ProofRoleProver && obj.ApprovedMs == nil && obj.VerifiedMs == nil {
-		res.Attributes, err = r.db.SearchCredentials(tenant.ID, obj)
+		res.Attributes, err = r.db.SearchCredentials(tenant.ID, obj.Attributes)
 		err2.Check(err)
 
 		provable = true

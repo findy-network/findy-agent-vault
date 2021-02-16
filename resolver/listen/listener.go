@@ -181,6 +181,24 @@ func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) (
 	proof.Verified = utils.TSToTimeIfNotSet(proof.Verified, data.VerifiedMs)
 	proof.Failed = utils.TSToTimeIfNotSet(proof.Failed, data.FailedMs)
 
+	if proof.Verified != nil {
+		// TODO: these values should come from agency
+		// now we just pick first found value
+		var provableAttrs []*model.ProvableAttribute
+		provableAttrs, err = l.db.SearchCredentials(proof.TenantID, proof.Attributes)
+		err2.Check(err)
+		proof.Values = make([]*model.ProofValue, 0)
+		for _, attr := range provableAttrs {
+			if len(attr.Credentials) > 0 {
+				proof.Values = append(proof.Values, &model.ProofValue{
+					ID:          attr.ID,
+					AttributeID: attr.ID,
+					Value:       attr.Credentials[0].Value,
+				})
+			}
+		}
+	}
+
 	proof, err = l.db.UpdateProof(proof)
 	err2.Check(err)
 
