@@ -75,7 +75,7 @@ type DB interface {
 	GetCredentialCount(tenantID string, connectionID *string) (int, error)
 	GetConnectionForCredential(id, tenantID string) (*model.Connection, error)
 	ArchiveCredential(id, tenantID string) error
-	SearchCredentials(tenantID string, proof *graph.Proof) ([]*graph.ProvableAttribute, error)
+	SearchCredentials(tenantID string, proofAttributes []*graph.ProofAttribute) ([]*graph.ProvableAttribute, error)
 
 	AddProof(p *model.Proof) (*model.Proof, error)
 	UpdateProof(p *model.Proof) (*model.Proof, error)
