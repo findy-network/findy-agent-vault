@@ -214,7 +214,7 @@ func TestUpdateCredential(t *testing.T) {
 			job.TenantID,
 			&model.Credential{
 				Role:     graph.CredentialRoleHolder,
-				Approved: utils.TimestampToTime(credentialUpdate.ApprovedMs),
+				Approved: utils.TSToTimeIfNotSet(nil, credentialUpdate.ApprovedMs),
 			},
 		)
 		resultJob = model.NewJob(job.JobID, job.TenantID, &model.Job{ConnectionID: &job.ConnectionID, ProtocolCredentialID: &credentialID})
@@ -324,7 +324,7 @@ func TestUpdateProof(t *testing.T) {
 			job.TenantID,
 			&model.Proof{
 				Role:     graph.ProofRoleProver,
-				Approved: utils.TimestampToTime(proofUpdate.ApprovedMs),
+				Approved: utils.TSToTimeIfNotSet(nil, proofUpdate.ApprovedMs),
 			},
 		)
 		resultJob = model.NewJob(job.JobID, job.TenantID, &model.Job{ConnectionID: &job.ConnectionID, ProtocolProofID: &proofID})
