@@ -7,7 +7,18 @@ import (
 )
 
 func timeToString(t *time.Time) string {
-	return strconv.FormatInt(t.UnixNano()/time.Millisecond.Nanoseconds(), 10)
+	if t != nil {
+		return strconv.FormatInt(t.UnixNano()/time.Millisecond.Nanoseconds(), 10)
+	}
+	return ""
+}
+
+func timeToStringPtr(t *time.Time) *string {
+	if t != nil {
+		res := timeToString(t)
+		return &res
+	}
+	return nil
 }
 
 type base struct {

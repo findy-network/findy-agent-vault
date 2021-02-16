@@ -79,14 +79,6 @@ func (c *Credential) ToEdge() *model.CredentialEdge {
 }
 
 func (c *Credential) ToNode() *model.Credential {
-	approvedMs := ""
-	issuedMs := ""
-	if c.Approved != nil {
-		approvedMs = timeToString(c.Approved)
-	}
-	if c.Issued != nil {
-		issuedMs = timeToString(c.Issued)
-	}
 	return &model.Credential{
 		ID:            c.ID,
 		Role:          c.Role,
@@ -94,8 +86,8 @@ func (c *Credential) ToNode() *model.Credential {
 		CredDefID:     c.CredDefID,
 		Attributes:    c.Attributes,
 		InitiatedByUs: c.InitiatedByUs,
-		ApprovedMs:    &approvedMs,
-		IssuedMs:      &issuedMs,
+		ApprovedMs:    timeToStringPtr(c.Approved),
+		IssuedMs:      timeToStringPtr(c.Issued),
 		CreatedMs:     timeToString(&c.Created),
 	}
 }
