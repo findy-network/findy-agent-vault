@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
+	"github.com/findy-network/findy-agent-vault/db/store"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
@@ -56,7 +57,7 @@ func (m *mockData) UpdateJob(arg *model.Job) (*model.Job, error) {
 
 	object := agent.jobs.objectForID(arg.ID)
 	if object == nil {
-		return nil, errors.New("not found job for id: " + arg.ID)
+		return nil, store.NewError(store.ErrCodeNotFound, "not found job for id: "+arg.ID)
 	}
 	updated := object.Copy()
 	job := updated.Job()
@@ -70,7 +71,7 @@ func (m *mockData) UpdateJob(arg *model.Job) (*model.Job, error) {
 	job.Updated = time.Now().UTC()
 
 	if !agent.jobs.replaceObjectForID(arg.ID, updated) {
-		return nil, errors.New("not found job for id: " + arg.ID)
+		panic("not found job for id: " + arg.ID)
 	}
 	return updated.Job(), nil
 }
@@ -80,7 +81,7 @@ func (m *mockData) GetJob(id, tenantID string) (*model.Job, error) {
 
 	j := agent.jobs.objectForID(id)
 	if j == nil {
-		return nil, errors.New("not found job for id: " + id)
+		return nil, store.NewError(store.ErrCodeNotFound, "not found job for id: "+id)
 	}
 	return j.Job(), nil
 }

@@ -60,6 +60,12 @@ type CredentialEdge struct {
 	Node   *Credential `json:"node"`
 }
 
+type CredentialMatch struct {
+	ID           string `json:"id"`
+	CredentialID string `json:"credentialId"`
+	Value        string `json:"value"`
+}
+
 type CredentialValue struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`
@@ -180,6 +186,8 @@ type Proof struct {
 	ID            string            `json:"id"`
 	Role          ProofRole         `json:"role"`
 	Attributes    []*ProofAttribute `json:"attributes"`
+	Values        []*ProofValue     `json:"values"`
+	Provable      *Provable         `json:"provable"`
 	InitiatedByUs bool              `json:"initiatedByUs"`
 	Result        bool              `json:"result"`
 	VerifiedMs    *string           `json:"verifiedMs"`
@@ -189,10 +197,9 @@ type Proof struct {
 }
 
 type ProofAttribute struct {
-	ID        string  `json:"id"`
-	Name      string  `json:"name"`
-	Value     *string `json:"value"`
-	CredDefID string  `json:"credDefId"`
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	CredDefID string `json:"credDefId"`
 }
 
 type ProofConnection struct {
@@ -206,6 +213,24 @@ type ProofConnection struct {
 type ProofEdge struct {
 	Cursor string `json:"cursor"`
 	Node   *Proof `json:"node"`
+}
+
+type ProofValue struct {
+	ID          string `json:"id"`
+	AttributeID string `json:"attributeId"`
+	Value       string `json:"value"`
+}
+
+type Provable struct {
+	ID         string               `json:"id"`
+	Provable   bool                 `json:"provable"`
+	Attributes []*ProvableAttribute `json:"attributes"`
+}
+
+type ProvableAttribute struct {
+	ID          string             `json:"id"`
+	Attribute   *ProofAttribute    `json:"attribute"`
+	Credentials []*CredentialMatch `json:"credentials"`
 }
 
 type Response struct {

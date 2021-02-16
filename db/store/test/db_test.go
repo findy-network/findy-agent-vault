@@ -43,8 +43,8 @@ var (
 		InitiatedByUs: false,
 		Result:        true,
 		Attributes: []*graph.ProofAttribute{
-			{Name: "name1", Value: nil, CredDefID: "cred_def_id"},
-			{Name: "name2", Value: nil, CredDefID: "cred_def_id"},
+			{Name: "name1", CredDefID: "cred_def_id"},
+			{Name: "name2", CredDefID: "cred_def_id"},
 		},
 	})
 	testMessage *model.Message = model.NewMessage("", &model.Message{
@@ -171,7 +171,7 @@ func validateCreatedTS(t *testing.T, cursor uint64, ts *time.Time) {
 		t.Errorf("Timestamp not in threshold %v", ts)
 	}
 	created := model.TimeToCursor(ts)
-	diff := uint64(math.Abs(float64(cursor - created)))
+	diff := uint64(math.Abs(float64(cursor) - float64(created)))
 	if diff > 1 {
 		t.Errorf("Cursor mismatch %v %v (%v)", cursor, created, diff)
 	}

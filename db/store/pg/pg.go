@@ -34,15 +34,6 @@ var (
 	sqlInsertFields = sqlFields("", []string{"id", "created", "cursor"})
 )
 
-type pgError struct {
-	error
-	code store.ErrCode
-}
-
-func (e *pgError) Code() store.ErrCode {
-	return e.code
-}
-
 type queryInfo struct {
 	Asc        string
 	Desc       string
@@ -162,7 +153,7 @@ func (pg *Database) getCount(
 		args = append(args, *connectionID)
 	}
 
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&count)
 		},
@@ -198,7 +189,7 @@ func sqlArguments(fields []string) string {
 	return q
 }
 
-func (pg *Database) doQuery(scan func(*sql.Rows) error, query string, args ...interface{}) (err error) {
+func (pg *Database) doRowQuery(scan func(*sql.Rows) error, query string, args ...interface{}) (err error) {
 	defer err2.Return(&err)
 
 	rows, err := pg.db.Query(query, args...)
@@ -208,9 +199,29 @@ func (pg *Database) doQuery(scan func(*sql.Rows) error, query string, args ...in
 	if rows.Next() {
 		err = scan(rows)
 	} else {
-		err = pgError{
-			fmt.Errorf("no rows returned"), store.NotExists,
-		}
+		err = store.NewError(store.ErrCodeNotFound, "no rows returned")
+	}
+	err2.Check(err)
+	err2.Check(rows.Err())
+
+	return nil
+}
+
+func (pg *Database) doRowsQuery(scan func(*sql.Rows) error, query string, args ...interface{}) (err error) {
+	defer err2.Return(&err)
+
+	rows, err := pg.db.Query(query, args...)
+	err2.Check(err)
+	defer rows.Close()
+
+	scanCount := 0
+	for rows.Next() {
+		err = scan(rows)
+		scanCount++
+	}
+
+	if scanCount == 0 {
+		err = store.NewError(store.ErrCodeNotFound, "no rows returned")
 	}
 	err2.Check(err)
 	err2.Check(rows.Err())

@@ -106,6 +106,10 @@ func (r *pairwiseConnectionResolver) TotalCount(ctx context.Context, obj *model.
 	return r.resolvers.pairwiseConnection.TotalCount(ctx, obj)
 }
 
+func (r *proofResolver) Provable(ctx context.Context, obj *model.Proof) (*model.Provable, error) {
+	return r.resolvers.proof.Provable(ctx, obj)
+}
+
 func (r *proofResolver) Connection(ctx context.Context, obj *model.Proof) (*model.Pairwise, error) {
 	return r.resolvers.proof.Connection(ctx, obj)
 }

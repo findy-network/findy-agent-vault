@@ -53,10 +53,8 @@ func statusToProof(status *agency.ProtocolStatus) *model.Proof {
 		}
 		attributes := make([]*graph.ProofAttribute, 0)
 		for _, v := range proof.Attrs {
-			value := "" // TODO: get also values from notification?
 			attributes = append(attributes, &graph.ProofAttribute{
 				Name:      v.Name,
-				Value:     &value,
 				CredDefID: v.CredDefId,
 			})
 		}
