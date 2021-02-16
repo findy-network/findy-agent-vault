@@ -88,14 +88,6 @@ func (p *Proof) ToEdge() *model.ProofEdge {
 }
 
 func (p *Proof) ToNode() *model.Proof {
-	approvedMs := ""
-	verifiedMs := ""
-	if p.Approved != nil {
-		approvedMs = timeToString(p.Approved)
-	}
-	if p.Verified != nil {
-		verifiedMs = timeToString(p.Verified)
-	}
 	return &model.Proof{
 		ID:            p.ID,
 		Role:          p.Role,
@@ -103,8 +95,8 @@ func (p *Proof) ToNode() *model.Proof {
 		Values:        p.Values,
 		InitiatedByUs: p.InitiatedByUs,
 		Result:        p.Result,
-		ApprovedMs:    &approvedMs,
-		VerifiedMs:    &verifiedMs,
+		ApprovedMs:    timeToStringPtr(p.Approved),
+		VerifiedMs:    timeToStringPtr(p.Verified),
 		CreatedMs:     timeToString(&p.Created),
 	}
 }
