@@ -120,14 +120,39 @@ enum ProofRole {
 type ProofAttribute {
   id: ID!
   name: String!
-  value: String
   credDefId: String!
+}
+
+type Provable {
+  id: ID!
+  provable: Boolean!
+  attributes: [ProvableAttribute]!
+}
+
+type ProvableAttribute {
+  id: ID!
+  attribute: ProofAttribute!
+  credentials: [CredentialMatch]!
+}
+
+type CredentialMatch {
+  id: ID!
+  credentialId: ID!
+  value: String!
+}
+
+type ProofValue {
+  id: ID!
+  attributeId: ID!
+  value: String!
 }
 
 type Proof {
   id: ID!
   role: ProofRole!
   attributes: [ProofAttribute]!
+  values: [ProofValue]!
+  provable: Provable!
   initiatedByUs: Boolean!
   result: Boolean!
   verifiedMs: String

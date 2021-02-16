@@ -67,10 +67,6 @@ func (c *Connection) ToEdge() *model.PairwiseEdge {
 }
 
 func (c *Connection) ToNode() *model.Pairwise {
-	approvedMs := ""
-	if c.Approved != nil {
-		approvedMs = timeToString(c.Approved)
-	}
 	return &model.Pairwise{
 		ID:            c.ID,
 		OurDid:        c.OurDid,
@@ -78,7 +74,7 @@ func (c *Connection) ToNode() *model.Pairwise {
 		TheirEndpoint: c.TheirEndpoint,
 		TheirLabel:    c.TheirLabel,
 		CreatedMs:     timeToString(&c.Created),
-		ApprovedMs:    approvedMs,
+		ApprovedMs:    timeToString(c.Approved),
 		Invited:       c.Invited,
 	}
 }

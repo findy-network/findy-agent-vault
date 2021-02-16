@@ -105,6 +105,12 @@ type ComplexityRoot struct {
 		Node   func(childComplexity int) int
 	}
 
+	CredentialMatch struct {
+		CredentialID func(childComplexity int) int
+		ID           func(childComplexity int) int
+		Value        func(childComplexity int) int
+	}
+
 	CredentialValue struct {
 		ID    func(childComplexity int) int
 		Name  func(childComplexity int) int
@@ -231,8 +237,10 @@ type ComplexityRoot struct {
 		CreatedMs     func(childComplexity int) int
 		ID            func(childComplexity int) int
 		InitiatedByUs func(childComplexity int) int
+		Provable      func(childComplexity int) int
 		Result        func(childComplexity int) int
 		Role          func(childComplexity int) int
+		Values        func(childComplexity int) int
 		VerifiedMs    func(childComplexity int) int
 	}
 
@@ -240,7 +248,6 @@ type ComplexityRoot struct {
 		CredDefID func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Name      func(childComplexity int) int
-		Value     func(childComplexity int) int
 	}
 
 	ProofConnection struct {
@@ -254,6 +261,24 @@ type ComplexityRoot struct {
 	ProofEdge struct {
 		Cursor func(childComplexity int) int
 		Node   func(childComplexity int) int
+	}
+
+	ProofValue struct {
+		AttributeID func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Value       func(childComplexity int) int
+	}
+
+	Provable struct {
+		Attributes func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Provable   func(childComplexity int) int
+	}
+
+	ProvableAttribute struct {
+		Attribute   func(childComplexity int) int
+		Credentials func(childComplexity int) int
+		ID          func(childComplexity int) int
 	}
 
 	Query struct {
@@ -332,6 +357,8 @@ type PairwiseConnectionResolver interface {
 	TotalCount(ctx context.Context, obj *model.PairwiseConnection) (int, error)
 }
 type ProofResolver interface {
+	Provable(ctx context.Context, obj *model.Proof) (*model.Provable, error)
+
 	Connection(ctx context.Context, obj *model.Proof) (*model.Pairwise, error)
 }
 type ProofConnectionResolver interface {
@@ -579,6 +606,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CredentialEdge.Node(childComplexity), true
+
+	case "CredentialMatch.credentialId":
+		if e.complexity.CredentialMatch.CredentialID == nil {
+			break
+		}
+
+		return e.complexity.CredentialMatch.CredentialID(childComplexity), true
+
+	case "CredentialMatch.id":
+		if e.complexity.CredentialMatch.ID == nil {
+			break
+		}
+
+		return e.complexity.CredentialMatch.ID(childComplexity), true
+
+	case "CredentialMatch.value":
+		if e.complexity.CredentialMatch.Value == nil {
+			break
+		}
+
+		return e.complexity.CredentialMatch.Value(childComplexity), true
 
 	case "CredentialValue.id":
 		if e.complexity.CredentialValue.ID == nil {
@@ -1185,6 +1233,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Proof.InitiatedByUs(childComplexity), true
 
+	case "Proof.provable":
+		if e.complexity.Proof.Provable == nil {
+			break
+		}
+
+		return e.complexity.Proof.Provable(childComplexity), true
+
 	case "Proof.result":
 		if e.complexity.Proof.Result == nil {
 			break
@@ -1198,6 +1253,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Proof.Role(childComplexity), true
+
+	case "Proof.values":
+		if e.complexity.Proof.Values == nil {
+			break
+		}
+
+		return e.complexity.Proof.Values(childComplexity), true
 
 	case "Proof.verifiedMs":
 		if e.complexity.Proof.VerifiedMs == nil {
@@ -1226,13 +1288,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ProofAttribute.Name(childComplexity), true
-
-	case "ProofAttribute.value":
-		if e.complexity.ProofAttribute.Value == nil {
-			break
-		}
-
-		return e.complexity.ProofAttribute.Value(childComplexity), true
 
 	case "ProofConnection.connectionId":
 		if e.complexity.ProofConnection.ConnectionID == nil {
@@ -1282,6 +1337,69 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ProofEdge.Node(childComplexity), true
+
+	case "ProofValue.attributeId":
+		if e.complexity.ProofValue.AttributeID == nil {
+			break
+		}
+
+		return e.complexity.ProofValue.AttributeID(childComplexity), true
+
+	case "ProofValue.id":
+		if e.complexity.ProofValue.ID == nil {
+			break
+		}
+
+		return e.complexity.ProofValue.ID(childComplexity), true
+
+	case "ProofValue.value":
+		if e.complexity.ProofValue.Value == nil {
+			break
+		}
+
+		return e.complexity.ProofValue.Value(childComplexity), true
+
+	case "Provable.attributes":
+		if e.complexity.Provable.Attributes == nil {
+			break
+		}
+
+		return e.complexity.Provable.Attributes(childComplexity), true
+
+	case "Provable.id":
+		if e.complexity.Provable.ID == nil {
+			break
+		}
+
+		return e.complexity.Provable.ID(childComplexity), true
+
+	case "Provable.provable":
+		if e.complexity.Provable.Provable == nil {
+			break
+		}
+
+		return e.complexity.Provable.Provable(childComplexity), true
+
+	case "ProvableAttribute.attribute":
+		if e.complexity.ProvableAttribute.Attribute == nil {
+			break
+		}
+
+		return e.complexity.ProvableAttribute.Attribute(childComplexity), true
+
+	case "ProvableAttribute.credentials":
+		if e.complexity.ProvableAttribute.Credentials == nil {
+			break
+		}
+
+		return e.complexity.ProvableAttribute.Credentials(childComplexity), true
+
+	case "ProvableAttribute.id":
+		if e.complexity.ProvableAttribute.ID == nil {
+			break
+		}
+
+		return e.complexity.ProvableAttribute.ID(childComplexity), true
 
 	case "Query.connection":
 		if e.complexity.Query.Connection == nil {
@@ -1653,14 +1771,39 @@ enum ProofRole {
 type ProofAttribute {
   id: ID!
   name: String!
-  value: String
   credDefId: String!
+}
+
+type Provable {
+  id: ID!
+  provable: Boolean!
+  attributes: [ProvableAttribute]!
+}
+
+type ProvableAttribute {
+  id: ID!
+  attribute: ProofAttribute!
+  credentials: [CredentialMatch]!
+}
+
+type CredentialMatch {
+  id: ID!
+  credentialId: ID!
+  value: String!
+}
+
+type ProofValue {
+  id: ID!
+  attributeId: ID!
+  value: String!
 }
 
 type Proof {
   id: ID!
   role: ProofRole!
   attributes: [ProofAttribute]!
+  values: [ProofValue]!
+  provable: Provable!
   initiatedByUs: Boolean!
   result: Boolean!
   verifiedMs: String
@@ -3492,6 +3635,111 @@ func (ec *executionContext) _CredentialEdge_node(ctx context.Context, field grap
 	res := resTmp.(*model.Credential)
 	fc.Result = res
 	return ec.marshalNCredential2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredential(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CredentialMatch_id(ctx context.Context, field graphql.CollectedField, obj *model.CredentialMatch) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CredentialMatch",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CredentialMatch_credentialId(ctx context.Context, field graphql.CollectedField, obj *model.CredentialMatch) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CredentialMatch",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CredentialID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CredentialMatch_value(ctx context.Context, field graphql.CollectedField, obj *model.CredentialMatch) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "CredentialMatch",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CredentialValue_id(ctx context.Context, field graphql.CollectedField, obj *model.CredentialValue) (ret graphql.Marshaler) {
@@ -6198,6 +6446,76 @@ func (ec *executionContext) _Proof_attributes(ctx context.Context, field graphql
 	return ec.marshalNProofAttribute2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofAttribute(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Proof_values(ctx context.Context, field graphql.CollectedField, obj *model.Proof) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Proof",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Values, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ProofValue)
+	fc.Result = res
+	return ec.marshalNProofValue2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofValue(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Proof_provable(ctx context.Context, field graphql.CollectedField, obj *model.Proof) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Proof",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Proof().Provable(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Provable)
+	fc.Result = res
+	return ec.marshalNProvable2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProvable(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Proof_initiatedByUs(ctx context.Context, field graphql.CollectedField, obj *model.Proof) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6472,38 +6790,6 @@ func (ec *executionContext) _ProofAttribute_name(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ProofAttribute_value(ctx context.Context, field graphql.CollectedField, obj *model.ProofAttribute) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ProofAttribute",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Value, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _ProofAttribute_credDefId(ctx context.Context, field graphql.CollectedField, obj *model.ProofAttribute) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6773,6 +7059,321 @@ func (ec *executionContext) _ProofEdge_node(ctx context.Context, field graphql.C
 	res := resTmp.(*model.Proof)
 	fc.Result = res
 	return ec.marshalNProof2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProof(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ProofValue_id(ctx context.Context, field graphql.CollectedField, obj *model.ProofValue) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ProofValue",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ProofValue_attributeId(ctx context.Context, field graphql.CollectedField, obj *model.ProofValue) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ProofValue",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AttributeID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ProofValue_value(ctx context.Context, field graphql.CollectedField, obj *model.ProofValue) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ProofValue",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Provable_id(ctx context.Context, field graphql.CollectedField, obj *model.Provable) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Provable",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Provable_provable(ctx context.Context, field graphql.CollectedField, obj *model.Provable) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Provable",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Provable, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Provable_attributes(ctx context.Context, field graphql.CollectedField, obj *model.Provable) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Provable",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Attributes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ProvableAttribute)
+	fc.Result = res
+	return ec.marshalNProvableAttribute2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProvableAttribute(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ProvableAttribute_id(ctx context.Context, field graphql.CollectedField, obj *model.ProvableAttribute) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ProvableAttribute",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ProvableAttribute_attribute(ctx context.Context, field graphql.CollectedField, obj *model.ProvableAttribute) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ProvableAttribute",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Attribute, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ProofAttribute)
+	fc.Result = res
+	return ec.marshalNProofAttribute2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofAttribute(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ProvableAttribute_credentials(ctx context.Context, field graphql.CollectedField, obj *model.ProvableAttribute) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ProvableAttribute",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Credentials, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.CredentialMatch)
+	fc.Result = res
+	return ec.marshalNCredentialMatch2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialMatch(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_connections(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -8954,6 +9555,43 @@ func (ec *executionContext) _CredentialEdge(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var credentialMatchImplementors = []string{"CredentialMatch"}
+
+func (ec *executionContext) _CredentialMatch(ctx context.Context, sel ast.SelectionSet, obj *model.CredentialMatch) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, credentialMatchImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CredentialMatch")
+		case "id":
+			out.Values[i] = ec._CredentialMatch_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "credentialId":
+			out.Values[i] = ec._CredentialMatch_credentialId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+			out.Values[i] = ec._CredentialMatch_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var credentialValueImplementors = []string{"CredentialValue"}
 
 func (ec *executionContext) _CredentialValue(ctx context.Context, sel ast.SelectionSet, obj *model.CredentialValue) graphql.Marshaler {
@@ -9729,6 +10367,25 @@ func (ec *executionContext) _Proof(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "values":
+			out.Values[i] = ec._Proof_values(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "provable":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Proof_provable(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "initiatedByUs":
 			out.Values[i] = ec._Proof_initiatedByUs(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -9794,8 +10451,6 @@ func (ec *executionContext) _ProofAttribute(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "value":
-			out.Values[i] = ec._ProofAttribute_value(ctx, field, obj)
 		case "credDefId":
 			out.Values[i] = ec._ProofAttribute_credDefId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -9877,6 +10532,117 @@ func (ec *executionContext) _ProofEdge(ctx context.Context, sel ast.SelectionSet
 			}
 		case "node":
 			out.Values[i] = ec._ProofEdge_node(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var proofValueImplementors = []string{"ProofValue"}
+
+func (ec *executionContext) _ProofValue(ctx context.Context, sel ast.SelectionSet, obj *model.ProofValue) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, proofValueImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ProofValue")
+		case "id":
+			out.Values[i] = ec._ProofValue_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "attributeId":
+			out.Values[i] = ec._ProofValue_attributeId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+			out.Values[i] = ec._ProofValue_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var provableImplementors = []string{"Provable"}
+
+func (ec *executionContext) _Provable(ctx context.Context, sel ast.SelectionSet, obj *model.Provable) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, provableImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Provable")
+		case "id":
+			out.Values[i] = ec._Provable_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "provable":
+			out.Values[i] = ec._Provable_provable(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "attributes":
+			out.Values[i] = ec._Provable_attributes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var provableAttributeImplementors = []string{"ProvableAttribute"}
+
+func (ec *executionContext) _ProvableAttribute(ctx context.Context, sel ast.SelectionSet, obj *model.ProvableAttribute) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, provableAttributeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ProvableAttribute")
+		case "id":
+			out.Values[i] = ec._ProvableAttribute_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "attribute":
+			out.Values[i] = ec._ProvableAttribute_attribute(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "credentials":
+			out.Values[i] = ec._ProvableAttribute_credentials(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -10463,6 +11229,43 @@ func (ec *executionContext) marshalNCredentialConnection2ᚖgithubᚗcomᚋfindy
 	return ec._CredentialConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNCredentialMatch2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialMatch(ctx context.Context, sel ast.SelectionSet, v []*model.CredentialMatch) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOCredentialMatch2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialMatch(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) unmarshalNCredentialRole2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialRole(ctx context.Context, v interface{}) (model.CredentialRole, error) {
 	var res model.CredentialRole
 	err := res.UnmarshalGQL(v)
@@ -10708,6 +11511,16 @@ func (ec *executionContext) marshalNProofAttribute2ᚕᚖgithubᚗcomᚋfindyᚑ
 	return ret
 }
 
+func (ec *executionContext) marshalNProofAttribute2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofAttribute(ctx context.Context, sel ast.SelectionSet, v *model.ProofAttribute) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ProofAttribute(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNProofConnection2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofConnection(ctx context.Context, sel ast.SelectionSet, v model.ProofConnection) graphql.Marshaler {
 	return ec._ProofConnection(ctx, sel, &v)
 }
@@ -10732,6 +11545,43 @@ func (ec *executionContext) marshalNProofRole2githubᚗcomᚋfindyᚑnetworkᚋf
 	return v
 }
 
+func (ec *executionContext) marshalNProofValue2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofValue(ctx context.Context, sel ast.SelectionSet, v []*model.ProofValue) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOProofValue2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofValue(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) unmarshalNProtocolType2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProtocolType(ctx context.Context, v interface{}) (model.ProtocolType, error) {
 	var res model.ProtocolType
 	err := res.UnmarshalGQL(v)
@@ -10740,6 +11590,57 @@ func (ec *executionContext) unmarshalNProtocolType2githubᚗcomᚋfindyᚑnetwor
 
 func (ec *executionContext) marshalNProtocolType2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProtocolType(ctx context.Context, sel ast.SelectionSet, v model.ProtocolType) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNProvable2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProvable(ctx context.Context, sel ast.SelectionSet, v model.Provable) graphql.Marshaler {
+	return ec._Provable(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNProvable2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProvable(ctx context.Context, sel ast.SelectionSet, v *model.Provable) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Provable(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNProvableAttribute2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProvableAttribute(ctx context.Context, sel ast.SelectionSet, v []*model.ProvableAttribute) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOProvableAttribute2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProvableAttribute(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalNResponse2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐResponse(ctx context.Context, sel ast.SelectionSet, v model.Response) graphql.Marshaler {
@@ -11231,6 +12132,13 @@ func (ec *executionContext) marshalOCredentialEdge2ᚖgithubᚗcomᚋfindyᚑnet
 	return ec._CredentialEdge(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOCredentialMatch2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialMatch(ctx context.Context, sel ast.SelectionSet, v *model.CredentialMatch) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CredentialMatch(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalOCredentialValue2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialValue(ctx context.Context, sel ast.SelectionSet, v []*model.CredentialValue) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -11689,6 +12597,20 @@ func (ec *executionContext) marshalOProofEdge2ᚖgithubᚗcomᚋfindyᚑnetwork�
 		return graphql.Null
 	}
 	return ec._ProofEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOProofValue2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofValue(ctx context.Context, sel ast.SelectionSet, v *model.ProofValue) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ProofValue(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOProvableAttribute2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProvableAttribute(ctx context.Context, sel ast.SelectionSet, v *model.ProvableAttribute) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ProvableAttribute(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

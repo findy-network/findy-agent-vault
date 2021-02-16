@@ -123,15 +123,9 @@ func (l *Listener) UpdateCredential(info *agency.JobInfo, data *agency.Credentia
 	credential, err := l.db.GetCredential(*job.ProtocolCredentialID, job.TenantID)
 	err2.Check(err)
 
-	if credential.Approved == nil {
-		credential.Approved = utils.TimestampToTime(data.ApprovedMs)
-	}
-	if credential.Issued == nil {
-		credential.Issued = utils.TimestampToTime(data.IssuedMs)
-	}
-	if credential.Failed == nil {
-		credential.Failed = utils.TimestampToTime(data.FailedMs)
-	}
+	credential.Approved = utils.TSToTimeIfNotSet(credential.Approved, data.ApprovedMs)
+	credential.Issued = utils.TSToTimeIfNotSet(credential.Issued, data.IssuedMs)
+	credential.Failed = utils.TSToTimeIfNotSet(credential.Failed, data.FailedMs)
 
 	credential, err = l.db.UpdateCredential(credential)
 	err2.Check(err)
@@ -183,14 +177,26 @@ func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) (
 	proof, err := l.db.GetProof(*job.ProtocolProofID, job.TenantID)
 	err2.Check(err)
 
-	if proof.Approved == nil {
-		proof.Approved = utils.TimestampToTime(data.ApprovedMs)
-	}
-	if proof.Verified == nil {
-		proof.Verified = utils.TimestampToTime(data.VerifiedMs)
-	}
-	if proof.Failed == nil {
-		proof.Failed = utils.TimestampToTime(data.FailedMs)
+	proof.Approved = utils.TSToTimeIfNotSet(proof.Approved, data.ApprovedMs)
+	proof.Verified = utils.TSToTimeIfNotSet(proof.Verified, data.VerifiedMs)
+	proof.Failed = utils.TSToTimeIfNotSet(proof.Failed, data.FailedMs)
+
+	if proof.Verified != nil {
+		// TODO: these values should come from agency
+		// now we just pick first found value
+		var provableAttrs []*model.ProvableAttribute
+		provableAttrs, err = l.db.SearchCredentials(proof.TenantID, proof.Attributes)
+		err2.Check(err)
+		proof.Values = make([]*model.ProofValue, 0)
+		for _, attr := range provableAttrs {
+			if len(attr.Credentials) > 0 {
+				proof.Values = append(proof.Values, &model.ProofValue{
+					ID:          attr.ID,
+					AttributeID: attr.ID,
+					Value:       attr.Credentials[0].Value,
+				})
+			}
+		}
 	}
 
 	proof, err = l.db.UpdateProof(proof)

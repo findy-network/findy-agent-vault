@@ -127,7 +127,7 @@ func (a *Archiver) archive(
 
 	if err == nil { // job exists
 		err2.Check(a.archiveExisting(info, agent, job))
-	} else if store.ErrorCode(err) == store.NotExists { // job is new
+	} else if store.ErrorCode(err) == store.ErrCodeNotFound { // job is new
 		err2.Check(a.archiveNew(info, agent, protocolType, addToStore))
 	} else {
 		err2.Check(err) // some other error

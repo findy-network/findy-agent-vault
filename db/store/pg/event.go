@@ -23,7 +23,7 @@ func (pg *Database) AddEvent(e *model.Event) (n *model.Event, err error) {
 	defer err2.Annotate("AddEvent", &err)
 
 	n = model.NewEvent(e.TenantID, e)
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
 		},
@@ -45,7 +45,7 @@ func (pg *Database) MarkEventRead(id, tenantID string) (e *model.Event, err erro
 		" RETURNING id," + sqlEventFields + ", created, cursor"
 
 	e = model.NewEvent("", nil)
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		readRowToEvent(e),
 		sqlEventUpdate,
 		id,
@@ -82,7 +82,7 @@ func (pg *Database) GetEvent(id, tenantID string) (e *model.Event, err error) {
 		" WHERE event.id=$1 AND tenant_id=$2"
 
 	e = model.NewEvent("", nil)
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		readRowToEvent(e),
 		sqlEventSelectByID,
 		id,
@@ -101,23 +101,20 @@ func (pg *Database) getEventsForQuery(
 	defer err2.Annotate("GetEvents", &err)
 
 	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
-	rows, err := pg.db.Query(query, args...)
-	err2.Check(err)
-	defer rows.Close()
-
 	e = &model.Events{
 		Events:          make([]*model.Event, 0),
 		HasNextPage:     false,
 		HasPreviousPage: false,
 	}
+
 	var event *model.Event
-	for rows.Next() {
+	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+		defer err2.Return(&err)
 		event, err = rowToEvent(rows)
 		err2.Check(err)
 		e.Events = append(e.Events, event)
-	}
-
-	err2.Check(rows.Err())
+		return
+	}, query, args...))
 
 	if batch.Count < len(e.Events) {
 		e.Events = e.Events[:batch.Count]

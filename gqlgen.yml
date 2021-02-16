@@ -78,6 +78,8 @@ models:
     fields:
       connection:
         resolver: true
+      provable:
+        resolver: true
   Event:
     fields:
       connection:

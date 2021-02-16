@@ -24,9 +24,25 @@ func validateProofAttributes(t *testing.T, exp, got []*graph.ProofAttribute) {
 		if a.Name != exp[index].Name {
 			t.Errorf("Proof attribute name mismatch: expected %s got %s.", exp[index].Name, a.Name)
 		}
-		validateStrPtr(t, exp[index].Value, a.Value, "proof attribute value")
 		if a.CredDefID != exp[index].CredDefID {
 			t.Errorf("Proof attribute cred def mismatch: expected %s got %s.", exp[index].CredDefID, a.CredDefID)
+		}
+	}
+}
+
+func validateProofValues(t *testing.T, exp, got []*graph.ProofValue) {
+	if len(got) != len(exp) {
+		t.Errorf("No expected values found")
+	}
+	for index, a := range got {
+		if a.ID == "" {
+			t.Errorf("Proof value id invalid.")
+		}
+		if a.AttributeID != exp[index].AttributeID {
+			t.Errorf("Proof value attribute id mismatch: expected %s got %s.", exp[index].AttributeID, a.AttributeID)
+		}
+		if a.Value != exp[index].Value {
+			t.Errorf("Proof value mismatch: expected %s got %s.", exp[index].Value, a.Value)
 		}
 	}
 }
@@ -61,6 +77,7 @@ func validateProof(t *testing.T, exp, got *model.Proof) {
 	validateCreatedTS(t, got.Cursor, &got.Created)
 
 	validateProofAttributes(t, exp.Attributes, got.Attributes)
+	validateProofValues(t, exp.Values, got.Values)
 }
 
 func validateProofs(t *testing.T, expCount int, exp, got *model.Proofs) {
@@ -169,6 +186,10 @@ func TestUpdateProof(t *testing.T) {
 			now := time.Now().UTC()
 			p.Approved = &now
 			p.Verified = &now
+			p.Values = make([]*graph.ProofValue, 0)
+			for _, attr := range p.Attributes {
+				p.Values = append(p.Values, &graph.ProofValue{ID: attr.ID, AttributeID: attr.ID, Value: "value"})
+			}
 			_, err = s.db.UpdateProof(p)
 			if err != nil {
 				t.Errorf("Failed to update proof %s", err.Error())

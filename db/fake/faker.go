@@ -260,11 +260,10 @@ func Credential(tenantID, connectionID string) *model.Credential {
 
 func Proof(tenantID, connectionID string) *model.Proof {
 	_ = faker.AddProvider("proofAttributes", func(v reflect.Value) (interface{}, error) {
-		value := "value"
 		return []*graph.ProofAttribute{
-			{Name: "name1", Value: &value, CredDefID: "credDefId1"},
-			{Name: "name2", Value: &value, CredDefID: "credDefId2"},
-			{Name: "name3", Value: &value, CredDefID: "credDefId3"},
+			{Name: "name1", CredDefID: "credDefId1"},
+			{Name: "name2", CredDefID: "credDefId2"},
+			{Name: "name3", CredDefID: "credDefId3"},
 		}, nil
 	})
 	proof := model.NewProof("", nil)

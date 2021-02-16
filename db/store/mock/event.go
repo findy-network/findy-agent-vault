@@ -6,6 +6,7 @@ import (
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/findy-network/findy-agent-vault/db/model"
+	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/paginator"
 )
 
@@ -55,14 +56,14 @@ func (m *mockData) MarkEventRead(id, tenantID string) (*model.Event, error) {
 
 	object := agent.events.objectForID(id)
 	if object == nil {
-		return nil, errors.New("not found event for id: " + id)
+		return nil, store.NewError(store.ErrCodeNotFound, "not found event for id: "+id)
 	}
 	updated := object.Copy()
 	event := updated.Event()
 	event.Read = true
 
 	if !agent.events.replaceObjectForID(id, updated) {
-		return nil, errors.New("not found event for id: " + id)
+		panic("not found event for id: " + id)
 	}
 	return updated.Event(), nil
 }
@@ -72,7 +73,7 @@ func (m *mockData) GetEvent(id, tenantID string) (*model.Event, error) {
 
 	e := agent.events.objectForID(id)
 	if e == nil {
-		return nil, errors.New("not found event for id: " + id)
+		return nil, store.NewError(store.ErrCodeNotFound, "not found event for id: "+id)
 	}
 	return e.Event(), nil
 }

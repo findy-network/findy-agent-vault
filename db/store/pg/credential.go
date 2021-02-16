@@ -10,6 +10,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/assert"
 )
 
 func constructCredentialAttributeInsert(count int) string {
@@ -59,17 +60,13 @@ func (pg *Database) getCredentialForObject(objectName, columnName, objectID, ten
 		" INNER JOIN " + objectName + " ON " + objectName +
 		"." + columnName + "=credential.id WHERE " + objectName + ".id = $1 AND credential.tenant_id = $2"
 
-	rows, err := pg.db.Query(sqlCredentialSelectByObjectID, objectID, tenantID)
-	err2.Check(err)
-	defer rows.Close()
-
 	c = model.NewCredential("", nil)
-	for rows.Next() {
+	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+		defer err2.Return(&err)
 		c, err = readRowToCredential(rows, c)
 		err2.Check(err)
-	}
-
-	err2.Check(rows.Err())
+		return
+	}, sqlCredentialSelectByObjectID, objectID, tenantID))
 
 	return
 }
@@ -83,18 +80,14 @@ func (pg *Database) addCredentialAttributes(id string, attributes []*graph.Crede
 		args = append(args, []interface{}{id, a.Name, a.Value, index}...)
 	}
 
-	rows, err := pg.db.Query(query, args...)
-	err2.Check(err)
-	defer rows.Close()
-
 	index := 0
-	for rows.Next() {
+	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+		defer err2.Return(&err)
 		err = rows.Scan(&attributes[index].ID)
 		err2.Check(err)
 		index++
-	}
-
-	err2.Check(rows.Err())
+		return
+	}, query, args...))
 
 	return attributes, nil
 }
@@ -107,7 +100,7 @@ func (pg *Database) AddCredential(c *model.Credential) (n *model.Credential, err
 	}
 
 	n = model.NewCredential(c.TenantID, c)
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
 		},
@@ -199,17 +192,13 @@ func (pg *Database) GetCredential(id, tenantID string) (c *model.Credential, err
 		" WHERE credential.id=$1 AND tenant_id=$2" +
 		" ORDER BY credential_attribute.index"
 
-	rows, err := pg.db.Query(sqlCredentialSelectByID, id, tenantID)
-	err2.Check(err)
-	defer rows.Close()
-
 	c = model.NewCredential("", nil)
-	for rows.Next() {
+	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+		defer err2.Return(&err)
 		c, err = readRowToCredential(rows, c)
 		err2.Check(err)
-	}
-
-	err2.Check(rows.Err())
+		return
+	}, sqlCredentialSelectByID, id, tenantID))
 
 	return
 }
@@ -224,9 +213,6 @@ func (pg *Database) getCredentialsForQuery(
 	defer err2.Annotate("GetCredentials", &err)
 
 	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
-	rows, err := pg.db.Query(query, args...)
-	err2.Check(err)
-	defer rows.Close()
 
 	c = &model.Credentials{
 		Credentials:     make([]*model.Credential, 0),
@@ -235,14 +221,16 @@ func (pg *Database) getCredentialsForQuery(
 	}
 	prevCredential := model.NewCredential("", nil)
 	var credential *model.Credential
-	for rows.Next() {
+	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+		defer err2.Return(&err)
 		credential, err = readRowToCredential(rows, prevCredential)
 		err2.Check(err)
 		if prevCredential.ID != "" && prevCredential.ID != credential.ID {
 			c.Credentials = append(c.Credentials, prevCredential)
 		}
 		prevCredential = credential
-	}
+		return
+	}, query, args...))
 
 	// ensure also last credential is added
 	lastCredentialID := ""
@@ -253,8 +241,6 @@ func (pg *Database) getCredentialsForQuery(
 	if prevCredential.ID != lastCredentialID {
 		c.Credentials = append(c.Credentials, prevCredential)
 	}
-
-	err2.Check(rows.Err())
 
 	if batch.Count < len(c.Credentials) {
 		c.Credentials = c.Credentials[:batch.Count]
@@ -369,7 +355,7 @@ func (pg *Database) ArchiveCredential(id, tenantID string) (err error) {
 	)
 
 	now := utils.CurrentTime()
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&id)
 		},
@@ -379,4 +365,75 @@ func (pg *Database) ArchiveCredential(id, tenantID string) (err error) {
 		tenantID,
 	))
 	return
+}
+
+func (pg *Database) SearchCredentials(
+	tenantID string,
+	proofAttributes []*graph.ProofAttribute,
+) (res []*graph.ProvableAttribute, err error) {
+	defer err2.Annotate("SearchCredentials", &err)
+
+	assert.P.NotEmpty(proofAttributes, "cannot search credentials for empty proof")
+
+	credDefs := ""
+	names := ""
+	for _, attr := range proofAttributes {
+		if attr.CredDefID != "" {
+			if credDefs != "" {
+				credDefs += ","
+			}
+			credDefs += fmt.Sprintf("'%s'", attr.CredDefID)
+		}
+		if names != "" {
+			names += ","
+		}
+		names += fmt.Sprintf("'%s'", attr.Name)
+	}
+
+	attributeSearch := ""
+	if credDefs != "" {
+		attributeSearch = "cred_def_id IN (" + credDefs + ") OR "
+	}
+	attributeSearch += " name IN (" + names + ")"
+
+	var (
+		sqlCredentialSearch = "SELECT credential.id, name, cred_def_id, value FROM credential " + sqlCredentialJoin +
+			" WHERE tenant_id=$1 AND (" + attributeSearch + ")" +
+			" ORDER BY credential.created"
+	)
+
+	type searchResult struct {
+		credID    string
+		attrName  string
+		credDefID string
+		credValue string
+	}
+	searchResults := make([]*searchResult, 0)
+	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+		defer err2.Return(&err)
+		s := &searchResult{}
+		err2.Check(rows.Scan(&s.credID, &s.attrName, &s.credDefID, &s.credValue))
+		searchResults = append(searchResults, s)
+		return
+	}, sqlCredentialSearch, tenantID))
+
+	res = make([]*graph.ProvableAttribute, 0)
+	for _, attr := range proofAttributes {
+		provableAttr := &graph.ProvableAttribute{}
+		provableAttr.ID = attr.ID
+		provableAttr.Attribute = attr
+		provableAttr.Credentials = make([]*graph.CredentialMatch, 0)
+		for _, value := range searchResults {
+			if value.attrName == attr.Name && (attr.CredDefID == "" || attr.CredDefID == value.credDefID) {
+				provableAttr.Credentials = append(provableAttr.Credentials, &graph.CredentialMatch{
+					ID:           attr.ID + "/" + value.credID,
+					CredentialID: value.credID,
+					Value:        value.credValue,
+				})
+			}
+		}
+		res = append(res, provableAttr)
+	}
+
+	return res, err
 }

@@ -42,23 +42,20 @@ func (pg *Database) GetListenerAgents(info *paginator.BatchInfo) (a *model.Agent
 		[]interface{}{},
 	)
 
-	rows, err := pg.db.Query(query, args...)
-	err2.Check(err)
-	defer rows.Close()
-
 	a = &model.Agents{
 		Agents:          make([]*model.Agent, 0),
 		HasNextPage:     false,
 		HasPreviousPage: false,
 	}
 	var agent *model.Agent
-	for rows.Next() {
+	err = pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+		defer err2.Return(&err)
 		agent, err = rowToAgent(rows)
 		err2.Check(err)
 		a.Agents = append(a.Agents, agent)
-	}
-
-	err2.Check(rows.Err())
+		return
+	}, query, args...)
+	err2.Check(err)
 
 	if info.Count < len(a.Agents) {
 		a.Agents = a.Agents[:info.Count]
@@ -91,7 +88,7 @@ func (pg *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
 
 	n = model.NewAgent(a)
 
-	err2.Check(pg.doQuery(
+	err2.Check(pg.doRowQuery(
 		readRowToAgent(n),
 		sqlAgentInsert,
 		a.AgentID,
@@ -131,7 +128,7 @@ func (pg *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
 	}
 	a = model.NewAgent(nil)
 
-	err2.Check(pg.doQuery(readRowToAgent(a), query, *queryID))
+	err2.Check(pg.doRowQuery(readRowToAgent(a), query, *queryID))
 
 	a.TenantID = a.ID
 

@@ -93,13 +93,11 @@ var (
 		}
 	}
 
-	testProofValue = ""
-	testProof      = &model.Proof{
+	testProof = &model.Proof{
 		Role: graph.ProofRoleProver,
 		Attributes: []*graph.ProofAttribute{{
 			Name:      "attribute-name",
 			CredDefID: "cred-def-id",
-			Value:     &testProofValue,
 		}},
 		InitiatedByUs: false,
 	}
