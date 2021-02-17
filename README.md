@@ -93,3 +93,6 @@ For linting, you need to install [golangci-lint](https://golangci-lint.run/usage
 
 `make check` builds, tests and lints the code.
 
+## Other documentation
+
+Check [docs-folder](./docs/README.md)
