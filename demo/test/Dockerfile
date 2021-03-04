@@ -1,6 +1,6 @@
 FROM findy-agent-cli
 
-FROM optechlab/indy-golang:1.15.0
+FROM optechlab/indy-golang:1.16.0
 
 ARG HTTPS_PREFIX
 

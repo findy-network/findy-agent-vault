@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/findy-network/findy-agent-auth/enclave"
 	clock "github.com/findy-network/findy-agent-vault/utils"
-	"github.com/findy-network/findy-grpc/enclave"
 	"github.com/findy-network/findy-grpc/utils"
 )
 
