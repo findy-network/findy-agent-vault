@@ -1,7 +1,7 @@
 version: "3"
 services:
   agency:
-    build: 
+    build:
       context: .docker/findy-agent-cli/agency
       args:
         HTTPS_PREFIX: ${HTTPS_PREFIX}
@@ -9,7 +9,7 @@ services:
       - "8080:8080"
       - "50052:50051"
     volumes:
-      - .docker/findy-grpc/cert:/cert
+      - .docker/findy-common-go/cert:/cert
       - ./conf/steward.exported:/steward.exported
       - ./conf/genesis_transactions:/genesis_transactions
     environment:
@@ -19,7 +19,7 @@ services:
       FCLI_AGENCY_GRPC_CERT_PATH: "/cert"
       FCLI_POOL_NAME: "FINDY_FILE_LEDGER"
       FCLI_AGENCY_POOL_NAME: "FINDY_FILE_LEDGER"
-      
+
   vault-db:
     image: postgres:13.1-alpine
     environment:
@@ -29,4 +29,3 @@ services:
       - ./.docker/db/data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-

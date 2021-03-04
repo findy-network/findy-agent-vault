@@ -14,7 +14,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/findy-network/findy-agent-vault/graph/generated"
 	"github.com/findy-network/findy-agent-vault/utils"
-	jwtMW "github.com/findy-network/findy-grpc/jwt/mw"
+	jwtMW "github.com/findy-network/findy-common-go/jwt/mw"
 	"github.com/gorilla/websocket"
 )
 

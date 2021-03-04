@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	didexchange "github.com/findy-network/findy-agent/std/didexchange/invitation"
-	"github.com/findy-network/findy-grpc/jwt"
+	"github.com/findy-network/findy-common-go/jwt"
 )
 
 func main() {

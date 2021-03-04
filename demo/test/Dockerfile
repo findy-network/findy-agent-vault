@@ -24,6 +24,6 @@ RUN apt-get update && apt-get install -y curl
 
 COPY test.sh /
 
-COPY .docker/cert /go/src/github.com/findy-network/findy-grpc/cert
+COPY .docker/cert /go/src/github.com/findy-network/findy-common-go/cert
 
 ENTRYPOINT ["/test.sh"]
