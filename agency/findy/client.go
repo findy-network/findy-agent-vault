@@ -6,9 +6,9 @@ import (
 	"github.com/findy-network/findy-agent-api/grpc/agency"
 	"github.com/findy-network/findy-agent-api/grpc/ops"
 	"github.com/findy-network/findy-agent-vault/agency/model"
-	"github.com/findy-network/findy-grpc/agency/client"
-	"github.com/findy-network/findy-grpc/agency/client/async"
-	"github.com/findy-network/findy-grpc/jwt"
+	"github.com/findy-network/findy-common-go/agency/client"
+	"github.com/findy-network/findy-common-go/agency/client/async"
+	"github.com/findy-network/findy-common-go/jwt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/oauth"
 )
