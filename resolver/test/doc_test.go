@@ -14,7 +14,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/resolver"
 	"github.com/findy-network/findy-agent-vault/server"
 	"github.com/findy-network/findy-agent-vault/utils"
-	"github.com/findy-network/findy-grpc/jwt"
+	"github.com/findy-network/findy-common-go/jwt"
 )
 
 var (

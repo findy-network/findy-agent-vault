@@ -8,7 +8,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/model"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
-	"github.com/findy-network/findy-grpc/jwt"
+	"github.com/findy-network/findy-common-go/jwt"
 )
 
 type ErrCode string

@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/findy-network/findy-agent-vault/db/fake"
-	"github.com/findy-network/findy-grpc/jwt"
+	"github.com/findy-network/findy-common-go/jwt"
 )
 
 const (
