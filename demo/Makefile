@@ -10,8 +10,8 @@ clone:
 	mkdir -p .docker
 	-git clone git@github.com:findy-network/findy-agent-cli.git .docker/findy-agent-cli
 	cd .docker/findy-agent-cli && git checkout $(BRANCH)
-	-git clone git@github.com:findy-network/findy-grpc.git .docker/findy-grpc
-	cd .docker/findy-grpc && git checkout $(BRANCH)
+	-git clone git@github.com:findy-network/findy-common-go.git .docker/findy-common-go
+	cd .docker/findy-common-go && git checkout $(BRANCH)
 
 clean_cli:
 	docker rmi findy-agent-cli
@@ -23,7 +23,7 @@ prepare-test:
 	-docker-compose -f docker-compose-test.yml down
 	docker-compose -f docker-compose-test.yml up --build -d
 	mkdir -p ./test/.docker
-	cp -R .docker/findy-grpc/cert ./test/.docker/cert
+	cp -R .docker/findy-common-go/cert ./test/.docker/cert
 	docker build -t vault-demo-test --build-arg HTTPS_PREFIX=$(HTTPS_PREFIX) ./test
 	sleep $(TIMEOUT)
 
@@ -40,7 +40,7 @@ tree:
 test-test:
 	docker run --name vault-demo-e2e \
 		--rm -it --network=demo_default \
-		-v $(PWD)/.docker/findy-grpc/cert:/go/src/github.com/findy-network/findy-grpc/cert \
+		-v $(PWD)/.docker/findy-common-go/cert:/go/src/github.com/findy-network/findy-common-go/cert \
 		-v $(PWD)/test/test.sh:/test.sh \
 		vault-demo-test
 

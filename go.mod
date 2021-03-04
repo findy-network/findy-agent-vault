@@ -6,9 +6,9 @@ require (
 	github.com/99designs/gqlgen v0.13.0
 	github.com/bxcodec/faker v2.0.1+incompatible
 	github.com/bxcodec/faker/v3 v3.6.0
-	github.com/findy-network/findy-agent v0.0.0-20210302063538-627f8f3c8758
+	github.com/findy-network/findy-agent v0.0.0-20210304151716-fbfda59c3a72
 	github.com/findy-network/findy-agent-api v0.0.0-20210203142917-ee7d471ffd4b
-	github.com/findy-network/findy-grpc v0.1.1-0.20210211153806-808c6e0b6a92
+	github.com/findy-network/findy-common-go v0.1.2-0.20210304145749-94f700a63abf
 	github.com/gchaincl/sqlhooks/v2 v2.0.1
 	github.com/golang-migrate/migrate/v4 v4.14.1
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b

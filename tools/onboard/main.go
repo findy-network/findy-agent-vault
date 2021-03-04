@@ -5,7 +5,7 @@ import (
 
 	"github.com/findy-network/findy-agent-auth/enclave"
 	clock "github.com/findy-network/findy-agent-vault/utils"
-	"github.com/findy-network/findy-grpc/utils"
+	"github.com/findy-network/findy-common-go/utils"
 )
 
 func main() {
