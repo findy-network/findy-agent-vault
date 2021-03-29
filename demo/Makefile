@@ -8,16 +8,16 @@ clean:
 
 clone:
 	mkdir -p .docker
-	-git clone git@github.com:findy-network/findy-agent-cli.git .docker/findy-agent-cli
-	cd .docker/findy-agent-cli && git checkout $(BRANCH)
+	-git clone git@github.com:findy-network/findy-agent.git .docker/findy-agent
+	cd .docker/findy-agent && git checkout $(BRANCH)
 	-git clone git@github.com:findy-network/findy-common-go.git .docker/findy-common-go
 	cd .docker/findy-common-go && git checkout $(BRANCH)
 
 clean_cli:
-	docker rmi findy-agent-cli
+	docker rmi findy-agent
 
 build_cli:
-	cd .docker/findy-agent-cli && make image
+	cd .docker/findy-agent && make image
 
 prepare-test:
 	-docker-compose -f docker-compose-test.yml down
@@ -35,7 +35,7 @@ run-test:
 test: prepare-test run-test
 
 tree:
-	docker run --rm -it findy-agent-cli tree
+	docker run --rm -it findy-agent tree
 
 test-test:
 	docker run --name vault-demo-e2e \

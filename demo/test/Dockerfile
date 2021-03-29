@@ -1,4 +1,4 @@
-FROM findy-agent-cli
+FROM findy-agent
 
 FROM optechlab/indy-golang:1.16.0
 
@@ -8,7 +8,7 @@ ENV GOPRIVATE "github.com/findy-network"
 
 RUN git config --global url."https://"${HTTPS_PREFIX}"github.com/".insteadOf "https://github.com/"
 
-COPY --from=0 /findy-agent-cli /findy-agent-cli
+COPY --from=0 /findy-agent /findy-agent
 
 WORKDIR /work
 
