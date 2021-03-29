@@ -11,6 +11,8 @@ import (
 	"github.com/lainio/err2"
 )
 
+const waitTime = 5
+
 func (f *Agency) archive(info *model.ArchiveInfo, status *agency.ProtocolStatus) {
 	switch status.State.ProtocolId.TypeId {
 	case agency.Protocol_CONNECT:
@@ -34,7 +36,6 @@ func (f *Agency) archive(info *model.ArchiveInfo, status *agency.ProtocolStatus)
 }
 
 func (f *Agency) startHookOrWait() {
-	const waitTime = 5
 	for {
 		err := f.listenAdminHook()
 		if err == nil {
@@ -55,6 +56,7 @@ func (f *Agency) adminStatusLoop(ch chan *ops.AgencyStatus) {
 		status, ok := <-ch
 		if !ok {
 			glog.Warningln("listenAdminHook: server lost, try reconnecting...")
+			time.Sleep(waitTime * time.Second)
 			f.startHookOrWait()
 			break
 		}
