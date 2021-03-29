@@ -15,9 +15,14 @@ RUN go mod download
 
 COPY . ./
 
-RUN go build -o /go/bin/findy-agent-vault
+RUN VERSION=$(cat ./VERSION) && \
+    go build \
+    -ldflags "-X 'github.com/findy-network/findy-agent-vault/utils.Version=$VERSION'"\
+    -o /go/bin/findy-agent-vault
 
 FROM alpine:3.13
+
+EXPOSE 8085
 
 # override when running
 ENV FAV_JWT_KEY "mySuperSecretKeyLol"

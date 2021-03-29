@@ -10,6 +10,8 @@ import (
 
 const defaultPort = "8085"
 
+var Version = ""
+
 // TODO: do not allow default value in production mode
 const defaultJWTSecret = "mySuperSecretKeyLol"
 
@@ -29,6 +31,7 @@ type Configuration struct {
 	GenerateFakeData bool
 	UsePlayground    bool   `mapstructure:"use_playground"`
 	LogLevel         string `mapstructure:"log_level"`
+	Version          string
 }
 
 func LoadConfig() *Configuration {
@@ -66,5 +69,6 @@ func LoadConfig() *Configuration {
 
 	config.Address = fmt.Sprintf(":%d", config.ServerPort)
 	SetLogConfig(&config)
+	config.Version = Version
 	return &config
 }
