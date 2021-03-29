@@ -23,6 +23,12 @@ func main() {
 	if config.UsePlayground {
 		http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	}
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		if utils.LogLow() {
+			glog.Infof("health check %s %s", r.URL.Path, config.Version)
+		}
+		_, _ = w.Write([]byte(config.Version))
+	})
 
 	glog.Fatal(http.ListenAndServe(config.Address, nil))
 }
