@@ -2,7 +2,7 @@ version: "3"
 services:
   agency:
     build:
-      context: .docker/findy-agent-cli/agency
+      context: .docker/findy-agent/scripts/deploy
       args:
         HTTPS_PREFIX: ${HTTPS_PREFIX}
     ports:

@@ -14,14 +14,14 @@ echo "Timestamp for agent emails: $TIMESTAMP"
 
 ######### AGENT 1
 
-/findy-agent-cli service onboard \
+/findy-agent service onboard \
     --agency-url=http://agency:8080 \
     --wallet-name=$A1 \
 	--wallet-key=$WKEY \
 	--email=$A1$TIMESTAMP \
 	--salt=$SALT
 
-INVITE1=$(/findy-agent-cli service invitation \
+INVITE1=$(/findy-agent service invitation \
     --wallet-name=$A1 \
 	--wallet-key=$WKEY \
     --label=$A1)
@@ -30,14 +30,14 @@ JWT1=$(/jwt-extractor $INVITE1)
 
 ######### AGENT 2
 
-/findy-agent-cli service onboard \
+/findy-agent service onboard \
     --agency-url=http://agency:8080 \
     --wallet-name=$A2 \
 	--wallet-key=$WKEY \
 	--email=$A2$TIMESTAMP \
 	--salt=$SALT
 
-INVITE2=$(/findy-agent-cli service invitation \
+INVITE2=$(/findy-agent service invitation \
     --wallet-name=$A2 \
 	--wallet-key=$WKEY \
     --label=$A2)
