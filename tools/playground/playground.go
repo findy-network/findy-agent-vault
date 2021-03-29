@@ -4,13 +4,13 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/lainio/err2"
 
 	"github.com/rs/cors"
 
 	"github.com/golang/glog"
 
-	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/findy-network/findy-agent-vault/resolver"
 	"github.com/findy-network/findy-agent-vault/server"
 	"github.com/findy-network/findy-agent-vault/utils"

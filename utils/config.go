@@ -10,6 +10,8 @@ import (
 
 const defaultPort = "8085"
 
+var Version = ""
+
 // TODO: do not allow default value in production mode
 const defaultJWTSecret = "mySuperSecretKeyLol"
 
@@ -29,6 +31,7 @@ type Configuration struct {
 	GenerateFakeData bool
 	UsePlayground    bool   `mapstructure:"use_playground"`
 	LogLevel         string `mapstructure:"log_level"`
+	Version          string
 }
 
 func LoadConfig() *Configuration {
@@ -50,6 +53,7 @@ func LoadConfig() *Configuration {
 	v.SetDefault("agency_cert_path", "")
 	v.SetDefault("use_playground", false)
 	v.SetDefault("log_level", "5")
+	v.SetDefault("version", Version)
 
 	viper.SetConfigName("config.yaml")
 	viper.AddConfigPath(".")
