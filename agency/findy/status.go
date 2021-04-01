@@ -183,6 +183,7 @@ func (f *Agency) handleNotification(
 	case agency.Notification_ANSWER_NEEDED_ISSUE_PROPOSE:
 	case agency.Notification_ANSWER_NEEDED_PROOF_PROPOSE:
 	case agency.Notification_ANSWER_NEEDED_PROOF_VERIFY:
+	case agency.Notification_KEEPALIVE:
 		// TODO?
 	}
 }
@@ -228,6 +229,11 @@ func (f *Agency) agentStatusLoop(a *model.Agent, ch chan *agency.AgentStatus, re
 
 		// successful round -> reset retry counter
 		retryCount = 0
+
+		if status.Notification.TypeId == agency.Notification_KEEPALIVE {
+			utils.LogTrace().Infof("Keepalive for agent %s", a.TenantID)
+			continue
+		}
 
 		utils.LogMed().Infoln("received notification:",
 			status.Notification.TypeId,

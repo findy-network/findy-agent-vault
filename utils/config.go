@@ -9,6 +9,7 @@ import (
 )
 
 const defaultPort = "8085"
+const localhost = "localhost"
 
 var Version = ""
 
@@ -16,22 +17,25 @@ var Version = ""
 const defaultJWTSecret = "mySuperSecretKeyLol"
 
 type Configuration struct {
-	Address          string
-	ServerPort       int    `mapstructure:"server_port"`
-	JWTKey           string `mapstructure:"jwt_key"`
-	DBHost           string `mapstructure:"db_host"`
-	DBPort           int    `mapstructure:"db_port"`
-	DBPassword       string `mapstructure:"db_password"`
-	DBTracing        bool   `mapstructure:"db_tracing"`
-	AgencyHost       string `mapstructure:"agency_host"`
-	AgencyPort       int    `mapstructure:"agency_port"`
-	AgencyCertPath   string `mapstructure:"agency_cert_path"`
-	UseMockDB        bool
-	UseMockAgency    bool
-	GenerateFakeData bool
-	UsePlayground    bool   `mapstructure:"use_playground"`
-	LogLevel         string `mapstructure:"log_level"`
-	Version          string
+	// true if this vault service is the main agency subscriber
+	// TODO: this need to be rethought when we are scaling vault
+	AgencyMainSubscriber bool   `mapstructure:"agency_main_subscriber"`
+	AgencyCertPath       string `mapstructure:"agency_cert_path"`
+	AgencyHost           string `mapstructure:"agency_host"`
+	AgencyPort           int    `mapstructure:"agency_port"`
+	Address              string
+	DBHost               string `mapstructure:"db_host"`
+	DBPassword           string `mapstructure:"db_password"`
+	DBPort               int    `mapstructure:"db_port"`
+	DBTracing            bool   `mapstructure:"db_tracing"`
+	GenerateFakeData     bool
+	JWTKey               string `mapstructure:"jwt_key"`
+	LogLevel             string `mapstructure:"log_level"`
+	ServerPort           int    `mapstructure:"server_port"`
+	UseMockAgency        bool
+	UseMockDB            bool
+	UsePlayground        bool `mapstructure:"use_playground"`
+	Version              string
 }
 
 func LoadConfig() *Configuration {
@@ -42,17 +46,18 @@ func LoadConfig() *Configuration {
 
 	v := viper.New()
 	v.SetEnvPrefix("fav")
-	v.SetDefault("server_port", defaultPort)
-	v.SetDefault("jwt_key", defaultJWTSecret)
-	v.SetDefault("db_host", "localhost")
-	v.SetDefault("db_port", 5432)
-	v.SetDefault("db_password", "")
-	v.SetDefault("db_tracing", false)
-	v.SetDefault("agency_host", "localhost")
-	v.SetDefault("agency_port", 50051)
+	v.SetDefault("agency_main_subscriber", true)
 	v.SetDefault("agency_cert_path", "")
-	v.SetDefault("use_playground", false)
+	v.SetDefault("agency_host", localhost)
+	v.SetDefault("agency_port", 50051)
+	v.SetDefault("db_host", localhost)
+	v.SetDefault("db_password", "")
+	v.SetDefault("db_port", 5432)
+	v.SetDefault("db_tracing", false)
+	v.SetDefault("jwt_key", defaultJWTSecret)
 	v.SetDefault("log_level", "5")
+	v.SetDefault("server_port", defaultPort)
+	v.SetDefault("use_playground", false)
 
 	viper.SetConfigName("config.yaml")
 	viper.AddConfigPath(".")
@@ -70,5 +75,10 @@ func LoadConfig() *Configuration {
 	config.Address = fmt.Sprintf(":%d", config.ServerPort)
 	SetLogConfig(&config)
 	config.Version = Version
+
+	// make sure we do not accidentally subscribe to the data pump when developing in local
+	if config.AgencyMainSubscriber && config.AgencyHost != localhost && config.DBHost == localhost {
+		config.AgencyMainSubscriber = false
+	}
 	return &config
 }
