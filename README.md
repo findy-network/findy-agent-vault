@@ -1,6 +1,7 @@
 # findy-agent-vault
 
 Vault provides both
+
 1. Data storage service for findy-agency clients
 1. Abstraction/Convenience layer for [agency protocol APIs](github.com/findy-network/findy-agent-api) which can be used through GraphQL interface.
 
@@ -12,14 +13,15 @@ Service providing mock data can be launched with following steps:
 
 1. [Install go](https://golang.org/dl/)
 2. Run
-    
-    ```
-    make run
-    ```
+
+   ```
+   make run
+   ```
 
 This will launch the service in port 8085.
-* Access graphiQL playground with browser: http://localhost:8085
-* Configure URL `http://localhost:8085/query` to your own GQL-client.
+
+- Access graphiQL playground with browser: http://localhost:8085
+- Configure URL `http://localhost:8085/query` to your own GQL-client.
 
 See [sample client implementation](https://github.com/findy-network/findy-wallet-pwa).
 
@@ -28,51 +30,86 @@ See [sample client implementation](https://github.com/findy-network/findy-wallet
 Running the service in playground mode provides an endpoint for mock authentication token generation.
 Visit http://localhost:8085/token to generate the token.
 API requests should contain this token in header field for the authentication to succeed:
+
 ```
 {"Authorization": "Bearer <TOKEN>"}
 ```
 
-## Running with postgres and findy-agent
-
-1. Start postgres and findy-agent in their own docker containers:
-    ```bash
-    make dev_build
-    ```
-    (After the images have been built with command above, you can restart the env faster with `make env`)
-
-1. Onboard your agent to agency:
-
-    ```bash
-    go run tools/onboard/main.go
-    ```
-    Copy JWT token from the produced output.
+## Running locally with cloud agency
 
 1. Declare following environment variables:
 
-    ```bash
-    export FAV_SERVER_PORT=8085
-    export FAV_USE_PLAYGROUND=true
-    export FAV_AGENCY_PORT=50052
-    export FAV_DB_PASSWORD="my-secret-password"
-    export FAV_AGENCY_CERT_PATH=".github/workflows/cert"
-    ```
+   ```bash
+   export FAV_AGENCY_HOST="<AGENCY HOST e.g. agency.example.com>"
+   export FAV_AGENCY_PORT="<AGENCY GRPC port e.g. 50051>"
+   export FAV_AGENCY_CERT_PATH=".github/workflows/cert"
+   export FAV_AGENCY_MAIN_SUBSCRIBER=false
+   export FAV_DB_PASSWORD="my-secret-password"
+   export FAV_JWT_KEY="<AGENCY JWT SECRET>"
+   export FAV_SERVER_PORT=8085
+   export FAV_USE_PLAYGROUND=true
+   ```
+
+1. Start local postgres container
+
+   ```bash
+   make db
+   ```
+
+1. Start vault
+
+   ```bash
+   go run .
+   ```
+
+1. TODO: write auth setup instructions
+
+## Running with postgres and findy-agent
+
+1. Start postgres and findy-agent in their own docker containers:
+
+   ```bash
+   make dev_build
+   ```
+
+   (After the images have been built with command above, you can restart the env faster with `make env`)
+
+1. Onboard your agent to agency:
+
+   ```bash
+   go run tools/onboard/main.go
+   ```
+
+   Copy JWT token from the produced output.
+
+1. Declare following environment variables:
+
+   ```bash
+   export FAV_SERVER_PORT=8085
+   export FAV_USE_PLAYGROUND=true
+   export FAV_AGENCY_PORT=50052
+   export FAV_DB_PASSWORD="my-secret-password"
+   export FAV_AGENCY_CERT_PATH=".github/workflows/cert"
+   ```
 
 1. Run vault:
 
-    ```bash
-    go run main.go
-    ```
+   ```bash
+   go run main.go
+   ```
+
 1. Open http://localhost:8085 and set token to headers section as [instructed](#authentication). Execute graphQL queries with the playground e.g.
 
-    ```
-    { user { id name } }
-    ```
+   ```
+   { user { id name } }
+   ```
 
 ## Unit testing
 
 Unit tests assume postgres is running on port 5433.
 
 Launch default postgres container by declaring password for postgres user:
+
 ```bash
 export FAV_DB_PASSWORD="mysecretpassword"
 ```
@@ -87,7 +124,7 @@ You can run all unit tests with command
 
 ```bash
 go test ./...
-````
+```
 
 For linting, you need to install [golangci-lint](https://golangci-lint.run/usage/install/#local-installation)
 

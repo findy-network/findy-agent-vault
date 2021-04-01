@@ -53,10 +53,16 @@ func (f *Agency) Init(
 
 	f.vault = listener
 	f.archiver = archiver
-	err := f.listenAdminHook()
-	if err != nil {
-		panic(err)
+
+	if config.AgencyMainSubscriber {
+		err := f.listenAdminHook()
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		glog.Warningln("DEV mode: Skipping subscribing to PSM hook.")
 	}
+
 	for _, a := range agents {
 		err := f.listenAgent(a)
 		if err != nil {
