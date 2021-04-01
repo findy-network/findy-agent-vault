@@ -7,7 +7,7 @@ require (
 	github.com/bxcodec/faker v2.0.1+incompatible
 	github.com/bxcodec/faker/v3 v3.6.0
 	github.com/findy-network/findy-agent v0.0.0-20210304151716-fbfda59c3a72
-	github.com/findy-network/findy-agent-api v0.0.0-20210203142917-ee7d471ffd4b
+	github.com/findy-network/findy-agent-api v0.1.3
 	github.com/findy-network/findy-common-go v0.1.2-0.20210304145749-94f700a63abf
 	github.com/gchaincl/sqlhooks/v2 v2.0.1
 	github.com/golang-migrate/migrate/v4 v4.14.1

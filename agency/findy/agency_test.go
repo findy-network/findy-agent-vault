@@ -188,7 +188,7 @@ func TestInit(t *testing.T) {
 		&mockListener{},
 		[]*model.Agent{{AgentID: testClientID, TenantID: testClientID}},
 		&mockArchiver{},
-		&utils.Configuration{JWTKey: "mySuperSecretKeyLol", AgencyCertPath: tlsPath},
+		&utils.Configuration{JWTKey: "mySuperSecretKeyLol", AgencyCertPath: tlsPath, AgencyMainSubscriber: true},
 	)
 	// Wait for a while that calls complete
 	time.Sleep(time.Millisecond * 100)
