@@ -13,7 +13,9 @@ import (
 const (
 	sqlAgentFields = "id, agent_id, label, raw_jwt, created, last_accessed"
 	sqlAgentInsert = "INSERT INTO agent (agent_id, label, raw_jwt) VALUES ($1, $2, $3) " +
-		"ON CONFLICT (agent_id) DO UPDATE SET last_accessed = (now() at time zone 'UTC') RETURNING " + sqlAgentFields
+		"ON CONFLICT (agent_id) DO UPDATE SET " +
+		"last_accessed = (now() at time zone 'UTC'), raw_jwt = $4 " +
+		"RETURNING " + sqlAgentFields
 	sqlAgentSelect          = "SELECT " + sqlAgentFields + " FROM agent"
 	sqlAgentSelectByID      = sqlAgentSelect + " WHERE id=$1"
 	sqlAgentSelectByAgentID = sqlAgentSelect + " WHERE agent_id=$1"
@@ -93,6 +95,7 @@ func (pg *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
 		sqlAgentInsert,
 		a.AgentID,
 		a.Label,
+		a.RawJWT,
 		a.RawJWT,
 	))
 
