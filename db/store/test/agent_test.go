@@ -69,6 +69,8 @@ func TestAddAgent(t *testing.T) {
 			testAgent := model.NewAgent(nil)
 			testAgent.AgentID = "agentID"
 			testAgent.Label = "agentLabel"
+			testJwt := "jwt"
+			testAgent.RawJWT = &testJwt
 
 			var validateAgent = func(a *model.Agent) {
 				if a == nil {
@@ -81,8 +83,8 @@ func TestAddAgent(t *testing.T) {
 				if a.Label != testAgent.Label {
 					t.Errorf("Agent label mismatch expected %s got %s", testAgent.Label, a.Label)
 				}
-				if a.RawJWT != testAgent.RawJWT {
-					t.Errorf("Agent RawJWT mismatch expected %v got %v", testAgent.RawJWT, a.RawJWT)
+				if *a.RawJWT != *testAgent.RawJWT {
+					t.Errorf("Agent RawJWT mismatch expected %v got %v", *testAgent.RawJWT, *a.RawJWT)
 				}
 				if a.ID == "" {
 					t.Errorf("Invalid agent id %s", a.ID)
@@ -101,16 +103,6 @@ func TestAddAgent(t *testing.T) {
 			}
 			time.Sleep(time.Nanosecond)
 
-			// Only update timestamp if already exists
-			var updatedAgent *model.Agent
-			if updatedAgent, err = s.db.AddAgent(a); err != nil {
-				t.Errorf("Failed to update agent %s", err.Error())
-			} else if err == nil {
-				if updatedAgent.LastAccessed.Sub(a.LastAccessed) == 0 {
-					t.Errorf("Timestamp not updated %v from %v", updatedAgent.LastAccessed, a.LastAccessed)
-				}
-			}
-
 			// Get data for id
 			a1, err := s.db.GetAgent(&a.ID, nil)
 			if err != nil {
@@ -125,6 +117,20 @@ func TestAddAgent(t *testing.T) {
 				t.Errorf("Error fetching agent %s", err.Error())
 			} else {
 				validateAgent(a2)
+			}
+
+			var updatedAgent *model.Agent
+			newJwt := "new jwt"
+			a.RawJWT = &newJwt
+			if updatedAgent, err = s.db.AddAgent(a); err != nil {
+				t.Errorf("Failed to update agent %s", err.Error())
+			} else if err == nil {
+				if updatedAgent.LastAccessed.Sub(a.LastAccessed) == 0 {
+					t.Errorf("Timestamp not updated %v from %v", updatedAgent.LastAccessed, a.LastAccessed)
+				}
+				if newJwt != *updatedAgent.RawJWT {
+					t.Errorf("Token not updated %v expected %v", *updatedAgent.RawJWT, newJwt)
+				}
 			}
 		})
 	}
