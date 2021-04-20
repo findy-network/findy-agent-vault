@@ -9,7 +9,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	grpcStatus "google.golang.org/grpc/status"
 )
 
 type counter struct {
@@ -208,7 +208,7 @@ func (f *Agency) waitAndRetryListening(a *model.Agent, err error, retryCounter c
 	utils.LogLow().Infoln("Listen and wait", count)
 
 	errCode := codes.Unknown
-	if e, ok := status.FromError(err); ok {
+	if e, ok := grpcStatus.FromError(err); ok {
 		errCode = e.Code()
 	}
 

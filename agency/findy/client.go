@@ -7,6 +7,7 @@ import (
 	"github.com/findy-network/findy-agent-api/grpc/agency"
 	"github.com/findy-network/findy-agent-api/grpc/ops"
 	"github.com/findy-network/findy-agent-vault/agency/model"
+	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/findy-network/findy-common-go/agency/client"
 	"github.com/findy-network/findy-common-go/agency/client/async"
 	"github.com/findy-network/findy-common-go/jwt"
@@ -73,22 +74,22 @@ func (c *Client) listen(id string) (ch chan *AgentStatus, err error) {
 	clientID := &agency.ClientID{Id: id}
 	defer err2.Return(&err)
 
-	client := agency.NewAgentClient(c.ClientConn)
+	agentClient := agency.NewAgentClient(c.ClientConn)
 	statusCh := make(chan *AgentStatus)
 
-	stream, err := client.Listen(c.ctx, clientID, c.cOpts...)
+	stream, err := agentClient.Listen(c.ctx, clientID, c.cOpts...)
 	err2.Check(err)
-	glog.V(3).Infoln("successful start of listen id:", clientID.Id)
+	utils.LogLow().Infoln("successful start of listen id:", clientID.Id)
 
 	go func() {
 		defer err2.CatchTrace(func(err error) {
-			glog.V(1).Infoln("WARNING: error when reading response:", err)
+			glog.Warningln("WARNING: error when reading response:", err)
 			close(statusCh)
 		})
 		for {
 			status, err := stream.Recv()
 			if err == io.EOF {
-				glog.V(3).Infoln("status stream end")
+				glog.Warningln("status stream end")
 				close(statusCh)
 				break
 			}
