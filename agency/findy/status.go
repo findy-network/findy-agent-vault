@@ -8,7 +8,19 @@ import (
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
+	"google.golang.org/grpc/codes"
+	grpcStatus "google.golang.org/grpc/status"
 )
+
+type counter struct {
+	count    int
+	lastCode codes.Code
+}
+
+func (c counter) reset() {
+	c.count = 0
+	c.lastCode = codes.Unknown
+}
 
 func (f *Agency) getStatus(a *model.Agent, notification *agency.Notification) (status *agency.ProtocolStatus, ok bool) {
 	cmd := f.userAsyncClient(a)
@@ -188,39 +200,61 @@ func (f *Agency) handleNotification(
 	}
 }
 
-func (f *Agency) startListeningOrWait(a *model.Agent, retryCount int) int {
+func (f *Agency) waitAndRetryListening(a *model.Agent, err error, retryCounter counter) counter {
 	const maxCount = 5
 	const waitTime = 5
+	count := retryCounter.count
 
-	if retryCount < maxCount {
-		glog.Warningln("listenAgent: channel closed, try reconnecting...", retryCount)
-		retryCount++
-		for {
-			err := f.listenAgentWithRetry(a, retryCount)
-			if err == nil {
-				break
-			}
-			glog.Warningf("listenAgent: cannot connect server, reconnecting after %d secs...", waitTime)
-			time.Sleep(waitTime * time.Second)
-		}
+	utils.LogLow().Infoln("Listen and wait", count)
+
+	errCode := codes.Unknown
+	if e, ok := grpcStatus.FromError(err); ok {
+		errCode = e.Code()
 	}
 
-	return retryCount
+	if count < maxCount || errCode == codes.Unavailable { // try to connect infinitely if service is coming up
+		glog.Warningln("listenAgent: channel closed, try reconnecting...", count)
+		if errCode == retryCounter.lastCode {
+			count++
+		} else {
+			count = 0
+		}
+		for {
+			newWaitTime := count * waitTime
+			glog.Warningf("listenAgent: waiting, reconnecting after %d secs...", newWaitTime)
+			time.Sleep(time.Duration(newWaitTime) * time.Second)
+
+			err := f.listenAgentWithRetry(a, counter{count, errCode})
+			if err == nil {
+				utils.LogLow().Infoln("Agent listening retry succeeded.")
+				break
+			}
+			glog.Warningf("listenAgent: cannot connect server, try again...")
+		}
+	} else {
+		glog.Errorf("Retry count exceeded with code %v, aborting listening for %v.", errCode, a.AgentID)
+	}
+
+	return counter{count, errCode}
 }
 
-func (f *Agency) agentStatusLoop(a *model.Agent, ch chan *agency.AgentStatus, retryCount int) {
+func (f *Agency) agentStatusLoop(a *model.Agent, ch chan *AgentStatus, retryCounter counter) {
 	defer err2.Catch(func(err error) {
 		glog.Errorf("Recovered error in agent listener routine: %s, continue listening...", err.Error())
 
-		go f.agentStatusLoop(a, ch, 0)
+		go f.agentStatusLoop(a, ch, counter{})
 	})
 
+	utils.LogLow().Infoln("Start agentStatusLoop for", a.AgentID)
+
 	for {
-		status, ok := <-ch
-		if !ok {
-			f.startListeningOrWait(a, retryCount)
+		chRes, ok := <-ch
+		if !ok || chRes.err != nil {
+			f.waitAndRetryListening(a, chRes.err, retryCounter)
 			break
 		}
+
+		status := chRes.status
 
 		if status.Notification == nil {
 			glog.Warningf("Received status with no notification: %+v", status)
@@ -228,7 +262,7 @@ func (f *Agency) agentStatusLoop(a *model.Agent, ch chan *agency.AgentStatus, re
 		}
 
 		// successful round -> reset retry counter
-		retryCount = 0
+		retryCounter.reset()
 
 		if status.Notification.TypeId == agency.Notification_KEEPALIVE {
 			utils.LogTrace().Infof("Keepalive for agent %s", a.TenantID)
@@ -256,11 +290,13 @@ func (f *Agency) agentStatusLoop(a *model.Agent, ch chan *agency.AgentStatus, re
 }
 
 func (f *Agency) listenAgent(a *model.Agent) (err error) {
-	return f.listenAgentWithRetry(a, 0)
+	return f.listenAgentWithRetry(a, counter{})
 }
 
-func (f *Agency) listenAgentWithRetry(a *model.Agent, retryCount int) (err error) {
+func (f *Agency) listenAgentWithRetry(a *model.Agent, retryCounter counter) (err error) {
 	defer err2.Return(&err)
+
+	utils.LogLow().Infoln("Listen agent with retry count", retryCounter.count)
 
 	cmd := f.userAsyncClient(a)
 
@@ -269,7 +305,7 @@ func (f *Agency) listenAgentWithRetry(a *model.Agent, retryCount int) (err error
 	ch, err := cmd.listen(a.TenantID)
 	err2.Check(err)
 
-	go f.agentStatusLoop(a, ch, retryCount)
+	go f.agentStatusLoop(a, ch, retryCounter)
 
 	return err
 }
