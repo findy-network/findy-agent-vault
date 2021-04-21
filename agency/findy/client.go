@@ -2,13 +2,17 @@ package findy
 
 import (
 	"context"
+	"io"
 
 	"github.com/findy-network/findy-agent-api/grpc/agency"
 	"github.com/findy-network/findy-agent-api/grpc/ops"
 	"github.com/findy-network/findy-agent-vault/agency/model"
+	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/findy-network/findy-common-go/agency/client"
 	"github.com/findy-network/findy-common-go/agency/client/async"
 	"github.com/findy-network/findy-common-go/jwt"
+	"github.com/golang/glog"
+	"github.com/lainio/err2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/oauth"
 )
@@ -39,7 +43,7 @@ func (f *Agency) userAsyncClient(a *model.Agent) *Client {
 	return &Client{&f.conn, f.ctx, opts}
 }
 
-// Connection configuration for agency administrative clietn
+// Connection configuration for agency administrative client
 func (f *Agency) adminClient() *Client {
 	opts := callOptions(jwt.BuildJWT("findy-root"))
 	return &Client{&f.conn, f.ctx, opts}
@@ -61,9 +65,39 @@ func (c *Client) status(id string, protocolType agency.Protocol_Type) (pid *agen
 	return c.Conn.DoStatus(c.ctx, protocolID, c.cOpts...)
 }
 
-func (c *Client) listen(id string) (ch chan *agency.AgentStatus, err error) {
+type AgentStatus struct {
+	status *agency.AgentStatus
+	err    error
+}
+
+func (c *Client) listen(id string) (ch chan *AgentStatus, err error) {
 	clientID := &agency.ClientID{Id: id}
-	return c.Conn.Listen(c.ctx, clientID, c.cOpts...)
+	defer err2.Return(&err)
+
+	agentClient := agency.NewAgentClient(c.ClientConn)
+	statusCh := make(chan *AgentStatus)
+
+	stream, err := agentClient.Listen(c.ctx, clientID, c.cOpts...)
+	err2.Check(err)
+	utils.LogLow().Infoln("successful start of listen id:", clientID.Id)
+
+	go func() {
+		defer err2.CatchTrace(func(err error) {
+			glog.Warningln("WARNING: error when reading response:", err)
+			close(statusCh)
+		})
+		for {
+			status, err := stream.Recv()
+			if err == io.EOF {
+				glog.Warningln("status stream end")
+				close(statusCh)
+				break
+			}
+			statusCh <- &AgentStatus{status, err}
+			err2.Check(err)
+		}
+	}()
+	return statusCh, nil
 }
 
 func (c *Client) psmHook() (ch chan *ops.AgencyStatus, err error) {

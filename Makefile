@@ -76,7 +76,7 @@ check:
 remod:
 	-rm go*
 	go mod init github.com/findy-network/findy-agent-vault
-	go build ./...
+	go mod tidy
 
 single_test:
 	go test -run TestConnect ./...
