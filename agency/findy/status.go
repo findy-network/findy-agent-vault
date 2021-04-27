@@ -191,6 +191,7 @@ func (f *Agency) handleNotification(
 		f.handleAction(job, notification, status)
 	case agency.Notification_STATUS_UPDATE:
 		f.handleStatus(a, job, notification, status)
+	case agency.Notification_NONE:
 	case agency.Notification_KEEPALIVE:
 		// TODO?
 	}

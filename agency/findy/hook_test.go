@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
 	"github.com/findy-network/findy-agent-vault/agency/model"
+	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
 )
 
 var (

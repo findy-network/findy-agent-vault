@@ -1,9 +1,9 @@
 package findy
 
 import (
-	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
+	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
 )
 
 func statusToConnection(status *agency.ProtocolStatus) *model.Connection {
