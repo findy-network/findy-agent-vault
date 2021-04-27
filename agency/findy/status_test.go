@@ -319,7 +319,10 @@ func TestHandleNotification(t *testing.T) {
 }
 
 func TestGetStatus(t *testing.T) {
-	status, ok := findy.getStatus(&model.Agent{}, &agency.Notification{ProtocolId: "id", ProtocolType: agency.Protocol_ISSUE})
+	status, ok := findy.getStatus(
+		&model.Agent{AgentID: "user"},
+		&agency.Notification{ProtocolId: "id", ProtocolType: agency.Protocol_ISSUE},
+	)
 	if !ok {
 		t.Errorf("Failure when getting status")
 	}
