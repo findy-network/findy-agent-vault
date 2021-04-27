@@ -222,7 +222,10 @@ func TestHandleNotification(t *testing.T) {
 		{
 			connName,
 			createJob(connName),
-			&agency.Notification{ProtocolType: agency.Protocol_DIDEXCHANGE},
+			&agency.Notification{
+				TypeID:       agency.Notification_STATUS_UPDATE,
+				ProtocolType: agency.Protocol_DIDEXCHANGE,
+			},
 			testConnectionStatus(connName),
 			&mockStorage{info: createJob(connName), connection: testConnection},
 			listener.connectionStorage,
@@ -230,7 +233,10 @@ func TestHandleNotification(t *testing.T) {
 		{
 			msgName,
 			createJob(msgName),
-			&agency.Notification{ProtocolType: agency.Protocol_BASIC_MESSAGE},
+			&agency.Notification{
+				TypeID:       agency.Notification_STATUS_UPDATE,
+				ProtocolType: agency.Protocol_BASIC_MESSAGE,
+			},
 			testMessageStatus(msgName, agency.ProtocolState_OK),
 			&mockStorage{info: createJob(msgName), message: testMessage},
 			listener.messageStorage,
@@ -251,6 +257,7 @@ func TestHandleNotification(t *testing.T) {
 			credUpdateName,
 			createJob(credUpdateName),
 			&agency.Notification{
+				TypeID:       agency.Notification_STATUS_UPDATE,
 				ProtocolType: agency.Protocol_ISSUE_CREDENTIAL,
 				Role:         agency.Protocol_ADDRESSEE,
 			},
@@ -274,6 +281,7 @@ func TestHandleNotification(t *testing.T) {
 			proofUpdateName,
 			createJob(proofUpdateName),
 			&agency.Notification{
+				TypeID:       agency.Notification_STATUS_UPDATE,
 				ProtocolType: agency.Protocol_PRESENT_PROOF,
 				Role:         agency.Protocol_ADDRESSEE,
 			},
@@ -284,7 +292,10 @@ func TestHandleNotification(t *testing.T) {
 		{
 			failedName,
 			createJob(failedName),
-			&agency.Notification{ProtocolType: agency.Protocol_BASIC_MESSAGE},
+			&agency.Notification{
+				TypeID:       agency.Notification_STATUS_UPDATE,
+				ProtocolType: agency.Protocol_BASIC_MESSAGE,
+			},
 			testMessageStatus(failedName, agency.ProtocolState_ERR),
 			&mockStorage{failedJob: createJob(failedName)},
 			listener.failedStorage,
@@ -292,7 +303,10 @@ func TestHandleNotification(t *testing.T) {
 		{
 			failedCredName,
 			createJob(failedCredName),
-			&agency.Notification{ProtocolType: agency.Protocol_ISSUE_CREDENTIAL},
+			&agency.Notification{
+				TypeID:       agency.Notification_STATUS_UPDATE,
+				ProtocolType: agency.Protocol_ISSUE_CREDENTIAL,
+			},
 			testCredentialStatus(failedCredName, agency.ProtocolState_ERR),
 			&mockStorage{info: createJob(failedCredName), credUpdate: &model.CredentialUpdate{FailedMs: &now}},
 			listener.credentialUpdateStorage,
@@ -300,7 +314,10 @@ func TestHandleNotification(t *testing.T) {
 		{
 			failedProofName,
 			createJob(failedProofName),
-			&agency.Notification{ProtocolType: agency.Protocol_PRESENT_PROOF},
+			&agency.Notification{
+				TypeID:       agency.Notification_STATUS_UPDATE,
+				ProtocolType: agency.Protocol_PRESENT_PROOF,
+			},
 			testProofStatus(failedProofName, agency.ProtocolState_ERR),
 			&mockStorage{info: createJob(failedProofName), proofUpdate: &model.ProofUpdate{FailedMs: &now}},
 			listener.proofUpdateStorage,
