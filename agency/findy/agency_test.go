@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/findy-network/findy-agent-api/grpc/agency"
-	"github.com/findy-network/findy-agent-api/grpc/ops"
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/utils"
+	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
+	ops "github.com/findy-network/findy-common-go/grpc/ops/v1"
 	"github.com/findy-network/findy-common-go/jwt"
 	"github.com/findy-network/findy-common-go/rpc"
 	"github.com/golang/glog"
@@ -32,39 +32,39 @@ const (
 )
 
 type mockServer struct {
-	agency.UnimplementedDIDCommServer
-	ops.UnimplementedAgencyServer
-	agency.UnimplementedAgentServer
+	agency.UnimplementedProtocolServiceServer
+	ops.UnimplementedAgencyServiceServer
+	agency.UnimplementedAgentServiceServer
 	hookID    string
 	clientIDs []string
 }
 
-func (*mockServer) Run(*agency.Protocol, agency.DIDComm_RunServer) error {
+func (*mockServer) Run(*agency.Protocol, agency.ProtocolService_RunServer) error {
 	return status.Errorf(codes.Unimplemented, "method Run not implemented")
 }
 func (*mockServer) Start(context.Context, *agency.Protocol) (*agency.ProtocolID, error) {
-	return &agency.ProtocolID{Id: testID}, nil
+	return &agency.ProtocolID{ID: testID}, nil
 }
 func (*mockServer) Status(context.Context, *agency.ProtocolID) (*agency.ProtocolStatus, error) {
 	return &agency.ProtocolStatus{}, nil
 }
 func (*mockServer) Resume(context.Context, *agency.ProtocolState) (*agency.ProtocolID, error) {
-	return &agency.ProtocolID{Id: testID}, nil
+	return &agency.ProtocolID{ID: testID}, nil
 }
 func (*mockServer) Release(context.Context, *agency.ProtocolID) (*agency.ProtocolID, error) {
-	return &agency.ProtocolID{Id: testID}, nil
+	return &agency.ProtocolID{ID: testID}, nil
 }
 
-func (m *mockServer) PSMHook(dataHook *ops.DataHook, server ops.Agency_PSMHookServer) error {
-	m.hookID = dataHook.Id
+func (m *mockServer) PSMHook(dataHook *ops.DataHook, server ops.AgencyService_PSMHookServer) error {
+	m.hookID = dataHook.ID
 	return nil
 }
 func (*mockServer) Onboard(context.Context, *ops.Onboarding) (*ops.OnboardResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Onboard not implemented")
 }
 
-func (m *mockServer) Listen(id *agency.ClientID, server agency.Agent_ListenServer) error {
-	m.clientIDs = append(m.clientIDs, id.Id)
+func (m *mockServer) Listen(id *agency.ClientID, server agency.AgentService_ListenServer) error {
+	m.clientIDs = append(m.clientIDs, id.ID)
 	return nil
 }
 func (*mockServer) Give(context.Context, *agency.Answer) (*agency.ClientID, error) {
@@ -88,9 +88,9 @@ func dialer() func(context.Context, string) (net.Conn, error) {
 		PKI:     pki,
 		TestLis: listener,
 		Register: func(s *grpc.Server) error {
-			agency.RegisterDIDCommServer(s, mockAgencyServer)
-			ops.RegisterAgencyServer(s, mockAgencyServer)
-			agency.RegisterAgentServer(s, mockAgencyServer)
+			agency.RegisterProtocolServiceServer(s, mockAgencyServer)
+			ops.RegisterAgencyServiceServer(s, mockAgencyServer)
+			agency.RegisterAgentServiceServer(s, mockAgencyServer)
 			glog.V(10).Infoln("GRPC registration all done")
 			return nil
 		},
