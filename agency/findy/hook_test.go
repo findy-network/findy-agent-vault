@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/findy-network/findy-agent-api/grpc/agency"
+	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
 	"github.com/findy-network/findy-agent-vault/agency/model"
 )
 

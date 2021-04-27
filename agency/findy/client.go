@@ -4,8 +4,8 @@ import (
 	"context"
 	"io"
 
-	"github.com/findy-network/findy-agent-api/grpc/agency"
-	"github.com/findy-network/findy-agent-api/grpc/ops"
+	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
+	ops "github.com/findy-network/findy-common-go/grpc/ops/v1"
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/findy-network/findy-common-go/agency/client"
@@ -51,16 +51,16 @@ func (f *Agency) adminClient() *Client {
 
 func (c *Client) release(id string, protocolType agency.Protocol_Type) (pid *agency.ProtocolID, err error) {
 	protocolID := &agency.ProtocolID{
-		Id:     id,
-		TypeId: protocolType,
+		ID:     id,
+		TypeID: protocolType,
 	}
 	return c.Conn.DoRelease(c.ctx, protocolID, c.cOpts...)
 }
 
 func (c *Client) status(id string, protocolType agency.Protocol_Type) (pid *agency.ProtocolStatus, err error) {
 	protocolID := &agency.ProtocolID{
-		Id:     id,
-		TypeId: protocolType,
+		ID:     id,
+		TypeID: protocolType,
 	}
 	return c.Conn.DoStatus(c.ctx, protocolID, c.cOpts...)
 }
@@ -71,15 +71,15 @@ type AgentStatus struct {
 }
 
 func (c *Client) listen(id string) (ch chan *AgentStatus, err error) {
-	clientID := &agency.ClientID{Id: id}
+	clientID := &agency.ClientID{ID: id}
 	defer err2.Return(&err)
 
-	agentClient := agency.NewAgentClient(c.ClientConn)
+	agentClient := agency.NewAgentServiceClient(c.ClientConn)
 	statusCh := make(chan *AgentStatus)
 
 	stream, err := agentClient.Listen(c.ctx, clientID, c.cOpts...)
 	err2.Check(err)
-	utils.LogLow().Infoln("successful start of listen id:", clientID.Id)
+	utils.LogLow().Infoln("successful start of listen id:", clientID.ID)
 
 	go func() {
 		defer err2.CatchTrace(func(err error) {

@@ -3,10 +3,10 @@ package findy
 import (
 	"time"
 
-	"github.com/findy-network/findy-agent-api/grpc/agency"
-	"github.com/findy-network/findy-agent-api/grpc/ops"
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/utils"
+	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
+	ops "github.com/findy-network/findy-common-go/grpc/ops/v1"
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
 )
@@ -14,14 +14,14 @@ import (
 const waitTime = 5
 
 func (f *Agency) archive(info *model.ArchiveInfo, status *agency.ProtocolStatus) {
-	switch status.State.ProtocolId.TypeId {
-	case agency.Protocol_CONNECT:
+	switch status.State.ProtocolID.TypeID {
+	case agency.Protocol_DIDEXCHANGE:
 		connection := statusToConnection(status)
 		f.archiver.ArchiveConnection(info, connection)
-	case agency.Protocol_ISSUE:
+	case agency.Protocol_ISSUE_CREDENTIAL:
 		credential := statusToCredential(status)
 		f.archiver.ArchiveCredential(info, credential)
-	case agency.Protocol_PROOF:
+	case agency.Protocol_PRESENT_PROOF:
 		proof := statusToProof(status)
 		f.archiver.ArchiveProof(info, proof)
 	case agency.Protocol_BASIC_MESSAGE:
@@ -30,7 +30,7 @@ func (f *Agency) archive(info *model.ArchiveInfo, status *agency.ProtocolStatus)
 	default:
 		utils.LogHigh().Infof(
 			"Received unknown protocol type %s",
-			status.State.ProtocolId.TypeId.String(),
+			status.State.ProtocolID.TypeID.String(),
 		)
 	}
 }
@@ -63,15 +63,15 @@ func (f *Agency) adminStatusLoop(ch chan *ops.AgencyStatus) {
 		utils.LogMed().Infoln("received psm hook data for:", status.GetDID())
 
 		protocolStatus := status.GetProtocolStatus()
-		jobID := protocolStatus.State.ProtocolId.Id
+		jobID := protocolStatus.State.ProtocolID.ID
 
 		// TODO: pass also timestamps: when protocol was started/approved/sent/issued/verified etc.
 		// revise this when we have "a real client" for the archive
 		info := &model.ArchiveInfo{
 			AgentID:       status.GetDID(),
-			ConnectionID:  status.GetConnectionId(),
+			ConnectionID:  status.GetConnectionID(),
 			JobID:         jobID,
-			InitiatedByUs: protocolStatus.State.ProtocolId.Role == agency.Protocol_INITIATOR,
+			InitiatedByUs: protocolStatus.State.ProtocolID.Role == agency.Protocol_INITIATOR,
 		}
 
 		// archive currently only successful protocol results
@@ -80,7 +80,7 @@ func (f *Agency) adminStatusLoop(ch chan *ops.AgencyStatus) {
 		} else {
 			utils.LogLow().Infof(
 				"Skipping archiving for protocol run %s in state %s",
-				protocolStatus.State.ProtocolId.TypeId,
+				protocolStatus.State.ProtocolID.TypeID,
 				protocolStatus.State.State,
 			)
 		}

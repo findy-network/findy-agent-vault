@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	didexchange "github.com/findy-network/findy-agent/std/didexchange/invitation"
+	didexchange "github.com/findy-network/findy-common-go/std/didexchange/invitation"
 	"github.com/findy-network/findy-common-go/jwt"
 )
 
