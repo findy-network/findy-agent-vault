@@ -4,10 +4,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/findy-network/findy-agent-api/grpc/agency"
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/utils"
+	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
 )
 
 var (
@@ -21,16 +21,16 @@ var (
 		return &agency.ProtocolStatus{
 			State: &agency.ProtocolState{
 				State: agency.ProtocolState_OK,
-				ProtocolId: &agency.ProtocolID{
-					Id:     jobID,
-					TypeId: agency.Protocol_CONNECT,
+				ProtocolID: &agency.ProtocolID{
+					ID:     jobID,
+					TypeID: agency.Protocol_DIDEXCHANGE,
 				},
 			},
-			Status: &agency.ProtocolStatus_Connection_{
-				Connection: &agency.ProtocolStatus_Connection{
-					Id:            "pwName",
-					MyDid:         testConnection.OurDID,
-					TheirDid:      testConnection.TheirDID,
+			Status: &agency.ProtocolStatus_DIDExchange{
+				DIDExchange: &agency.ProtocolStatus_DIDExchangeStatus{
+					ID:            "pwName",
+					MyDID:         testConnection.OurDID,
+					TheirDID:      testConnection.TheirDID,
 					TheirEndpoint: testConnection.TheirEndpoint,
 					TheirLabel:    testConnection.TheirLabel,
 				},
@@ -43,14 +43,14 @@ var (
 		return &agency.ProtocolStatus{
 			State: &agency.ProtocolState{
 				State: state,
-				ProtocolId: &agency.ProtocolID{
+				ProtocolID: &agency.ProtocolID{
 					Role:   agency.Protocol_ADDRESSEE,
-					Id:     jobID,
-					TypeId: agency.Protocol_BASIC_MESSAGE,
+					ID:     jobID,
+					TypeID: agency.Protocol_BASIC_MESSAGE,
 				},
 			},
-			Status: &agency.ProtocolStatus_BasicMessage_{
-				BasicMessage: &agency.ProtocolStatus_BasicMessage{
+			Status: &agency.ProtocolStatus_BasicMessage{
+				BasicMessage: &agency.ProtocolStatus_BasicMessageStatus{
 					Content:  testMessage.Message,
 					SentByMe: testMessage.SentByMe,
 				},
@@ -72,20 +72,22 @@ var (
 		return &agency.ProtocolStatus{
 			State: &agency.ProtocolState{
 				State: state,
-				ProtocolId: &agency.ProtocolID{
+				ProtocolID: &agency.ProtocolID{
 					Role:   agency.Protocol_ADDRESSEE,
-					Id:     jobID,
-					TypeId: agency.Protocol_ISSUE,
+					ID:     jobID,
+					TypeID: agency.Protocol_ISSUE_CREDENTIAL,
 				},
 			},
-			Status: &agency.ProtocolStatus_Issue_{
-				Issue: &agency.ProtocolStatus_Issue{
-					SchemaId:  testCredential.SchemaID,
-					CredDefId: testCredential.CredDefID,
-					Attrs: []*agency.Protocol_Attribute{
-						{
-							Name:  testCredential.Attributes[0].Name,
-							Value: testCredential.Attributes[0].Value,
+			Status: &agency.ProtocolStatus_IssueCredential{
+				IssueCredential: &agency.ProtocolStatus_IssueCredentialStatus{
+					SchemaID:  testCredential.SchemaID,
+					CredDefID: testCredential.CredDefID,
+					Attributes: &agency.Protocol_IssuingAttributes{
+						Attributes: []*agency.Protocol_IssuingAttributes_Attribute{
+							{
+								Name:  testCredential.Attributes[0].Name,
+								Value: testCredential.Attributes[0].Value,
+							},
 						},
 					},
 				},
@@ -105,18 +107,20 @@ var (
 		return &agency.ProtocolStatus{
 			State: &agency.ProtocolState{
 				State: state,
-				ProtocolId: &agency.ProtocolID{
+				ProtocolID: &agency.ProtocolID{
 					Role:   agency.Protocol_ADDRESSEE,
-					Id:     jobID,
-					TypeId: agency.Protocol_PROOF,
+					ID:     jobID,
+					TypeID: agency.Protocol_PRESENT_PROOF,
 				},
 			},
-			Status: &agency.ProtocolStatus_Proof{
-				Proof: &agency.Protocol_Proof{
-					Attrs: []*agency.Protocol_Proof_Attr{
-						{
-							Name:      testProof.Attributes[0].Name,
-							CredDefId: testProof.Attributes[0].CredDefID,
+			Status: &agency.ProtocolStatus_PresentProof{
+				PresentProof: &agency.ProtocolStatus_PresentProofStatus{
+					Proof: &agency.Protocol_Proof{
+						Attributes: []*agency.Protocol_Proof_Attribute{
+							{
+								Name:      testProof.Attributes[0].Name,
+								CredDefID: testProof.Attributes[0].CredDefID,
+							},
 						},
 					},
 				},
@@ -222,7 +226,10 @@ func TestHandleNotification(t *testing.T) {
 		{
 			connName,
 			createJob(connName),
-			&agency.Notification{ProtocolType: agency.Protocol_CONNECT},
+			&agency.Notification{
+				TypeID:       agency.Notification_STATUS_UPDATE,
+				ProtocolType: agency.Protocol_DIDEXCHANGE,
+			},
 			testConnectionStatus(connName),
 			&mockStorage{info: createJob(connName), connection: testConnection},
 			listener.connectionStorage,
@@ -230,7 +237,10 @@ func TestHandleNotification(t *testing.T) {
 		{
 			msgName,
 			createJob(msgName),
-			&agency.Notification{ProtocolType: agency.Protocol_BASIC_MESSAGE},
+			&agency.Notification{
+				TypeID:       agency.Notification_STATUS_UPDATE,
+				ProtocolType: agency.Protocol_BASIC_MESSAGE,
+			},
 			testMessageStatus(msgName, agency.ProtocolState_OK),
 			&mockStorage{info: createJob(msgName), message: testMessage},
 			listener.messageStorage,
@@ -239,8 +249,8 @@ func TestHandleNotification(t *testing.T) {
 			credName,
 			createJob(credName),
 			&agency.Notification{
-				TypeId:       agency.Notification_ACTION_NEEDED,
-				ProtocolType: agency.Protocol_ISSUE,
+				TypeID:       agency.Notification_PROTOCOL_PAUSED,
+				ProtocolType: agency.Protocol_ISSUE_CREDENTIAL,
 				Role:         agency.Protocol_ADDRESSEE,
 			},
 			testCredentialStatus(credName, agency.ProtocolState_OK),
@@ -251,7 +261,8 @@ func TestHandleNotification(t *testing.T) {
 			credUpdateName,
 			createJob(credUpdateName),
 			&agency.Notification{
-				ProtocolType: agency.Protocol_ISSUE,
+				TypeID:       agency.Notification_STATUS_UPDATE,
+				ProtocolType: agency.Protocol_ISSUE_CREDENTIAL,
 				Role:         agency.Protocol_ADDRESSEE,
 			},
 			testCredentialStatus(credUpdateName, agency.ProtocolState_OK),
@@ -262,8 +273,8 @@ func TestHandleNotification(t *testing.T) {
 			proofName,
 			createJob(proofName),
 			&agency.Notification{
-				TypeId:       agency.Notification_ACTION_NEEDED,
-				ProtocolType: agency.Protocol_PROOF,
+				TypeID:       agency.Notification_PROTOCOL_PAUSED,
+				ProtocolType: agency.Protocol_PRESENT_PROOF,
 				Role:         agency.Protocol_ADDRESSEE,
 			},
 			testProofStatus(proofName, agency.ProtocolState_OK),
@@ -274,7 +285,8 @@ func TestHandleNotification(t *testing.T) {
 			proofUpdateName,
 			createJob(proofUpdateName),
 			&agency.Notification{
-				ProtocolType: agency.Protocol_PROOF,
+				TypeID:       agency.Notification_STATUS_UPDATE,
+				ProtocolType: agency.Protocol_PRESENT_PROOF,
 				Role:         agency.Protocol_ADDRESSEE,
 			},
 			testProofStatus(proofUpdateName, agency.ProtocolState_OK),
@@ -284,7 +296,10 @@ func TestHandleNotification(t *testing.T) {
 		{
 			failedName,
 			createJob(failedName),
-			&agency.Notification{ProtocolType: agency.Protocol_BASIC_MESSAGE},
+			&agency.Notification{
+				TypeID:       agency.Notification_STATUS_UPDATE,
+				ProtocolType: agency.Protocol_BASIC_MESSAGE,
+			},
 			testMessageStatus(failedName, agency.ProtocolState_ERR),
 			&mockStorage{failedJob: createJob(failedName)},
 			listener.failedStorage,
@@ -292,7 +307,10 @@ func TestHandleNotification(t *testing.T) {
 		{
 			failedCredName,
 			createJob(failedCredName),
-			&agency.Notification{ProtocolType: agency.Protocol_ISSUE},
+			&agency.Notification{
+				TypeID:       agency.Notification_STATUS_UPDATE,
+				ProtocolType: agency.Protocol_ISSUE_CREDENTIAL,
+			},
 			testCredentialStatus(failedCredName, agency.ProtocolState_ERR),
 			&mockStorage{info: createJob(failedCredName), credUpdate: &model.CredentialUpdate{FailedMs: &now}},
 			listener.credentialUpdateStorage,
@@ -300,7 +318,10 @@ func TestHandleNotification(t *testing.T) {
 		{
 			failedProofName,
 			createJob(failedProofName),
-			&agency.Notification{ProtocolType: agency.Protocol_PROOF},
+			&agency.Notification{
+				TypeID:       agency.Notification_STATUS_UPDATE,
+				ProtocolType: agency.Protocol_PRESENT_PROOF,
+			},
 			testProofStatus(failedProofName, agency.ProtocolState_ERR),
 			&mockStorage{info: createJob(failedProofName), proofUpdate: &model.ProofUpdate{FailedMs: &now}},
 			listener.proofUpdateStorage,
@@ -321,7 +342,7 @@ func TestHandleNotification(t *testing.T) {
 func TestGetStatus(t *testing.T) {
 	status, ok := findy.getStatus(
 		&model.Agent{AgentID: "user"},
-		&agency.Notification{ProtocolId: "id", ProtocolType: agency.Protocol_ISSUE},
+		&agency.Notification{ProtocolID: "id", ProtocolType: agency.Protocol_ISSUE_CREDENTIAL},
 	)
 	if !ok {
 		t.Errorf("Failure when getting status")

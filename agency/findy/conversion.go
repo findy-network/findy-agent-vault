@@ -1,17 +1,17 @@
 package findy
 
 import (
-	"github.com/findy-network/findy-agent-api/grpc/agency"
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
+	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
 )
 
 func statusToConnection(status *agency.ProtocolStatus) *model.Connection {
-	connection := status.GetConnection()
+	connection := status.GetDIDExchange()
 	if connection != nil {
 		return &model.Connection{
-			OurDID:        connection.MyDid,
-			TheirDID:      connection.TheirDid,
+			OurDID:        connection.MyDID,
+			TheirDID:      connection.TheirDID,
 			TheirEndpoint: connection.TheirEndpoint,
 			TheirLabel:    connection.TheirLabel,
 		}
@@ -20,14 +20,14 @@ func statusToConnection(status *agency.ProtocolStatus) *model.Connection {
 }
 
 func statusToCredential(status *agency.ProtocolStatus) *model.Credential {
-	credential := status.GetIssue()
+	credential := status.GetIssueCredential()
 	if credential != nil {
 		role := graph.CredentialRoleHolder
-		if status.State.GetProtocolId().Role != agency.Protocol_ADDRESSEE {
+		if status.State.GetProtocolID().Role != agency.Protocol_ADDRESSEE {
 			role = graph.CredentialRoleIssuer
 		}
 		values := make([]*graph.CredentialValue, 0)
-		for _, v := range credential.Attrs {
+		for _, v := range credential.Attributes.Attributes {
 			values = append(values, &graph.CredentialValue{
 				Name:  v.Name,
 				Value: v.Value,
@@ -35,8 +35,8 @@ func statusToCredential(status *agency.ProtocolStatus) *model.Credential {
 		}
 		return &model.Credential{
 			Role:          role,
-			SchemaID:      credential.SchemaId,
-			CredDefID:     credential.CredDefId,
+			SchemaID:      credential.SchemaID,
+			CredDefID:     credential.CredDefID,
 			Attributes:    values,
 			InitiatedByUs: false,
 		}
@@ -45,17 +45,17 @@ func statusToCredential(status *agency.ProtocolStatus) *model.Credential {
 }
 
 func statusToProof(status *agency.ProtocolStatus) *model.Proof {
-	proof := status.GetProof()
+	proof := status.GetPresentProof()
 	if proof != nil {
 		role := graph.ProofRoleProver
-		if status.State.GetProtocolId().Role != agency.Protocol_ADDRESSEE {
+		if status.State.GetProtocolID().Role != agency.Protocol_ADDRESSEE {
 			role = graph.ProofRoleVerifier
 		}
 		attributes := make([]*graph.ProofAttribute, 0)
-		for _, v := range proof.Attrs {
+		for _, v := range proof.Proof.Attributes {
 			attributes = append(attributes, &graph.ProofAttribute{
 				Name:      v.Name,
-				CredDefID: v.CredDefId,
+				CredDefID: v.CredDefID,
 			})
 		}
 		return &model.Proof{
@@ -73,7 +73,7 @@ func statusToMessage(status *agency.ProtocolStatus) *model.Message {
 		return &model.Message{
 			Message: message.Content,
 			// TODO: remove SentByMe from agency API
-			SentByMe: status.State.GetProtocolId().Role != agency.Protocol_ADDRESSEE,
+			SentByMe: status.State.GetProtocolID().Role != agency.Protocol_ADDRESSEE,
 		}
 	}
 	return nil

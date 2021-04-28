@@ -3,9 +3,9 @@ package findy
 import (
 	"time"
 
-	"github.com/findy-network/findy-agent-api/grpc/agency"
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/utils"
+	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
 	"google.golang.org/grpc/codes"
@@ -25,15 +25,15 @@ func (c counter) reset() {
 func (f *Agency) getStatus(a *model.Agent, notification *agency.Notification) (status *agency.ProtocolStatus, ok bool) {
 	cmd := f.userAsyncClient(a)
 
-	status, err := cmd.status(notification.ProtocolId, notification.ProtocolType)
+	status, err := cmd.status(notification.ProtocolID, notification.ProtocolType)
 
 	if err != nil {
-		glog.Errorf("Unable to fetch protocol status for %s (%s)", notification.ProtocolId, err.Error())
+		glog.Errorf("Unable to fetch protocol status for %s (%s)", notification.ProtocolID, err.Error())
 		return
 	}
 
 	if status == nil {
-		glog.Errorf("Received invalid protocol status for %s", notification.ProtocolId)
+		glog.Errorf("Received invalid protocol status for %s", notification.ProtocolID)
 		return
 	}
 
@@ -52,14 +52,14 @@ func (f *Agency) handleProtocolFailure(
 
 	now := f.currentTimeMs()
 	switch notification.ProtocolType {
-	case agency.Protocol_ISSUE:
+	case agency.Protocol_ISSUE_CREDENTIAL:
 		err2.Check(f.vault.UpdateCredential(
 			job,
 			&model.CredentialUpdate{
 				FailedMs: &now,
 			},
 		))
-	case agency.Protocol_PROOF:
+	case agency.Protocol_PRESENT_PROOF:
 		err2.Check(f.vault.UpdateProof(
 			job,
 			&model.ProofUpdate{
@@ -83,7 +83,7 @@ func (f *Agency) handleProtocolSuccess(
 
 	now := f.currentTimeMs()
 	switch notification.ProtocolType {
-	case agency.Protocol_CONNECT:
+	case agency.Protocol_DIDEXCHANGE:
 		connection := statusToConnection(status)
 		if connection == nil {
 			glog.Errorf("Received invalid connection object for %s", job.JobID)
@@ -102,14 +102,14 @@ func (f *Agency) handleProtocolSuccess(
 		// TODO: delivered?
 		err2.Check(f.vault.AddMessage(job, message))
 
-	case agency.Protocol_ISSUE:
+	case agency.Protocol_ISSUE_CREDENTIAL:
 		err2.Check(f.vault.UpdateCredential(
 			job,
 			&model.CredentialUpdate{
 				IssuedMs: &now,
 			},
 		))
-	case agency.Protocol_PROOF:
+	case agency.Protocol_PRESENT_PROOF:
 		err2.Check(f.vault.UpdateProof(
 			job,
 			&model.ProofUpdate{
@@ -132,16 +132,16 @@ func (f *Agency) handleStatus(
 	switch status.State.State {
 	case agency.ProtocolState_ERR:
 		if f.handleProtocolFailure(job, notification) == nil {
-			f.releaseCompleted(a, status.State.ProtocolId.Id, status.State.ProtocolId.TypeId)
+			f.releaseCompleted(a, status.State.ProtocolID.ID, status.State.ProtocolID.TypeID)
 		}
 	case agency.ProtocolState_OK:
 		if f.handleProtocolSuccess(job, notification, status) == nil {
-			f.releaseCompleted(a, status.State.ProtocolId.Id, status.State.ProtocolId.TypeId)
+			f.releaseCompleted(a, status.State.ProtocolID.ID, status.State.ProtocolID.TypeID)
 		}
 	default:
 		utils.LogLow().Infof(
 			"Received status update %s: %s",
-			status.State.ProtocolId.GetTypeId().String(),
+			status.State.ProtocolID.GetTypeID().String(),
 			status.State.GetState().String(),
 		)
 	}
@@ -153,7 +153,7 @@ func (f *Agency) handleAction(
 	status *agency.ProtocolStatus,
 ) {
 	switch notification.ProtocolType {
-	case agency.Protocol_ISSUE:
+	case agency.Protocol_ISSUE_CREDENTIAL:
 		credential := statusToCredential(status)
 		if credential == nil {
 			glog.Errorf("Received invalid credential issue object for %s", job.JobID)
@@ -162,7 +162,7 @@ func (f *Agency) handleAction(
 		// TODO: what if we are issuer?
 		_ = f.vault.AddCredential(job, credential)
 
-	case agency.Protocol_PROOF:
+	case agency.Protocol_PRESENT_PROOF:
 		proof := statusToProof(status)
 		if proof == nil {
 			glog.Errorf("Received invalid proof object for %s", job.JobID)
@@ -173,7 +173,7 @@ func (f *Agency) handleAction(
 
 	case agency.Protocol_NONE:
 	case agency.Protocol_TRUST_PING:
-	case agency.Protocol_CONNECT:
+	case agency.Protocol_DIDEXCHANGE:
 	case agency.Protocol_BASIC_MESSAGE:
 		// N/A
 		glog.Errorf("Should not handle action for protocol %s", notification.ProtocolType)
@@ -186,15 +186,12 @@ func (f *Agency) handleNotification(
 	notification *agency.Notification,
 	status *agency.ProtocolStatus,
 ) {
-	switch notification.TypeId {
-	case agency.Notification_ACTION_NEEDED:
+	switch notification.TypeID {
+	case agency.Notification_PROTOCOL_PAUSED:
 		f.handleAction(job, notification, status)
 	case agency.Notification_STATUS_UPDATE:
 		f.handleStatus(a, job, notification, status)
-	case agency.Notification_ANSWER_NEEDED_PING:
-	case agency.Notification_ANSWER_NEEDED_ISSUE_PROPOSE:
-	case agency.Notification_ANSWER_NEEDED_PROOF_PROPOSE:
-	case agency.Notification_ANSWER_NEEDED_PROOF_VERIFY:
+	case agency.Notification_NONE:
 	case agency.Notification_KEEPALIVE:
 		// TODO?
 	}
@@ -268,20 +265,20 @@ func (f *Agency) agentStatusLoop(a *model.Agent, ch chan *AgentStatus, retryCoun
 		// successful round -> reset retry counter
 		retryCounter.reset()
 
-		if status.Notification.TypeId == agency.Notification_KEEPALIVE {
+		if status.Notification.TypeID == agency.Notification_KEEPALIVE {
 			utils.LogTrace().Infof("Keepalive for agent %s", a.TenantID)
 			continue
 		}
 
 		utils.LogMed().Infoln("received notification:",
-			status.Notification.TypeId,
+			status.Notification.TypeID,
 			status.Notification.Role,
-			status.Notification.ProtocolId)
+			status.Notification.ProtocolID)
 
 		job := &model.JobInfo{
 			TenantID:     a.TenantID,
-			JobID:        status.Notification.ProtocolId,
-			ConnectionID: status.Notification.ConnectionId,
+			JobID:        status.Notification.ProtocolID,
+			ConnectionID: status.Notification.ConnectionID,
 		}
 
 		protocolStatus, ok := f.getStatus(a, status.Notification)
