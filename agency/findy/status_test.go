@@ -29,8 +29,8 @@ var (
 			Status: &agency.ProtocolStatus_DIDExchange{
 				DIDExchange: &agency.ProtocolStatus_DIDExchangeStatus{
 					ID:            "pwName",
-					MyDid:         testConnection.OurDID,
-					TheirDid:      testConnection.TheirDID,
+					MyDID:         testConnection.OurDID,
+					TheirDID:      testConnection.TheirDID,
 					TheirEndpoint: testConnection.TheirEndpoint,
 					TheirLabel:    testConnection.TheirLabel,
 				},
