@@ -82,10 +82,12 @@ var (
 				IssueCredential: &agency.ProtocolStatus_IssueCredentialStatus{
 					SchemaID:  testCredential.SchemaID,
 					CredDefID: testCredential.CredDefID,
-					Attrs: []*agency.Protocol_Attribute{
-						{
-							Name:  testCredential.Attributes[0].Name,
-							Value: testCredential.Attributes[0].Value,
+					Attributes: &agency.Protocol_IssuingAttributes{
+						Attributes: []*agency.Protocol_IssuingAttributes_Attribute{
+							{
+								Name:  testCredential.Attributes[0].Name,
+								Value: testCredential.Attributes[0].Value,
+							},
 						},
 					},
 				},
@@ -112,11 +114,13 @@ var (
 				},
 			},
 			Status: &agency.ProtocolStatus_PresentProof{
-				PresentProof: &agency.Protocol_Proof{
-					Attributes: []*agency.Protocol_Proof_Attribute{
-						{
-							Name:      testProof.Attributes[0].Name,
-							CredDefID: testProof.Attributes[0].CredDefID,
+				PresentProof: &agency.ProtocolStatus_PresentProofStatus{
+					Proof: &agency.Protocol_Proof{
+						Attributes: []*agency.Protocol_Proof_Attribute{
+							{
+								Name:      testProof.Attributes[0].Name,
+								CredDefID: testProof.Attributes[0].CredDefID,
+							},
 						},
 					},
 				},
@@ -245,7 +249,7 @@ func TestHandleNotification(t *testing.T) {
 			credName,
 			createJob(credName),
 			&agency.Notification{
-				TypeID:       agency.Notification_ACTION_NEEDED,
+				TypeID:       agency.Notification_PROTOCOL_PAUSED,
 				ProtocolType: agency.Protocol_ISSUE_CREDENTIAL,
 				Role:         agency.Protocol_ADDRESSEE,
 			},
@@ -269,7 +273,7 @@ func TestHandleNotification(t *testing.T) {
 			proofName,
 			createJob(proofName),
 			&agency.Notification{
-				TypeID:       agency.Notification_ACTION_NEEDED,
+				TypeID:       agency.Notification_PROTOCOL_PAUSED,
 				ProtocolType: agency.Protocol_PRESENT_PROOF,
 				Role:         agency.Protocol_ADDRESSEE,
 			},
