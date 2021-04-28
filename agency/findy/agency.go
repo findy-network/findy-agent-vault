@@ -86,7 +86,7 @@ func (f *Agency) Invite(a *model.Agent) (invitation, id string, err error) {
 	)
 	err2.Check(err)
 
-	invitation = res.JsonStr
+	invitation = res.JSON
 
 	return
 }

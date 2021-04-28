@@ -71,7 +71,7 @@ func (*mockServer) Give(context.Context, *agency.Answer) (*agency.ClientID, erro
 	return nil, status.Errorf(codes.Unimplemented, "method Give not implemented")
 }
 func (*mockServer) CreateInvitation(context.Context, *agency.InvitationBase) (*agency.Invitation, error) {
-	return &agency.Invitation{JsonStr: testInvitation}, nil
+	return &agency.Invitation{JSON: testInvitation}, nil
 }
 
 func dialer() func(context.Context, string) (net.Conn, error) {

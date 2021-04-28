@@ -6,7 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.13.0
 	github.com/bxcodec/faker v2.0.1+incompatible
 	github.com/bxcodec/faker/v3 v3.6.0
-	github.com/findy-network/findy-common-go v0.1.4-0.20210426130842-e0c80abc84a0
+	github.com/findy-network/findy-common-go v0.1.4-0.20210427145956-ff49535573b2
 	github.com/gchaincl/sqlhooks/v2 v2.0.1
 	github.com/golang-migrate/migrate/v4 v4.14.1
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b

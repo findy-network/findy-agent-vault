@@ -187,7 +187,7 @@ func (f *Agency) handleNotification(
 	status *agency.ProtocolStatus,
 ) {
 	switch notification.TypeID {
-	case agency.Notification_ACTION_NEEDED:
+	case agency.Notification_PROTOCOL_PAUSED:
 		f.handleAction(job, notification, status)
 	case agency.Notification_STATUS_UPDATE:
 		f.handleStatus(a, job, notification, status)

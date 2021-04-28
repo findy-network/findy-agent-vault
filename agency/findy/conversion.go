@@ -27,7 +27,7 @@ func statusToCredential(status *agency.ProtocolStatus) *model.Credential {
 			role = graph.CredentialRoleIssuer
 		}
 		values := make([]*graph.CredentialValue, 0)
-		for _, v := range credential.Attrs {
+		for _, v := range credential.Attributes.Attributes {
 			values = append(values, &graph.CredentialValue{
 				Name:  v.Name,
 				Value: v.Value,
@@ -52,7 +52,7 @@ func statusToProof(status *agency.ProtocolStatus) *model.Proof {
 			role = graph.ProofRoleVerifier
 		}
 		attributes := make([]*graph.ProofAttribute, 0)
-		for _, v := range proof.Attributes {
+		for _, v := range proof.Proof.Attributes {
 			attributes = append(attributes, &graph.ProofAttribute{
 				Name:      v.Name,
 				CredDefID: v.CredDefID,
