@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/findy-network/findy-agent-api/grpc/agency"
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/utils"
-	didexchange "github.com/findy-network/findy-agent/std/didexchange/invitation"
 	"github.com/findy-network/findy-common-go/agency/client"
+	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
 	"github.com/findy-network/findy-common-go/jwt"
+	didexchange "github.com/findy-network/findy-common-go/std/didexchange/invitation"
 	"github.com/golang/glog"
 	"github.com/google/uuid"
 	"github.com/lainio/err2"
@@ -76,17 +76,17 @@ func (f *Agency) AddAgent(agent *model.Agent) error {
 }
 
 func (f *Agency) Invite(a *model.Agent) (invitation, id string, err error) {
-	cmd := agency.NewAgentClient(f.conn)
+	cmd := agency.NewAgentServiceClient(f.conn)
 	id = uuid.New().String()
 
 	res, err := cmd.CreateInvitation(
 		f.ctx,
-		&agency.InvitationBase{Label: a.Label, Id: id},
+		&agency.InvitationBase{Label: a.Label, ID: id},
 		callOptions(a.RawJWT)...,
 	)
 	err2.Check(err)
 
-	invitation = res.JsonStr
+	invitation = res.JSON
 
 	return
 }
@@ -103,7 +103,7 @@ func (f *Agency) Connect(a *model.Agent, strInvitation string) (id string, err e
 	protocolID, err := cmd.Connection(f.ctx, strInvitation)
 	err2.Check(err)
 
-	return protocolID.Id, err
+	return protocolID.ID, err
 }
 
 func (f *Agency) SendMessage(a *model.Agent, connectionID, message string) (id string, err error) {
@@ -114,7 +114,7 @@ func (f *Agency) SendMessage(a *model.Agent, connectionID, message string) (id s
 	protocolID, err := cmd.BasicMessage(f.ctx, message)
 	err2.Check(err)
 
-	return protocolID.Id, err
+	return protocolID.ID, err
 }
 
 func (f *Agency) resume(
@@ -139,7 +139,7 @@ func (f *Agency) resume(
 
 func (f *Agency) ResumeCredentialOffer(a *model.Agent, job *model.JobInfo, accept bool) (err error) {
 	defer err2.Return(&err)
-	err2.Check(f.resume(a, job, accept, agency.Protocol_ISSUE))
+	err2.Check(f.resume(a, job, accept, agency.Protocol_ISSUE_CREDENTIAL))
 
 	now := f.currentTimeMs()
 	return f.vault.UpdateCredential(job, &model.CredentialUpdate{ApprovedMs: &now})
@@ -147,7 +147,7 @@ func (f *Agency) ResumeCredentialOffer(a *model.Agent, job *model.JobInfo, accep
 
 func (f *Agency) ResumeProofRequest(a *model.Agent, job *model.JobInfo, accept bool) (err error) {
 	defer err2.Return(&err)
-	err2.Check(f.resume(a, job, accept, agency.Protocol_PROOF))
+	err2.Check(f.resume(a, job, accept, agency.Protocol_PRESENT_PROOF))
 
 	now := f.currentTimeMs()
 	return f.vault.UpdateProof(job, &model.ProofUpdate{ApprovedMs: &now})
