@@ -10,8 +10,8 @@ func statusToConnection(status *agency.ProtocolStatus) *model.Connection {
 	connection := status.GetDIDExchange()
 	if connection != nil {
 		return &model.Connection{
-			OurDID:        connection.MyDid,
-			TheirDID:      connection.TheirDid,
+			OurDID:        connection.MyDID,
+			TheirDID:      connection.TheirDID,
 			TheirEndpoint: connection.TheirEndpoint,
 			TheirLabel:    connection.TheirLabel,
 		}
