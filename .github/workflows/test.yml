@@ -1,5 +1,7 @@
 name: test
 on: push
+env:
+  GOPRIVATE: "github.com/findy-network/*"
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -16,6 +18,8 @@ jobs:
         run: go test ./...
         env:
           FAV_DB_PASSWORD: password
+      - name: scan
+        run: make scan
     services:
       postgres:
         image: postgres:13.1-alpine
