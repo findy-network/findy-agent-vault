@@ -1,0 +1,11 @@
+# TODO
+# findy-common-go doesn't have LICENSE file yet. Until then we use this and this
+# works as a base for the future needs.
+
+
+# exceptions for violations
+exceptions:
+  # exceptions for "unresolvable license" type violations
+  unresolvableLicense:
+    - path: "github.com/findy-network/findy-common-go"
+      #      version: "v0.1.2" # version is optional - if unspecified, the exception will apply to all versions
