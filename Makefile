@@ -3,7 +3,7 @@ S3_TOOL_ASSET_PATH := https://$(HTTPS_PREFIX)api.github.com/repos/findy-network/
 .PHONY: db
 
 scan:
-	@./scan.sh
+	@./scan.sh $(ARGS)
 
 run:
 	go run tools/playground/playground.go
