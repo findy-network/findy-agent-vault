@@ -7,6 +7,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/resolver/query/agent"
 	"github.com/findy-network/findy-agent-vault/utils"
+	"github.com/golang/glog"
 	"github.com/lainio/err2"
 )
 
@@ -55,17 +56,19 @@ func (r *Resolver) Provable(ctx context.Context, obj *model.Proof) (res *model.P
 	// provable only if not accepted yet
 	if obj.Role == model.ProofRoleProver && obj.ApprovedMs == nil && obj.VerifiedMs == nil {
 		res.Attributes, err = r.db.SearchCredentials(tenant.ID, obj.Attributes)
-		err2.Check(err)
-
-		provable = true
-		for _, attr := range res.Attributes {
-			if len(attr.Credentials) == 0 {
-				provable = false
-				break
+		if err == nil {
+			provable = true
+			for _, attr := range res.Attributes {
+				if len(attr.Credentials) == 0 {
+					provable = false
+					break
+				}
 			}
+		} else {
+			glog.Warningf("Encountered error when searching credentials: %s %s", tenant.ID, err)
 		}
 	}
 
 	res.Provable = provable
-	return res, err
+	return res, nil
 }
