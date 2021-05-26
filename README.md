@@ -7,111 +7,61 @@ Vault provides both
 
 Vault provides currently only a GraphQL API but intends to support also GRPC in the future. As a findy-agency client you can use also the [findy-agent GRPC APIs](github.com/findy-network/findy-agent-api) directly, but will have to implement possible data storing and indexing capabilities yourself.
 
+![Architecture](./docs/arch-drawio.png)
+
 ## Setup development environment
+
+### Basic setup
 
 1. [Install golang](https://golang.org/dl/)
 
-1. Run binary
+1. Run app
 
    ```bash
    go run . version
    ```
 
-## Running with mock data
 
-Service providing mock data can be launched with following steps:
-
-1. [Install go](https://golang.org/dl/)
-2. Run
-
-   ```
-   make run
+   You shoud see something similar to this:
+   ```bash
+   I0526 14:43:44.750568   50912 config.go:68] Configuration file was not found, using environment/default variables only
+   Vault version dev
    ```
 
-This will launch the service in port 8085.
+### Service configuration
 
-- Access graphiQL playground with browser: http://localhost:8085
-- Configure URL `http://localhost:8085/query` to your own GQL-client.
+Vault cannot function without a working installation of [core agency](github.com/findy-network/findy-agent). Either setup core agency to your local machine or use agency installation in the cloud.
 
-See [sample client implementation](https://github.com/findy-network/findy-wallet-pwa).
-
-### Authentication
-
-Running the service in playground mode provides an endpoint for mock authentication token generation.
-Visit http://localhost:8085/token to generate the token.
-API requests should contain this token in header field for the authentication to succeed:
-
-```
-{"Authorization": "Bearer <TOKEN>"}
-```
-
-## Running locally with cloud agency
-
-1. Declare following environment variables:
+1. Vault can be configured using configuration file or environment variables. Following settings are required when running vault locally (note "<>" indicates example value, and should be replaced):
 
    ```bash
-   export FAV_AGENCY_HOST="<AGENCY HOST e.g. agency.example.com>"
-   export FAV_AGENCY_PORT="<AGENCY GRPC port e.g. 50051>"
-   export FAV_AGENCY_CERT_PATH=".github/workflows/cert"
+   # core agency address
+   export FAV_AGENCY_HOST="<agency.example.com>"
+   # core agency port
+   export FAV_AGENCY_PORT="<50051>"
+   # path to agency grpc cert files
+   export FAV_AGENCY_CERT_PATH="<.github/workflows/cert>"
+   # true if this vault is the primary vault for the agency installation
    export FAV_AGENCY_MAIN_SUBSCRIBER=false
-   export FAV_DB_PASSWORD="my-secret-password"
-   export FAV_JWT_KEY="<AGENCY JWT SECRET>"
+   # common agency JWT secret
+   export FAV_JWT_KEY="<jwt-secret-common-with-core>"
+   # vault database password (any password)
+   export FAV_DB_PASSWORD="<password-for-postgres>"
+   # vault server port
    export FAV_SERVER_PORT=8085
+   # true if graphQL playground should be served in service root
    export FAV_USE_PLAYGROUND=true
    ```
 
-1. Start local postgres container
-
+1. Vault uses postgres to store its data. You can start postgres in a docker container:
    ```bash
    make db
    ```
 
-1. Start vault
+1. Start vault by running the app with no arguments
 
    ```bash
    go run .
-   ```
-
-1. TODO: write auth setup instructions
-
-## Running with postgres and findy-agent
-
-1. Start postgres and findy-agent in their own docker containers:
-
-   ```bash
-   make dev_build
-   ```
-
-   (After the images have been built with command above, you can restart the env faster with `make env`)
-
-1. Onboard your agent to agency:
-
-   ```bash
-   go run tools/onboard/main.go
-   ```
-
-   Copy JWT token from the produced output.
-
-1. Declare following environment variables:
-
-   ```bash
-   export FAV_SERVER_PORT=8085
-   export FAV_USE_PLAYGROUND=true
-   export FAV_AGENCY_PORT=50052
-   export FAV_DB_PASSWORD="my-secret-password"
-   export FAV_AGENCY_CERT_PATH=".github/workflows/cert"
-   ```
-
-1. Run vault:
-
-   ```bash
-   go run main.go
-   ```
-
-1. Open http://localhost:8085 and set token to headers section as [instructed](#authentication). Execute graphQL queries with the playground e.g.
-
-   ```
-   { user { id name } }
    ```
 
 ## Unit testing
