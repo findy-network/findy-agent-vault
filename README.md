@@ -7,6 +7,16 @@ Vault provides both
 
 Vault provides currently only a GraphQL API but intends to support also GRPC in the future. As a findy-agency client you can use also the [findy-agent GRPC APIs](github.com/findy-network/findy-agent-api) directly, but will have to implement possible data storing and indexing capabilities yourself.
 
+## Setup development environment
+
+1. [Install golang](https://golang.org/dl/)
+
+1. Run binary
+
+   ```bash
+   go run . version
+   ```
+
 ## Running with mock data
 
 Service providing mock data can be launched with following steps:

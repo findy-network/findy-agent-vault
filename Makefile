@@ -17,7 +17,7 @@ deps:
 update-deps:
 	go get -u ./...
 
-build: generate
+build:
 	go build -v ./...
 
 shadow:
