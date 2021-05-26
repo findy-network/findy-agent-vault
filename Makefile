@@ -3,7 +3,10 @@ S3_TOOL_ASSET_PATH := https://$(HTTPS_PREFIX)api.github.com/repos/findy-network/
 .PHONY: db
 
 scan:
-	@./scan.sh $(ARGS)
+	@./scripts/scan.sh $(ARGS)
+
+scan_and_report:
+	@./scripts/scan.sh v > licenses.txt
 
 generate: 
 	go generate ./...
