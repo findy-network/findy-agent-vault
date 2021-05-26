@@ -8,7 +8,6 @@ import (
 )
 
 const (
-	hoursInWeek  = 24 * 7
 	hoursForTest = 2
 )
 

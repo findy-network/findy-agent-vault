@@ -66,22 +66,6 @@ func (r *mutationResolver) Resume(ctx context.Context, input model.ResumeJobInpu
 	return r.resolvers.mutation.Resume(ctx, input)
 }
 
-func (r *mutationResolver) AddRandomEvent(ctx context.Context) (bool, error) {
-	return r.resolvers.playground.AddRandomEvent(ctx)
-}
-
-func (r *mutationResolver) AddRandomMessage(ctx context.Context) (bool, error) {
-	return r.resolvers.playground.AddRandomMessage(ctx)
-}
-
-func (r *mutationResolver) AddRandomCredential(ctx context.Context) (bool, error) {
-	return r.resolvers.playground.AddRandomCredential(ctx)
-}
-
-func (r *mutationResolver) AddRandomProof(ctx context.Context) (bool, error) {
-	return r.resolvers.playground.AddRandomProof(ctx)
-}
-
 func (r *pairwiseResolver) Messages(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.BasicMessageConnection, error) {
 	return r.resolvers.pairwise.Messages(ctx, obj, after, before, first, last)
 }

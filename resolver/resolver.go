@@ -10,7 +10,6 @@ import (
 	"github.com/findy-network/findy-agent-vault/resolver/archive"
 	"github.com/findy-network/findy-agent-vault/resolver/listen"
 	"github.com/findy-network/findy-agent-vault/resolver/mutation"
-	"github.com/findy-network/findy-agent-vault/resolver/playground"
 	"github.com/findy-network/findy-agent-vault/resolver/query"
 	"github.com/findy-network/findy-agent-vault/resolver/query/agent"
 	"github.com/findy-network/findy-agent-vault/resolver/query/credential"
@@ -48,7 +47,6 @@ type controller struct {
 	mutation             *mutation.Resolver
 	pairwiseConnection   *pairwiseconn.Resolver
 	pairwise             *pairwise.Resolver
-	playground           *playground.Resolver
 	proofConnection      *proofconn.Resolver
 	proof                *proof.Resolver
 	query                *query.Resolver
@@ -107,10 +105,6 @@ func InitResolver(config *utils.Configuration) *Resolver {
 	r.listener = listen.NewListener(db, r.updater)
 	r.archiver = archive.NewArchiver(db)
 	r.agency.Init(r.listener, agentResolver.FetchAgents(), r.archiver, config)
-
-	if config.UseMockAgency {
-		r.resolvers.playground = playground.NewResolver(db, agentResolver, r.listener)
-	}
 
 	return r
 }
