@@ -333,12 +333,6 @@ type Mutation {
   sendMessage(input: MessageInput!): Response!
 
   resume(input: ResumeJobInput!): Response!
-
-  # for testing only
-  addRandomEvent: Boolean!
-  addRandomMessage: Boolean!
-  addRandomCredential: Boolean!
-  addRandomProof: Boolean!
 }
 
 type Subscription {

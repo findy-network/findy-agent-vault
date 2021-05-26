@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/findy-network/findy-agent-vault/resolver"
@@ -15,6 +17,11 @@ import (
 func main() {
 	utils.SetLogDefaults()
 	config := utils.LoadConfig()
+
+	if len(os.Args) > 1 && os.Args[1] == "version" {
+		fmt.Printf("Vault version %s\n", config.Version)
+		return
+	}
 
 	gqlResolver := resolver.InitResolver(config)
 

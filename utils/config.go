@@ -11,7 +11,7 @@ import (
 const defaultPort = "8085"
 const localhost = "localhost"
 
-var Version = ""
+var Version = "dev"
 
 // TODO: do not allow default value in production mode
 const defaultJWTSecret = "mySuperSecretKeyLol"

@@ -13,13 +13,8 @@ jobs:
         uses: actions/checkout@v2
       - name: use token
         run: git config --global url."https://"${{ secrets.https_prefix }}"github.com/".insteadOf "git@github.com:"
-  # TODO: refactor and use new cli
-  #      - name: clone deps
-  #        run: cd demo && make clone
-  #      - name: build cli
-  #        run: cd demo && make build_cli
-  #      - name: test
-  #        run: cd demo && make test TIMEOUT=5
+      - name: run test
+        run: echo "TODO"
   merge:
     needs: e2e
     runs-on: ubuntu-latest

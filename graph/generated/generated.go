@@ -184,15 +184,11 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddRandomCredential func(childComplexity int) int
-		AddRandomEvent      func(childComplexity int) int
-		AddRandomMessage    func(childComplexity int) int
-		AddRandomProof      func(childComplexity int) int
-		Connect             func(childComplexity int, input model.ConnectInput) int
-		Invite              func(childComplexity int) int
-		MarkEventRead       func(childComplexity int, input model.MarkReadInput) int
-		Resume              func(childComplexity int, input model.ResumeJobInput) int
-		SendMessage         func(childComplexity int, input model.MessageInput) int
+		Connect       func(childComplexity int, input model.ConnectInput) int
+		Invite        func(childComplexity int) int
+		MarkEventRead func(childComplexity int, input model.MarkReadInput) int
+		Resume        func(childComplexity int, input model.ResumeJobInput) int
+		SendMessage   func(childComplexity int, input model.MessageInput) int
 	}
 
 	PageInfo struct {
@@ -341,10 +337,6 @@ type MutationResolver interface {
 	Connect(ctx context.Context, input model.ConnectInput) (*model.Response, error)
 	SendMessage(ctx context.Context, input model.MessageInput) (*model.Response, error)
 	Resume(ctx context.Context, input model.ResumeJobInput) (*model.Response, error)
-	AddRandomEvent(ctx context.Context) (bool, error)
-	AddRandomMessage(ctx context.Context) (bool, error)
-	AddRandomCredential(ctx context.Context) (bool, error)
-	AddRandomProof(ctx context.Context) (bool, error)
 }
 type PairwiseResolver interface {
 	Messages(ctx context.Context, obj *model.Pairwise, after *string, before *string, first *int, last *int) (*model.BasicMessageConnection, error)
@@ -921,34 +913,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LoginResponse.Token(childComplexity), true
-
-	case "Mutation.addRandomCredential":
-		if e.complexity.Mutation.AddRandomCredential == nil {
-			break
-		}
-
-		return e.complexity.Mutation.AddRandomCredential(childComplexity), true
-
-	case "Mutation.addRandomEvent":
-		if e.complexity.Mutation.AddRandomEvent == nil {
-			break
-		}
-
-		return e.complexity.Mutation.AddRandomEvent(childComplexity), true
-
-	case "Mutation.addRandomMessage":
-		if e.complexity.Mutation.AddRandomMessage == nil {
-			break
-		}
-
-		return e.complexity.Mutation.AddRandomMessage(childComplexity), true
-
-	case "Mutation.addRandomProof":
-		if e.complexity.Mutation.AddRandomProof == nil {
-			break
-		}
-
-		return e.complexity.Mutation.AddRandomProof(childComplexity), true
 
 	case "Mutation.connect":
 		if e.complexity.Mutation.Connect == nil {
@@ -1984,12 +1948,6 @@ type Mutation {
   sendMessage(input: MessageInput!): Response!
 
   resume(input: ResumeJobInput!): Response!
-
-  # for testing only
-  addRandomEvent: Boolean!
-  addRandomMessage: Boolean!
-  addRandomCredential: Boolean!
-  addRandomProof: Boolean!
 }
 
 type Subscription {
@@ -5371,146 +5329,6 @@ func (ec *executionContext) _Mutation_resume(ctx context.Context, field graphql.
 	res := resTmp.(*model.Response)
 	fc.Result = res
 	return ec.marshalNResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐResponse(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_addRandomEvent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddRandomEvent(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_addRandomMessage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddRandomMessage(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_addRandomCredential(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddRandomCredential(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_addRandomProof(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddRandomProof(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
@@ -10062,26 +9880,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "resume":
 			out.Values[i] = ec._Mutation_resume(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "addRandomEvent":
-			out.Values[i] = ec._Mutation_addRandomEvent(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "addRandomMessage":
-			out.Values[i] = ec._Mutation_addRandomMessage(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "addRandomCredential":
-			out.Values[i] = ec._Mutation_addRandomCredential(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "addRandomProof":
-			out.Values[i] = ec._Mutation_addRandomProof(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
