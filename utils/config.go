@@ -23,6 +23,7 @@ type Configuration struct {
 	AgencyCertPath       string `mapstructure:"agency_cert_path"`
 	AgencyHost           string `mapstructure:"agency_host"`
 	AgencyPort           int    `mapstructure:"agency_port"`
+	AgencyAdminID        string `mapstructure:"agency_admin_id"`
 	Address              string
 	DBHost               string `mapstructure:"db_host"`
 	DBPassword           string `mapstructure:"db_password"`
@@ -50,6 +51,7 @@ func LoadConfig() *Configuration {
 	v.SetDefault("agency_cert_path", "")
 	v.SetDefault("agency_host", localhost)
 	v.SetDefault("agency_port", 50051)
+	v.SetDefault("agency_admin_id", "findy-root")
 	v.SetDefault("db_host", localhost)
 	v.SetDefault("db_password", "")
 	v.SetDefault("db_port", 5432)
