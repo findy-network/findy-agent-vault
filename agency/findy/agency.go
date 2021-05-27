@@ -21,10 +21,11 @@ type Agency struct {
 	vault         model.Listener
 	archiver      model.Archiver
 
-	agencyHost string
-	agencyPort int
-	tlsPath    string
-	options    []grpc.DialOption
+	agencyHost    string
+	agencyPort    int
+	agencyAdminID string
+	tlsPath       string
+	options       []grpc.DialOption
 
 	ctx  context.Context
 	conn client.Conn
@@ -41,6 +42,7 @@ func (f *Agency) Init(
 
 	f.agencyHost = config.AgencyHost
 	f.agencyPort = config.AgencyPort
+	f.agencyAdminID = config.AgencyAdminID
 	f.tlsPath = config.AgencyCertPath
 
 	f.ctx = context.Background()

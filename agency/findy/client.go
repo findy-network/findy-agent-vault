@@ -45,7 +45,7 @@ func (f *Agency) userAsyncClient(a *model.Agent) *Client {
 
 // Connection configuration for agency administrative client
 func (f *Agency) adminClient() *Client {
-	opts := callOptions(jwt.BuildJWT("findy-root"))
+	opts := callOptions(jwt.BuildJWT(f.agencyAdminID))
 	return &Client{&f.conn, f.ctx, opts}
 }
 

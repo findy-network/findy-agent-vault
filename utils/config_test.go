@@ -23,6 +23,7 @@ func TestConfigFromEnv(t *testing.T) {
 	os.Setenv("FAV_DB_PASSWORD", testSecret)
 	os.Setenv("FAV_AGENCY_HOST", testHost)
 	os.Setenv("FAV_AGENCY_PORT", strPort)
+	os.Setenv("FAV_AGENCY_ADMIN_ID", testSecret)
 	os.Setenv("FAV_AGENCY_CERT_PATH", testPath)
 
 	config := LoadConfig()
@@ -49,6 +50,9 @@ func TestConfigFromEnv(t *testing.T) {
 	}
 	if config.AgencyPort != testPort {
 		t.Errorf("agency port differs")
+	}
+	if config.AgencyAdminID != testSecret {
+		t.Errorf("agency admin id differs")
 	}
 	if config.AgencyCertPath != testPath {
 		t.Errorf("agency cert path differs")
