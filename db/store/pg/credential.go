@@ -379,7 +379,7 @@ func (pg *Database) SearchCredentials(
 
 	var (
 		sqlCredentialSearch = "SELECT credential.id, name, cred_def_id, value FROM credential " + sqlCredentialJoin +
-			" WHERE tenant_id=$1 AND (" + attributeSearch + ")" +
+			" WHERE tenant_id=$1 AND issued IS NOT NULL AND (" + attributeSearch + ")" +
 			" ORDER BY credential.created"
 	)
 

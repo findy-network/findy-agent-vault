@@ -118,7 +118,10 @@ func (p *Proof) Description() string {
 	case model.ProofRoleVerifier:
 		return "Received proof offer"
 	case model.ProofRoleProver:
-		return "Received proof request"
+		if p.Provable != nil {
+			return "Provable proof request"
+		}
+		return "Blocked proof request"
 	}
 
 	glog.Errorf("invalid role %s for proof", p.Role)

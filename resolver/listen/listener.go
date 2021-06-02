@@ -135,13 +135,22 @@ func (l *Listener) UpdateCredential(info *agency.JobInfo, data *agency.Credentia
 
 	err2.Check(l.UpdateJob(job, credential.Description()))
 
-	// TODO:
-	// 1. fetch all open proofs that are depending on these attributes or cred def id
-	// 2. update provable status to the proof and update job status
+	// Since we have new credential, check if any of the blocked proofs becomes unblocked
+	proofData := make([]*model.ProofAttribute, 0)
+	for _, attribute := range credential.Attributes {
+		proofData = append(
+			proofData,
+			&model.ProofAttribute{Name: attribute.Name, CredDefID: credential.CredDefID},
+		)
+	}
+	blockedJobs, err := l.db.GetOpenProofJobs(info.TenantID, proofData)
+	for _, blockedJob := range blockedJobs {
+		l.updateBlockedProof(blockedJob)
+	}
 	return nil
 }
 
-func (l *Listener) isProvable(info *agency.JobInfo, data *agency.Proof) bool {
+func (l *Listener) isProvable(info *agency.JobInfo, data *dbModel.Proof) bool {
 	attributes, err := l.db.SearchCredentials(info.TenantID, data.Attributes)
 	provable := false
 	if err == nil {
@@ -161,20 +170,21 @@ func (l *Listener) isProvable(info *agency.JobInfo, data *agency.Proof) bool {
 func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error) {
 	defer err2.Return(&err)
 
-	var provableTime *time.Time
-	if l.isProvable(info, data) {
-		now := utils.CurrentTime()
-		provableTime = &now
-	}
-
-	proof, err := l.db.AddProof(dbModel.NewProof(info.TenantID, &dbModel.Proof{
+	newProof := dbModel.NewProof(info.TenantID, &dbModel.Proof{
 		ConnectionID:  info.ConnectionID,
 		Role:          data.Role,
 		Attributes:    data.Attributes,
 		Result:        false,
 		InitiatedByUs: data.InitiatedByUs,
-		Provable:      provableTime,
-	}))
+	})
+
+	var provableTime *time.Time
+	if l.isProvable(info, newProof) {
+		now := utils.CurrentTime()
+		newProof.Provable = &now
+	}
+
+	proof, err := l.db.AddProof(newProof)
 	err2.Check(err)
 
 	utils.LogMed().Infof("Add proof %s for tenant %s", proof.ID, info.TenantID)
@@ -195,6 +205,30 @@ func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error
 		Status:          status,
 		Result:          model.JobResultNone,
 	}), proof.Description()))
+	return nil
+}
+
+func (l *Listener) updateBlockedProof(job *dbModel.Job) (err error) {
+	defer err2.Return(&err)
+
+	utils.LogMed().Infof("Update blocked proof %s for tenant %s", *job.ProtocolProofID, job.TenantID)
+
+	proof, err := l.db.GetProof(*job.ProtocolProofID, job.TenantID)
+	err2.Check(err)
+
+	if l.isProvable(&agency.JobInfo{TenantID: job.TenantID, JobID: job.ID, ConnectionID: *job.ConnectionID}, proof) {
+		now := utils.CurrentTime()
+		proof.Provable = &now
+		proof, err = l.db.UpdateProof(proof)
+		err2.Check(err)
+
+		job.Status, job.Result = getJobStatusForProof(proof)
+
+		err2.Check(l.UpdateJob(job, proof.Description()))
+	} else {
+		utils.LogMed().Infof("Skipping update for blocked proof %s for tenant %s", *job.ProtocolProofID, job.TenantID)
+	}
+
 	return nil
 }
 
