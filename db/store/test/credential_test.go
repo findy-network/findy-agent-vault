@@ -354,6 +354,7 @@ func TestSearchCredentials(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("search credentials "+s.name, func(t *testing.T) {
+			now := utils.CurrentTime()
 			testCredential = model.NewCredential(s.testTenantID, testCredential)
 			testCredential.TenantID = s.testTenantID
 			testCredential.ConnectionID = s.testConnectionID
@@ -361,6 +362,10 @@ func TestSearchCredentials(t *testing.T) {
 			// Add data
 			testCredential.CredDefID = "searchCredentials"
 			c, err := s.db.AddCredential(testCredential)
+			assert.D.True(err == nil)
+
+			c.Issued = &now
+			c, err = s.db.UpdateCredential(c)
 			assert.D.True(err == nil)
 
 			proofRequest := &graph.Proof{Attributes: testProof.Attributes}

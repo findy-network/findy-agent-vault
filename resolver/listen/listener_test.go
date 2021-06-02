@@ -248,6 +248,10 @@ func TestUpdateCredential(t *testing.T) {
 		AddEvent(event).
 		Return(event, nil)
 
+	m.
+		EXPECT().
+		GetOpenProofJobs(job.TenantID, []*graph.ProofAttribute{})
+
 	l := createListener(m)
 
 	_ = l.UpdateCredential(job, credentialUpdate)
@@ -284,7 +288,7 @@ func TestAddProof(t *testing.T) {
 			ProtocolType:    graph.ProtocolTypeProof,
 			ProtocolProofID: &resultProof.ID,
 			InitiatedByUs:   proof.InitiatedByUs,
-			Status:          graph.JobStatusPending,
+			Status:          graph.JobStatusBlocked,
 			Result:          graph.JobResultNone,
 		})
 		event = model.NewEvent(job.TenantID, &model.Event{

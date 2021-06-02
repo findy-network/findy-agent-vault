@@ -145,7 +145,9 @@ func (l *Listener) UpdateCredential(info *agency.JobInfo, data *agency.Credentia
 	}
 	blockedJobs, err := l.db.GetOpenProofJobs(info.TenantID, proofData)
 	for _, blockedJob := range blockedJobs {
-		l.updateBlockedProof(blockedJob)
+		if err = l.updateBlockedProof(blockedJob); err != nil {
+			glog.Error(err)
+		}
 	}
 	return nil
 }
