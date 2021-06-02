@@ -298,3 +298,24 @@ func (pg *Database) GetJobOutput(id, tenantID string, protocolType graph.Protoco
 	}
 	return &model.JobOutput{}, nil
 }
+
+func (pg *Database) GetOpenProofJobs(tenantID string, proofAttributes []*graph.ProofAttribute) (jobs []*model.Job, err error) {
+	defer err2.Return(&err)
+	attributeSearch := getInFilterForAttributes(proofAttributes)
+
+	query := "SELECT DISTINCT " + sqlFields("job", jobFields) + ", created, cursor FROM job " +
+		"INNER JOIN proof_attribute ON proof_attribute.proof_id = job.protocol_proof_id " +
+		"WHERE tenant_id=$1 AND status = 'BLOCKED' AND protocol_type = 'PROOF' AND (" + attributeSearch + ")"
+
+	jobs = make([]*model.Job, 0)
+	var job *model.Job
+	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+		defer err2.Return(&err)
+		job, err = rowToJob(rows)
+		err2.Check(err)
+		jobs = append(jobs, job)
+		return
+	}, query, tenantID))
+
+	return jobs, nil
+}

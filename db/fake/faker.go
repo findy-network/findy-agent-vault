@@ -67,23 +67,23 @@ func AddEvents(db store.DB, tenantID, connectionID string, jobID *string, count 
 }
 
 func AddJobs(db store.DB, tenantID, connectionID string, count int) []*model.Job {
-	return addJobs(db, tenantID, connectionID, nil, nil, nil, nil, count)
+	return addJobs(db, tenantID, connectionID, nil, nil, nil, nil, count, graph.JobStatusComplete)
 }
 
 func AddConnectionJobs(db store.DB, tenantID, connectionID, protocolConnectionID string, count int) []*model.Job {
-	return addJobs(db, tenantID, connectionID, &protocolConnectionID, nil, nil, nil, count)
+	return addJobs(db, tenantID, connectionID, &protocolConnectionID, nil, nil, nil, count, graph.JobStatusComplete)
 }
 
 func AddCredentialJobs(db store.DB, tenantID, connectionID, protocolCredentialID string, count int) []*model.Job {
-	return addJobs(db, tenantID, connectionID, nil, &protocolCredentialID, nil, nil, count)
+	return addJobs(db, tenantID, connectionID, nil, &protocolCredentialID, nil, nil, count, graph.JobStatusComplete)
 }
 
-func AddProofJobs(db store.DB, tenantID, connectionID, protocolProofID string, count int) []*model.Job {
-	return addJobs(db, tenantID, connectionID, nil, nil, &protocolProofID, nil, count)
+func AddProofJobs(db store.DB, tenantID, connectionID, protocolProofID string, count int, status graph.JobStatus) []*model.Job {
+	return addJobs(db, tenantID, connectionID, nil, nil, &protocolProofID, nil, count, status)
 }
 
 func AddMessageJobs(db store.DB, tenantID, connectionID, protocolMessageID string, count int) []*model.Job {
-	return addJobs(db, tenantID, connectionID, nil, nil, nil, &protocolMessageID, count)
+	return addJobs(db, tenantID, connectionID, nil, nil, nil, &protocolMessageID, count, graph.JobStatusComplete)
 }
 
 func AddCredentials(db store.DB, tenantID, connectionID string, count int) []*model.Credential {
@@ -113,7 +113,7 @@ func AddCredentials(db store.DB, tenantID, connectionID string, count int) []*mo
 	return newCredentials
 }
 
-func AddProofs(db store.DB, tenantID, connectionID string, count int) []*model.Proof {
+func AddProofs(db store.DB, tenantID, connectionID string, count int, verify bool) []*model.Proof {
 	proofs := make([]*model.Proof, count)
 	for i := 0; i < count; i++ {
 		proof := Proof(tenantID, connectionID)
@@ -127,10 +127,12 @@ func AddProofs(db store.DB, tenantID, connectionID string, count int) []*model.P
 		time.Sleep(time.Millisecond) // generate different timestamps for items
 
 		now := time.Now().UTC()
-		p.Approved = &now
-		p.Verified = &now
-		_, err = db.UpdateProof(p)
-		err2.Check(err)
+		if verify {
+			p.Approved = &now
+			p.Verified = &now
+			_, err = db.UpdateProof(p)
+			err2.Check(err)
+		}
 
 		newProofs[index] = p
 	}
@@ -182,7 +184,7 @@ func AddData(db store.DB) {
 
 	connections := AddConnections(db, agent.ID, count)
 	AddCredentials(db, agent.ID, connections[0].ID, count)
-	AddProofs(db, agent.ID, connections[0].ID, count)
+	AddProofs(db, agent.ID, connections[0].ID, count, true)
 	AddMessages(db, agent.ID, connections[0].ID, count)
 	jobs := AddJobs(db, agent.ID, connections[0].ID, count)
 	AddEvents(db, agent.ID, connections[0].ID, &jobs[0].ID, count*eventFactor)
@@ -193,6 +195,7 @@ func addJobs(
 	tenantID, connectionID string,
 	protocolConnectionID, protocolCredentialID, protocolProofID, protocolMessageID *string,
 	count int,
+	status graph.JobStatus,
 ) []*model.Job {
 	jobs := make([]*model.Job, count)
 	for i := 0; i < count; i++ {
@@ -204,6 +207,7 @@ func addJobs(
 			protocolCredentialID,
 			protocolProofID,
 			protocolMessageID,
+			status,
 		)
 		jobs[i] = job
 	}
@@ -287,6 +291,7 @@ func fakeEvent(tenantID, connectionID string, jobID *string) *model.Event {
 func fakeJob(
 	id, tenantID, connectionID string,
 	protocolConnectionID, protocolCredentialID, protocolProofID, protocolMessageID *string,
+	status graph.JobStatus,
 ) *model.Job {
 	job := model.NewJob("", "", nil)
 	err2.Check(faker.FakeData(job))
@@ -306,6 +311,7 @@ func fakeJob(
 	if job.ProtocolMessageID != nil {
 		job.ProtocolType = graph.ProtocolTypeBasicMessage
 	}
+	job.Status = status
 	return job
 }
 

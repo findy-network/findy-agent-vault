@@ -134,6 +134,10 @@ func (l *Listener) UpdateCredential(info *agency.JobInfo, data *agency.Credentia
 	job.Status, job.Result = getJobStatusForTimestamps(credential.Approved, credential.Issued, credential.Failed)
 
 	err2.Check(l.UpdateJob(job, credential.Description()))
+
+	// TODO:
+	// 1. fetch all open proofs that are depending on these attributes or cred def id
+	// 2. update provable status to the proof and update job status
 	return nil
 }
 

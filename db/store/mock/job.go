@@ -134,7 +134,7 @@ func (m *mockData) GetJobs(
 	tenantID string,
 	connectionID *string,
 	completed *bool,
-) (connections *model.Jobs, err error) {
+) (jobs *model.Jobs, err error) {
 	agent := m.agents.get(tenantID)
 
 	if connectionID == nil {
@@ -191,4 +191,11 @@ func (m *mockData) GetJobOutput(id, tenantID string, protocolType graph.Protocol
 		break
 	}
 	return &model.JobOutput{}, nil
+}
+
+func (m *mockData) GetOpenProofJobs(tenantID string, proofAttributes []*graph.ProofAttribute) ([]*model.Job, error) {
+	agent := m.agents.get(tenantID)
+	jobs, _ := agent.getJobs(&paginator.BatchInfo{Count: 1}, jobFilter(nil))
+
+	return jobs.Jobs, nil
 }

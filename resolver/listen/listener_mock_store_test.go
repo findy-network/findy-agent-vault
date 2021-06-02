@@ -702,3 +702,18 @@ func (mr *MockDBMockRecorder) GetConnectionForJob(id, tenantID interface{}) *gom
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConnectionForJob", reflect.TypeOf((*MockDB)(nil).GetConnectionForJob), id, tenantID)
 }
+
+// GetOpenProofJobs mocks base method
+func (m *MockDB) GetOpenProofJobs(tenantID string, proofAttributes []*model0.ProofAttribute) ([]*model.Job, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOpenProofJobs", tenantID, proofAttributes)
+	ret0, _ := ret[0].([]*model.Job)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOpenProofJobs indicates an expected call of GetOpenProofJobs
+func (mr *MockDBMockRecorder) GetOpenProofJobs(tenantID, proofAttributes interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOpenProofJobs", reflect.TypeOf((*MockDB)(nil).GetOpenProofJobs), tenantID, proofAttributes)
+}

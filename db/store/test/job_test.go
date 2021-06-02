@@ -396,9 +396,9 @@ func TestGetProofOutputForJob(t *testing.T) {
 		t.Run("get proof output for job "+s.name, func(t *testing.T) {
 			a, connections := AddAgentAndConnections(s.db, "TestGetProofOutputForJob", 3)
 			connection := connections[0]
-			proofs := fake.AddProofs(s.db, a.ID, connection.ID, 1)
+			proofs := fake.AddProofs(s.db, a.ID, connection.ID, 1, true)
 			proof := proofs[0]
-			jobs := fake.AddProofJobs(s.db, a.ID, connection.ID, proof.ID, 1)
+			jobs := fake.AddProofJobs(s.db, a.ID, connection.ID, proof.ID, 1, graph.JobStatusComplete)
 			job := jobs[0]
 
 			// Get data for id
@@ -429,6 +429,28 @@ func TestGetMessageOutputForJob(t *testing.T) {
 				t.Errorf("Error fetching output %s", err.Error())
 			} else {
 				validateMessage(t, message, got.Message)
+			}
+		})
+	}
+}
+
+func TestGetOpenProofJobs(t *testing.T) {
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("get open proof jobs "+s.name, func(t *testing.T) {
+			a, connections := AddAgentAndConnections(s.db, "TestGetOpenProofJobs", 3)
+			connection := connections[0]
+			proofs := fake.AddProofs(s.db, a.ID, connection.ID, 1, false)
+			proof := proofs[0]
+			jobs := fake.AddProofJobs(s.db, a.ID, connection.ID, proof.ID, 1, graph.JobStatusBlocked)
+			job := jobs[0]
+
+			// Get data for id
+			got, err := s.db.GetOpenProofJobs(job.TenantID, proof.Attributes)
+			if err != nil {
+				t.Errorf("Error getting jobs %s", err.Error())
+			} else if got[0].ID != job.ID {
+				t.Errorf("Open proof job was not found %s != %s", got[0].ID, job.ID)
 			}
 		})
 	}

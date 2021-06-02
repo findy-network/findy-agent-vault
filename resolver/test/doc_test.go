@@ -49,7 +49,7 @@ func setup() {
 	cr := fake.AddCredentials(db, a.ID, c[0].ID, size)
 	testCredentialID = cr[0].ID
 
-	pr := fake.AddProofs(db, a.ID, c[0].ID, size)
+	pr := fake.AddProofs(db, a.ID, c[0].ID, size, true)
 	testProofID = pr[0].ID
 
 	msg := fake.AddMessages(db, a.ID, c[0].ID, size)
