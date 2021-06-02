@@ -1822,6 +1822,7 @@ enum ProtocolType {
 enum JobStatus {
   WAITING
   PENDING
+  BLOCKED
   COMPLETE
 }
 

@@ -4,11 +4,16 @@ import (
 	"time"
 )
 
+var CurrentStaticTime = time.Time{}
+
 func CurrentTimeMs() int64 {
 	return time.Now().UTC().UnixNano() / int64(time.Millisecond)
 }
 
 func CurrentTime() time.Time {
+	if !CurrentStaticTime.IsZero() {
+		return CurrentStaticTime
+	}
 	return time.Now().UTC()
 }
 

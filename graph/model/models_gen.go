@@ -336,18 +336,20 @@ type JobStatus string
 const (
 	JobStatusWaiting  JobStatus = "WAITING"
 	JobStatusPending  JobStatus = "PENDING"
+	JobStatusBlocked  JobStatus = "BLOCKED"
 	JobStatusComplete JobStatus = "COMPLETE"
 )
 
 var AllJobStatus = []JobStatus{
 	JobStatusWaiting,
 	JobStatusPending,
+	JobStatusBlocked,
 	JobStatusComplete,
 }
 
 func (e JobStatus) IsValid() bool {
 	switch e {
-	case JobStatusWaiting, JobStatusPending, JobStatusComplete:
+	case JobStatusWaiting, JobStatusPending, JobStatusBlocked, JobStatusComplete:
 		return true
 	}
 	return false

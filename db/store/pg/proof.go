@@ -35,7 +35,7 @@ func constructProofAttributeInsert(count int) string {
 }
 
 var (
-	proofFields      = []string{"tenant_id", "connection_id", "role", "initiated_by_us", "result", "archived"}
+	proofFields      = []string{"tenant_id", "connection_id", "role", "initiated_by_us", "result", "archived", "provable"}
 	proofExtraFields = []string{"created", "approved", "verified", "failed", "cursor"}
 
 	sqlProofBaseFields = sqlFields("", proofFields)
@@ -114,6 +114,7 @@ func (pg *Database) AddProof(p *model.Proof) (n *model.Proof, err error) {
 		p.InitiatedByUs,
 		p.Result,
 		p.Archived,
+		p.Provable,
 	))
 
 	attributes, err := pg.addProofAttributes(n.ID, n.Attributes)
@@ -127,12 +128,14 @@ func (pg *Database) UpdateProof(p *model.Proof) (n *model.Proof, err error) {
 	defer err2.Annotate("UpdateProof", &err)
 
 	const (
-		sqlProofUpdate          = "UPDATE proof SET approved=$1, verified=$2, failed=$3 WHERE id = $4" // TODO: tenant id + connection id
+		// TODO: tenant id + connection id
+		sqlProofUpdate          = "UPDATE proof SET provable=$1, approved=$2, verified=$3, failed=$4 WHERE id = $5"
 		sqlProofAttributeUpdate = "UPDATE proof_attribute SET value = (CASE %s END) WHERE id IN (%s)"
 	)
 
 	_, err = pg.db.Exec(
 		sqlProofUpdate,
+		p.Provable,
 		p.Approved,
 		p.Verified,
 		p.Failed,
@@ -186,6 +189,7 @@ func readRowToProof(rows *sql.Rows, previous *model.Proof) (*model.Proof, error)
 		&n.InitiatedByUs,
 		&n.Result,
 		&n.Archived,
+		&n.Provable,
 		&n.Created,
 		&approved,
 		&verified,

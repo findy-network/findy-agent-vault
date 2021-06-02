@@ -1,0 +1,1 @@
+ALTER TABLE "proof" DROP COLUMN provable;

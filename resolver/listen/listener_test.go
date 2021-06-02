@@ -3,6 +3,7 @@ package listen
 import (
 	"os"
 	"testing"
+	"time"
 
 	agency "github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/db/model"
@@ -256,8 +257,11 @@ func TestAddProof(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	utils.CurrentStaticTime = utils.CurrentTime()
+
 	m := NewMockDB(ctrl)
 	var (
+		now   = utils.CurrentTime()
 		job   = &agency.JobInfo{JobID: "job-id", TenantID: "tenant-id", ConnectionID: "connection-id"}
 		proof = &agency.Proof{
 			Role: graph.ProofRoleProver,
@@ -273,6 +277,7 @@ func TestAddProof(t *testing.T) {
 			Attributes:    proof.Attributes,
 			Result:        false,
 			InitiatedByUs: proof.InitiatedByUs,
+			Provable:      &now,
 		})
 		resultJob = model.NewJob(job.JobID, job.TenantID, &model.Job{
 			ConnectionID:    &job.ConnectionID,
@@ -296,6 +301,9 @@ func TestAddProof(t *testing.T) {
 		Return(resultProof, nil)
 	m.
 		EXPECT().
+		SearchCredentials(job.TenantID, proof.Attributes)
+	m.
+		EXPECT().
 		AddJob(resultJob).
 		Return(resultJob, nil)
 	m.
@@ -306,6 +314,8 @@ func TestAddProof(t *testing.T) {
 	l := createListener(m)
 
 	_ = l.AddProof(job, proof)
+
+	utils.CurrentStaticTime = time.Time{}
 }
 
 func TestUpdateProof(t *testing.T) {

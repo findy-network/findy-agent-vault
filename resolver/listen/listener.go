@@ -10,6 +10,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/resolver/update"
 	"github.com/findy-network/findy-agent-vault/utils"
+	"github.com/golang/glog"
 	"github.com/lainio/err2"
 )
 
@@ -136,8 +137,31 @@ func (l *Listener) UpdateCredential(info *agency.JobInfo, data *agency.Credentia
 	return nil
 }
 
+func (l *Listener) isProvable(info *agency.JobInfo, data *agency.Proof) bool {
+	attributes, err := l.db.SearchCredentials(info.TenantID, data.Attributes)
+	provable := false
+	if err == nil {
+		provable = true
+		for _, attr := range attributes {
+			if len(attr.Credentials) == 0 {
+				provable = false
+				break
+			}
+		}
+	} else {
+		glog.Warningf("Encountered error when searching credentials: %s %s", info.TenantID, err)
+	}
+	return provable
+}
+
 func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error) {
 	defer err2.Return(&err)
+
+	var provableTime *time.Time
+	if l.isProvable(info, data) {
+		now := utils.CurrentTime()
+		provableTime = &now
+	}
 
 	proof, err := l.db.AddProof(dbModel.NewProof(info.TenantID, &dbModel.Proof{
 		ConnectionID:  info.ConnectionID,
@@ -145,6 +169,7 @@ func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error
 		Attributes:    data.Attributes,
 		Result:        false,
 		InitiatedByUs: data.InitiatedByUs,
+		Provable:      provableTime,
 	}))
 	err2.Check(err)
 
@@ -153,6 +178,9 @@ func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error
 	status := model.JobStatusWaiting
 	if !data.InitiatedByUs {
 		status = model.JobStatusPending
+	}
+	if provableTime == nil {
+		status = model.JobStatusBlocked
 	}
 
 	err2.Check(l.AddJob(dbModel.NewJob(info.JobID, info.TenantID, &dbModel.Job{
@@ -183,7 +211,7 @@ func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) (
 
 	if proof.Verified != nil {
 		// TODO: these values should come from agency
-		// now we just pick first found value
+		// now we just pick first found value and actually only guessing what core agency has picked
 		var provableAttrs []*model.ProvableAttribute
 		provableAttrs, err = l.db.SearchCredentials(proof.TenantID, proof.Attributes)
 		err2.Check(err)
@@ -202,7 +230,7 @@ func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) (
 	proof, err = l.db.UpdateProof(proof)
 	err2.Check(err)
 
-	job.Status, job.Result = getJobStatusForTimestamps(proof.Approved, proof.Verified, proof.Failed)
+	job.Status, job.Result = getJobStatusForProof(proof)
 
 	err2.Check(l.UpdateJob(job, proof.Description()))
 	return nil
@@ -219,6 +247,14 @@ func getJobStatusForTimestamps(approved, completed, failed *time.Time) (status m
 	} else if completed != nil {
 		status = model.JobStatusComplete
 		result = model.JobResultSuccess
+	}
+	return
+}
+
+func getJobStatusForProof(proof *dbModel.Proof) (status model.JobStatus, result model.JobResult) {
+	status, result = getJobStatusForTimestamps(proof.Approved, proof.Verified, proof.Failed)
+	if status == model.JobStatusPending && proof.Provable == nil {
+		status = model.JobStatusBlocked
 	}
 	return
 }
