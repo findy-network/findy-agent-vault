@@ -4,7 +4,6 @@ import (
 	agency "github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/db/fake"
 	"github.com/findy-network/findy-agent-vault/db/store"
-	"github.com/findy-network/findy-agent-vault/db/store/mock"
 	"github.com/findy-network/findy-agent-vault/db/store/pg"
 	"github.com/findy-network/findy-agent-vault/resolver/archive"
 	"github.com/findy-network/findy-agent-vault/resolver/listen"
@@ -61,17 +60,7 @@ type Resolver struct {
 	resolvers *controller
 }
 
-func InitResolver(config *utils.Configuration, coreAgency agency.Agency) *Resolver {
-	var db store.DB
-	if config.UseMockDB {
-		db = mock.InitState()
-	} else {
-		db = pg.InitDB("file://db/migrations", config, false)
-	}
-	if config.GenerateFakeData {
-		fake.AddData(db)
-	}
-
+func InitResolverWithDB(config *utils.Configuration, coreAgency agency.Agency, db store.DB) *Resolver {
 	r := &Resolver{db: db}
 
 	r.agency = coreAgency
@@ -102,6 +91,14 @@ func InitResolver(config *utils.Configuration, coreAgency agency.Agency) *Resolv
 	r.agency.Init(r.listener, agentResolver.FetchAgents(), r.archiver, config)
 
 	return r
+}
+
+func InitResolver(config *utils.Configuration, coreAgency agency.Agency) *Resolver {
+	db := pg.InitDB(config, false)
+	if config.GenerateFakeData {
+		fake.AddData(db)
+	}
+	return InitResolverWithDB(config, coreAgency, db)
 }
 
 // For testing

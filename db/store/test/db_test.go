@@ -114,12 +114,12 @@ func setup() {
 
 	DBs = append(DBs, []*testableDB{{
 		db: pg.InitDB(
-			"file://../../migrations",
 			&utils.Configuration{
-				DBHost:     "localhost",
-				DBPassword: os.Getenv("FAV_DB_PASSWORD"),
-				DBPort:     5433,
-				DBTracing:  logQueries,
+				DBHost:           "localhost",
+				DBPassword:       os.Getenv("FAV_DB_PASSWORD"),
+				DBPort:           5433,
+				DBTracing:        logQueries,
+				DBMigrationsPath: "file://../../migrations",
 			},
 			true),
 		name:           "pg",

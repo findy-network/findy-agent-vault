@@ -85,7 +85,7 @@ type Database struct {
 	db *sql.DB
 }
 
-func InitDB(migratePath string, config *utils.Configuration, reset bool) store.DB {
+func InitDB(config *utils.Configuration, reset bool) store.DB {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		config.DBHost, config.DBPort, user, config.DBPassword, dbName)
@@ -103,7 +103,7 @@ func InitDB(migratePath string, config *utils.Configuration, reset bool) store.D
 	err2.Check(err)
 
 	m, err := migrate.NewWithDatabaseInstance(
-		migratePath, "postgres", driver,
+		config.DBMigrationsPath, "postgres", driver,
 	)
 	err2.Check(err)
 

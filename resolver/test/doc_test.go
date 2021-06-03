@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"reflect"
 	"testing"
 
 	"github.com/findy-network/findy-agent-vault/agency/mock"
 	"github.com/findy-network/findy-agent-vault/db/fake"
+	"github.com/findy-network/findy-agent-vault/db/store"
+	"github.com/findy-network/findy-agent-vault/db/store/pg"
 	"github.com/findy-network/findy-agent-vault/db/store/test"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/resolver"
@@ -27,6 +30,14 @@ var (
 	testEventID      string
 	testJobID        string
 	totalCount       = 5
+
+	config = &utils.Configuration{
+		DBHost:           "localhost",
+		DBPassword:       os.Getenv("FAV_DB_PASSWORD"),
+		DBPort:           5433,
+		DBMigrationsPath: "file://../../db/migrations",
+	}
+	resolverDB store.DB
 )
 
 func testContext() context.Context {
@@ -37,9 +48,23 @@ func testContext() context.Context {
 	return ctx
 }
 
-func beforeEach(t *testing.T) (m *mock.MockAgency) {
+func setup() {
 	utils.SetLogDefaults()
 
+	resolverDB = pg.InitDB(config, true)
+}
+
+func teardown() {
+}
+
+func TestMain(m *testing.M) {
+	setup()
+	code := m.Run()
+	teardown()
+	os.Exit(code)
+}
+
+func beforeEachWithID(t *testing.T, id string) (m *mock.MockAgency) {
 	ctrl := gomock.NewController(t)
 
 	m = mock.NewMockAgency(ctrl)
@@ -48,11 +73,13 @@ func beforeEach(t *testing.T) (m *mock.MockAgency) {
 		EXPECT().
 		Init(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any())
 
-	r = resolver.InitResolver(&utils.Configuration{UseMockDB: true}, m)
+	m.EXPECT().AddAgent(gomock.Any()).AnyTimes()
+
+	r = resolver.InitResolverWithDB(config, m, resolverDB)
 	db := r.Store()
 
 	size := totalCount
-	a, c := test.AddAgentAndConnections(db, fake.FakeCloudDID, size)
+	a, c := test.AddAgentAndConnections(db, id, size)
 	testConnectionID = c[0].ID
 
 	cr := fake.AddCredentials(db, a.ID, c[0].ID, size)
@@ -71,6 +98,10 @@ func beforeEach(t *testing.T) (m *mock.MockAgency) {
 	testEventID = ev[0].ID
 
 	return m
+}
+
+func beforeEach(t *testing.T) (m *mock.MockAgency) {
+	return beforeEachWithID(t, fake.FakeCloudDID)
 }
 
 type executor func(ctx context.Context, after *string, before *string, first *int, last *int) error

@@ -7,7 +7,7 @@ import (
 )
 
 func TestEventConnectionTotalCount(t *testing.T) {
-	beforeEach(t)
+	beforeEachWithID(t, "TestEventConnectionTotalCount")
 
 	c, err := r.EventConnection().TotalCount(testContext(), &model.EventConnection{ConnectionID: nil})
 	if err != nil {

@@ -7,7 +7,7 @@ import (
 )
 
 func TestCredentialConnectionTotalCount(t *testing.T) {
-	beforeEach(t)
+	beforeEachWithID(t, "TestCredentialConnectionTotalCount")
 
 	c, err := r.CredentialConnection().TotalCount(testContext(), &model.CredentialConnection{ConnectionID: nil})
 	if err != nil {
