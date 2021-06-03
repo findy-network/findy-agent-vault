@@ -52,7 +52,7 @@ func LogRequest(prefix string, params *Params) {
 	if params.After != nil {
 		after = fmt.Sprintf(", after: %s", *params.After)
 	}
-	utils.LogMed().Infof("%s%s%s%s%s", prefix, after, before, first, last)
+	utils.LogLow().Infof("%s%s%s%s%s", prefix, after, before, first, last)
 }
 
 func CreateCursor(created uint64, object interface{}) string {

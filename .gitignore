@@ -8,4 +8,5 @@ c.out
 findy-agent-vault
 .docker
 cert/
+.cert
 licenses.txt

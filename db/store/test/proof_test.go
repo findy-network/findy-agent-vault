@@ -213,9 +213,9 @@ func TestGetTenantProofs(t *testing.T) {
 			a, connections := AddAgentAndConnections(s.db, "TestGetTenantProofs", 3)
 
 			size := 5
-			all := fake.AddProofs(s.db, a.ID, connections[0].ID, size)
-			all = append(all, fake.AddProofs(s.db, a.ID, connections[1].ID, size)...)
-			all = append(all, fake.AddProofs(s.db, a.ID, connections[2].ID, size)...)
+			all := fake.AddProofs(s.db, a.ID, connections[0].ID, size, true)
+			all = append(all, fake.AddProofs(s.db, a.ID, connections[1].ID, size, true)...)
+			all = append(all, fake.AddProofs(s.db, a.ID, connections[2].ID, size, true)...)
 
 			sort.Slice(all, func(i, j int) bool {
 				return all[i].Created.Sub(all[j].Created) < 0
@@ -249,9 +249,9 @@ func TestGetConnectionProofs(t *testing.T) {
 
 			size := 5
 			countPerConnection := size * 3
-			fake.AddProofs(s.db, a.ID, connections[0].ID, countPerConnection)
-			fake.AddProofs(s.db, a.ID, connections[1].ID, countPerConnection)
-			all := fake.AddProofs(s.db, a.ID, connections[2].ID, countPerConnection)
+			fake.AddProofs(s.db, a.ID, connections[0].ID, countPerConnection, true)
+			fake.AddProofs(s.db, a.ID, connections[1].ID, countPerConnection, true)
+			all := fake.AddProofs(s.db, a.ID, connections[2].ID, countPerConnection, true)
 
 			sort.Slice(all, func(i, j int) bool {
 				return all[i].Created.Sub(all[j].Created) < 0
@@ -283,7 +283,7 @@ func TestGetProofCount(t *testing.T) {
 			// add new agent with no pre-existing proofs
 			a, connections := AddAgentAndConnections(s.db, "TestGetProofCount", 3)
 			size := 5
-			fake.AddProofs(s.db, a.ID, connections[0].ID, size)
+			fake.AddProofs(s.db, a.ID, connections[0].ID, size, true)
 
 			// Get count
 			got, err := s.db.GetProofCount(a.ID, nil)
@@ -304,11 +304,11 @@ func TestGetConnectionProofCount(t *testing.T) {
 			a, connections := AddAgentAndConnections(s.db, "TestGetConnectionProofCount", 3)
 			size := 5
 			index := 0
-			fake.AddProofs(s.db, a.ID, connections[index].ID, (index+1)*size)
+			fake.AddProofs(s.db, a.ID, connections[index].ID, (index+1)*size, true)
 			index++
-			fake.AddProofs(s.db, a.ID, connections[index].ID, (index+1)*size)
+			fake.AddProofs(s.db, a.ID, connections[index].ID, (index+1)*size, true)
 			index++
-			fake.AddProofs(s.db, a.ID, connections[index].ID, index*size)
+			fake.AddProofs(s.db, a.ID, connections[index].ID, index*size, true)
 
 			// Get count
 			expected := index * size
@@ -328,7 +328,7 @@ func TestGetConnectionForProof(t *testing.T) {
 		t.Run("get connection for proof "+s.name, func(t *testing.T) {
 			a, connections := AddAgentAndConnections(s.db, "TestGetConnectionForProof", 3)
 			connection := connections[0]
-			proofs := fake.AddProofs(s.db, a.ID, connection.ID, 1)
+			proofs := fake.AddProofs(s.db, a.ID, connection.ID, 1, true)
 			proof := proofs[0]
 
 			// Get data for id

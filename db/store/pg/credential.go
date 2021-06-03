@@ -375,30 +375,13 @@ func (pg *Database) SearchCredentials(
 
 	assert.P.NotEmpty(proofAttributes, "cannot search credentials for empty proof")
 
-	credDefs := ""
-	names := ""
-	for _, attr := range proofAttributes {
-		if attr.CredDefID != "" {
-			if credDefs != "" {
-				credDefs += ","
-			}
-			credDefs += fmt.Sprintf("'%s'", attr.CredDefID)
-		}
-		if names != "" {
-			names += ","
-		}
-		names += fmt.Sprintf("'%s'", attr.Name)
-	}
+	attributeSearch := getInFilterForAttributes(proofAttributes)
 
-	attributeSearch := ""
-	if credDefs != "" {
-		attributeSearch = "cred_def_id IN (" + credDefs + ") OR "
-	}
-	attributeSearch += " name IN (" + names + ")"
+	utils.LogMed().Infof("Searching for credentials %s", attributeSearch)
 
 	var (
 		sqlCredentialSearch = "SELECT credential.id, name, cred_def_id, value FROM credential " + sqlCredentialJoin +
-			" WHERE tenant_id=$1 AND (" + attributeSearch + ")" +
+			" WHERE tenant_id=$1 AND issued IS NOT NULL AND (" + attributeSearch + ")" +
 			" ORDER BY credential.created"
 	)
 

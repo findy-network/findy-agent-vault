@@ -108,4 +108,5 @@ type DB interface {
 	GetJobs(info *paginator.BatchInfo, tenantID string, connectionID *string, completed *bool) (*model.Jobs, error)
 	GetJobCount(tenantID string, connectionID *string, completed *bool) (int, error)
 	GetConnectionForJob(id, tenantID string) (*model.Connection, error)
+	GetOpenProofJobs(tenantID string, proofAttributes []*graph.ProofAttribute) ([]*model.Job, error)
 }

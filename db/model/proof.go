@@ -22,6 +22,7 @@ type Proof struct {
 	Values        []*model.ProofValue     `faker:"-"`
 	InitiatedByUs bool
 	Result        bool
+	Provable      *time.Time `faker:"-"`
 	Approved      *time.Time `faker:"-"`
 	Verified      *time.Time `faker:"-"`
 	Failed        *time.Time `faker:"-"`
@@ -69,6 +70,7 @@ func (p *Proof) copy() (n *Proof) {
 	n.Role = p.Role
 	n.InitiatedByUs = p.InitiatedByUs
 	n.Result = p.Result
+	n.Provable = copyTime(p.Provable)
 	n.Approved = copyTime(p.Approved)
 	n.Verified = copyTime(p.Verified)
 	n.Failed = copyTime(p.Failed)
@@ -116,7 +118,10 @@ func (p *Proof) Description() string {
 	case model.ProofRoleVerifier:
 		return "Received proof offer"
 	case model.ProofRoleProver:
-		return "Received proof request"
+		if p.Provable != nil {
+			return "Provable proof request"
+		}
+		return "Blocked proof request"
 	}
 
 	glog.Errorf("invalid role %s for proof", p.Role)
