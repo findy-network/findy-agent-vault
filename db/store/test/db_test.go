@@ -8,7 +8,6 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/db/store"
-	"github.com/findy-network/findy-agent-vault/db/store/mock"
 	"github.com/findy-network/findy-agent-vault/db/store/pg"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/utils"
@@ -123,10 +122,6 @@ func setup() {
 			},
 			true),
 		name:           "pg",
-		testConnection: testConnection,
-	}, {
-		db:             mock.InitState(),
-		name:           "mock",
 		testConnection: testConnection,
 	},
 	}...)
