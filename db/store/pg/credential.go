@@ -377,6 +377,8 @@ func (pg *Database) SearchCredentials(
 
 	attributeSearch := getInFilterForAttributes(proofAttributes)
 
+	utils.LogMed().Infof("Searching for credentials %s", attributeSearch)
+
 	var (
 		sqlCredentialSearch = "SELECT credential.id, name, cred_def_id, value FROM credential " + sqlCredentialJoin +
 			" WHERE tenant_id=$1 AND issued IS NOT NULL AND (" + attributeSearch + ")" +

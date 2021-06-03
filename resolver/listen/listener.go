@@ -136,17 +136,22 @@ func (l *Listener) UpdateCredential(info *agency.JobInfo, data *agency.Credentia
 	err2.Check(l.UpdateJob(job, credential.Description()))
 
 	// Since we have new credential, check if any of the blocked proofs becomes unblocked
-	proofData := make([]*model.ProofAttribute, 0)
-	for _, attribute := range credential.Attributes {
-		proofData = append(
-			proofData,
-			&model.ProofAttribute{Name: attribute.Name, CredDefID: credential.CredDefID},
-		)
-	}
-	blockedJobs, err := l.db.GetOpenProofJobs(info.TenantID, proofData)
-	for _, blockedJob := range blockedJobs {
-		if err = l.updateBlockedProof(blockedJob); err != nil {
-			glog.Error(err)
+	if credential.Issued != nil {
+		proofData := make([]*model.ProofAttribute, 0)
+		for _, attribute := range credential.Attributes {
+			proofData = append(
+				proofData,
+				&model.ProofAttribute{Name: attribute.Name, CredDefID: credential.CredDefID},
+			)
+		}
+		if blockedJobs, err := l.db.GetOpenProofJobs(info.TenantID, proofData); err != nil {
+			glog.Warningf("Encountered error fetching blocked jobs: %s", err)
+		} else {
+			for _, blockedJob := range blockedJobs {
+				if err = l.updateBlockedProof(blockedJob); err != nil {
+					glog.Error(err)
+				}
+			}
 		}
 	}
 	return nil
@@ -158,6 +163,7 @@ func (l *Listener) isProvable(info *agency.JobInfo, data *dbModel.Proof) bool {
 	if err == nil {
 		provable = true
 		for _, attr := range attributes {
+			utils.LogMed().Infof("Attribute %s, cred count %d", attr.Attribute.Name, len(attr.Credentials))
 			if len(attr.Credentials) == 0 {
 				provable = false
 				break

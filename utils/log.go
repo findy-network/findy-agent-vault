@@ -21,7 +21,7 @@ func LogLow() glog.Verbose   { return glog.V(logLevelLow) }
 func LogTrace() glog.Verbose { return glog.V(logLevelTrace) }
 
 func SetLogDefaults() {
-	logParse("5")
+	logParse("3")
 }
 
 func SetLogConfig(config *Configuration) {

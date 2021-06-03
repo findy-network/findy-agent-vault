@@ -57,7 +57,7 @@ func LoadConfig() *Configuration {
 	v.SetDefault("db_port", 5432)
 	v.SetDefault("db_tracing", false)
 	v.SetDefault("jwt_key", defaultJWTSecret)
-	v.SetDefault("log_level", "5")
+	v.SetDefault("log_level", "3")
 	v.SetDefault("server_port", defaultPort)
 	v.SetDefault("use_playground", false)
 
