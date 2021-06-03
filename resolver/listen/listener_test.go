@@ -216,6 +216,7 @@ func TestUpdateCredential(t *testing.T) {
 			&model.Credential{
 				Role:     graph.CredentialRoleHolder,
 				Approved: utils.TSToTimeIfNotSet(nil, credentialUpdate.ApprovedMs),
+				Issued:   utils.TSToTimeIfNotSet(nil, &now),
 			},
 		)
 		resultJob = model.NewJob(job.JobID, job.TenantID, &model.Job{ConnectionID: &job.ConnectionID, ProtocolCredentialID: &credentialID})
