@@ -121,7 +121,7 @@ func setup() {
 				DBMigrationsPath: "file://../../migrations",
 				DBName:           "vault",
 			},
-			true),
+			true, false),
 		name:           "pg",
 		testConnection: testConnection,
 	},

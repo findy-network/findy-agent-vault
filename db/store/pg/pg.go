@@ -17,8 +17,7 @@ import (
 )
 
 const (
-	user   = "postgres"
-	dbName = "vault"
+	user = "postgres"
 )
 
 const (
@@ -85,10 +84,26 @@ type Database struct {
 	db *sql.DB
 }
 
-func InitDB(config *utils.Configuration, reset bool) store.DB {
+func createNewDB(config *utils.Configuration) {
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s sslmode=disable",
+		config.DBHost, config.DBPort, user, config.DBPassword)
+	sqlDB, _ := sql.Open("postgres", psqlInfo)
+	if _, err := sqlDB.Exec("CREATE database " + config.DBName); err != nil {
+		glog.Warning(err)
+	}
+	sqlDB.Close()
+}
+
+func InitDB(config *utils.Configuration, reset, createDB bool) store.DB {
+	// For testing only
+	if createDB {
+		createNewDB(config)
+	}
+
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		config.DBHost, config.DBPort, user, config.DBPassword, dbName)
+		config.DBHost, config.DBPort, user, config.DBPassword, config.DBName)
 
 	var sqlDB *sql.DB
 	var err error
@@ -131,6 +146,7 @@ func InitDB(config *utils.Configuration, reset bool) store.DB {
 	err2.Check(err)
 
 	glog.Infof("successfully connected to postgres %s:%d\n", config.DBHost, config.DBPort)
+
 	return &Database{db: sqlDB}
 }
 

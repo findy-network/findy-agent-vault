@@ -94,7 +94,7 @@ func InitResolverWithDB(config *utils.Configuration, coreAgency agency.Agency, d
 }
 
 func InitResolver(config *utils.Configuration, coreAgency agency.Agency) *Resolver {
-	db := pg.InitDB(config, false)
+	db := pg.InitDB(config, false, false)
 	if config.GenerateFakeData {
 		fake.AddData(db)
 	}

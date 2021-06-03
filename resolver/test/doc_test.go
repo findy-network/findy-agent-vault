@@ -56,7 +56,7 @@ func testContext() context.Context {
 func setup() {
 	utils.SetLogDefaults()
 
-	resolverDB = pg.InitDB(config, true)
+	resolverDB = pg.InitDB(config, true, true)
 }
 
 func teardown() {
