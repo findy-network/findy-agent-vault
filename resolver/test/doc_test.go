@@ -36,6 +36,7 @@ var (
 		DBPassword:       os.Getenv("FAV_DB_PASSWORD"),
 		DBPort:           5433,
 		DBMigrationsPath: "file://../../db/migrations",
+		DBName:           "resolver",
 	}
 	resolverDB store.DB
 )

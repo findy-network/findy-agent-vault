@@ -30,6 +30,7 @@ type Configuration struct {
 	DBPort               int    `mapstructure:"db_port"`
 	DBTracing            bool   `mapstructure:"db_tracing"`
 	DBMigrationsPath     string `mapstructure:"db_migrations_path"`
+	DBName               string `mapstructure:"db_name"`
 	GenerateFakeData     bool
 	JWTKey               string `mapstructure:"jwt_key"`
 	LogLevel             string `mapstructure:"log_level"`
@@ -56,6 +57,7 @@ func LoadConfig() *Configuration {
 	v.SetDefault("db_port", 5432)
 	v.SetDefault("db_tracing", false)
 	v.SetDefault("db_migrations_path", "file://db/migrations")
+	v.SetDefault("db_name", "vault")
 	v.SetDefault("jwt_key", defaultJWTSecret)
 	v.SetDefault("log_level", "3")
 	v.SetDefault("server_port", defaultPort)

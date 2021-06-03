@@ -119,6 +119,7 @@ func setup() {
 				DBPort:           5433,
 				DBTracing:        logQueries,
 				DBMigrationsPath: "file://../../migrations",
+				DBName:           "vault",
 			},
 			true),
 		name:           "pg",
