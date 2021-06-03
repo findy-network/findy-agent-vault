@@ -8,13 +8,17 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/findy-network/findy-agent-vault/agency/mock"
 	"github.com/findy-network/findy-agent-vault/db/fake"
+	"github.com/findy-network/findy-agent-vault/db/store"
+	"github.com/findy-network/findy-agent-vault/db/store/pg"
 	"github.com/findy-network/findy-agent-vault/db/store/test"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/resolver"
 	"github.com/findy-network/findy-agent-vault/server"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/findy-network/findy-common-go/jwt"
+	"github.com/golang/mock/gomock"
 )
 
 var (
@@ -26,24 +30,61 @@ var (
 	testEventID      string
 	testJobID        string
 	totalCount       = 5
+
+	config = &utils.Configuration{
+		DBHost:           "localhost",
+		DBPassword:       os.Getenv("FAV_DB_PASSWORD"),
+		DBPort:           5433,
+		DBMigrationsPath: "file://../../db/migrations",
+		DBName:           "resolver",
+	}
+	resolverDB store.DB
 )
 
-func testContext() context.Context {
+func testContextForUser(userName string) context.Context {
 	const testValidationKey = "test-secret"
-	uToken := server.NewServer(nil, testValidationKey).CreateTestToken(testValidationKey)
+	uToken := server.NewServer(nil, testValidationKey).CreateTestToken(userName, testValidationKey)
 	ctx := jwt.TokenToContext(context.Background(), "user", &jwt.Token{Raw: uToken})
 
 	return ctx
 }
 
+func testContext() context.Context {
+	return testContextForUser(fake.FakeCloudDID)
+}
+
 func setup() {
 	utils.SetLogDefaults()
 
-	r = resolver.InitResolver(&utils.Configuration{UseMockDB: true, UseMockAgency: true})
+	resolverDB = pg.InitDB(config, true, true)
+}
+
+func teardown() {
+}
+
+func TestMain(m *testing.M) {
+	setup()
+	code := m.Run()
+	teardown()
+	os.Exit(code)
+}
+
+func beforeEachWithID(t *testing.T, id string) (m *mock.MockAgency) {
+	ctrl := gomock.NewController(t)
+
+	m = mock.NewMockAgency(ctrl)
+
+	m.
+		EXPECT().
+		Init(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any())
+
+	m.EXPECT().AddAgent(gomock.Any()).AnyTimes()
+
+	r = resolver.InitResolverWithDB(config, m, resolverDB)
 	db := r.Store()
 
 	size := totalCount
-	a, c := test.AddAgentAndConnections(db, fake.FakeCloudDID, size)
+	a, c := test.AddAgentAndConnections(db, id, size)
 	testConnectionID = c[0].ID
 
 	cr := fake.AddCredentials(db, a.ID, c[0].ID, size)
@@ -60,16 +101,12 @@ func setup() {
 
 	ev := fake.AddEvents(db, a.ID, c[0].ID, &testJobID, size)
 	testEventID = ev[0].ID
+
+	return m
 }
 
-func teardown() {
-}
-
-func TestMain(m *testing.M) {
-	setup()
-	code := m.Run()
-	teardown()
-	os.Exit(code)
+func beforeEach(t *testing.T) (m *mock.MockAgency) {
+	return beforeEachWithID(t, fake.FakeCloudDID)
 }
 
 type executor func(ctx context.Context, after *string, before *string, first *int, last *int) error

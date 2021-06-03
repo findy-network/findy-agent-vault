@@ -7,8 +7,11 @@ import (
 )
 
 func TestJobConnectionTotalCount(t *testing.T) {
+	const user = "TestJobConnectionTotalCount"
+	beforeEachWithID(t, user)
+
 	completed := true
-	j, err := r.JobConnection().TotalCount(testContext(), &model.JobConnection{ConnectionID: nil, Completed: &completed})
+	j, err := r.JobConnection().TotalCount(testContextForUser(user), &model.JobConnection{ConnectionID: nil, Completed: &completed})
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)
 	}
@@ -18,6 +21,8 @@ func TestJobConnectionTotalCount(t *testing.T) {
 }
 
 func TestJobConnectionTotalCountForConnection(t *testing.T) {
+	beforeEach(t)
+
 	completed := true
 	j, err := r.JobConnection().TotalCount(testContext(), &model.JobConnection{ConnectionID: &testConnectionID, Completed: &completed})
 	if err != nil {

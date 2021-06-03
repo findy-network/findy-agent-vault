@@ -7,6 +7,8 @@ import (
 )
 
 func TestGetJobOutput(t *testing.T) {
+	beforeEach(t)
+
 	output, err := r.Job().Output(
 		testContext(),
 		&model.Job{ID: testJobID, Protocol: model.ProtocolTypeCredential},

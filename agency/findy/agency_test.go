@@ -25,7 +25,7 @@ import (
 
 const (
 	testInvitation = `{"serviceEndpoint":` +
-		`"http://findy-agent.op-ai.fi/a2a/Xmjk7cFr8TT2j5kWLWyhDB/Xmjk7cFr8TT2j5kWLWyhDB/GqmnSTxevze48yio5m2fUE",` +
+		`"http://url",` +
 		`"recipientKeys":["Hmk4756ry7fqBCKPf634SRvaM3xss1QBhoFC1uAbwkVL"],"@id":"d679e4c6-b8db-4c39-99ca-783034b51bd4"` +
 		`,"label":"findy-issuer","@type":"did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/invitation"}`
 	testID = "d679e4c6-b8db-4c39-99ca-783034b51bd4"

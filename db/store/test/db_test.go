@@ -8,7 +8,6 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/db/store"
-	"github.com/findy-network/findy-agent-vault/db/store/mock"
 	"github.com/findy-network/findy-agent-vault/db/store/pg"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/utils"
@@ -114,19 +113,16 @@ func setup() {
 
 	DBs = append(DBs, []*testableDB{{
 		db: pg.InitDB(
-			"file://../../migrations",
 			&utils.Configuration{
-				DBHost:     "localhost",
-				DBPassword: os.Getenv("FAV_DB_PASSWORD"),
-				DBPort:     5433,
-				DBTracing:  logQueries,
+				DBHost:           "localhost",
+				DBPassword:       os.Getenv("FAV_DB_PASSWORD"),
+				DBPort:           5433,
+				DBTracing:        logQueries,
+				DBMigrationsPath: "file://../../migrations",
+				DBName:           "vault",
 			},
-			true),
+			true, false),
 		name:           "pg",
-		testConnection: testConnection,
-	}, {
-		db:             mock.InitState(),
-		name:           "mock",
 		testConnection: testConnection,
 	},
 	}...)

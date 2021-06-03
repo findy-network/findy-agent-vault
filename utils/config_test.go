@@ -21,6 +21,8 @@ func TestConfigFromEnv(t *testing.T) {
 	os.Setenv("FAV_DB_HOST", testHost)
 	os.Setenv("FAV_DB_PORT", strPort)
 	os.Setenv("FAV_DB_PASSWORD", testSecret)
+	os.Setenv("FAV_DB_MIGRATIONS_PATH", testPath)
+	os.Setenv("FAV_DB_NAME", testHost)
 	os.Setenv("FAV_AGENCY_HOST", testHost)
 	os.Setenv("FAV_AGENCY_PORT", strPort)
 	os.Setenv("FAV_AGENCY_ADMIN_ID", testSecret)
@@ -44,6 +46,12 @@ func TestConfigFromEnv(t *testing.T) {
 	}
 	if config.DBPassword != testSecret {
 		t.Errorf("db password differs")
+	}
+	if config.DBMigrationsPath != testPath {
+		t.Errorf("db migrations path differs")
+	}
+	if config.DBName != testHost {
+		t.Errorf("db name differs")
 	}
 	if config.AgencyHost != testHost {
 		t.Errorf("agency host differs")
