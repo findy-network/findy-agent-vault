@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/findy-network/findy-agent-vault/agency/findy"
 	"github.com/findy-network/findy-agent-vault/resolver"
 	"github.com/findy-network/findy-agent-vault/utils"
 
@@ -23,7 +24,7 @@ func main() {
 		return
 	}
 
-	gqlResolver := resolver.InitResolver(config)
+	gqlResolver := resolver.InitResolver(config, &findy.Agency{})
 
 	srv := server.NewServer(gqlResolver, config.JWTKey)
 	http.Handle("/query", srv.Handle())

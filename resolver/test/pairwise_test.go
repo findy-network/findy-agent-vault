@@ -8,6 +8,8 @@ import (
 )
 
 func TestPaginationErrorsGetConnectionCredentials(t *testing.T) {
+	beforeEach(t)
+
 	testPaginationErrors(t, "connection credentials", func(ctx context.Context, after, before *string, first, last *int) error {
 		_, err := r.Pairwise().Credentials(ctx, &model.Pairwise{ID: testConnectionID}, after, before, first, last)
 		return err
@@ -15,6 +17,8 @@ func TestPaginationErrorsGetConnectionCredentials(t *testing.T) {
 }
 
 func TestResolverGetConnectionCredentials(t *testing.T) {
+	beforeEach(t)
+
 	first := 1
 	c, err := r.Pairwise().Credentials(testContext(), &model.Pairwise{ID: testConnectionID}, nil, nil, &first, nil)
 	if err != nil {
@@ -26,6 +30,8 @@ func TestResolverGetConnectionCredentials(t *testing.T) {
 }
 
 func TestPaginationErrorsGetConnectionProofs(t *testing.T) {
+	beforeEach(t)
+
 	testPaginationErrors(t, "connection proofs", func(ctx context.Context, after, before *string, first, last *int) error {
 		_, err := r.Pairwise().Proofs(ctx, &model.Pairwise{ID: testConnectionID}, after, before, first, last)
 		return err
@@ -33,6 +39,8 @@ func TestPaginationErrorsGetConnectionProofs(t *testing.T) {
 }
 
 func TestResolverGetConnectionProofs(t *testing.T) {
+	beforeEach(t)
+
 	first := 1
 	c, err := r.Pairwise().Proofs(testContext(), &model.Pairwise{ID: testConnectionID}, nil, nil, &first, nil)
 	if err != nil {
@@ -44,6 +52,8 @@ func TestResolverGetConnectionProofs(t *testing.T) {
 }
 
 func TestPaginationErrorsGetConnectionMessages(t *testing.T) {
+	beforeEach(t)
+
 	testPaginationErrors(t, "connection messages", func(ctx context.Context, after, before *string, first, last *int) error {
 		_, err := r.Pairwise().Messages(ctx, &model.Pairwise{ID: testConnectionID}, after, before, first, last)
 		return err
@@ -51,6 +61,8 @@ func TestPaginationErrorsGetConnectionMessages(t *testing.T) {
 }
 
 func TestResolverGetConnectionMessages(t *testing.T) {
+	beforeEach(t)
+
 	first := 1
 	c, err := r.Pairwise().Messages(testContext(), &model.Pairwise{ID: testConnectionID}, nil, nil, &first, nil)
 	if err != nil {
@@ -62,6 +74,8 @@ func TestResolverGetConnectionMessages(t *testing.T) {
 }
 
 func TestPaginationErrorsGetConnectionEvents(t *testing.T) {
+	beforeEach(t)
+
 	testPaginationErrors(t, "connection events", func(ctx context.Context, after, before *string, first, last *int) error {
 		_, err := r.Pairwise().Events(ctx, &model.Pairwise{ID: testConnectionID}, after, before, first, last)
 		return err
@@ -69,6 +83,8 @@ func TestPaginationErrorsGetConnectionEvents(t *testing.T) {
 }
 
 func TestResolverGetConnectionEvents(t *testing.T) {
+	beforeEach(t)
+
 	first := 1
 	c, err := r.Pairwise().Events(testContext(), &model.Pairwise{ID: testConnectionID}, nil, nil, &first, nil)
 	if err != nil {
@@ -80,6 +96,8 @@ func TestResolverGetConnectionEvents(t *testing.T) {
 }
 
 func TestPaginationErrorsGetConnectionJobs(t *testing.T) {
+	beforeEach(t)
+
 	testPaginationErrors(t, "connection jobs", func(ctx context.Context, after, before *string, first, last *int) error {
 		completed := true
 		_, err := r.Pairwise().Jobs(ctx, &model.Pairwise{ID: testConnectionID}, after, before, first, last, &completed)
@@ -88,6 +106,8 @@ func TestPaginationErrorsGetConnectionJobs(t *testing.T) {
 }
 
 func TestResolverGetConnectionJobs(t *testing.T) {
+	beforeEach(t)
+
 	first := 1
 	completed := true
 	j, err := r.Pairwise().Jobs(testContext(), &model.Pairwise{ID: testConnectionID}, nil, nil, &first, nil, &completed)

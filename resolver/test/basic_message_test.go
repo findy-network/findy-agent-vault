@@ -7,6 +7,7 @@ import (
 )
 
 func TestGetMessageConnection(t *testing.T) {
+	beforeEach(t)
 	connection, err := r.BasicMessage().Connection(testContext(), &model.BasicMessage{ID: testMessageID})
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)

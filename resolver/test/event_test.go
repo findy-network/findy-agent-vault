@@ -7,6 +7,8 @@ import (
 )
 
 func TestGetEventConnection(t *testing.T) {
+	beforeEach(t)
+
 	connection, err := r.Event().Connection(testContext(), &model.Event{ID: testEventID})
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)
@@ -17,6 +19,8 @@ func TestGetEventConnection(t *testing.T) {
 }
 
 func TestGetEventJob(t *testing.T) {
+	beforeEach(t)
+
 	job, err := r.Event().Job(testContext(), &model.Event{ID: testEventID})
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)

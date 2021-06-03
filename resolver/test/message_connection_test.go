@@ -7,6 +7,8 @@ import (
 )
 
 func TestMessageConnectionTotalCountForConnection(t *testing.T) {
+	beforeEach(t)
+
 	c, err := r.BasicMessageConnection().TotalCount(testContext(), &model.BasicMessageConnection{ConnectionID: &testConnectionID})
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)

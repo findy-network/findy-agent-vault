@@ -7,6 +7,8 @@ import (
 )
 
 func TestGetCredentialConnection(t *testing.T) {
+	beforeEach(t)
+
 	connection, err := r.Credential().Connection(testContext(), &model.Credential{ID: testCredentialID})
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)

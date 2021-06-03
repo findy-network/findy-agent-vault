@@ -7,6 +7,8 @@ import (
 )
 
 func TestJobConnectionTotalCount(t *testing.T) {
+	beforeEach(t)
+
 	completed := true
 	j, err := r.JobConnection().TotalCount(testContext(), &model.JobConnection{ConnectionID: nil, Completed: &completed})
 	if err != nil {
@@ -18,6 +20,8 @@ func TestJobConnectionTotalCount(t *testing.T) {
 }
 
 func TestJobConnectionTotalCountForConnection(t *testing.T) {
+	beforeEach(t)
+
 	completed := true
 	j, err := r.JobConnection().TotalCount(testContext(), &model.JobConnection{ConnectionID: &testConnectionID, Completed: &completed})
 	if err != nil {

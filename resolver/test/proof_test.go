@@ -7,6 +7,8 @@ import (
 )
 
 func TestGetProofConnection(t *testing.T) {
+	beforeEach(t)
+
 	connection, err := r.Proof().Connection(testContext(), &model.Proof{ID: testProofID})
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)

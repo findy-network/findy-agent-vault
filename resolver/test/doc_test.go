@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"reflect"
 	"testing"
 
+	"github.com/findy-network/findy-agent-vault/agency/mock"
 	"github.com/findy-network/findy-agent-vault/db/fake"
 	"github.com/findy-network/findy-agent-vault/db/store/test"
 	"github.com/findy-network/findy-agent-vault/paginator"
@@ -15,6 +15,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/server"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/findy-network/findy-common-go/jwt"
+	"github.com/golang/mock/gomock"
 )
 
 var (
@@ -36,10 +37,18 @@ func testContext() context.Context {
 	return ctx
 }
 
-func setup() {
+func beforeEach(t *testing.T) (m *mock.MockAgency) {
 	utils.SetLogDefaults()
 
-	r = resolver.InitResolver(&utils.Configuration{UseMockDB: true, UseMockAgency: true})
+	ctrl := gomock.NewController(t)
+
+	m = mock.NewMockAgency(ctrl)
+
+	m.
+		EXPECT().
+		Init(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any())
+
+	r = resolver.InitResolver(&utils.Configuration{UseMockDB: true}, m)
 	db := r.Store()
 
 	size := totalCount
@@ -60,16 +69,8 @@ func setup() {
 
 	ev := fake.AddEvents(db, a.ID, c[0].ID, &testJobID, size)
 	testEventID = ev[0].ID
-}
 
-func teardown() {
-}
-
-func TestMain(m *testing.M) {
-	setup()
-	code := m.Run()
-	teardown()
-	os.Exit(code)
+	return m
 }
 
 type executor func(ctx context.Context, after *string, before *string, first *int, last *int) error

@@ -7,6 +7,8 @@ import (
 )
 
 func TestPaginationErrorsGetConnections(t *testing.T) {
+	beforeEach(t)
+
 	testPaginationErrors(t, "connections", func(ctx context.Context, after, before *string, first, last *int) error {
 		_, err := r.Query().Connections(ctx, after, before, first, last)
 		return err
@@ -14,6 +16,8 @@ func TestPaginationErrorsGetConnections(t *testing.T) {
 }
 
 func TestResolverGetConnections(t *testing.T) {
+	beforeEach(t)
+
 	first := 1
 	c, err := r.Query().Connections(testContext(), nil, nil, &first, nil)
 	if err != nil {
@@ -25,6 +29,8 @@ func TestResolverGetConnections(t *testing.T) {
 }
 
 func TestGetConnection(t *testing.T) {
+	beforeEach(t)
+
 	c, err := r.Query().Connection(testContext(), testConnectionID)
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)
@@ -35,6 +41,8 @@ func TestGetConnection(t *testing.T) {
 }
 
 func TestPaginationErrorsGetCredentials(t *testing.T) {
+	beforeEach(t)
+
 	testPaginationErrors(t, "credentials", func(ctx context.Context, after, before *string, first, last *int) error {
 		_, err := r.Query().Credentials(ctx, after, before, first, last)
 		return err
@@ -42,6 +50,8 @@ func TestPaginationErrorsGetCredentials(t *testing.T) {
 }
 
 func TestResolverGetCredentials(t *testing.T) {
+	beforeEach(t)
+
 	first := 1
 	c, err := r.Query().Credentials(testContext(), nil, nil, &first, nil)
 	if err != nil {
@@ -53,6 +63,8 @@ func TestResolverGetCredentials(t *testing.T) {
 }
 
 func TestGetCredential(t *testing.T) {
+	beforeEach(t)
+
 	c, err := r.Query().Credential(testContext(), testCredentialID)
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)
@@ -63,6 +75,8 @@ func TestGetCredential(t *testing.T) {
 }
 
 func TestGetProof(t *testing.T) {
+	beforeEach(t)
+
 	c, err := r.Query().Proof(testContext(), testProofID)
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)
@@ -73,6 +87,8 @@ func TestGetProof(t *testing.T) {
 }
 
 func TestGetMessage(t *testing.T) {
+	beforeEach(t)
+
 	c, err := r.Query().Message(testContext(), testMessageID)
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)
@@ -83,6 +99,8 @@ func TestGetMessage(t *testing.T) {
 }
 
 func TestPaginationErrorsGetEvents(t *testing.T) {
+	beforeEach(t)
+
 	testPaginationErrors(t, "events", func(ctx context.Context, after, before *string, first, last *int) error {
 		_, err := r.Query().Events(ctx, after, before, first, last)
 		return err
@@ -90,6 +108,8 @@ func TestPaginationErrorsGetEvents(t *testing.T) {
 }
 
 func TestResolverGetEvents(t *testing.T) {
+	beforeEach(t)
+
 	first := 1
 	e, err := r.Query().Events(testContext(), nil, nil, &first, nil)
 	if err != nil {
@@ -101,6 +121,8 @@ func TestResolverGetEvents(t *testing.T) {
 }
 
 func TestGetEvent(t *testing.T) {
+	beforeEach(t)
+
 	e, err := r.Query().Event(testContext(), testEventID)
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)
@@ -111,6 +133,8 @@ func TestGetEvent(t *testing.T) {
 }
 
 func TestPaginationErrorsGetJobs(t *testing.T) {
+	beforeEach(t)
+
 	testPaginationErrors(t, "jobs", func(ctx context.Context, after, before *string, first, last *int) error {
 		completed := true
 		_, err := r.Query().Jobs(ctx, after, before, first, last, &completed)
@@ -119,6 +143,8 @@ func TestPaginationErrorsGetJobs(t *testing.T) {
 }
 
 func TestResolverGetJobs(t *testing.T) {
+	beforeEach(t)
+
 	first := 1
 	completed := true
 	j, err := r.Query().Jobs(testContext(), nil, nil, &first, nil, &completed)
@@ -131,6 +157,8 @@ func TestResolverGetJobs(t *testing.T) {
 }
 
 func TestGetJob(t *testing.T) {
+	beforeEach(t)
+
 	j, err := r.Query().Job(testContext(), testJobID)
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)
@@ -141,6 +169,8 @@ func TestGetJob(t *testing.T) {
 }
 
 func TestGetUser(t *testing.T) {
+	beforeEach(t)
+
 	u, err := r.Query().User(testContext())
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)
@@ -151,6 +181,8 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestGetEndpoint(t *testing.T) {
+	beforeEach(t)
+
 	const expectedLabel = "findy-issuer"
 	// plain json string
 	e, err := r.Query().Endpoint(testContext(), testInvitation)

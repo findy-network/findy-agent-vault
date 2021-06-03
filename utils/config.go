@@ -33,7 +33,6 @@ type Configuration struct {
 	JWTKey               string `mapstructure:"jwt_key"`
 	LogLevel             string `mapstructure:"log_level"`
 	ServerPort           int    `mapstructure:"server_port"`
-	UseMockAgency        bool
 	UseMockDB            bool
 	UsePlayground        bool `mapstructure:"use_playground"`
 	Version              string

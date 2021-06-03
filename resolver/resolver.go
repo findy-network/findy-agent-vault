@@ -1,7 +1,6 @@
 package resolver
 
 import (
-	agencys "github.com/findy-network/findy-agent-vault/agency"
 	agency "github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/db/fake"
 	"github.com/findy-network/findy-agent-vault/db/store"
@@ -62,7 +61,7 @@ type Resolver struct {
 	resolvers *controller
 }
 
-func InitResolver(config *utils.Configuration) *Resolver {
+func InitResolver(config *utils.Configuration, coreAgency agency.Agency) *Resolver {
 	var db store.DB
 	if config.UseMockDB {
 		db = mock.InitState()
@@ -75,11 +74,7 @@ func InitResolver(config *utils.Configuration) *Resolver {
 
 	r := &Resolver{db: db}
 
-	aType := agencys.AgencyTypeMock
-	if !config.UseMockAgency {
-		aType = agencys.AgencyTypeFindyGRPC
-	}
-	r.agency = agencys.Create(aType)
+	r.agency = coreAgency
 
 	agentResolver := agent.NewResolver(db, r.agency)
 	updater := update.NewUpdater(db, agentResolver)
