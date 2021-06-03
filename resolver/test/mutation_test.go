@@ -30,16 +30,17 @@ func TestMarkEventRead(t *testing.T) {
 }
 
 func TestInvite(t *testing.T) {
-	m := beforeEach(t)
+	const user = "TestInvite"
+	m := beforeEachWithID(t, user)
 
 	mockInvitation := invitation.Invitation{}
 	jsonBytes := err2.Bytes.Try(json.Marshal(&mockInvitation))
 
 	m.
 		EXPECT().
-		Invite(gomock.Any()).Return(string(jsonBytes), "id", nil)
+		Invite(gomock.Any()).Return(string(jsonBytes), "d679e4c6-b8db-4c39-99ca-783034b51bd4", nil)
 
-	resp, err := r.Mutation().Invite(testContext())
+	resp, err := r.Mutation().Invite(testContextForUser(user))
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)
 	}
@@ -49,13 +50,15 @@ func TestInvite(t *testing.T) {
 }
 
 func TestConnect(t *testing.T) {
-	m := beforeEach(t)
+	const user = "TestConnect"
+	m := beforeEachWithID(t, user)
 
 	m.
 		EXPECT().
-		Connect(gomock.Any(), gomock.Any())
+		Connect(gomock.Any(), gomock.Any()).
+		Return("d679e4c6-b8db-4c39-99ca-783034b51bd4", nil)
 
-	resp, err := r.Mutation().Connect(testContext(), model.ConnectInput{Invitation: testInvitation})
+	resp, err := r.Mutation().Connect(testContextForUser(user), model.ConnectInput{Invitation: testInvitation})
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)
 	}

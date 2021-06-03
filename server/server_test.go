@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/findy-network/findy-agent-vault/db/fake"
 	"github.com/findy-network/findy-agent-vault/resolver"
 )
 
@@ -28,7 +29,7 @@ func doQuery(query string, auth bool) (payload JSONPayload) {
 	request, _ := http.NewRequestWithContext(context.TODO(), http.MethodPost, "/query", strings.NewReader(queryJSON(query)))
 	request.Header.Set("Content-Type", "application/json")
 	if auth {
-		token := srv.CreateTestToken(validationKey)
+		token := srv.CreateTestToken(fake.FakeCloudDID, validationKey)
 		request.Header.Set("Authorization", "Bearer "+token)
 	}
 	response := httptest.NewRecorder()

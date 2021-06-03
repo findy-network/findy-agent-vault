@@ -7,9 +7,10 @@ import (
 )
 
 func TestEventConnectionTotalCount(t *testing.T) {
-	beforeEachWithID(t, "TestEventConnectionTotalCount")
+	const user = "TestEventConnectionTotalCount"
+	beforeEachWithID(t, user)
 
-	c, err := r.EventConnection().TotalCount(testContext(), &model.EventConnection{ConnectionID: nil})
+	c, err := r.EventConnection().TotalCount(testContextForUser(user), &model.EventConnection{ConnectionID: nil})
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)
 	}

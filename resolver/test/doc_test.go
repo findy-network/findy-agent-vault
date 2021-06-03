@@ -40,12 +40,16 @@ var (
 	resolverDB store.DB
 )
 
-func testContext() context.Context {
+func testContextForUser(userName string) context.Context {
 	const testValidationKey = "test-secret"
-	uToken := server.NewServer(nil, testValidationKey).CreateTestToken(testValidationKey)
+	uToken := server.NewServer(nil, testValidationKey).CreateTestToken(userName, testValidationKey)
 	ctx := jwt.TokenToContext(context.Background(), "user", &jwt.Token{Raw: uToken})
 
 	return ctx
+}
+
+func testContext() context.Context {
+	return testContextForUser(fake.FakeCloudDID)
 }
 
 func setup() {

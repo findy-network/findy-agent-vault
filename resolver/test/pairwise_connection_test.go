@@ -7,9 +7,10 @@ import (
 )
 
 func TestPairwiseConnectionTotalCount(t *testing.T) {
-	beforeEach(t)
+	const user = "TestPairwiseConnectionTotalCount"
+	beforeEachWithID(t, user)
 
-	c, err := r.PairwiseConnection().TotalCount(testContext(), &model.PairwiseConnection{})
+	c, err := r.PairwiseConnection().TotalCount(testContextForUser(user), &model.PairwiseConnection{})
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)
 	}

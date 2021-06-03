@@ -7,9 +7,10 @@ import (
 )
 
 func TestCredentialConnectionTotalCount(t *testing.T) {
-	beforeEachWithID(t, "TestCredentialConnectionTotalCount")
+	const user = "TestCredentialConnectionTotalCount"
+	beforeEachWithID(t, user)
 
-	c, err := r.CredentialConnection().TotalCount(testContext(), &model.CredentialConnection{ConnectionID: nil})
+	c, err := r.CredentialConnection().TotalCount(testContextForUser(user), &model.CredentialConnection{ConnectionID: nil})
 	if err != nil {
 		t.Errorf("Received unexpected error %s", err)
 	}
