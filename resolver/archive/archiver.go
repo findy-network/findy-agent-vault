@@ -25,7 +25,7 @@ func NewArchiver(db store.DB) *Archiver {
 // TODO: should the archived flag be attached to the job instead of
 // protocol object itself?
 // TODO: should archived flag be visible somehow to the clients?
-// e.g. removing/arhiving of incomplete jobs from the UI
+// e.g. removing/archiving of incomplete jobs from the UI
 
 func (a *Archiver) matchProtocol(job *model.Job) (idToUpdate **string, archive func(string, string) error, err error) {
 	switch job.ProtocolType {
@@ -154,9 +154,9 @@ func (a *Archiver) ArchiveConnection(info *agency.ArchiveInfo, data *agency.Conn
 			TheirDid:      data.TheirDID,
 			TheirEndpoint: data.TheirEndpoint,
 			TheirLabel:    data.TheirLabel,
-			Approved:      &now, // TODO: get approved from agency
+			Approved:      now, // TODO: get approved from agency
 			Invited:       initiatedByUs,
-			Archived:      &now,
+			Archived:      now,
 		})
 		err2.Check(err)
 

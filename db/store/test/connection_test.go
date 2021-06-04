@@ -41,8 +41,8 @@ func validateConnection(t *testing.T, exp, got *model.Connection) {
 		t.Errorf("Connection invited mismatch expected %v got %v", exp.Invited, got.Invited)
 	}
 	validateCreatedTS(t, got.Cursor, &got.Created)
-	validateTimestap(t, exp.Approved, got.Approved, "Approved")
-	validateTimestap(t, exp.Archived, got.Archived, "Archived")
+	validateTimestap(t, &exp.Approved, &got.Approved, "Approved")
+	validateTimestap(t, &exp.Archived, &got.Archived, "Archived")
 }
 
 func TestAddConnection(t *testing.T) {
@@ -214,7 +214,7 @@ func TestArchiveConnection(t *testing.T) {
 			got, err := s.db.GetConnection(c.ID, c.TenantID)
 			assert.D.True(err == nil)
 
-			c.Archived = &now
+			c.Archived = now
 			validateConnection(t, c, got)
 		})
 	}

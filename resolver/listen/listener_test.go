@@ -61,7 +61,7 @@ func TestAddConnection(t *testing.T) {
 			TheirDid:      connection.TheirDID,
 			TheirEndpoint: connection.TheirEndpoint,
 			TheirLabel:    connection.TheirLabel,
-			Approved:      &now,
+			Approved:      now,
 			Invited:       false,
 		}
 		event = model.NewEvent(job.TenantID, &model.Event{

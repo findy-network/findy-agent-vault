@@ -43,7 +43,7 @@ func (l *Listener) AddConnection(info *agency.JobInfo, data *agency.Connection) 
 			TheirDid:      data.TheirDID,
 			TheirEndpoint: data.TheirEndpoint,
 			TheirLabel:    data.TheirLabel,
-			Approved:      &now, // TODO: get approved from agency?
+			Approved:      now, // TODO: get approved from agency?
 			Invited:       job.InitiatedByUs,
 		})
 	err2.Check(err)

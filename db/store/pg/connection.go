@@ -78,8 +78,6 @@ func rowToConnection(rows *sql.Rows) (c *model.Connection, err error) {
 
 func readRowToConnection(c *model.Connection) func(*sql.Rows) error {
 	return func(rows *sql.Rows) error {
-		var archived sql.NullTime
-
 		err := rows.Scan(
 			&c.ID,
 			&c.TenantID,
@@ -88,15 +86,11 @@ func readRowToConnection(c *model.Connection) func(*sql.Rows) error {
 			&c.TheirEndpoint,
 			&c.TheirLabel,
 			&c.Invited,
-			&archived,
+			&c.Archived,
 			&c.Created,
 			&c.Approved,
 			&c.Cursor,
 		)
-
-		if archived.Valid {
-			c.Archived = &archived.Time
-		}
 		return err
 	}
 }

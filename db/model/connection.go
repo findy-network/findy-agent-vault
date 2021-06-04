@@ -20,8 +20,8 @@ type Connection struct {
 	TheirEndpoint string `faker:"url"`
 	TheirLabel    string `faker:"organisationLabel"`
 	Invited       bool
-	Approved      *time.Time `faker:"-"`
-	Archived      *time.Time `faker:"-"`
+	Approved      time.Time `faker:"-"`
+	Archived      time.Time `faker:"-"`
 }
 
 func (c *Connection) ToEdge() *model.PairwiseEdge {
@@ -40,7 +40,7 @@ func (c *Connection) ToNode() *model.Pairwise {
 		TheirEndpoint: c.TheirEndpoint,
 		TheirLabel:    c.TheirLabel,
 		CreatedMs:     timeToString(&c.Created),
-		ApprovedMs:    timeToString(c.Approved),
+		ApprovedMs:    timeToString(&c.Approved),
 		Invited:       c.Invited,
 	}
 }
