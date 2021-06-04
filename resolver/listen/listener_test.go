@@ -64,12 +64,13 @@ func TestAddConnection(t *testing.T) {
 			Approved:      now,
 			Invited:       false,
 		}
-		event = model.NewEvent(job.TenantID, &model.Event{
+		event = &model.Event{
+			Base:         model.Base{TenantID: job.TenantID},
 			Read:         false,
 			Description:  "Established connection to theirLabel",
 			ConnectionID: &job.ConnectionID,
 			JobID:        &job.JobID,
-		})
+		}
 	)
 
 	m.
@@ -118,12 +119,13 @@ func TestAddMessage(t *testing.T) {
 			Status:            graph.JobStatusComplete,
 			Result:            graph.JobResultSuccess,
 		})
-		event = model.NewEvent(job.TenantID, &model.Event{
+		event = &model.Event{
+			Base:         model.Base{TenantID: job.TenantID},
 			Read:         false,
 			Description:  resultMessage.Description(),
 			ConnectionID: &job.ConnectionID,
 			JobID:        &job.JobID,
-		})
+		}
 	)
 
 	m.
@@ -178,12 +180,13 @@ func TestAddCredential(t *testing.T) {
 			Status:               graph.JobStatusPending,
 			Result:               graph.JobResultNone,
 		})
-		event = model.NewEvent(job.TenantID, &model.Event{
+		event = &model.Event{
+			Base:         model.Base{TenantID: job.TenantID},
 			Read:         false,
 			Description:  resultCredential.Description(),
 			ConnectionID: &job.ConnectionID,
 			JobID:        &job.JobID,
-		})
+		}
 	)
 
 	m.
@@ -223,12 +226,13 @@ func TestUpdateCredential(t *testing.T) {
 			Issued:   utils.TSToTimeIfNotSet(nil, &now),
 		}
 		resultJob = model.NewJob(job.JobID, job.TenantID, &model.Job{ConnectionID: &job.ConnectionID, ProtocolCredentialID: &credentialID})
-		event     = model.NewEvent(job.TenantID, &model.Event{
+		event     = &model.Event{
+			Base:         model.Base{TenantID: job.TenantID},
 			Read:         false,
 			Description:  resultCredential.Description(),
 			ConnectionID: &job.ConnectionID,
 			JobID:        &job.JobID,
-		})
+		}
 	)
 
 	m.
@@ -295,12 +299,13 @@ func TestAddProof(t *testing.T) {
 			Status:          graph.JobStatusBlocked,
 			Result:          graph.JobResultNone,
 		})
-		event = model.NewEvent(job.TenantID, &model.Event{
+		event = &model.Event{
+			Base:         model.Base{TenantID: job.TenantID},
 			Read:         false,
 			Description:  resultProof.Description(),
 			ConnectionID: &job.ConnectionID,
 			JobID:        &job.JobID,
-		})
+		}
 	)
 
 	m.
@@ -346,12 +351,13 @@ func TestUpdateProof(t *testing.T) {
 			},
 		)
 		resultJob = model.NewJob(job.JobID, job.TenantID, &model.Job{ConnectionID: &job.ConnectionID, ProtocolProofID: &proofID})
-		event     = model.NewEvent(job.TenantID, &model.Event{
+		event     = &model.Event{
+			Base:         model.Base{TenantID: job.TenantID},
 			Read:         false,
 			Description:  resultProof.Description(),
 			ConnectionID: &job.ConnectionID,
 			JobID:        &job.JobID,
-		})
+		}
 	)
 
 	m.

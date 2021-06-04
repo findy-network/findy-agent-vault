@@ -41,6 +41,15 @@ func (t *testableDB) newTestCredential(cred *model.Credential) *model.Credential
 	return c
 }
 
+func (t *testableDB) newTestEvent(event *model.Event) *model.Event {
+	e := &model.Event{}
+	*e = *event
+	e.ID = uuid.New().String()
+	e.TenantID = t.testTenantID
+	e.ConnectionID = &t.testConnectionID
+	return e
+}
+
 var (
 	DBs            []*testableDB
 	testCredential *model.Credential = &model.Credential{
@@ -68,10 +77,11 @@ var (
 		SentByMe:  false,
 		Delivered: nil,
 	})
-	testEvent *model.Event = model.NewEvent("", &model.Event{
+	testEvent *model.Event = &model.Event{
+		Base:        model.Base{ID: uuid.New().String()},
 		Description: "event desc",
 		Read:        false,
-	})
+	}
 	testJob *model.Job = model.NewJob("", "", &model.Job{
 		ProtocolType: graph.ProtocolTypeConnection,
 		Status:       graph.JobStatusWaiting,

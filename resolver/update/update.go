@@ -29,12 +29,13 @@ func (r *Updater) AddEvent(tenantID string, job *model.Job, description string) 
 		connectionID = job.ConnectionID
 		jobID = &job.ID
 	}
-	event, err := r.db.AddEvent(model.NewEvent(tenantID, &model.Event{
+	event, err := r.db.AddEvent(&model.Event{
+		Base:         model.Base{TenantID: tenantID},
 		Read:         false,
 		Description:  description,
 		ConnectionID: connectionID,
 		JobID:        jobID,
-	}))
+	})
 	err2.Check(err)
 
 	r.eventSubscribers.notify(tenantID, event)
