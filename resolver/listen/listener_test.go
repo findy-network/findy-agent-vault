@@ -342,7 +342,7 @@ func TestUpdateProof(t *testing.T) {
 			job.TenantID,
 			&model.Proof{
 				Role:     graph.ProofRoleProver,
-				Approved: utils.TSToTimeIfNotSet(nil, proofUpdate.ApprovedMs),
+				Approved: utils.TSToTimePtrIfNotSet(nil, proofUpdate.ApprovedMs),
 			},
 		)
 		resultJob = model.NewJob(job.JobID, job.TenantID, &model.Job{ConnectionID: &job.ConnectionID, ProtocolProofID: &proofID})

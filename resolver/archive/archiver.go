@@ -201,8 +201,8 @@ func (a *Archiver) ArchiveCredential(info *agency.ArchiveInfo, data *agency.Cred
 			CredDefID:     data.CredDefID,
 			Attributes:    data.Attributes,
 			InitiatedByUs: data.InitiatedByUs,
-			Issued:        &now, // TODO: get actual issued time
-			Archived:      &now,
+			Issued:        now, // TODO: get actual issued time
+			Archived:      now,
 		})
 		err2.Check(err)
 

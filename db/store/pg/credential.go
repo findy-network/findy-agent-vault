@@ -141,9 +141,6 @@ func (pg *Database) UpdateCredential(c *model.Credential) (n *model.Credential, 
 
 func readRowToCredential(rows *sql.Rows, previous *model.Credential) (*model.Credential, error) {
 	a := &graph.CredentialValue{}
-	var approved sql.NullTime
-	var issued sql.NullTime
-	var failed sql.NullTime
 
 	cred := &model.Credential{}
 
@@ -157,24 +154,14 @@ func readRowToCredential(rows *sql.Rows, previous *model.Credential) (*model.Cre
 		&cred.InitiatedByUs,
 		&cred.Archived,
 		&cred.Created,
-		&approved,
-		&issued,
-		&failed,
+		&cred.Approved,
+		&cred.Issued,
+		&cred.Failed,
 		&cred.Cursor,
 		&a.ID,
 		&a.Name,
 		&a.Value,
 	)
-
-	if approved.Valid {
-		cred.Approved = &approved.Time
-	}
-	if issued.Valid {
-		cred.Issued = &issued.Time
-	}
-	if failed.Valid {
-		cred.Failed = &failed.Time
-	}
 
 	cred.Attributes = make([]*graph.CredentialValue, 0)
 	if previous.ID == cred.ID {
@@ -271,7 +258,7 @@ func (pg *Database) getCredentialsForQuery(
 }
 
 func sqlCredentialBatchWhere(cursorParam, connectionParam, limitParam string, desc, before bool) string {
-	const issuedNotNull = " AND issued IS NOT NULL "
+	const issuedNotNull = " AND issued > timestamp '0001-01-01' "
 	const whereTenantID = " WHERE tenant_id=$1 "
 	order := sqlAsc
 	cursorOrder := sqlOrderByCursorAsc
@@ -331,8 +318,8 @@ func (pg *Database) GetCredentials(info *paginator.BatchInfo, tenantID string, c
 func (pg *Database) GetCredentialCount(tenantID string, connectionID *string) (count int, err error) {
 	defer err2.Annotate("GetCredentialCount", &err)
 	const (
-		sqlCredentialBatchWhere           = " WHERE tenant_id=$1 AND issued IS NOT NULL "
-		sqlCredentialBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2 AND issued IS NOT NULL "
+		sqlCredentialBatchWhere           = " WHERE tenant_id=$1 AND issued > timestamp '0001-01-01' "
+		sqlCredentialBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2 AND issued > timestamp '0001-01-01' "
 	)
 	count, err = pg.getCount(
 		"credential",
@@ -383,7 +370,7 @@ func (pg *Database) SearchCredentials(
 
 	var (
 		sqlCredentialSearch = "SELECT credential.id, name, cred_def_id, value FROM credential " + sqlCredentialJoin +
-			" WHERE tenant_id=$1 AND issued IS NOT NULL AND (" + attributeSearch + ")" +
+			" WHERE tenant_id=$1 AND issued > timestamp '0001-01-01' AND (" + attributeSearch + ")" +
 			" ORDER BY credential.created"
 	)
 

@@ -16,16 +16,21 @@ type Credentials struct {
 
 type Credential struct {
 	Base
-	ConnectionID  string
-	Role          model.CredentialRole `faker:"oneof: HOLDER, HOLDER"`
-	SchemaID      string
-	CredDefID     string                   `faker:"oneof: credDefId1, credDefId2, credDefId3"`
+	ConnectionID string
+	Role         model.CredentialRole `faker:"oneof: HOLDER, HOLDER"`
+	SchemaID     string
+	CredDefID    string `faker:"oneof: credDefId1, credDefId2, credDefId3"`
+	// TODO: can we avoid pointers with slices in gql interface?
 	Attributes    []*model.CredentialValue `faker:"credentialAttributes"`
 	InitiatedByUs bool
-	Approved      *time.Time `faker:"-"`
-	Issued        *time.Time `faker:"-"`
-	Failed        *time.Time `faker:"-"`
-	Archived      *time.Time `faker:"-"`
+	Approved      time.Time `faker:"-"`
+	Issued        time.Time `faker:"-"`
+	Failed        time.Time `faker:"-"`
+	Archived      time.Time `faker:"-"`
+}
+
+func (c *Credential) IsIssued() bool {
+	return !c.Issued.IsZero()
 }
 
 func (c *Credential) ToEdge() *model.CredentialEdge {
@@ -44,21 +49,21 @@ func (c *Credential) ToNode() *model.Credential {
 		CredDefID:     c.CredDefID,
 		Attributes:    c.Attributes,
 		InitiatedByUs: c.InitiatedByUs,
-		ApprovedMs:    timeToStringPtr(c.Approved),
-		IssuedMs:      timeToStringPtr(c.Issued),
+		ApprovedMs:    timeToStringPtr(&c.Approved),
+		IssuedMs:      timeToStringPtr(&c.Issued),
 		CreatedMs:     timeToString(&c.Created),
 	}
 }
 
 func (c *Credential) Description() string {
-	if c.Issued != nil {
+	if !c.Issued.IsZero() {
 		switch c.Role {
 		case model.CredentialRoleIssuer:
 			return "Issued credential"
 		case model.CredentialRoleHolder:
 			return "Received credential"
 		}
-	} else if c.Approved != nil {
+	} else if !c.Approved.IsZero() {
 		return "Approved credential"
 	}
 

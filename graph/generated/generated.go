@@ -1706,7 +1706,7 @@ type Credential {
   role: CredentialRole!
   schemaId: String!
   credDefId: String!
-  attributes: [CredentialValue]
+  attributes: [CredentialValue!]!
   initiatedByUs: Boolean!
   approvedMs: String
   issuedMs: String
@@ -3184,11 +3184,14 @@ func (ec *executionContext) _Credential_attributes(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.([]*model.CredentialValue)
 	fc.Result = res
-	return ec.marshalOCredentialValue2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialValue(ctx, field.Selections, res)
+	return ec.marshalNCredentialValue2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialValueᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Credential_initiatedByUs(ctx context.Context, field graphql.CollectedField, obj *model.Credential) (ret graphql.Marshaler) {
@@ -9256,6 +9259,9 @@ func (ec *executionContext) _Credential(ctx context.Context, sel ast.SelectionSe
 			}
 		case "attributes":
 			out.Values[i] = ec._Credential_attributes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "initiatedByUs":
 			out.Values[i] = ec._Credential_initiatedByUs(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -11075,6 +11081,53 @@ func (ec *executionContext) marshalNCredentialRole2githubᚗcomᚋfindyᚑnetwor
 	return v
 }
 
+func (ec *executionContext) marshalNCredentialValue2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialValueᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CredentialValue) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCredentialValue2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialValue(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNCredentialValue2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialValue(ctx context.Context, sel ast.SelectionSet, v *model.CredentialValue) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._CredentialValue(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNEvent2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEvent(ctx context.Context, sel ast.SelectionSet, v *model.Event) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -11936,53 +11989,6 @@ func (ec *executionContext) marshalOCredentialMatch2ᚖgithubᚗcomᚋfindyᚑne
 		return graphql.Null
 	}
 	return ec._CredentialMatch(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOCredentialValue2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialValue(ctx context.Context, sel ast.SelectionSet, v []*model.CredentialValue) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOCredentialValue2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialValue(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalOCredentialValue2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐCredentialValue(ctx context.Context, sel ast.SelectionSet, v *model.CredentialValue) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._CredentialValue(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOEvent2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐEvent(ctx context.Context, sel ast.SelectionSet, v []*model.Event) graphql.Marshaler {

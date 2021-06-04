@@ -14,7 +14,7 @@ func timeToString(t *time.Time) string {
 }
 
 func timeToStringPtr(t *time.Time) *string {
-	if t != nil {
+	if t != nil && !t.IsZero() {
 		res := timeToString(t)
 		return &res
 	}

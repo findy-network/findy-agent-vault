@@ -11,3 +11,20 @@ ALTER TABLE connection ALTER COLUMN approved SET DEFAULT timestamp '0001-01-01';
 UPDATE connection SET archived = timestamp '0001-01-01' WHERE archived IS NULL;
 ALTER TABLE connection ALTER COLUMN archived SET NOT NULL;
 ALTER TABLE connection ALTER COLUMN archived SET DEFAULT timestamp '0001-01-01';
+
+
+UPDATE credential SET approved = timestamp '0001-01-01' WHERE approved IS NULL;
+ALTER TABLE credential ALTER COLUMN approved SET NOT NULL;
+ALTER TABLE credential ALTER COLUMN approved SET DEFAULT timestamp '0001-01-01';
+
+UPDATE credential SET issued = timestamp '0001-01-01' WHERE issued IS NULL;
+ALTER TABLE credential ALTER COLUMN issued SET NOT NULL;
+ALTER TABLE credential ALTER COLUMN issued SET DEFAULT timestamp '0001-01-01';
+
+UPDATE credential SET failed = timestamp '0001-01-01' WHERE failed IS NULL;
+ALTER TABLE credential ALTER COLUMN failed SET NOT NULL;
+ALTER TABLE credential ALTER COLUMN failed SET DEFAULT timestamp '0001-01-01';
+
+UPDATE credential SET archived = timestamp '0001-01-01' WHERE archived IS NULL;
+ALTER TABLE credential ALTER COLUMN archived SET NOT NULL;
+ALTER TABLE credential ALTER COLUMN archived SET DEFAULT timestamp '0001-01-01';

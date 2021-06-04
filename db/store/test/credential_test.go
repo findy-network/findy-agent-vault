@@ -56,10 +56,10 @@ func validateCredential(t *testing.T, exp, got *model.Credential) {
 	if got.InitiatedByUs != exp.InitiatedByUs {
 		t.Errorf("Credential InitiatedByUs mismatch expected %v got %v", exp.InitiatedByUs, got.InitiatedByUs)
 	}
-	validateTimestap(t, exp.Approved, got.Approved, "Approved")
-	validateTimestap(t, exp.Issued, got.Issued, "Issued")
-	validateTimestap(t, exp.Failed, got.Failed, "Failed")
-	validateTimestap(t, exp.Archived, got.Archived, "Archived")
+	validateTimestap(t, &exp.Approved, &got.Approved, "Approved")
+	validateTimestap(t, &exp.Issued, &got.Issued, "Issued")
+	validateTimestap(t, &exp.Failed, &got.Failed, "Failed")
+	validateTimestap(t, &exp.Archived, &got.Archived, "Archived")
 	validateCreatedTS(t, got.Cursor, &got.Created)
 	validateAttributes(t, exp.Attributes, got.Attributes)
 }
@@ -166,8 +166,8 @@ func TestUpdateCredential(t *testing.T) {
 
 			// Update data
 			now := time.Now().UTC()
-			c.Approved = &now
-			c.Issued = &now
+			c.Approved = now
+			c.Issued = now
 			_, err = s.db.UpdateCredential(c)
 			if err != nil {
 				t.Errorf("Failed to update credential %s", err.Error())
@@ -340,7 +340,7 @@ func TestArchiveCredential(t *testing.T) {
 			got, err := s.db.GetCredential(c.ID, c.TenantID)
 			assert.D.True(err == nil)
 
-			c.Archived = &now
+			c.Archived = now
 			validateCredential(t, c, got)
 		})
 	}
@@ -358,7 +358,7 @@ func TestSearchCredentials(t *testing.T) {
 			c, err := s.db.AddCredential(testCredential)
 			assert.D.True(err == nil)
 
-			c.Issued = &now
+			c.Issued = now
 			c, err = s.db.UpdateCredential(c)
 			assert.D.True(err == nil)
 

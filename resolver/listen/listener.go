@@ -129,19 +129,19 @@ func (l *Listener) UpdateCredential(info *agency.JobInfo, data *agency.Credentia
 	credential, err := l.db.GetCredential(*job.ProtocolCredentialID, job.TenantID)
 	err2.Check(err)
 
-	credential.Approved = utils.TSToTimeIfNotSet(credential.Approved, data.ApprovedMs)
-	credential.Issued = utils.TSToTimeIfNotSet(credential.Issued, data.IssuedMs)
-	credential.Failed = utils.TSToTimeIfNotSet(credential.Failed, data.FailedMs)
+	credential.Approved = utils.TSToTimeIfNotSet(&credential.Approved, data.ApprovedMs)
+	credential.Issued = utils.TSToTimeIfNotSet(&credential.Issued, data.IssuedMs)
+	credential.Failed = utils.TSToTimeIfNotSet(&credential.Failed, data.FailedMs)
 
 	credential, err = l.db.UpdateCredential(credential)
 	err2.Check(err)
 
-	job.Status, job.Result = getJobStatusForTimestamps(credential.Approved, credential.Issued, credential.Failed)
+	job.Status, job.Result = getJobStatusForTimestamps(&credential.Approved, &credential.Issued, &credential.Failed)
 
 	err2.Check(l.UpdateJob(job, credential.Description()))
 
 	// Since we have new credential, check if any of the blocked proofs becomes unblocked
-	if credential.Issued != nil {
+	if credential.IsIssued() {
 		proofData := make([]*model.ProofAttribute, 0)
 		for _, attribute := range credential.Attributes {
 			proofData = append(
@@ -256,9 +256,9 @@ func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) (
 	proof, err := l.db.GetProof(*job.ProtocolProofID, job.TenantID)
 	err2.Check(err)
 
-	proof.Approved = utils.TSToTimeIfNotSet(proof.Approved, data.ApprovedMs)
-	proof.Verified = utils.TSToTimeIfNotSet(proof.Verified, data.VerifiedMs)
-	proof.Failed = utils.TSToTimeIfNotSet(proof.Failed, data.FailedMs)
+	proof.Approved = utils.TSToTimePtrIfNotSet(proof.Approved, data.ApprovedMs)
+	proof.Verified = utils.TSToTimePtrIfNotSet(proof.Verified, data.VerifiedMs)
+	proof.Failed = utils.TSToTimePtrIfNotSet(proof.Verified, data.VerifiedMs)
 
 	if proof.Verified != nil {
 		// TODO: these values should come from agency
