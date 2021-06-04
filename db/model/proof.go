@@ -15,7 +15,7 @@ type Proofs struct {
 }
 
 type Proof struct {
-	*base
+	*Base
 	ConnectionID  string
 	Role          model.ProofRole         `faker:"oneof: PROVER, PROVER"`
 	Attributes    []*model.ProofAttribute `faker:"proofAttributes"`
@@ -30,16 +30,16 @@ type Proof struct {
 }
 
 func NewProof(tenantID string, p *Proof) *Proof {
-	defaultBase := &base{TenantID: tenantID}
+	defaultBase := &Base{TenantID: tenantID}
 	if p != nil {
-		if p.base == nil {
-			p.base = defaultBase
+		if p.Base == nil {
+			p.Base = defaultBase
 		} else {
-			p.base.TenantID = tenantID
+			p.Base.TenantID = tenantID
 		}
 		return p.copy()
 	}
-	return &Proof{base: defaultBase}
+	return &Proof{Base: defaultBase}
 }
 
 func (p *Proof) copy() (n *Proof) {
@@ -63,8 +63,8 @@ func (p *Proof) copy() (n *Proof) {
 		}
 	}
 
-	if p.base != nil {
-		n.base = p.base.copy()
+	if p.Base != nil {
+		n.Base = p.Base.copy()
 	}
 	n.ConnectionID = p.ConnectionID
 	n.Role = p.Role

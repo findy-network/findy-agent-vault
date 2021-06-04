@@ -13,7 +13,7 @@ type Agents struct {
 }
 
 type Agent struct {
-	base
+	Base
 	AgentID      string `faker:"agentId"`
 	Label        string `faker:"first_name"`
 	RawJWT       string `faker:"-"`

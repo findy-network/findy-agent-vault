@@ -15,7 +15,7 @@ type Jobs struct {
 }
 
 type Job struct {
-	*base
+	*Base
 	ProtocolType         model.ProtocolType `faker:"oneof: NONE,NONE"`
 	ProtocolConnectionID *string            `faker:"-"`
 	ProtocolCredentialID *string            `faker:"-"`
@@ -36,23 +36,23 @@ type JobOutput struct {
 }
 
 func NewJob(id, tenantID string, j *Job) *Job {
-	defaultBase := &base{ID: id, TenantID: tenantID}
+	defaultBase := &Base{ID: id, TenantID: tenantID}
 	if j != nil {
-		if j.base == nil {
-			j.base = defaultBase
+		if j.Base == nil {
+			j.Base = defaultBase
 		} else {
-			j.base.ID = id
-			j.base.TenantID = tenantID
+			j.Base.ID = id
+			j.Base.TenantID = tenantID
 		}
 		return j.copy()
 	}
-	return &Job{base: defaultBase}
+	return &Job{Base: defaultBase}
 }
 
 func (j *Job) copy() (n *Job) {
 	n = NewJob("", "", nil)
-	if j.base != nil {
-		n.base = j.base.copy()
+	if j.Base != nil {
+		n.Base = j.Base.copy()
 	}
 	n.ProtocolType = j.ProtocolType
 	n.ProtocolConnectionID = utils.CopyStrPtr(j.ProtocolConnectionID)

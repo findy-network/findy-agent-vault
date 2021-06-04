@@ -239,9 +239,9 @@ func Connection(tenantID string) *model.Connection {
 		return faker.LastName() + " " + orgs[index], nil
 	})
 
-	connection := model.EmptyConnection()
+	connection := &model.Connection{}
 	err2.Check(faker.FakeData(connection))
-	connection = model.NewConnection(faker.UUIDHyphenated(), tenantID, connection)
+	connection.ID = faker.UUIDHyphenated()
 	connection.TenantID = tenantID
 	return connection
 }

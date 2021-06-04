@@ -25,6 +25,13 @@ type testableDB struct {
 	testConnection   *model.Connection
 }
 
+func (t *testableDB) updateTestConnection() {
+	c := &model.Connection{}
+	*c = *t.testConnection
+	c.ID = uuid.New().String()
+	t.testConnection = c
+}
+
 var (
 	DBs            []*testableDB
 	testCredential *model.Credential = model.NewCredential("", &model.Credential{
@@ -104,7 +111,7 @@ func setup() {
 	testAgent.AgentID = "testAgentID"
 	testAgent.Label = testAgentLabel
 
-	testConnection := model.EmptyConnection()
+	testConnection := &model.Connection{}
 	testConnection.OurDid = "ourDid"
 	testConnection.TheirDid = "theirDid"
 	testConnection.TheirEndpoint = "theirEndpoint"
@@ -137,10 +144,11 @@ func setup() {
 		s.testTenantID = a.ID
 		s.testAgentID = a.AgentID
 
-		s.testConnection = model.NewConnection(uuid.New().String(), s.testTenantID, testConnection)
+		s.testConnection = testConnection
+		s.updateTestConnection()
 		s.testConnection.TenantID = s.testTenantID
 
-		c, err := s.db.AddConnection(testConnection)
+		c, err := s.db.AddConnection(s.testConnection)
 		if err != nil {
 			panic(err)
 		}

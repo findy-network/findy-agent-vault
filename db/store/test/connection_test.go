@@ -10,7 +10,6 @@ import (
 	"github.com/lainio/err2/assert"
 
 	"github.com/findy-network/findy-agent-vault/paginator"
-	"github.com/google/uuid"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
 )
@@ -50,7 +49,7 @@ func TestAddConnection(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("add connection "+s.name, func(t *testing.T) {
-			s.testConnection = model.NewConnection(uuid.New().String(), s.testConnection.TenantID, s.testConnection)
+			s.updateTestConnection()
 			// Add data
 			c, err := s.db.AddConnection(s.testConnection)
 			if err != nil {
@@ -74,7 +73,7 @@ func TestAddConnectionSameIDDifferentTenant(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("add connection with same id "+s.name, func(t *testing.T) {
-			s.testConnection = model.NewConnection(uuid.New().String(), s.testConnection.TenantID, s.testConnection)
+			s.updateTestConnection()
 			// Add data
 			connection1, err := s.db.AddConnection(s.testConnection)
 			if err != nil {
@@ -199,7 +198,7 @@ func TestArchiveConnection(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("archive connection "+s.name, func(t *testing.T) {
-			s.testConnection = model.NewConnection(uuid.New().String(), s.testConnection.TenantID, s.testConnection)
+			s.updateTestConnection()
 			// Add data
 			c, err := s.db.AddConnection(s.testConnection)
 			assert.D.True(err == nil)

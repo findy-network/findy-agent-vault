@@ -52,14 +52,18 @@ func TestAddConnection(t *testing.T) {
 		}
 		resultJob        = model.NewJob(job.JobID, job.TenantID, nil)
 		now              = utils.CurrentTime()
-		resultConnection = model.NewConnection(job.ConnectionID, job.TenantID, &model.Connection{
+		resultConnection = &model.Connection{
+			Base: model.Base{
+				ID:       job.ConnectionID,
+				TenantID: job.TenantID,
+			},
 			OurDid:        connection.OurDID,
 			TheirDid:      connection.TheirDID,
 			TheirEndpoint: connection.TheirEndpoint,
 			TheirLabel:    connection.TheirLabel,
 			Approved:      &now,
 			Invited:       false,
-		})
+		}
 		event = model.NewEvent(job.TenantID, &model.Event{
 			Read:         false,
 			Description:  "Established connection to theirLabel",

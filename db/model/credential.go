@@ -15,7 +15,7 @@ type Credentials struct {
 }
 
 type Credential struct {
-	*base
+	*Base
 	ConnectionID  string
 	Role          model.CredentialRole `faker:"oneof: HOLDER, HOLDER"`
 	SchemaID      string
@@ -29,16 +29,16 @@ type Credential struct {
 }
 
 func NewCredential(tenantID string, c *Credential) *Credential {
-	defaultBase := &base{TenantID: tenantID}
+	defaultBase := &Base{TenantID: tenantID}
 	if c != nil {
-		if c.base == nil {
-			c.base = defaultBase
+		if c.Base == nil {
+			c.Base = defaultBase
 		} else {
-			c.base.TenantID = tenantID
+			c.Base.TenantID = tenantID
 		}
 		return c.copy()
 	}
-	return &Credential{base: defaultBase}
+	return &Credential{Base: defaultBase}
 }
 
 func (c *Credential) copy() (n *Credential) {
@@ -53,8 +53,8 @@ func (c *Credential) copy() (n *Credential) {
 		}
 	}
 
-	if c.base != nil {
-		n.base = c.base.copy()
+	if c.Base != nil {
+		n.Base = c.Base.copy()
 	}
 	n.ConnectionID = c.ConnectionID
 	n.Role = c.Role

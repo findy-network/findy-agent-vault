@@ -21,14 +21,14 @@ func timeToStringPtr(t *time.Time) *string {
 	return nil
 }
 
-type base struct {
+type Base struct {
 	ID       string `faker:"uuid_hyphenated"`
 	TenantID string
 	Cursor   uint64
 	Created  time.Time
 }
 
-func (b *base) copy() *base {
+func (b *Base) copy() *Base {
 	baseCopy := *b
 	return &baseCopy
 }

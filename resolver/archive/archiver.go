@@ -145,7 +145,11 @@ func (a *Archiver) ArchiveConnection(info *agency.ArchiveInfo, data *agency.Conn
 		defer err2.Return(&err)
 
 		now := utils.CurrentTime()
-		connection, err := a.db.AddConnection(model.NewConnection(info.ConnectionID, agent.TenantID, &model.Connection{
+		connection, err := a.db.AddConnection(&model.Connection{
+			Base: model.Base{
+				ID:       info.ConnectionID,
+				TenantID: agent.TenantID,
+			},
 			OurDid:        data.OurDID,
 			TheirDid:      data.TheirDID,
 			TheirEndpoint: data.TheirEndpoint,
@@ -153,7 +157,7 @@ func (a *Archiver) ArchiveConnection(info *agency.ArchiveInfo, data *agency.Conn
 			Approved:      &now, // TODO: get approved from agency
 			Invited:       initiatedByUs,
 			Archived:      &now,
-		}))
+		})
 		err2.Check(err)
 
 		return connection.ID, nil

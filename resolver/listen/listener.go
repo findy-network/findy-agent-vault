@@ -34,14 +34,18 @@ func (l *Listener) AddConnection(info *agency.JobInfo, data *agency.Connection) 
 	now := utils.CurrentTime()
 
 	connection, err := l.db.AddConnection(
-		dbModel.NewConnection(info.ConnectionID, info.TenantID, &dbModel.Connection{
+		&dbModel.Connection{
+			Base: dbModel.Base{
+				ID:       info.ConnectionID,
+				TenantID: info.TenantID,
+			},
 			OurDid:        data.OurDID,
 			TheirDid:      data.TheirDID,
 			TheirEndpoint: data.TheirEndpoint,
 			TheirLabel:    data.TheirLabel,
-			Approved:      &now, // TODO: get approved from agency
+			Approved:      &now, // TODO: get approved from agency?
 			Invited:       job.InitiatedByUs,
-		}))
+		})
 	err2.Check(err)
 
 	job.ConnectionID = &connection.ID

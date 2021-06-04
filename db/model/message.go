@@ -14,7 +14,7 @@ type Messages struct {
 }
 
 type Message struct {
-	*base
+	*Base
 	ConnectionID string
 	Message      string `faker:"sentence"`
 	SentByMe     bool
@@ -23,23 +23,23 @@ type Message struct {
 }
 
 func NewMessage(tenantID string, m *Message) *Message {
-	defaultBase := &base{TenantID: tenantID}
+	defaultBase := &Base{TenantID: tenantID}
 	if m != nil {
-		if m.base == nil {
-			m.base = defaultBase
+		if m.Base == nil {
+			m.Base = defaultBase
 		} else {
-			m.base.TenantID = tenantID
+			m.Base.TenantID = tenantID
 		}
 		return m.copy()
 	}
-	return &Message{base: defaultBase}
+	return &Message{Base: defaultBase}
 }
 
 func (m *Message) copy() (n *Message) {
 	n = NewMessage("", nil)
 
-	if m.base != nil {
-		n.base = m.base.copy()
+	if m.Base != nil {
+		n.Base = m.Base.copy()
 	}
 	var delivered *bool
 	if m.Delivered != nil {

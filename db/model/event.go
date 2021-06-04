@@ -12,7 +12,7 @@ type Events struct {
 }
 
 type Event struct {
-	*base
+	*Base
 	Read         bool    `faker:"-"`
 	Description  string  `faker:"sentence"`
 	JobID        *string `faker:"-"`
@@ -20,22 +20,22 @@ type Event struct {
 }
 
 func NewEvent(tenantID string, e *Event) *Event {
-	defaultBase := &base{TenantID: tenantID}
+	defaultBase := &Base{TenantID: tenantID}
 	if e != nil {
-		if e.base == nil {
-			e.base = defaultBase
+		if e.Base == nil {
+			e.Base = defaultBase
 		} else {
-			e.base.TenantID = tenantID
+			e.Base.TenantID = tenantID
 		}
 		return e.copy()
 	}
-	return &Event{base: defaultBase}
+	return &Event{Base: defaultBase}
 }
 
 func (e *Event) copy() (n *Event) {
 	n = NewEvent("", nil)
-	if e.base != nil {
-		n.base = e.base.copy()
+	if e.Base != nil {
+		n.Base = e.Base.copy()
 	}
 	n.Read = e.Read
 	n.Description = e.Description
