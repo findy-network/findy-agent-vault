@@ -4,7 +4,6 @@ go 1.16
 
 require (
 	github.com/99designs/gqlgen v0.13.0
-	github.com/bxcodec/faker v2.0.1+incompatible
 	github.com/bxcodec/faker/v3 v3.6.0
 	github.com/findy-network/findy-common-go v0.1.7-0.20210527125553-4a46a2db405d
 	github.com/gchaincl/sqlhooks/v2 v2.0.1
