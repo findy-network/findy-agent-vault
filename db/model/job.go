@@ -5,7 +5,6 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
-	"github.com/findy-network/findy-agent-vault/utils"
 )
 
 type Jobs struct {
@@ -55,11 +54,11 @@ func (j *Job) copy() (n *Job) {
 		n.Base = j.Base.copy()
 	}
 	n.ProtocolType = j.ProtocolType
-	n.ProtocolConnectionID = utils.CopyStrPtr(j.ProtocolConnectionID)
-	n.ProtocolCredentialID = utils.CopyStrPtr(j.ProtocolCredentialID)
-	n.ProtocolProofID = utils.CopyStrPtr(j.ProtocolProofID)
-	n.ProtocolMessageID = utils.CopyStrPtr(j.ProtocolMessageID)
-	n.ConnectionID = utils.CopyStrPtr(j.ConnectionID)
+	n.ProtocolConnectionID = j.ProtocolConnectionID
+	n.ProtocolCredentialID = j.ProtocolCredentialID
+	n.ProtocolProofID = j.ProtocolProofID
+	n.ProtocolMessageID = j.ProtocolMessageID
+	n.ConnectionID = j.ConnectionID
 	n.Status = j.Status
 	n.Result = j.Result
 	n.InitiatedByUs = j.InitiatedByUs

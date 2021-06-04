@@ -282,7 +282,7 @@ func fakeEvent(tenantID, connectionID string, jobID *string) *model.Event {
 	err2.Check(faker.FakeData(event))
 	event.TenantID = tenantID
 	event.ConnectionID = &connectionID
-	event.JobID = utils.CopyStrPtr(jobID)
+	event.JobID = jobID
 	return event
 }
 
@@ -296,16 +296,16 @@ func fakeJob(
 	job = model.NewJob(id, tenantID, job)
 	job.TenantID = tenantID
 	job.ConnectionID = &connectionID
-	job.ProtocolConnectionID = utils.CopyStrPtr(protocolConnectionID)
-	job.ProtocolCredentialID = utils.CopyStrPtr(protocolCredentialID)
+	job.ProtocolConnectionID = protocolConnectionID
+	job.ProtocolCredentialID = protocolCredentialID
 	if job.ProtocolCredentialID != nil {
 		job.ProtocolType = graph.ProtocolTypeCredential
 	}
-	job.ProtocolProofID = utils.CopyStrPtr(protocolProofID)
+	job.ProtocolProofID = protocolProofID
 	if job.ProtocolProofID != nil {
 		job.ProtocolType = graph.ProtocolTypeProof
 	}
-	job.ProtocolMessageID = utils.CopyStrPtr(protocolMessageID)
+	job.ProtocolMessageID = protocolMessageID
 	if job.ProtocolMessageID != nil {
 		job.ProtocolType = graph.ProtocolTypeBasicMessage
 	}
