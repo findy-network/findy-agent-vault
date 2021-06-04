@@ -32,9 +32,19 @@ func (t *testableDB) updateTestConnection() {
 	t.testConnection = c
 }
 
+func (t *testableDB) newTestCredential(cred *model.Credential) *model.Credential {
+	c := &model.Credential{}
+	*c = *cred
+	c.ID = uuid.New().String()
+	c.TenantID = t.testTenantID
+	c.ConnectionID = t.testConnectionID
+	return c
+}
+
 var (
 	DBs            []*testableDB
-	testCredential *model.Credential = model.NewCredential("", &model.Credential{
+	testCredential *model.Credential = &model.Credential{
+		Base:          model.Base{ID: uuid.New().String()},
 		Role:          graph.CredentialRoleHolder,
 		SchemaID:      "schemaId",
 		CredDefID:     "credDefId",
@@ -43,7 +53,7 @@ var (
 			{Name: "name1", Value: "value1"},
 			{Name: "name2", Value: "value2"},
 		},
-	})
+	}
 	testProof *model.Proof = model.NewProof("", &model.Proof{
 		Role:          graph.ProofRoleProver,
 		InitiatedByUs: false,

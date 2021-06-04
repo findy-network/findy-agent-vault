@@ -161,14 +161,15 @@ func TestAddCredential(t *testing.T) {
 			}},
 			InitiatedByUs: false,
 		}
-		resultCredential = model.NewCredential(job.TenantID, &model.Credential{
+		resultCredential = &model.Credential{
+			Base:          model.Base{TenantID: job.TenantID},
 			ConnectionID:  job.ConnectionID,
 			Role:          credential.Role,
 			SchemaID:      credential.SchemaID,
 			CredDefID:     credential.CredDefID,
 			Attributes:    credential.Attributes,
 			InitiatedByUs: credential.InitiatedByUs,
-		})
+		}
 		resultJob = model.NewJob(job.JobID, job.TenantID, &model.Job{
 			ConnectionID:         &job.ConnectionID,
 			ProtocolType:         graph.ProtocolTypeCredential,
@@ -215,14 +216,12 @@ func TestUpdateCredential(t *testing.T) {
 		credentialUpdate = &agency.CredentialUpdate{
 			ApprovedMs: &now,
 		}
-		resultCredential = model.NewCredential(
-			job.TenantID,
-			&model.Credential{
-				Role:     graph.CredentialRoleHolder,
-				Approved: utils.TSToTimeIfNotSet(nil, credentialUpdate.ApprovedMs),
-				Issued:   utils.TSToTimeIfNotSet(nil, &now),
-			},
-		)
+		resultCredential = &model.Credential{
+			Base:     model.Base{TenantID: job.TenantID},
+			Role:     graph.CredentialRoleHolder,
+			Approved: utils.TSToTimeIfNotSet(nil, credentialUpdate.ApprovedMs),
+			Issued:   utils.TSToTimeIfNotSet(nil, &now),
+		}
 		resultJob = model.NewJob(job.JobID, job.TenantID, &model.Job{ConnectionID: &job.ConnectionID, ProtocolCredentialID: &credentialID})
 		event     = model.NewEvent(job.TenantID, &model.Event{
 			Read:         false,

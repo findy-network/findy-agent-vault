@@ -193,7 +193,8 @@ func (a *Archiver) ArchiveCredential(info *agency.ArchiveInfo, data *agency.Cred
 		defer err2.Return(&err)
 
 		now := utils.CurrentTime()
-		credential, err := a.db.AddCredential(model.NewCredential(agent.TenantID, &model.Credential{
+		credential, err := a.db.AddCredential(&model.Credential{
+			Base:          model.Base{TenantID: agent.TenantID},
 			ConnectionID:  info.ConnectionID,
 			Role:          data.Role,
 			SchemaID:      data.SchemaID,
@@ -202,7 +203,7 @@ func (a *Archiver) ArchiveCredential(info *agency.ArchiveInfo, data *agency.Cred
 			InitiatedByUs: data.InitiatedByUs,
 			Issued:        &now, // TODO: get actual issued time
 			Archived:      &now,
-		}))
+		})
 		err2.Check(err)
 
 		return credential.ID, nil

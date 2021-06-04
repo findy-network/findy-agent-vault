@@ -89,14 +89,15 @@ func (l *Listener) UpdateMessage(info *agency.JobInfo, _ *agency.MessageUpdate) 
 func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) (err error) {
 	defer err2.Return(&err)
 
-	credential, err := l.db.AddCredential(dbModel.NewCredential(info.TenantID, &dbModel.Credential{
+	credential, err := l.db.AddCredential(&dbModel.Credential{
+		Base:          dbModel.Base{TenantID: info.TenantID},
 		ConnectionID:  info.ConnectionID,
 		Role:          data.Role,
 		SchemaID:      data.SchemaID,
 		CredDefID:     data.CredDefID,
 		Attributes:    data.Attributes,
 		InitiatedByUs: data.InitiatedByUs,
-	}))
+	})
 	err2.Check(err)
 
 	utils.LogMed().Infof("Add credential %s for tenant %s", credential.ID, info.TenantID)

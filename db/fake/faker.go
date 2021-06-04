@@ -254,9 +254,8 @@ func Credential(tenantID, connectionID string) *model.Credential {
 			{Name: "name3", Value: "value3"},
 		}, nil
 	})
-	credential := model.NewCredential("", nil)
+	credential := &model.Credential{}
 	err2.Check(faker.FakeData(credential))
-	credential = model.NewCredential(tenantID, credential)
 	credential.TenantID = tenantID
 	credential.ConnectionID = connectionID
 	return credential

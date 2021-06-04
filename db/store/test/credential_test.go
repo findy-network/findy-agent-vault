@@ -130,9 +130,7 @@ func TestAddCredential(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("add credential "+s.name, func(t *testing.T) {
-			testCredential = model.NewCredential(s.testTenantID, testCredential)
-			testCredential.TenantID = s.testTenantID
-			testCredential.ConnectionID = s.testConnectionID
+			testCredential = s.newTestCredential(testCredential)
 
 			// Add data
 			c, err := s.db.AddCredential(testCredential)
@@ -326,9 +324,7 @@ func TestArchiveCredential(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("archive credential "+s.name, func(t *testing.T) {
-			testCredential = model.NewCredential(s.testTenantID, testCredential)
-			testCredential.TenantID = s.testTenantID
-			testCredential.ConnectionID = s.testConnectionID
+			testCredential = s.newTestCredential(testCredential)
 
 			// Add data
 			c, err := s.db.AddCredential(testCredential)
@@ -355,9 +351,7 @@ func TestSearchCredentials(t *testing.T) {
 		s := DBs[index]
 		t.Run("search credentials "+s.name, func(t *testing.T) {
 			now := utils.CurrentTime()
-			testCredential = model.NewCredential(s.testTenantID, testCredential)
-			testCredential.TenantID = s.testTenantID
-			testCredential.ConnectionID = s.testConnectionID
+			testCredential = s.newTestCredential(testCredential)
 
 			// Add data
 			testCredential.CredDefID = "searchCredentials"

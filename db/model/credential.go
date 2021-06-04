@@ -15,7 +15,7 @@ type Credentials struct {
 }
 
 type Credential struct {
-	*Base
+	Base
 	ConnectionID  string
 	Role          model.CredentialRole `faker:"oneof: HOLDER, HOLDER"`
 	SchemaID      string
@@ -26,48 +26,6 @@ type Credential struct {
 	Issued        *time.Time `faker:"-"`
 	Failed        *time.Time `faker:"-"`
 	Archived      *time.Time `faker:"-"`
-}
-
-func NewCredential(tenantID string, c *Credential) *Credential {
-	defaultBase := &Base{TenantID: tenantID}
-	if c != nil {
-		if c.Base == nil {
-			c.Base = defaultBase
-		} else {
-			c.Base.TenantID = tenantID
-		}
-		return c.copy()
-	}
-	return &Credential{Base: defaultBase}
-}
-
-func (c *Credential) copy() (n *Credential) {
-	n = NewCredential("", nil)
-
-	attributes := make([]*model.CredentialValue, len(c.Attributes))
-	for index := range c.Attributes {
-		attributes[index] = &model.CredentialValue{
-			ID:    c.Attributes[index].ID,
-			Name:  c.Attributes[index].Name,
-			Value: c.Attributes[index].Value,
-		}
-	}
-
-	if c.Base != nil {
-		n.Base = c.Base.copy()
-	}
-	n.ConnectionID = c.ConnectionID
-	n.Role = c.Role
-	n.SchemaID = c.SchemaID
-	n.CredDefID = c.CredDefID
-	n.InitiatedByUs = c.InitiatedByUs
-	n.Approved = copyTime(c.Approved)
-	n.Issued = copyTime(c.Issued)
-	n.Failed = copyTime(c.Failed)
-	n.Archived = copyTime(c.Archived)
-	n.Attributes = attributes
-
-	return n
 }
 
 func (c *Credential) ToEdge() *model.CredentialEdge {
