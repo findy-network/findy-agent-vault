@@ -100,7 +100,7 @@ func setup() {
 	}
 	utils.SetLogConfig(&utils.Configuration{LogLevel: logLevel})
 
-	testAgent := model.NewAgent(nil)
+	testAgent := &model.Agent{}
 	testAgent.AgentID = "testAgentID"
 	testAgent.Label = testAgentLabel
 

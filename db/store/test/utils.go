@@ -8,7 +8,7 @@ import (
 
 func AddAgentAndConnections(db store.DB, agentID string, connectionCount int) (*model.Agent, []*model.Connection) {
 	// add new agent
-	input := model.NewAgent(nil)
+	input := &model.Agent{}
 	input.AgentID = agentID
 	input.Label = agentID
 	a, err := db.AddAgent(input)

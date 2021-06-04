@@ -227,9 +227,9 @@ func addJobs(
 }
 
 func fakeAgent() *model.Agent {
-	agent := model.NewAgent(nil)
+	agent := &model.Agent{}
 	err2.Check(faker.FakeData(&agent))
-	return model.NewAgent(agent)
+	return agent
 }
 
 func Connection(tenantID string) *model.Connection {

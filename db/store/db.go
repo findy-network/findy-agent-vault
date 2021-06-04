@@ -48,10 +48,10 @@ func GetAgent(ctx context.Context, db DB) (*model.Agent, error) {
 	if err != nil {
 		return nil, err
 	}
-	a := model.NewAgent(nil)
+	a := &model.Agent{}
 	a.AgentID = token.AgentID
 	a.Label = token.Label
-	a.RawJWT = &token.Raw
+	a.RawJWT = token.Raw
 	return db.AddAgent(a)
 }
 

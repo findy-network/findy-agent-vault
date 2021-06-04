@@ -35,7 +35,7 @@ func (r *Resolver) GetAgent(ctx context.Context) (agent *model.Agent, err error)
 func (r *Resolver) AgencyAuth(agent *model.Agent) *agency.Agent {
 	return &agency.Agent{
 		Label:    agent.Label,
-		RawJWT:   *agent.RawJWT,
+		RawJWT:   agent.RawJWT,
 		TenantID: agent.ID,
 		AgentID:  agent.AgentID,
 	}
