@@ -63,11 +63,12 @@ func (l *Listener) AddConnection(info *agency.JobInfo, data *agency.Connection) 
 func (l *Listener) AddMessage(info *agency.JobInfo, data *agency.Message) (err error) {
 	defer err2.Return(&err)
 
-	msg, err := l.db.AddMessage(dbModel.NewMessage(info.TenantID, &dbModel.Message{
+	msg, err := l.db.AddMessage(&dbModel.Message{
+		Base:         dbModel.Base{TenantID: info.TenantID},
 		ConnectionID: info.ConnectionID,
 		Message:      data.Message,
 		SentByMe:     data.SentByMe,
-	}))
+	})
 	err2.Check(err)
 
 	err2.Check(l.AddJob(&dbModel.Job{
@@ -185,13 +186,14 @@ func (l *Listener) isProvable(info *agency.JobInfo, data *dbModel.Proof) bool {
 func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error) {
 	defer err2.Return(&err)
 
-	newProof := dbModel.NewProof(info.TenantID, &dbModel.Proof{
+	newProof := &dbModel.Proof{
+		Base:          dbModel.Base{TenantID: info.TenantID},
 		ConnectionID:  info.ConnectionID,
 		Role:          data.Role,
 		Attributes:    data.Attributes,
 		Result:        false,
 		InitiatedByUs: data.InitiatedByUs,
-	})
+	}
 
 	var provableTime *time.Time
 	if l.isProvable(info, newProof) {

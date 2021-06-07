@@ -15,7 +15,7 @@ type Proofs struct {
 }
 
 type Proof struct {
-	*Base
+	Base
 	ConnectionID  string
 	Role          model.ProofRole         `faker:"oneof: PROVER, PROVER"`
 	Attributes    []*model.ProofAttribute `faker:"proofAttributes"`
@@ -27,58 +27,6 @@ type Proof struct {
 	Verified      *time.Time `faker:"-"`
 	Failed        *time.Time `faker:"-"`
 	Archived      *time.Time `faker:"-"`
-}
-
-func NewProof(tenantID string, p *Proof) *Proof {
-	defaultBase := &Base{TenantID: tenantID}
-	if p != nil {
-		if p.Base == nil {
-			p.Base = defaultBase
-		} else {
-			p.Base.TenantID = tenantID
-		}
-		return p.copy()
-	}
-	return &Proof{Base: defaultBase}
-}
-
-func (p *Proof) copy() (n *Proof) {
-	n = NewProof("", nil)
-
-	attributes := make([]*model.ProofAttribute, len(p.Attributes))
-	for index := range p.Attributes {
-		attributes[index] = &model.ProofAttribute{
-			ID:        p.Attributes[index].ID,
-			Name:      p.Attributes[index].Name,
-			CredDefID: p.Attributes[index].CredDefID,
-		}
-	}
-
-	values := make([]*model.ProofValue, len(p.Values))
-	for index := range p.Values {
-		values[index] = &model.ProofValue{
-			ID:          p.Values[index].ID,
-			AttributeID: p.Values[index].AttributeID,
-			Value:       p.Values[index].Value,
-		}
-	}
-
-	if p.Base != nil {
-		n.Base = p.Base.copy()
-	}
-	n.ConnectionID = p.ConnectionID
-	n.Role = p.Role
-	n.InitiatedByUs = p.InitiatedByUs
-	n.Result = p.Result
-	n.Provable = copyTime(p.Provable)
-	n.Approved = copyTime(p.Approved)
-	n.Verified = copyTime(p.Verified)
-	n.Failed = copyTime(p.Failed)
-	n.Attributes = attributes
-	n.Values = values
-	n.Archived = copyTime(p.Archived)
-
-	return n
 }
 
 func (p *Proof) ToEdge() *model.ProofEdge {

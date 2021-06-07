@@ -28,20 +28,6 @@ type Base struct {
 	Created  time.Time
 }
 
-func (b *Base) copy() *Base {
-	baseCopy := *b
-	return &baseCopy
-}
-
-func copyTime(t *time.Time) *time.Time {
-	var res *time.Time
-	if t != nil {
-		ts := *t
-		res = &ts
-	}
-	return res
-}
-
 func TimeToCursor(t *time.Time) uint64 {
 	return uint64(math.Round(float64(t.UnixNano()) / float64(time.Millisecond.Nanoseconds())))
 }

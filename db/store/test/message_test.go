@@ -116,9 +116,7 @@ func TestAddMessage(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("add message  "+s.name, func(t *testing.T) {
-			testMessage = model.NewMessage(s.testTenantID, testMessage)
-			testMessage.TenantID = s.testTenantID
-			testMessage.ConnectionID = s.testConnectionID
+			testMessage = s.newTestMessage(testMessage)
 
 			// Add data
 			m, err := s.db.AddMessage(testMessage)
@@ -309,9 +307,7 @@ func TestArchiveMessage(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("archive message "+s.name, func(t *testing.T) {
-			testMessage = model.NewMessage(s.testTenantID, testMessage)
-			testMessage.TenantID = s.testTenantID
-			testMessage.ConnectionID = s.testConnectionID
+			testMessage = s.newTestMessage(testMessage)
 
 			// Add data
 			m, err := s.db.AddMessage(testMessage)

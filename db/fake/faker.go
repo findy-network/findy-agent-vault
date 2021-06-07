@@ -269,9 +269,8 @@ func Proof(tenantID, connectionID string) *model.Proof {
 			{Name: "name3", CredDefID: "credDefId3"},
 		}, nil
 	})
-	proof := model.NewProof("", nil)
+	proof := &model.Proof{}
 	err2.Check(faker.FakeData(proof))
-	proof = model.NewProof(tenantID, proof)
 	proof.TenantID = tenantID
 	proof.ConnectionID = connectionID
 	return proof
@@ -314,9 +313,8 @@ func fakeJob(
 }
 
 func Message(tenantID, connectionID string) *model.Message {
-	message := model.NewMessage("", nil)
+	message := &model.Message{}
 	err2.Check(faker.FakeData(message))
-	message = model.NewMessage(tenantID, message)
 	message.TenantID = tenantID
 	message.ConnectionID = connectionID
 	return message

@@ -146,9 +146,7 @@ func TestAddProof(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("add proof "+s.name, func(t *testing.T) {
-			testProof = model.NewProof(s.testTenantID, testProof)
-			testProof.TenantID = s.testTenantID
-			testProof.ConnectionID = s.testConnectionID
+			testProof = s.newTestProof(testProof)
 
 			// Add data
 			p, err := s.db.AddProof(testProof)
@@ -346,9 +344,7 @@ func TestArchiveProof(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("archive proof "+s.name, func(t *testing.T) {
-			testProof = model.NewProof(s.testTenantID, testProof)
-			testProof.TenantID = s.testTenantID
-			testProof.ConnectionID = s.testConnectionID
+			testProof = s.newTestProof(testProof)
 
 			// Add data
 			p, err := s.db.AddProof(testProof)

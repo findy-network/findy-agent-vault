@@ -173,12 +173,13 @@ func (a *Archiver) ArchiveMessage(info *agency.ArchiveInfo, data *agency.Message
 		defer err2.Return(&err)
 
 		now := utils.CurrentTime()
-		message, err := a.db.AddMessage(model.NewMessage(agent.TenantID, &model.Message{
+		message, err := a.db.AddMessage(&model.Message{
+			Base:         model.Base{TenantID: agent.TenantID},
 			ConnectionID: info.ConnectionID,
 			Message:      data.Message,
 			SentByMe:     data.SentByMe, // TODO: sent time
 			Archived:     &now,
-		}))
+		})
 		err2.Check(err)
 
 		return message.ID, nil
@@ -220,15 +221,15 @@ func (a *Archiver) ArchiveProof(info *agency.ArchiveInfo, data *agency.Proof) {
 		defer err2.Return(&err)
 
 		now := utils.CurrentTime()
-		proof, err := a.db.AddProof(model.NewProof(agent.TenantID, &model.Proof{
+		proof, err := a.db.AddProof(&model.Proof{
+			Base:          model.Base{TenantID: agent.TenantID},
 			ConnectionID:  info.ConnectionID,
 			Role:          data.Role,
 			Attributes:    data.Attributes,
 			Result:        true,
 			InitiatedByUs: data.InitiatedByUs,
 			Verified:      &now, // TODO: get actual verified time
-
-		}))
+		})
 		err2.Check(err)
 
 		return proof.ID, nil

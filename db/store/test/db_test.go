@@ -59,6 +59,24 @@ func (t *testableDB) newTestJob(job *model.Job) *model.Job {
 	return j
 }
 
+func (t *testableDB) newTestMessage(msg *model.Message) *model.Message {
+	m := &model.Message{}
+	*m = *msg
+	m.ID = uuid.New().String()
+	m.TenantID = t.testTenantID
+	m.ConnectionID = t.testConnectionID
+	return m
+}
+
+func (t *testableDB) newTestProof(proof *model.Proof) *model.Proof {
+	p := &model.Proof{}
+	*p = *proof
+	p.ID = uuid.New().String()
+	p.TenantID = t.testTenantID
+	p.ConnectionID = t.testConnectionID
+	return p
+}
+
 var (
 	DBs            []*testableDB
 	testCredential *model.Credential = &model.Credential{
@@ -72,7 +90,7 @@ var (
 			{Name: "name2", Value: "value2"},
 		},
 	}
-	testProof *model.Proof = model.NewProof("", &model.Proof{
+	testProof *model.Proof = &model.Proof{
 		Role:          graph.ProofRoleProver,
 		InitiatedByUs: false,
 		Result:        true,
@@ -80,12 +98,12 @@ var (
 			{Name: "name1", CredDefID: "cred_def_id"},
 			{Name: "name2", CredDefID: "cred_def_id"},
 		},
-	})
-	testMessage *model.Message = model.NewMessage("", &model.Message{
-		Message:   "msg content",
+	}
+	testMessage *model.Message = &model.Message{Message: "msg content",
 		SentByMe:  false,
 		Delivered: nil,
-	})
+	}
+
 	testEvent *model.Event = &model.Event{
 		Base:        model.Base{ID: uuid.New().String()},
 		Description: "event desc",

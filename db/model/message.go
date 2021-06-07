@@ -14,44 +14,12 @@ type Messages struct {
 }
 
 type Message struct {
-	*Base
+	Base
 	ConnectionID string
 	Message      string `faker:"sentence"`
 	SentByMe     bool
 	Delivered    *bool
 	Archived     *time.Time `faker:"-"`
-}
-
-func NewMessage(tenantID string, m *Message) *Message {
-	defaultBase := &Base{TenantID: tenantID}
-	if m != nil {
-		if m.Base == nil {
-			m.Base = defaultBase
-		} else {
-			m.Base.TenantID = tenantID
-		}
-		return m.copy()
-	}
-	return &Message{Base: defaultBase}
-}
-
-func (m *Message) copy() (n *Message) {
-	n = NewMessage("", nil)
-
-	if m.Base != nil {
-		n.Base = m.Base.copy()
-	}
-	var delivered *bool
-	if m.Delivered != nil {
-		d := *m.Delivered
-		delivered = &d
-	}
-	n.ConnectionID = m.ConnectionID
-	n.Message = m.Message
-	n.SentByMe = m.SentByMe
-	n.Delivered = delivered
-	n.Archived = copyTime(m.Archived)
-	return n
 }
 
 func (m *Message) ToEdge() *model.BasicMessageEdge {

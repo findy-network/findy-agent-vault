@@ -106,11 +106,12 @@ func TestAddMessage(t *testing.T) {
 			Message:  "message",
 			SentByMe: false,
 		}
-		resultMessage = model.NewMessage(job.TenantID, &model.Message{
+		resultMessage = &model.Message{
+			Base:         model.Base{TenantID: job.TenantID},
 			ConnectionID: job.ConnectionID,
 			Message:      message.Message,
 			SentByMe:     message.SentByMe,
-		})
+		}
 		resultJob = &model.Job{
 			Base:              model.Base{ID: job.JobID, TenantID: job.TenantID},
 			ConnectionID:      &job.ConnectionID,
@@ -289,14 +290,15 @@ func TestAddProof(t *testing.T) {
 			}},
 			InitiatedByUs: false,
 		}
-		resultProof = model.NewProof(job.TenantID, &model.Proof{
+		resultProof = &model.Proof{
+			Base:          model.Base{TenantID: job.TenantID},
 			ConnectionID:  job.ConnectionID,
 			Role:          proof.Role,
 			Attributes:    proof.Attributes,
 			Result:        false,
 			InitiatedByUs: proof.InitiatedByUs,
 			Provable:      &now,
-		})
+		}
 		resultJob = &model.Job{
 			Base:            model.Base{ID: job.JobID, TenantID: job.TenantID},
 			ConnectionID:    &job.ConnectionID,
@@ -350,13 +352,12 @@ func TestUpdateProof(t *testing.T) {
 		proofUpdate = &agency.ProofUpdate{
 			ApprovedMs: &now,
 		}
-		resultProof = model.NewProof(
-			job.TenantID,
-			&model.Proof{
-				Role:     graph.ProofRoleProver,
-				Approved: utils.TSToTimePtrIfNotSet(nil, proofUpdate.ApprovedMs),
-			},
-		)
+		resultProof = &model.Proof{
+			Base:     model.Base{TenantID: job.TenantID},
+			Role:     graph.ProofRoleProver,
+			Approved: utils.TSToTimePtrIfNotSet(nil, proofUpdate.ApprovedMs),
+		}
+
 		resultJob = &model.Job{
 			Base:            model.Base{ID: job.JobID, TenantID: job.TenantID},
 			ConnectionID:    &job.ConnectionID,
