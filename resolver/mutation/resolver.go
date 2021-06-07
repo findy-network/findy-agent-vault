@@ -61,12 +61,13 @@ func (r *Resolver) Invite(ctx context.Context) (res *model.InvitationResponse, e
 	err2.Check(err)
 
 	err2.Check(r.AddJob(
-		dbModel.NewJob(id, tenant.ID, &dbModel.Job{
+		&dbModel.Job{
+			Base:          dbModel.Base{ID: id, TenantID: tenant.ID},
 			ProtocolType:  model.ProtocolTypeConnection,
 			InitiatedByUs: true,
 			Status:        model.JobStatusWaiting,
 			Result:        model.JobResultNone,
-		}),
+		},
 		"Created connection invitation",
 	))
 
@@ -84,12 +85,13 @@ func (r *Resolver) Connect(ctx context.Context, input model.ConnectInput) (res *
 	err2.Check(err)
 
 	err2.Check(r.AddJob(
-		dbModel.NewJob(id, tenant.ID, &dbModel.Job{
+		&dbModel.Job{
+			Base:          dbModel.Base{ID: id, TenantID: tenant.ID},
 			ProtocolType:  model.ProtocolTypeConnection,
 			InitiatedByUs: false,
 			Status:        model.JobStatusWaiting,
 			Result:        model.JobResultNone,
-		}),
+		},
 		"Sent connection request",
 	))
 

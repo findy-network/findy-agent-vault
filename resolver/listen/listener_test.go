@@ -50,7 +50,7 @@ func TestAddConnection(t *testing.T) {
 			TheirEndpoint: "theirEndpoint",
 			TheirLabel:    "theirLabel",
 		}
-		resultJob        = model.NewJob(job.JobID, job.TenantID, nil)
+		resultJob        = &model.Job{Base: model.Base{ID: job.JobID, TenantID: job.TenantID}}
 		now              = utils.CurrentTime()
 		resultConnection = &model.Connection{
 			Base: model.Base{
@@ -111,14 +111,15 @@ func TestAddMessage(t *testing.T) {
 			Message:      message.Message,
 			SentByMe:     message.SentByMe,
 		})
-		resultJob = model.NewJob(job.JobID, job.TenantID, &model.Job{
+		resultJob = &model.Job{
+			Base:              model.Base{ID: job.JobID, TenantID: job.TenantID},
 			ConnectionID:      &job.ConnectionID,
 			ProtocolType:      graph.ProtocolTypeBasicMessage,
 			ProtocolMessageID: &resultMessage.ID,
 			InitiatedByUs:     message.SentByMe,
 			Status:            graph.JobStatusComplete,
 			Result:            graph.JobResultSuccess,
-		})
+		}
 		event = &model.Event{
 			Base:         model.Base{TenantID: job.TenantID},
 			Read:         false,
@@ -172,14 +173,15 @@ func TestAddCredential(t *testing.T) {
 			Attributes:    credential.Attributes,
 			InitiatedByUs: credential.InitiatedByUs,
 		}
-		resultJob = model.NewJob(job.JobID, job.TenantID, &model.Job{
+		resultJob = &model.Job{
+			Base:                 model.Base{ID: job.JobID, TenantID: job.TenantID},
 			ConnectionID:         &job.ConnectionID,
 			ProtocolType:         graph.ProtocolTypeCredential,
 			ProtocolCredentialID: &resultCredential.ID,
 			InitiatedByUs:        credential.InitiatedByUs,
 			Status:               graph.JobStatusPending,
 			Result:               graph.JobResultNone,
-		})
+		}
 		event = &model.Event{
 			Base:         model.Base{TenantID: job.TenantID},
 			Read:         false,
@@ -225,8 +227,12 @@ func TestUpdateCredential(t *testing.T) {
 			Approved: utils.TSToTimeIfNotSet(nil, credentialUpdate.ApprovedMs),
 			Issued:   utils.TSToTimeIfNotSet(nil, &now),
 		}
-		resultJob = model.NewJob(job.JobID, job.TenantID, &model.Job{ConnectionID: &job.ConnectionID, ProtocolCredentialID: &credentialID})
-		event     = &model.Event{
+		resultJob = &model.Job{
+			Base:                 model.Base{ID: job.JobID, TenantID: job.TenantID},
+			ConnectionID:         &job.ConnectionID,
+			ProtocolCredentialID: &credentialID,
+		}
+		event = &model.Event{
 			Base:         model.Base{TenantID: job.TenantID},
 			Read:         false,
 			Description:  resultCredential.Description(),
@@ -291,14 +297,15 @@ func TestAddProof(t *testing.T) {
 			InitiatedByUs: proof.InitiatedByUs,
 			Provable:      &now,
 		})
-		resultJob = model.NewJob(job.JobID, job.TenantID, &model.Job{
+		resultJob = &model.Job{
+			Base:            model.Base{ID: job.JobID, TenantID: job.TenantID},
 			ConnectionID:    &job.ConnectionID,
 			ProtocolType:    graph.ProtocolTypeProof,
 			ProtocolProofID: &resultProof.ID,
 			InitiatedByUs:   proof.InitiatedByUs,
 			Status:          graph.JobStatusBlocked,
 			Result:          graph.JobResultNone,
-		})
+		}
 		event = &model.Event{
 			Base:         model.Base{TenantID: job.TenantID},
 			Read:         false,
@@ -350,8 +357,12 @@ func TestUpdateProof(t *testing.T) {
 				Approved: utils.TSToTimePtrIfNotSet(nil, proofUpdate.ApprovedMs),
 			},
 		)
-		resultJob = model.NewJob(job.JobID, job.TenantID, &model.Job{ConnectionID: &job.ConnectionID, ProtocolProofID: &proofID})
-		event     = &model.Event{
+		resultJob = &model.Job{
+			Base:            model.Base{ID: job.JobID, TenantID: job.TenantID},
+			ConnectionID:    &job.ConnectionID,
+			ProtocolProofID: &proofID,
+		}
+		event = &model.Event{
 			Base:         model.Base{TenantID: job.TenantID},
 			Read:         false,
 			Description:  resultProof.Description(),

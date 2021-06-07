@@ -70,14 +70,15 @@ func (l *Listener) AddMessage(info *agency.JobInfo, data *agency.Message) (err e
 	}))
 	err2.Check(err)
 
-	err2.Check(l.AddJob(dbModel.NewJob(info.JobID, info.TenantID, &dbModel.Job{
+	err2.Check(l.AddJob(&dbModel.Job{
+		Base:              dbModel.Base{ID: info.JobID, TenantID: info.TenantID},
 		ConnectionID:      &info.ConnectionID,
 		ProtocolType:      model.ProtocolTypeBasicMessage,
 		ProtocolMessageID: &msg.ID,
 		InitiatedByUs:     data.SentByMe,
 		Status:            model.JobStatusComplete,
 		Result:            model.JobResultSuccess,
-	}), msg.Description()))
+	}, msg.Description()))
 	return nil
 }
 
@@ -107,14 +108,15 @@ func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) 
 		status = model.JobStatusPending
 	}
 
-	err2.Check(l.AddJob(dbModel.NewJob(info.JobID, info.TenantID, &dbModel.Job{
+	err2.Check(l.AddJob(&dbModel.Job{
+		Base:                 dbModel.Base{ID: info.JobID, TenantID: info.TenantID},
 		ConnectionID:         &info.ConnectionID,
 		ProtocolType:         model.ProtocolTypeCredential,
 		ProtocolCredentialID: &credential.ID,
 		InitiatedByUs:        data.InitiatedByUs,
 		Status:               status,
 		Result:               model.JobResultNone,
-	}), credential.Description()))
+	}, credential.Description()))
 	return nil
 }
 
@@ -210,14 +212,15 @@ func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error
 		status = model.JobStatusBlocked
 	}
 
-	err2.Check(l.AddJob(dbModel.NewJob(info.JobID, info.TenantID, &dbModel.Job{
+	err2.Check(l.AddJob(&dbModel.Job{
+		Base:            dbModel.Base{ID: info.JobID, TenantID: info.TenantID},
 		ConnectionID:    &info.ConnectionID,
 		ProtocolType:    model.ProtocolTypeProof,
 		ProtocolProofID: &proof.ID,
 		InitiatedByUs:   data.InitiatedByUs,
 		Status:          status,
 		Result:          model.JobResultNone,
-	}), proof.Description()))
+	}, proof.Description()))
 	return nil
 }
 

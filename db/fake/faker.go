@@ -291,9 +291,9 @@ func fakeJob(
 	protocolConnectionID, protocolCredentialID, protocolProofID, protocolMessageID *string,
 	status graph.JobStatus,
 ) *model.Job {
-	job := model.NewJob("", "", nil)
+	job := &model.Job{}
 	err2.Check(faker.FakeData(job))
-	job = model.NewJob(id, tenantID, job)
+	job.ID = id
 	job.TenantID = tenantID
 	job.ConnectionID = &connectionID
 	job.ProtocolConnectionID = protocolConnectionID

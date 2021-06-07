@@ -14,7 +14,7 @@ type Jobs struct {
 }
 
 type Job struct {
-	*Base
+	Base
 	ProtocolType         model.ProtocolType `faker:"oneof: NONE,NONE"`
 	ProtocolConnectionID *string            `faker:"-"`
 	ProtocolCredentialID *string            `faker:"-"`
@@ -32,38 +32,6 @@ type JobOutput struct {
 	Credential *Credential
 	Proof      *Proof
 	Message    *Message
-}
-
-func NewJob(id, tenantID string, j *Job) *Job {
-	defaultBase := &Base{ID: id, TenantID: tenantID}
-	if j != nil {
-		if j.Base == nil {
-			j.Base = defaultBase
-		} else {
-			j.Base.ID = id
-			j.Base.TenantID = tenantID
-		}
-		return j.copy()
-	}
-	return &Job{Base: defaultBase}
-}
-
-func (j *Job) copy() (n *Job) {
-	n = NewJob("", "", nil)
-	if j.Base != nil {
-		n.Base = j.Base.copy()
-	}
-	n.ProtocolType = j.ProtocolType
-	n.ProtocolConnectionID = j.ProtocolConnectionID
-	n.ProtocolCredentialID = j.ProtocolCredentialID
-	n.ProtocolProofID = j.ProtocolProofID
-	n.ProtocolMessageID = j.ProtocolMessageID
-	n.ConnectionID = j.ConnectionID
-	n.Status = j.Status
-	n.Result = j.Result
-	n.InitiatedByUs = j.InitiatedByUs
-	n.Updated = j.Updated
-	return n
 }
 
 func (j *Job) ToEdge() *model.JobEdge {

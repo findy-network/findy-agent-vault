@@ -94,13 +94,14 @@ func (a *Archiver) archiveNew(
 	id, err := addToStore(agent, info.InitiatedByUs)
 	err2.Check(err)
 
-	job := model.NewJob(info.JobID, agent.TenantID, &model.Job{
+	job := &model.Job{
+		Base:          model.Base{ID: info.JobID, TenantID: agent.TenantID},
 		ConnectionID:  &info.ConnectionID,
 		ProtocolType:  protocolType,
 		InitiatedByUs: info.InitiatedByUs,
 		Status:        graph.JobStatusComplete,
 		Result:        graph.JobResultSuccess,
-	})
+	}
 	idToUpdate, _, err := a.matchProtocol(job)
 	*idToUpdate = &id
 

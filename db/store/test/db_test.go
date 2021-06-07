@@ -50,6 +50,15 @@ func (t *testableDB) newTestEvent(event *model.Event) *model.Event {
 	return e
 }
 
+func (t *testableDB) newTestJob(job *model.Job) *model.Job {
+	j := &model.Job{}
+	*j = *job
+	j.ID = uuid.New().String()
+	j.TenantID = t.testTenantID
+	j.ConnectionID = &t.testConnectionID
+	return j
+}
+
 var (
 	DBs            []*testableDB
 	testCredential *model.Credential = &model.Credential{
@@ -82,11 +91,11 @@ var (
 		Description: "event desc",
 		Read:        false,
 	}
-	testJob *model.Job = model.NewJob("", "", &model.Job{
+	testJob *model.Job = &model.Job{
 		ProtocolType: graph.ProtocolTypeConnection,
 		Status:       graph.JobStatusWaiting,
 		Result:       graph.JobResultNone,
-	})
+	}
 )
 
 func validateTimestap(t *testing.T, exp, got *time.Time, name string) {
