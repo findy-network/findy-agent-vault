@@ -20,7 +20,7 @@ RUN VERSION=$(cat ./VERSION) && \
     -ldflags "-X 'github.com/findy-network/findy-agent-vault/utils.Version=$VERSION'"\
     -o /go/bin/findy-agent-vault
 
-FROM alpine:3.13
+FROM ghcr.io/findy-network/findy-base:alpine-3.13
 
 EXPOSE 8085
 
@@ -35,9 +35,6 @@ ENV FAV_AGENCY_ADMIN_ID "findy-root"
 
 COPY --from=0 /work/db/migrations /db/migrations
 COPY --from=0 /go/bin/findy-agent-vault /findy-agent-vault
-COPY .docker/s3-copy /s3-copy
-
-RUN chmod a+x /s3-copy
 
 RUN echo '/s3-copy $STARTUP_FILE_STORAGE_S3 grpc /' > /start.sh && \
     echo '/findy-agent-vault' >> /start.sh && chmod a+x /start.sh
