@@ -128,8 +128,8 @@ func AddProofs(db store.DB, tenantID, connectionID string, count int, verify boo
 
 		now := time.Now().UTC()
 		if verify {
-			p.Approved = &now
-			p.Verified = &now
+			p.Approved = now
+			p.Verified = now
 			_, err = db.UpdateProof(p)
 			err2.Check(err)
 		}

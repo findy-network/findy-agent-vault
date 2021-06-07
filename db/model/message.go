@@ -18,8 +18,8 @@ type Message struct {
 	ConnectionID string
 	Message      string `faker:"sentence"`
 	SentByMe     bool
-	Delivered    *bool
-	Archived     *time.Time `faker:"-"`
+	Delivered    bool
+	Archived     time.Time `faker:"-"`
 }
 
 func (m *Message) ToEdge() *model.BasicMessageEdge {
@@ -31,16 +31,11 @@ func (m *Message) ToEdge() *model.BasicMessageEdge {
 }
 
 func (m *Message) ToNode() *model.BasicMessage {
-	var delivered *bool
-	if m.Delivered != nil {
-		d := *m.Delivered
-		delivered = &d
-	}
 	return &model.BasicMessage{
 		ID:        m.ID,
 		Message:   m.Message,
 		SentByMe:  m.SentByMe,
-		Delivered: delivered,
+		Delivered: nil, // TODO
 		CreatedMs: timeToString(&m.Created),
 	}
 }

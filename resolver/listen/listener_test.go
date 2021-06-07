@@ -297,7 +297,7 @@ func TestAddProof(t *testing.T) {
 			Attributes:    proof.Attributes,
 			Result:        false,
 			InitiatedByUs: proof.InitiatedByUs,
-			Provable:      &now,
+			Provable:      now,
 		}
 		resultJob = &model.Job{
 			Base:            model.Base{ID: job.JobID, TenantID: job.TenantID},
@@ -305,7 +305,7 @@ func TestAddProof(t *testing.T) {
 			ProtocolType:    graph.ProtocolTypeProof,
 			ProtocolProofID: &resultProof.ID,
 			InitiatedByUs:   proof.InitiatedByUs,
-			Status:          graph.JobStatusBlocked,
+			Status:          graph.JobStatusPending,
 			Result:          graph.JobResultNone,
 		}
 		event = &model.Event{
@@ -355,7 +355,7 @@ func TestUpdateProof(t *testing.T) {
 		resultProof = &model.Proof{
 			Base:     model.Base{TenantID: job.TenantID},
 			Role:     graph.ProofRoleProver,
-			Approved: utils.TSToTimePtrIfNotSet(nil, proofUpdate.ApprovedMs),
+			Approved: utils.TSToTimeIfNotSet(nil, proofUpdate.ApprovedMs),
 		}
 
 		resultJob = &model.Job{

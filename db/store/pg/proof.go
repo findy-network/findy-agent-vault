@@ -175,9 +175,6 @@ func (pg *Database) UpdateProof(p *model.Proof) (n *model.Proof, err error) {
 
 func readRowToProof(rows *sql.Rows, previous *model.Proof) (*model.Proof, error) {
 	a := &graph.ProofAttribute{}
-	var approved sql.NullTime
-	var verified sql.NullTime
-	var failed sql.NullTime
 
 	n := &model.Proof{}
 
@@ -193,25 +190,15 @@ func readRowToProof(rows *sql.Rows, previous *model.Proof) (*model.Proof, error)
 		&n.Archived,
 		&n.Provable,
 		&n.Created,
-		&approved,
-		&verified,
-		&failed,
+		&n.Approved,
+		&n.Verified,
+		&n.Failed,
 		&n.Cursor,
 		&a.ID,
 		&a.Name,
 		&value.Value,
 		&a.CredDefID,
 	)
-
-	if approved.Valid {
-		n.Approved = &approved.Time
-	}
-	if verified.Valid {
-		n.Verified = &verified.Time
-	}
-	if failed.Valid {
-		n.Failed = &failed.Time
-	}
 
 	n.Attributes = make([]*graph.ProofAttribute, 0)
 	if previous.ID == n.ID {

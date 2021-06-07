@@ -22,11 +22,11 @@ type Proof struct {
 	Values        []*model.ProofValue     `faker:"-"`
 	InitiatedByUs bool
 	Result        bool
-	Provable      *time.Time `faker:"-"`
-	Approved      *time.Time `faker:"-"`
-	Verified      *time.Time `faker:"-"`
-	Failed        *time.Time `faker:"-"`
-	Archived      *time.Time `faker:"-"`
+	Provable      time.Time `faker:"-"`
+	Approved      time.Time `faker:"-"`
+	Verified      time.Time `faker:"-"`
+	Failed        time.Time `faker:"-"`
+	Archived      time.Time `faker:"-"`
 }
 
 func (p *Proof) ToEdge() *model.ProofEdge {
@@ -45,28 +45,28 @@ func (p *Proof) ToNode() *model.Proof {
 		Values:        p.Values,
 		InitiatedByUs: p.InitiatedByUs,
 		Result:        p.Result,
-		ApprovedMs:    timeToStringPtr(p.Approved),
-		VerifiedMs:    timeToStringPtr(p.Verified),
+		ApprovedMs:    timeToStringPtr(&p.Approved),
+		VerifiedMs:    timeToStringPtr(&p.Verified),
 		CreatedMs:     timeToString(&p.Created),
 	}
 }
 
 func (p *Proof) Description() string {
-	if p.Verified != nil {
+	if !p.Verified.IsZero() {
 		switch p.Role {
 		case model.ProofRoleVerifier:
 			return "Verified credential"
 		case model.ProofRoleProver:
 			return "Proved credential"
 		}
-	} else if p.Approved != nil {
+	} else if !p.Approved.IsZero() {
 		return "Approved proof"
 	}
 	switch p.Role {
 	case model.ProofRoleVerifier:
 		return "Received proof offer"
 	case model.ProofRoleProver:
-		if p.Provable != nil {
+		if !p.Provable.IsZero() {
 			return "Provable proof request"
 		}
 		return "Blocked proof request"

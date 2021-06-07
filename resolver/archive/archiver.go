@@ -178,7 +178,7 @@ func (a *Archiver) ArchiveMessage(info *agency.ArchiveInfo, data *agency.Message
 			ConnectionID: info.ConnectionID,
 			Message:      data.Message,
 			SentByMe:     data.SentByMe, // TODO: sent time
-			Archived:     &now,
+			Archived:     now,
 		})
 		err2.Check(err)
 
@@ -228,7 +228,7 @@ func (a *Archiver) ArchiveProof(info *agency.ArchiveInfo, data *agency.Proof) {
 			Attributes:    data.Attributes,
 			Result:        true,
 			InitiatedByUs: data.InitiatedByUs,
-			Verified:      &now, // TODO: get actual verified time
+			Verified:      now, // TODO: get actual verified time
 		})
 		err2.Check(err)
 

@@ -195,10 +195,8 @@ func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error
 		InitiatedByUs: data.InitiatedByUs,
 	}
 
-	var provableTime *time.Time
 	if l.isProvable(info, newProof) {
-		now := utils.CurrentTime()
-		newProof.Provable = &now
+		newProof.Provable = utils.CurrentTime()
 	}
 
 	proof, err := l.db.AddProof(newProof)
@@ -210,7 +208,7 @@ func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error
 	if !data.InitiatedByUs {
 		status = model.JobStatusPending
 	}
-	if provableTime == nil {
+	if newProof.Provable.IsZero() {
 		status = model.JobStatusBlocked
 	}
 
@@ -235,8 +233,7 @@ func (l *Listener) updateBlockedProof(job *dbModel.Job) (err error) {
 	err2.Check(err)
 
 	if l.isProvable(&agency.JobInfo{TenantID: job.TenantID, JobID: job.ID, ConnectionID: *job.ConnectionID}, proof) {
-		now := utils.CurrentTime()
-		proof.Provable = &now
+		proof.Provable = utils.CurrentTime()
 		proof, err = l.db.UpdateProof(proof)
 		err2.Check(err)
 
@@ -261,11 +258,11 @@ func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) (
 	proof, err := l.db.GetProof(*job.ProtocolProofID, job.TenantID)
 	err2.Check(err)
 
-	proof.Approved = utils.TSToTimePtrIfNotSet(proof.Approved, data.ApprovedMs)
-	proof.Verified = utils.TSToTimePtrIfNotSet(proof.Verified, data.VerifiedMs)
-	proof.Failed = utils.TSToTimePtrIfNotSet(proof.Verified, data.VerifiedMs)
+	proof.Approved = utils.TSToTimeIfNotSet(&proof.Approved, data.ApprovedMs)
+	proof.Verified = utils.TSToTimeIfNotSet(&proof.Verified, data.VerifiedMs)
+	proof.Failed = utils.TSToTimeIfNotSet(&proof.Verified, data.VerifiedMs)
 
-	if proof.Verified != nil {
+	if !proof.Verified.IsZero() {
 		// TODO: these values should come from agency
 		// now we just pick first found value and actually only guessing what core agency has picked
 		var provableAttrs []*model.ProvableAttribute
@@ -308,8 +305,8 @@ func getJobStatusForTimestamps(approved, completed, failed *time.Time) (status m
 }
 
 func getJobStatusForProof(proof *dbModel.Proof) (status model.JobStatus, result model.JobResult) {
-	status, result = getJobStatusForTimestamps(proof.Approved, proof.Verified, proof.Failed)
-	if status == model.JobStatusPending && proof.Provable == nil {
+	status, result = getJobStatusForTimestamps(&proof.Approved, &proof.Verified, &proof.Failed)
+	if status == model.JobStatusPending && proof.Provable.IsZero() {
 		status = model.JobStatusBlocked
 	}
 	return

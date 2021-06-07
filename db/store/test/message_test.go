@@ -45,9 +45,9 @@ func validateMessage(t *testing.T, exp, got *model.Message) {
 	if got.SentByMe != exp.SentByMe {
 		t.Errorf("Message SentByMe mismatch expected %v got %v", exp.SentByMe, got.SentByMe)
 	}
-	validateBoolPtr(t, exp.Delivered, got.Delivered, "Delivered")
+	validateBoolPtr(t, &exp.Delivered, &got.Delivered, "Delivered")
 	validateCreatedTS(t, got.Cursor, &got.Created)
-	validateTimestap(t, exp.Archived, got.Archived, "Archived")
+	validateTimestap(t, &exp.Archived, &got.Archived, "Archived")
 }
 
 func validateMessages(t *testing.T, expCount int, exp, got *model.Messages) {
@@ -152,8 +152,7 @@ func TestUpdateMessage(t *testing.T) {
 			}
 
 			// Update data
-			delivered := true
-			m.Delivered = &delivered
+			m.Delivered = true
 			got, err := s.db.UpdateMessage(m)
 			if err != nil {
 				t.Errorf("Failed to update message  %s", err.Error())
@@ -323,7 +322,7 @@ func TestArchiveMessage(t *testing.T) {
 			got, err := s.db.GetMessage(m.ID, m.TenantID)
 			assert.D.True(err == nil)
 
-			m.Archived = &now
+			m.Archived = now
 			validateMessage(t, m, got)
 		})
 	}

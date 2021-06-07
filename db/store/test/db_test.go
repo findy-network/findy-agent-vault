@@ -101,7 +101,7 @@ var (
 	}
 	testMessage *model.Message = &model.Message{Message: "msg content",
 		SentByMe:  false,
-		Delivered: nil,
+		Delivered: false,
 	}
 
 	testEvent *model.Event = &model.Event{
