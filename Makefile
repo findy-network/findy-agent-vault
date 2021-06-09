@@ -86,11 +86,7 @@ dclean:
 	-docker rmi findy-agent-vault
 
 dbuild:
-	@[ "${HTTPS_PREFIX}" ] || ( echo "ERROR: HTTPS_PREFIX <{githubUser}:{githubToken}@> is not set"; exit 1 )
-	docker build \
-		--build-arg HTTPS_PREFIX=$(HTTPS_PREFIX) \
-		-t findy-agent-vault \
-		.
+	docker build -t findy-agent-vault .
 
 gen_mock:
 	~/go/bin/mockgen -package listen -source ./db/store/db.go DB > ./resolver/listen/listener_mock_store_test.go

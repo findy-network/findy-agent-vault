@@ -1,13 +1,5 @@
 FROM golang:1.16-alpine3.13
 
-ARG HTTPS_PREFIX
-
-ENV GOPRIVATE "github.com/findy-network"
-
-RUN apk update && \
-    apk add git && \
-    git config --global url."https://"${HTTPS_PREFIX}"github.com/".insteadOf "https://github.com/"
-
 WORKDIR /work
 
 COPY go.* ./
@@ -21,6 +13,8 @@ RUN VERSION=$(cat ./VERSION) && \
     -o /go/bin/findy-agent-vault
 
 FROM ghcr.io/findy-network/findy-base:alpine-3.13
+
+LABEL org.opencontainers.image.source https://github.com/findy-network/findy-agent-vault
 
 EXPOSE 8085
 
