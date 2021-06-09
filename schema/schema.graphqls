@@ -91,7 +91,7 @@ type Credential {
   role: CredentialRole!
   schemaId: String!
   credDefId: String!
-  attributes: [CredentialValue]
+  attributes: [CredentialValue!]!
   initiatedByUs: Boolean!
   approvedMs: String
   issuedMs: String

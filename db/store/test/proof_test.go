@@ -70,10 +70,10 @@ func validateProof(t *testing.T, exp, got *model.Proof) {
 	if got.Result != exp.Result {
 		t.Errorf("Proof Result mismatch expected %v got %v", exp.Result, got.Result)
 	}
-	validateTimestap(t, exp.Approved, got.Approved, "Approved")
-	validateTimestap(t, exp.Verified, got.Verified, "Verified")
-	validateTimestap(t, exp.Failed, got.Failed, "Failed")
-	validateTimestap(t, exp.Archived, got.Archived, "Archived")
+	validateTimestap(t, &exp.Approved, &got.Approved, "Approved")
+	validateTimestap(t, &exp.Verified, &got.Verified, "Verified")
+	validateTimestap(t, &exp.Failed, &got.Failed, "Failed")
+	validateTimestap(t, &exp.Archived, &got.Archived, "Archived")
 	validateCreatedTS(t, got.Cursor, &got.Created)
 
 	validateProofAttributes(t, exp.Attributes, got.Attributes)
@@ -146,9 +146,7 @@ func TestAddProof(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("add proof "+s.name, func(t *testing.T) {
-			testProof = model.NewProof(s.testTenantID, testProof)
-			testProof.TenantID = s.testTenantID
-			testProof.ConnectionID = s.testConnectionID
+			testProof = s.newTestProof(testProof)
 
 			// Add data
 			p, err := s.db.AddProof(testProof)
@@ -184,8 +182,8 @@ func TestUpdateProof(t *testing.T) {
 
 			// Update data
 			now := time.Now().UTC()
-			p.Approved = &now
-			p.Verified = &now
+			p.Approved = now
+			p.Verified = now
 			p.Values = make([]*graph.ProofValue, 0)
 			for _, attr := range p.Attributes {
 				p.Values = append(p.Values, &graph.ProofValue{ID: attr.ID, AttributeID: attr.ID, Value: "value"})
@@ -346,9 +344,7 @@ func TestArchiveProof(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
 		t.Run("archive proof "+s.name, func(t *testing.T) {
-			testProof = model.NewProof(s.testTenantID, testProof)
-			testProof.TenantID = s.testTenantID
-			testProof.ConnectionID = s.testConnectionID
+			testProof = s.newTestProof(testProof)
 
 			// Add data
 			p, err := s.db.AddProof(testProof)
@@ -364,7 +360,7 @@ func TestArchiveProof(t *testing.T) {
 			got, err := s.db.GetProof(p.ID, p.TenantID)
 			assert.D.True(err == nil)
 
-			p.Archived = &now
+			p.Archived = now
 			validateProof(t, p, got)
 		})
 	}

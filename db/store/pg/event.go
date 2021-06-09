@@ -19,13 +19,14 @@ var (
 		"VALUES ($1, $2, $3, $4, $5) RETURNING " + sqlInsertFields
 )
 
-func (pg *Database) AddEvent(e *model.Event) (n *model.Event, err error) {
+func (pg *Database) AddEvent(e *model.Event) (event *model.Event, err error) {
 	defer err2.Annotate("AddEvent", &err)
 
-	n = model.NewEvent(e.TenantID, e)
+	event = &model.Event{}
+	*event = *e
 	err2.Check(pg.doRowQuery(
 		func(rows *sql.Rows) error {
-			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
+			return rows.Scan(&event.ID, &event.Created, &event.Cursor)
 		},
 		sqlEventInsert,
 		e.TenantID,
@@ -35,29 +36,29 @@ func (pg *Database) AddEvent(e *model.Event) (n *model.Event, err error) {
 		e.Read,
 	))
 
-	return n, err
+	return event, err
 }
 
-func (pg *Database) MarkEventRead(id, tenantID string) (e *model.Event, err error) {
+func (pg *Database) MarkEventRead(id, tenantID string) (event *model.Event, err error) {
 	defer err2.Annotate("MarkEventRead", &err)
 
 	const sqlEventUpdate = "UPDATE event SET read=true WHERE id = $1 AND tenant_id = $2" +
 		" RETURNING id," + sqlEventFields + ", created, cursor"
 
-	e = model.NewEvent("", nil)
+	event = &model.Event{}
 	err2.Check(pg.doRowQuery(
-		readRowToEvent(e),
+		readRowToEvent(event),
 		sqlEventUpdate,
 		id,
 		tenantID,
 	))
 
-	return e, err
+	return event, err
 }
 
-func rowToEvent(rows *sql.Rows) (e *model.Event, err error) {
-	e = model.NewEvent("", nil)
-	return e, readRowToEvent(e)(rows)
+func rowToEvent(rows *sql.Rows) (event *model.Event, err error) {
+	event = &model.Event{}
+	return event, readRowToEvent(event)(rows)
 }
 
 func readRowToEvent(n *model.Event) func(*sql.Rows) error {
@@ -75,15 +76,15 @@ func readRowToEvent(n *model.Event) func(*sql.Rows) error {
 	}
 }
 
-func (pg *Database) GetEvent(id, tenantID string) (e *model.Event, err error) {
+func (pg *Database) GetEvent(id, tenantID string) (event *model.Event, err error) {
 	defer err2.Annotate("GetEvent", &err)
 
 	const sqlEventSelectByID = sqlEventSelect + " event" +
 		" WHERE event.id=$1 AND tenant_id=$2"
 
-	e = model.NewEvent("", nil)
+	event = &model.Event{}
 	err2.Check(pg.doRowQuery(
-		readRowToEvent(e),
+		readRowToEvent(event),
 		sqlEventSelectByID,
 		id,
 		tenantID,

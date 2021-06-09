@@ -25,7 +25,7 @@ func NewArchiver(db store.DB) *Archiver {
 // TODO: should the archived flag be attached to the job instead of
 // protocol object itself?
 // TODO: should archived flag be visible somehow to the clients?
-// e.g. removing/arhiving of incomplete jobs from the UI
+// e.g. removing/archiving of incomplete jobs from the UI
 
 func (a *Archiver) matchProtocol(job *model.Job) (idToUpdate **string, archive func(string, string) error, err error) {
 	switch job.ProtocolType {
@@ -94,13 +94,14 @@ func (a *Archiver) archiveNew(
 	id, err := addToStore(agent, info.InitiatedByUs)
 	err2.Check(err)
 
-	job := model.NewJob(info.JobID, agent.TenantID, &model.Job{
+	job := &model.Job{
+		Base:          model.Base{ID: info.JobID, TenantID: agent.TenantID},
 		ConnectionID:  &info.ConnectionID,
 		ProtocolType:  protocolType,
 		InitiatedByUs: info.InitiatedByUs,
 		Status:        graph.JobStatusComplete,
 		Result:        graph.JobResultSuccess,
-	})
+	}
 	idToUpdate, _, err := a.matchProtocol(job)
 	*idToUpdate = &id
 
@@ -145,15 +146,19 @@ func (a *Archiver) ArchiveConnection(info *agency.ArchiveInfo, data *agency.Conn
 		defer err2.Return(&err)
 
 		now := utils.CurrentTime()
-		connection, err := a.db.AddConnection(model.NewConnection(info.ConnectionID, agent.TenantID, &model.Connection{
+		connection, err := a.db.AddConnection(&model.Connection{
+			Base: model.Base{
+				ID:       info.ConnectionID,
+				TenantID: agent.TenantID,
+			},
 			OurDid:        data.OurDID,
 			TheirDid:      data.TheirDID,
 			TheirEndpoint: data.TheirEndpoint,
 			TheirLabel:    data.TheirLabel,
-			Approved:      &now, // TODO: get approved from agency
+			Approved:      now, // TODO: get approved from agency
 			Invited:       initiatedByUs,
-			Archived:      &now,
-		}))
+			Archived:      now,
+		})
 		err2.Check(err)
 
 		return connection.ID, nil
@@ -168,12 +173,13 @@ func (a *Archiver) ArchiveMessage(info *agency.ArchiveInfo, data *agency.Message
 		defer err2.Return(&err)
 
 		now := utils.CurrentTime()
-		message, err := a.db.AddMessage(model.NewMessage(agent.TenantID, &model.Message{
+		message, err := a.db.AddMessage(&model.Message{
+			Base:         model.Base{TenantID: agent.TenantID},
 			ConnectionID: info.ConnectionID,
 			Message:      data.Message,
 			SentByMe:     data.SentByMe, // TODO: sent time
-			Archived:     &now,
-		}))
+			Archived:     now,
+		})
 		err2.Check(err)
 
 		return message.ID, nil
@@ -189,16 +195,17 @@ func (a *Archiver) ArchiveCredential(info *agency.ArchiveInfo, data *agency.Cred
 		defer err2.Return(&err)
 
 		now := utils.CurrentTime()
-		credential, err := a.db.AddCredential(model.NewCredential(agent.TenantID, &model.Credential{
+		credential, err := a.db.AddCredential(&model.Credential{
+			Base:          model.Base{TenantID: agent.TenantID},
 			ConnectionID:  info.ConnectionID,
 			Role:          data.Role,
 			SchemaID:      data.SchemaID,
 			CredDefID:     data.CredDefID,
 			Attributes:    data.Attributes,
 			InitiatedByUs: data.InitiatedByUs,
-			Issued:        &now, // TODO: get actual issued time
-			Archived:      &now,
-		}))
+			Issued:        now, // TODO: get actual issued time
+			Archived:      now,
+		})
 		err2.Check(err)
 
 		return credential.ID, nil
@@ -214,15 +221,15 @@ func (a *Archiver) ArchiveProof(info *agency.ArchiveInfo, data *agency.Proof) {
 		defer err2.Return(&err)
 
 		now := utils.CurrentTime()
-		proof, err := a.db.AddProof(model.NewProof(agent.TenantID, &model.Proof{
+		proof, err := a.db.AddProof(&model.Proof{
+			Base:          model.Base{TenantID: agent.TenantID},
 			ConnectionID:  info.ConnectionID,
 			Role:          data.Role,
 			Attributes:    data.Attributes,
 			Result:        true,
 			InitiatedByUs: data.InitiatedByUs,
-			Verified:      &now, // TODO: get actual verified time
-
-		}))
+			Verified:      now, // TODO: get actual verified time
+		})
 		err2.Check(err)
 
 		return proof.ID, nil

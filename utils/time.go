@@ -17,12 +17,12 @@ func CurrentTime() time.Time {
 	return time.Now().UTC()
 }
 
-func TSToTimeIfNotSet(current *time.Time, tsMs *int64) *time.Time {
-	if current == nil && tsMs != nil {
+func TSToTimeIfNotSet(current *time.Time, tsMs *int64) time.Time {
+	if (current == nil || current.IsZero()) && tsMs != nil {
 		secs := *tsMs / time.Second.Milliseconds()
 		msecs := *tsMs - secs*time.Second.Milliseconds()
 		ts := time.Unix(secs, msecs*time.Millisecond.Nanoseconds()).UTC()
-		return &ts
+		return ts
 	}
-	return current
+	return *current
 }

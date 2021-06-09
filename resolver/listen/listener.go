@@ -34,14 +34,18 @@ func (l *Listener) AddConnection(info *agency.JobInfo, data *agency.Connection) 
 	now := utils.CurrentTime()
 
 	connection, err := l.db.AddConnection(
-		dbModel.NewConnection(info.ConnectionID, info.TenantID, &dbModel.Connection{
+		&dbModel.Connection{
+			Base: dbModel.Base{
+				ID:       info.ConnectionID,
+				TenantID: info.TenantID,
+			},
 			OurDid:        data.OurDID,
 			TheirDid:      data.TheirDID,
 			TheirEndpoint: data.TheirEndpoint,
 			TheirLabel:    data.TheirLabel,
-			Approved:      &now, // TODO: get approved from agency
+			Approved:      now, // TODO: get approved from agency?
 			Invited:       job.InitiatedByUs,
-		}))
+		})
 	err2.Check(err)
 
 	job.ConnectionID = &connection.ID
@@ -59,21 +63,23 @@ func (l *Listener) AddConnection(info *agency.JobInfo, data *agency.Connection) 
 func (l *Listener) AddMessage(info *agency.JobInfo, data *agency.Message) (err error) {
 	defer err2.Return(&err)
 
-	msg, err := l.db.AddMessage(dbModel.NewMessage(info.TenantID, &dbModel.Message{
+	msg, err := l.db.AddMessage(&dbModel.Message{
+		Base:         dbModel.Base{TenantID: info.TenantID},
 		ConnectionID: info.ConnectionID,
 		Message:      data.Message,
 		SentByMe:     data.SentByMe,
-	}))
+	})
 	err2.Check(err)
 
-	err2.Check(l.AddJob(dbModel.NewJob(info.JobID, info.TenantID, &dbModel.Job{
+	err2.Check(l.AddJob(&dbModel.Job{
+		Base:              dbModel.Base{ID: info.JobID, TenantID: info.TenantID},
 		ConnectionID:      &info.ConnectionID,
 		ProtocolType:      model.ProtocolTypeBasicMessage,
 		ProtocolMessageID: &msg.ID,
 		InitiatedByUs:     data.SentByMe,
 		Status:            model.JobStatusComplete,
 		Result:            model.JobResultSuccess,
-	}), msg.Description()))
+	}, msg.Description()))
 	return nil
 }
 
@@ -85,14 +91,15 @@ func (l *Listener) UpdateMessage(info *agency.JobInfo, _ *agency.MessageUpdate) 
 func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) (err error) {
 	defer err2.Return(&err)
 
-	credential, err := l.db.AddCredential(dbModel.NewCredential(info.TenantID, &dbModel.Credential{
+	credential, err := l.db.AddCredential(&dbModel.Credential{
+		Base:          dbModel.Base{TenantID: info.TenantID},
 		ConnectionID:  info.ConnectionID,
 		Role:          data.Role,
 		SchemaID:      data.SchemaID,
 		CredDefID:     data.CredDefID,
 		Attributes:    data.Attributes,
 		InitiatedByUs: data.InitiatedByUs,
-	}))
+	})
 	err2.Check(err)
 
 	utils.LogMed().Infof("Add credential %s for tenant %s", credential.ID, info.TenantID)
@@ -102,14 +109,15 @@ func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) 
 		status = model.JobStatusPending
 	}
 
-	err2.Check(l.AddJob(dbModel.NewJob(info.JobID, info.TenantID, &dbModel.Job{
+	err2.Check(l.AddJob(&dbModel.Job{
+		Base:                 dbModel.Base{ID: info.JobID, TenantID: info.TenantID},
 		ConnectionID:         &info.ConnectionID,
 		ProtocolType:         model.ProtocolTypeCredential,
 		ProtocolCredentialID: &credential.ID,
 		InitiatedByUs:        data.InitiatedByUs,
 		Status:               status,
 		Result:               model.JobResultNone,
-	}), credential.Description()))
+	}, credential.Description()))
 	return nil
 }
 
@@ -124,19 +132,19 @@ func (l *Listener) UpdateCredential(info *agency.JobInfo, data *agency.Credentia
 	credential, err := l.db.GetCredential(*job.ProtocolCredentialID, job.TenantID)
 	err2.Check(err)
 
-	credential.Approved = utils.TSToTimeIfNotSet(credential.Approved, data.ApprovedMs)
-	credential.Issued = utils.TSToTimeIfNotSet(credential.Issued, data.IssuedMs)
-	credential.Failed = utils.TSToTimeIfNotSet(credential.Failed, data.FailedMs)
+	credential.Approved = utils.TSToTimeIfNotSet(&credential.Approved, data.ApprovedMs)
+	credential.Issued = utils.TSToTimeIfNotSet(&credential.Issued, data.IssuedMs)
+	credential.Failed = utils.TSToTimeIfNotSet(&credential.Failed, data.FailedMs)
 
 	credential, err = l.db.UpdateCredential(credential)
 	err2.Check(err)
 
-	job.Status, job.Result = getJobStatusForTimestamps(credential.Approved, credential.Issued, credential.Failed)
+	job.Status, job.Result = getJobStatusForTimestamps(&credential.Approved, &credential.Issued, &credential.Failed)
 
 	err2.Check(l.UpdateJob(job, credential.Description()))
 
 	// Since we have new credential, check if any of the blocked proofs becomes unblocked
-	if credential.Issued != nil {
+	if credential.IsIssued() {
 		proofData := make([]*model.ProofAttribute, 0)
 		for _, attribute := range credential.Attributes {
 			proofData = append(
@@ -178,18 +186,17 @@ func (l *Listener) isProvable(info *agency.JobInfo, data *dbModel.Proof) bool {
 func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error) {
 	defer err2.Return(&err)
 
-	newProof := dbModel.NewProof(info.TenantID, &dbModel.Proof{
+	newProof := &dbModel.Proof{
+		Base:          dbModel.Base{TenantID: info.TenantID},
 		ConnectionID:  info.ConnectionID,
 		Role:          data.Role,
 		Attributes:    data.Attributes,
 		Result:        false,
 		InitiatedByUs: data.InitiatedByUs,
-	})
+	}
 
-	var provableTime *time.Time
 	if l.isProvable(info, newProof) {
-		now := utils.CurrentTime()
-		newProof.Provable = &now
+		newProof.Provable = utils.CurrentTime()
 	}
 
 	proof, err := l.db.AddProof(newProof)
@@ -201,18 +208,19 @@ func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error
 	if !data.InitiatedByUs {
 		status = model.JobStatusPending
 	}
-	if provableTime == nil {
+	if newProof.Provable.IsZero() {
 		status = model.JobStatusBlocked
 	}
 
-	err2.Check(l.AddJob(dbModel.NewJob(info.JobID, info.TenantID, &dbModel.Job{
+	err2.Check(l.AddJob(&dbModel.Job{
+		Base:            dbModel.Base{ID: info.JobID, TenantID: info.TenantID},
 		ConnectionID:    &info.ConnectionID,
 		ProtocolType:    model.ProtocolTypeProof,
 		ProtocolProofID: &proof.ID,
 		InitiatedByUs:   data.InitiatedByUs,
 		Status:          status,
 		Result:          model.JobResultNone,
-	}), proof.Description()))
+	}, proof.Description()))
 	return nil
 }
 
@@ -225,8 +233,7 @@ func (l *Listener) updateBlockedProof(job *dbModel.Job) (err error) {
 	err2.Check(err)
 
 	if l.isProvable(&agency.JobInfo{TenantID: job.TenantID, JobID: job.ID, ConnectionID: *job.ConnectionID}, proof) {
-		now := utils.CurrentTime()
-		proof.Provable = &now
+		proof.Provable = utils.CurrentTime()
 		proof, err = l.db.UpdateProof(proof)
 		err2.Check(err)
 
@@ -251,11 +258,11 @@ func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) (
 	proof, err := l.db.GetProof(*job.ProtocolProofID, job.TenantID)
 	err2.Check(err)
 
-	proof.Approved = utils.TSToTimeIfNotSet(proof.Approved, data.ApprovedMs)
-	proof.Verified = utils.TSToTimeIfNotSet(proof.Verified, data.VerifiedMs)
-	proof.Failed = utils.TSToTimeIfNotSet(proof.Failed, data.FailedMs)
+	proof.Approved = utils.TSToTimeIfNotSet(&proof.Approved, data.ApprovedMs)
+	proof.Verified = utils.TSToTimeIfNotSet(&proof.Verified, data.VerifiedMs)
+	proof.Failed = utils.TSToTimeIfNotSet(&proof.Verified, data.VerifiedMs)
 
-	if proof.Verified != nil {
+	if !proof.Verified.IsZero() {
 		// TODO: these values should come from agency
 		// now we just pick first found value and actually only guessing what core agency has picked
 		var provableAttrs []*model.ProvableAttribute
@@ -285,12 +292,12 @@ func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) (
 func getJobStatusForTimestamps(approved, completed, failed *time.Time) (status model.JobStatus, result model.JobResult) {
 	status = model.JobStatusWaiting
 	result = model.JobResultNone
-	if failed != nil {
+	if failed != nil && !failed.IsZero() {
 		status = model.JobStatusComplete
 		result = model.JobResultFailure
-	} else if approved == nil && completed == nil {
+	} else if (approved == nil || approved.IsZero()) && (completed == nil || completed.IsZero()) {
 		status = model.JobStatusPending
-	} else if completed != nil {
+	} else if completed != nil && !completed.IsZero() {
 		status = model.JobStatusComplete
 		result = model.JobResultSuccess
 	}
@@ -298,8 +305,8 @@ func getJobStatusForTimestamps(approved, completed, failed *time.Time) (status m
 }
 
 func getJobStatusForProof(proof *dbModel.Proof) (status model.JobStatus, result model.JobResult) {
-	status, result = getJobStatusForTimestamps(proof.Approved, proof.Verified, proof.Failed)
-	if status == model.JobStatusPending && proof.Provable == nil {
+	status, result = getJobStatusForTimestamps(&proof.Approved, &proof.Verified, &proof.Failed)
+	if status == model.JobStatusPending && proof.Provable.IsZero() {
 		status = model.JobStatusBlocked
 	}
 	return

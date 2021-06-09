@@ -12,42 +12,11 @@ type Events struct {
 }
 
 type Event struct {
-	*base
+	Base
 	Read         bool    `faker:"-"`
 	Description  string  `faker:"sentence"`
 	JobID        *string `faker:"-"`
 	ConnectionID *string `faker:"-"`
-}
-
-func NewEvent(tenantID string, e *Event) *Event {
-	defaultBase := &base{TenantID: tenantID}
-	if e != nil {
-		if e.base == nil {
-			e.base = defaultBase
-		} else {
-			e.base.TenantID = tenantID
-		}
-		return e.copy()
-	}
-	return &Event{base: defaultBase}
-}
-
-func (e *Event) copy() (n *Event) {
-	n = NewEvent("", nil)
-	if e.base != nil {
-		n.base = e.base.copy()
-	}
-	n.Read = e.Read
-	n.Description = e.Description
-	if e.JobID != nil {
-		jobID := *e.JobID
-		n.JobID = &jobID
-	}
-	if e.ConnectionID != nil {
-		connectionID := *e.ConnectionID
-		n.ConnectionID = &connectionID
-	}
-	return n
 }
 
 func (e *Event) ToEdge() *model.EventEdge {

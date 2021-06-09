@@ -11,11 +11,7 @@ import (
 )
 
 const (
-	sqlAgentFields = "id, agent_id, label, raw_jwt, created, last_accessed"
-	sqlAgentInsert = "INSERT INTO agent (agent_id, label, raw_jwt) VALUES ($1, $2, $3) " +
-		"ON CONFLICT (agent_id) DO UPDATE SET " +
-		"last_accessed = (now() at time zone 'UTC'), raw_jwt = $4 " +
-		"RETURNING " + sqlAgentFields
+	sqlAgentFields          = "id, agent_id, label, raw_jwt, created, last_accessed"
 	sqlAgentSelect          = "SELECT " + sqlAgentFields + " FROM agent"
 	sqlAgentSelectByID      = sqlAgentSelect + " WHERE id=$1"
 	sqlAgentSelectByAgentID = sqlAgentSelect + " WHERE agent_id=$1"
@@ -85,13 +81,19 @@ func (pg *Database) GetListenerAgents(info *paginator.BatchInfo) (a *model.Agent
 	return a, err
 }
 
-func (pg *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
+func (pg *Database) AddAgent(a *model.Agent) (newAgent *model.Agent, err error) {
 	defer err2.Annotate("AddAgent", &err)
 
-	n = model.NewAgent(a)
+	const sqlAgentInsert = "INSERT INTO agent (agent_id, label, raw_jwt) VALUES ($1, $2, $3) " +
+		"ON CONFLICT (agent_id) DO UPDATE SET " +
+		"last_accessed = (now() at time zone 'UTC'), raw_jwt = $4 " +
+		"RETURNING " + sqlAgentFields
+
+	newAgent = &model.Agent{}
+	*newAgent = *a
 
 	err2.Check(pg.doRowQuery(
-		readRowToAgent(n),
+		readRowToAgent(newAgent),
 		sqlAgentInsert,
 		a.AgentID,
 		a.Label,
@@ -99,13 +101,13 @@ func (pg *Database) AddAgent(a *model.Agent) (n *model.Agent, err error) {
 		a.RawJWT,
 	))
 
-	n.TenantID = n.ID
+	newAgent.TenantID = newAgent.ID
 
 	return
 }
 
 func rowToAgent(rows *sql.Rows) (a *model.Agent, err error) {
-	a = model.NewAgent(nil)
+	a = &model.Agent{}
 	return a, readRowToAgent(a)(rows)
 }
 
@@ -129,7 +131,7 @@ func (pg *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
 		query = sqlAgentSelectByAgentID
 		queryID = agentID
 	}
-	a = model.NewAgent(nil)
+	a = &model.Agent{}
 
 	err2.Check(pg.doRowQuery(readRowToAgent(a), query, *queryID))
 

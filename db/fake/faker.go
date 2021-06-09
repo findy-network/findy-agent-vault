@@ -100,8 +100,8 @@ func AddCredentials(db store.DB, tenantID, connectionID string, count int) []*mo
 		time.Sleep(time.Millisecond) // generate different timestamps for items
 
 		now := time.Now().UTC()
-		c.Approved = &now
-		c.Issued = &now
+		c.Approved = now
+		c.Issued = now
 		_, err = db.UpdateCredential(c)
 		err2.Check(err)
 
@@ -128,8 +128,8 @@ func AddProofs(db store.DB, tenantID, connectionID string, count int, verify boo
 
 		now := time.Now().UTC()
 		if verify {
-			p.Approved = &now
-			p.Verified = &now
+			p.Approved = now
+			p.Verified = now
 			_, err = db.UpdateProof(p)
 			err2.Check(err)
 		}
@@ -227,9 +227,9 @@ func addJobs(
 }
 
 func fakeAgent() *model.Agent {
-	agent := model.NewAgent(nil)
+	agent := &model.Agent{}
 	err2.Check(faker.FakeData(&agent))
-	return model.NewAgent(agent)
+	return agent
 }
 
 func Connection(tenantID string) *model.Connection {
@@ -239,9 +239,9 @@ func Connection(tenantID string) *model.Connection {
 		return faker.LastName() + " " + orgs[index], nil
 	})
 
-	connection := model.EmptyConnection()
+	connection := &model.Connection{}
 	err2.Check(faker.FakeData(connection))
-	connection = model.NewConnection(faker.UUIDHyphenated(), tenantID, connection)
+	connection.ID = faker.UUIDHyphenated()
 	connection.TenantID = tenantID
 	return connection
 }
@@ -254,9 +254,8 @@ func Credential(tenantID, connectionID string) *model.Credential {
 			{Name: "name3", Value: "value3"},
 		}, nil
 	})
-	credential := model.NewCredential("", nil)
+	credential := &model.Credential{}
 	err2.Check(faker.FakeData(credential))
-	credential = model.NewCredential(tenantID, credential)
 	credential.TenantID = tenantID
 	credential.ConnectionID = connectionID
 	return credential
@@ -270,21 +269,19 @@ func Proof(tenantID, connectionID string) *model.Proof {
 			{Name: "name3", CredDefID: "credDefId3"},
 		}, nil
 	})
-	proof := model.NewProof("", nil)
+	proof := &model.Proof{}
 	err2.Check(faker.FakeData(proof))
-	proof = model.NewProof(tenantID, proof)
 	proof.TenantID = tenantID
 	proof.ConnectionID = connectionID
 	return proof
 }
 
 func fakeEvent(tenantID, connectionID string, jobID *string) *model.Event {
-	event := model.NewEvent("", nil)
+	event := &model.Event{}
 	err2.Check(faker.FakeData(event))
-	event = model.NewEvent(tenantID, event)
 	event.TenantID = tenantID
 	event.ConnectionID = &connectionID
-	event.JobID = utils.CopyStrPtr(jobID)
+	event.JobID = jobID
 	return event
 }
 
@@ -293,21 +290,21 @@ func fakeJob(
 	protocolConnectionID, protocolCredentialID, protocolProofID, protocolMessageID *string,
 	status graph.JobStatus,
 ) *model.Job {
-	job := model.NewJob("", "", nil)
+	job := &model.Job{}
 	err2.Check(faker.FakeData(job))
-	job = model.NewJob(id, tenantID, job)
+	job.ID = id
 	job.TenantID = tenantID
 	job.ConnectionID = &connectionID
-	job.ProtocolConnectionID = utils.CopyStrPtr(protocolConnectionID)
-	job.ProtocolCredentialID = utils.CopyStrPtr(protocolCredentialID)
+	job.ProtocolConnectionID = protocolConnectionID
+	job.ProtocolCredentialID = protocolCredentialID
 	if job.ProtocolCredentialID != nil {
 		job.ProtocolType = graph.ProtocolTypeCredential
 	}
-	job.ProtocolProofID = utils.CopyStrPtr(protocolProofID)
+	job.ProtocolProofID = protocolProofID
 	if job.ProtocolProofID != nil {
 		job.ProtocolType = graph.ProtocolTypeProof
 	}
-	job.ProtocolMessageID = utils.CopyStrPtr(protocolMessageID)
+	job.ProtocolMessageID = protocolMessageID
 	if job.ProtocolMessageID != nil {
 		job.ProtocolType = graph.ProtocolTypeBasicMessage
 	}
@@ -316,9 +313,8 @@ func fakeJob(
 }
 
 func Message(tenantID, connectionID string) *model.Message {
-	message := model.NewMessage("", nil)
+	message := &model.Message{}
 	err2.Check(faker.FakeData(message))
-	message = model.NewMessage(tenantID, message)
 	message.TenantID = tenantID
 	message.ConnectionID = connectionID
 	return message

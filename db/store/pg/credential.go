@@ -40,9 +40,7 @@ var (
 	credentialExtraFields = []string{"created", "approved", "issued", "failed", "cursor"}
 
 	sqlCredentialBaseFields = sqlFields("", credentialFields)
-	sqlCredentialInsert     = "INSERT INTO credential " + "(" + sqlCredentialBaseFields + ") " +
-		"VALUES (" + sqlArguments(credentialFields) + ") RETURNING " + sqlInsertFields
-	sqlCredentialSelect = "SELECT credential.id, " + sqlCredentialBaseFields + "," + sqlFields("", credentialExtraFields) +
+	sqlCredentialSelect     = "SELECT credential.id, " + sqlCredentialBaseFields + "," + sqlFields("", credentialExtraFields) +
 		", credential_attribute.id, name, value FROM"
 )
 
@@ -50,7 +48,7 @@ const (
 	sqlCredentialJoin = " INNER JOIN credential_attribute on credential_attribute.credential_id = credential.id"
 )
 
-func (pg *Database) getCredentialForObject(objectName, columnName, objectID, tenantID string) (c *model.Credential, err error) {
+func (pg *Database) getCredentialForObject(objectName, columnName, objectID, tenantID string) (cred *model.Credential, err error) {
 	defer err2.Annotate("getCredentialForObject", &err)
 
 	sqlCredentialJoinSelect := "SELECT credential.id, " +
@@ -60,10 +58,10 @@ func (pg *Database) getCredentialForObject(objectName, columnName, objectID, ten
 		" INNER JOIN " + objectName + " ON " + objectName +
 		"." + columnName + "=credential.id WHERE " + objectName + ".id = $1 AND credential.tenant_id = $2"
 
-	c = model.NewCredential("", nil)
+	cred = &model.Credential{}
 	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
-		c, err = readRowToCredential(rows, c)
+		cred, err = readRowToCredential(rows, cred)
 		err2.Check(err)
 		return
 	}, sqlCredentialSelectByObjectID, objectID, tenantID))
@@ -92,17 +90,21 @@ func (pg *Database) addCredentialAttributes(id string, attributes []*graph.Crede
 	return attributes, nil
 }
 
-func (pg *Database) AddCredential(c *model.Credential) (n *model.Credential, err error) {
+func (pg *Database) AddCredential(c *model.Credential) (cred *model.Credential, err error) {
 	defer err2.Annotate("AddCredential", &err)
+
+	sqlCredentialInsert := "INSERT INTO credential " + "(" + sqlCredentialBaseFields + ") " +
+		"VALUES (" + sqlArguments(credentialFields) + ") RETURNING " + sqlInsertFields
 
 	if len(c.Attributes) == 0 {
 		panic("Attributes are always required for credential.")
 	}
 
-	n = model.NewCredential(c.TenantID, c)
+	cred = &model.Credential{}
+	*cred = *c
 	err2.Check(pg.doRowQuery(
 		func(rows *sql.Rows) error {
-			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
+			return rows.Scan(&cred.ID, &cred.Created, &cred.Cursor)
 		},
 		sqlCredentialInsert,
 		c.TenantID,
@@ -114,11 +116,11 @@ func (pg *Database) AddCredential(c *model.Credential) (n *model.Credential, err
 		c.Archived,
 	))
 
-	attributes, err := pg.addCredentialAttributes(n.ID, n.Attributes)
+	attributes, err := pg.addCredentialAttributes(cred.ID, cred.Attributes)
 	err2.Check(err)
 
-	n.Attributes = attributes
-	return n, err
+	cred.Attributes = attributes
+	return cred, err
 }
 
 func (pg *Database) UpdateCredential(c *model.Credential) (n *model.Credential, err error) {
@@ -139,63 +141,50 @@ func (pg *Database) UpdateCredential(c *model.Credential) (n *model.Credential, 
 
 func readRowToCredential(rows *sql.Rows, previous *model.Credential) (*model.Credential, error) {
 	a := &graph.CredentialValue{}
-	var approved sql.NullTime
-	var issued sql.NullTime
-	var failed sql.NullTime
 
-	n := model.NewCredential("", nil)
+	cred := &model.Credential{}
 
 	err := rows.Scan(
-		&n.ID,
-		&n.TenantID,
-		&n.ConnectionID,
-		&n.Role,
-		&n.SchemaID,
-		&n.CredDefID,
-		&n.InitiatedByUs,
-		&n.Archived,
-		&n.Created,
-		&approved,
-		&issued,
-		&failed,
-		&n.Cursor,
+		&cred.ID,
+		&cred.TenantID,
+		&cred.ConnectionID,
+		&cred.Role,
+		&cred.SchemaID,
+		&cred.CredDefID,
+		&cred.InitiatedByUs,
+		&cred.Archived,
+		&cred.Created,
+		&cred.Approved,
+		&cred.Issued,
+		&cred.Failed,
+		&cred.Cursor,
 		&a.ID,
 		&a.Name,
 		&a.Value,
 	)
 
-	if approved.Valid {
-		n.Approved = &approved.Time
-	}
-	if issued.Valid {
-		n.Issued = &issued.Time
-	}
-	if failed.Valid {
-		n.Failed = &failed.Time
-	}
-
-	n.Attributes = make([]*graph.CredentialValue, 0)
-	if previous.ID == n.ID {
-		n.Attributes = append(n.Attributes, previous.Attributes...)
-		n.Attributes = append(n.Attributes, a)
+	cred.Attributes = make([]*graph.CredentialValue, 0)
+	if previous.ID == cred.ID {
+		cred.Attributes = append(cred.Attributes, previous.Attributes...)
+		cred.Attributes = append(cred.Attributes, a)
 	} else {
-		n.Attributes = append(n.Attributes, a)
+		cred.Attributes = append(cred.Attributes, a)
 	}
 
-	return n, err
+	return cred, err
 }
 
-func (pg *Database) GetCredential(id, tenantID string) (c *model.Credential, err error) {
+func (pg *Database) GetCredential(id, tenantID string) (cred *model.Credential, err error) {
 	defer err2.Annotate("GetCredential", &err)
 
 	sqlCredentialSelectByID := sqlCredentialSelect + " credential" + sqlCredentialJoin +
 		" WHERE credential.id=$1 AND tenant_id=$2" +
 		" ORDER BY credential_attribute.index"
 
-	c = model.NewCredential("", nil)
+	cred = &model.Credential{}
 	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
-		c, err = readRowToCredential(rows, c)
+		cred, err = readRowToCredential(rows, cred)
 		err2.Check(err)
 		return
 	}, sqlCredentialSelectByID, id, tenantID))
@@ -219,7 +208,7 @@ func (pg *Database) getCredentialsForQuery(
 		HasNextPage:     false,
 		HasPreviousPage: false,
 	}
-	prevCredential := model.NewCredential("", nil)
+	prevCredential := &model.Credential{}
 	var credential *model.Credential
 	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
@@ -269,7 +258,7 @@ func (pg *Database) getCredentialsForQuery(
 }
 
 func sqlCredentialBatchWhere(cursorParam, connectionParam, limitParam string, desc, before bool) string {
-	const issuedNotNull = " AND issued IS NOT NULL "
+	const issuedNotNull = " AND issued > timestamp '0001-01-01' "
 	const whereTenantID = " WHERE tenant_id=$1 "
 	order := sqlAsc
 	cursorOrder := sqlOrderByCursorAsc
@@ -329,8 +318,8 @@ func (pg *Database) GetCredentials(info *paginator.BatchInfo, tenantID string, c
 func (pg *Database) GetCredentialCount(tenantID string, connectionID *string) (count int, err error) {
 	defer err2.Annotate("GetCredentialCount", &err)
 	const (
-		sqlCredentialBatchWhere           = " WHERE tenant_id=$1 AND issued IS NOT NULL "
-		sqlCredentialBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2 AND issued IS NOT NULL "
+		sqlCredentialBatchWhere           = " WHERE tenant_id=$1 AND issued > timestamp '0001-01-01' "
+		sqlCredentialBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2 AND issued > timestamp '0001-01-01' "
 	)
 	count, err = pg.getCount(
 		"credential",
@@ -381,7 +370,7 @@ func (pg *Database) SearchCredentials(
 
 	var (
 		sqlCredentialSearch = "SELECT credential.id, name, cred_def_id, value FROM credential " + sqlCredentialJoin +
-			" WHERE tenant_id=$1 AND issued IS NOT NULL AND (" + attributeSearch + ")" +
+			" WHERE tenant_id=$1 AND issued > timestamp '0001-01-01' AND (" + attributeSearch + ")" +
 			" ORDER BY credential.created"
 	)
 

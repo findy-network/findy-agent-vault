@@ -37,7 +37,7 @@ func (pg *Database) getConnectionForObject(objectName, columnName, objectID, ten
 		" INNER JOIN " + objectName + " ON " + objectName +
 		"." + columnName + "=connection.id WHERE " + objectName + ".id = $1 AND connection.tenant_id = $2"
 
-	c = model.EmptyConnection()
+	c = &model.Connection{}
 	err2.Check(pg.doRowQuery(
 		readRowToConnection(c),
 		sqlConnectionSelectByObjectID,
@@ -48,13 +48,14 @@ func (pg *Database) getConnectionForObject(objectName, columnName, objectID, ten
 	return
 }
 
-func (pg *Database) AddConnection(c *model.Connection) (n *model.Connection, err error) {
+func (pg *Database) AddConnection(c *model.Connection) (newConnection *model.Connection, err error) {
 	defer err2.Annotate("AddConnection", &err)
 
-	n = model.NewConnection(c.ID, c.TenantID, c)
+	newConnection = &model.Connection{}
+	*newConnection = *c
 	err2.Check(pg.doRowQuery(
 		func(rows *sql.Rows) error {
-			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
+			return rows.Scan(&newConnection.ID, &newConnection.Created, &newConnection.Cursor)
 		},
 		sqlConnectionInsert,
 		c.ID,
@@ -71,14 +72,12 @@ func (pg *Database) AddConnection(c *model.Connection) (n *model.Connection, err
 }
 
 func rowToConnection(rows *sql.Rows) (c *model.Connection, err error) {
-	c = model.EmptyConnection()
+	c = &model.Connection{}
 	return c, readRowToConnection(c)(rows)
 }
 
 func readRowToConnection(c *model.Connection) func(*sql.Rows) error {
 	return func(rows *sql.Rows) error {
-		var archived sql.NullTime
-
 		err := rows.Scan(
 			&c.ID,
 			&c.TenantID,
@@ -87,15 +86,11 @@ func readRowToConnection(c *model.Connection) func(*sql.Rows) error {
 			&c.TheirEndpoint,
 			&c.TheirLabel,
 			&c.Invited,
-			&archived,
+			&c.Archived,
 			&c.Created,
 			&c.Approved,
 			&c.Cursor,
 		)
-
-		if archived.Valid {
-			c.Archived = &archived.Time
-		}
 		return err
 	}
 }
@@ -105,7 +100,7 @@ func (pg *Database) GetConnection(id, tenantID string) (c *model.Connection, err
 
 	sqlConnectionSelectByID := sqlConnectionSelect + " WHERE id=$1 AND tenant_id=$2"
 
-	c = model.EmptyConnection()
+	c = &model.Connection{}
 	err2.Check(pg.doRowQuery(
 		readRowToConnection(c),
 		sqlConnectionSelectByID,
@@ -183,9 +178,9 @@ func (pg *Database) ArchiveConnection(id, tenantID string) (err error) {
 	)
 
 	now := utils.CurrentTime()
-	n := model.NewConnection(id, tenantID, nil)
+	newConnection := &model.Connection{}
 	err2.Check(pg.doRowQuery(
-		readRowToConnection(n),
+		readRowToConnection(newConnection),
 		sqlConnectionArchive,
 		now,
 		id,

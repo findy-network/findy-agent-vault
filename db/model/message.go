@@ -14,44 +14,12 @@ type Messages struct {
 }
 
 type Message struct {
-	*base
+	Base
 	ConnectionID string
 	Message      string `faker:"sentence"`
 	SentByMe     bool
-	Delivered    *bool
-	Archived     *time.Time `faker:"-"`
-}
-
-func NewMessage(tenantID string, m *Message) *Message {
-	defaultBase := &base{TenantID: tenantID}
-	if m != nil {
-		if m.base == nil {
-			m.base = defaultBase
-		} else {
-			m.base.TenantID = tenantID
-		}
-		return m.copy()
-	}
-	return &Message{base: defaultBase}
-}
-
-func (m *Message) copy() (n *Message) {
-	n = NewMessage("", nil)
-
-	if m.base != nil {
-		n.base = m.base.copy()
-	}
-	var delivered *bool
-	if m.Delivered != nil {
-		d := *m.Delivered
-		delivered = &d
-	}
-	n.ConnectionID = m.ConnectionID
-	n.Message = m.Message
-	n.SentByMe = m.SentByMe
-	n.Delivered = delivered
-	n.Archived = copyTime(m.Archived)
-	return n
+	Delivered    bool
+	Archived     time.Time `faker:"-"`
 }
 
 func (m *Message) ToEdge() *model.BasicMessageEdge {
@@ -63,16 +31,11 @@ func (m *Message) ToEdge() *model.BasicMessageEdge {
 }
 
 func (m *Message) ToNode() *model.BasicMessage {
-	var delivered *bool
-	if m.Delivered != nil {
-		d := *m.Delivered
-		delivered = &d
-	}
 	return &model.BasicMessage{
 		ID:        m.ID,
 		Message:   m.Message,
 		SentByMe:  m.SentByMe,
-		Delivered: delivered,
+		Delivered: nil, // TODO
 		CreatedMs: timeToString(&m.Created),
 	}
 }

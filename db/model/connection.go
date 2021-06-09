@@ -14,48 +14,14 @@ type Connections struct {
 }
 
 type Connection struct {
-	*base
+	Base
 	OurDid        string
 	TheirDid      string
 	TheirEndpoint string `faker:"url"`
 	TheirLabel    string `faker:"organisationLabel"`
 	Invited       bool
-	Approved      *time.Time `faker:"-"`
-	Archived      *time.Time `faker:"-"`
-}
-
-func EmptyConnection() *Connection {
-	return NewConnection("", "", nil)
-}
-
-func NewConnection(id, tenantID string, c *Connection) *Connection {
-	defaultBase := &base{ID: id, TenantID: tenantID}
-	if c != nil {
-		if c.base == nil {
-			c.base = defaultBase
-		} else {
-			c.base.TenantID = tenantID
-			c.base.ID = id
-		}
-		return c.copy()
-	}
-	return &Connection{base: defaultBase}
-}
-
-func (c *Connection) copy() (n *Connection) {
-	n = EmptyConnection()
-	if c.base != nil {
-		n.base = c.base.copy()
-	}
-
-	n.OurDid = c.OurDid
-	n.TheirDid = c.TheirDid
-	n.TheirEndpoint = c.TheirEndpoint
-	n.TheirLabel = c.TheirLabel
-	n.Invited = c.Invited
-	n.Approved = copyTime(c.Approved)
-	n.Archived = copyTime(c.Archived)
-	return n
+	Approved      time.Time `faker:"-"`
+	Archived      time.Time `faker:"-"`
 }
 
 func (c *Connection) ToEdge() *model.PairwiseEdge {
@@ -74,7 +40,7 @@ func (c *Connection) ToNode() *model.Pairwise {
 		TheirEndpoint: c.TheirEndpoint,
 		TheirLabel:    c.TheirLabel,
 		CreatedMs:     timeToString(&c.Created),
-		ApprovedMs:    timeToString(c.Approved),
+		ApprovedMs:    timeToString(&c.Approved),
 		Invited:       c.Invited,
 	}
 }

@@ -15,59 +15,22 @@ type Credentials struct {
 }
 
 type Credential struct {
-	*base
-	ConnectionID  string
-	Role          model.CredentialRole `faker:"oneof: HOLDER, HOLDER"`
-	SchemaID      string
-	CredDefID     string                   `faker:"oneof: credDefId1, credDefId2, credDefId3"`
+	Base
+	ConnectionID string
+	Role         model.CredentialRole `faker:"oneof: HOLDER, HOLDER"`
+	SchemaID     string
+	CredDefID    string `faker:"oneof: credDefId1, credDefId2, credDefId3"`
+	// TODO: can we avoid pointers with slices in gql interface?
 	Attributes    []*model.CredentialValue `faker:"credentialAttributes"`
 	InitiatedByUs bool
-	Approved      *time.Time `faker:"-"`
-	Issued        *time.Time `faker:"-"`
-	Failed        *time.Time `faker:"-"`
-	Archived      *time.Time `faker:"-"`
+	Approved      time.Time `faker:"-"`
+	Issued        time.Time `faker:"-"`
+	Failed        time.Time `faker:"-"`
+	Archived      time.Time `faker:"-"`
 }
 
-func NewCredential(tenantID string, c *Credential) *Credential {
-	defaultBase := &base{TenantID: tenantID}
-	if c != nil {
-		if c.base == nil {
-			c.base = defaultBase
-		} else {
-			c.base.TenantID = tenantID
-		}
-		return c.copy()
-	}
-	return &Credential{base: defaultBase}
-}
-
-func (c *Credential) copy() (n *Credential) {
-	n = NewCredential("", nil)
-
-	attributes := make([]*model.CredentialValue, len(c.Attributes))
-	for index := range c.Attributes {
-		attributes[index] = &model.CredentialValue{
-			ID:    c.Attributes[index].ID,
-			Name:  c.Attributes[index].Name,
-			Value: c.Attributes[index].Value,
-		}
-	}
-
-	if c.base != nil {
-		n.base = c.base.copy()
-	}
-	n.ConnectionID = c.ConnectionID
-	n.Role = c.Role
-	n.SchemaID = c.SchemaID
-	n.CredDefID = c.CredDefID
-	n.InitiatedByUs = c.InitiatedByUs
-	n.Approved = copyTime(c.Approved)
-	n.Issued = copyTime(c.Issued)
-	n.Failed = copyTime(c.Failed)
-	n.Archived = copyTime(c.Archived)
-	n.Attributes = attributes
-
-	return n
+func (c *Credential) IsIssued() bool {
+	return !c.Issued.IsZero()
 }
 
 func (c *Credential) ToEdge() *model.CredentialEdge {
@@ -86,21 +49,21 @@ func (c *Credential) ToNode() *model.Credential {
 		CredDefID:     c.CredDefID,
 		Attributes:    c.Attributes,
 		InitiatedByUs: c.InitiatedByUs,
-		ApprovedMs:    timeToStringPtr(c.Approved),
-		IssuedMs:      timeToStringPtr(c.Issued),
+		ApprovedMs:    timeToStringPtr(&c.Approved),
+		IssuedMs:      timeToStringPtr(&c.Issued),
 		CreatedMs:     timeToString(&c.Created),
 	}
 }
 
 func (c *Credential) Description() string {
-	if c.Issued != nil {
+	if !c.Issued.IsZero() {
 		switch c.Role {
 		case model.CredentialRoleIssuer:
 			return "Issued credential"
 		case model.CredentialRoleHolder:
 			return "Received credential"
 		}
-	} else if c.Approved != nil {
+	} else if !c.Approved.IsZero() {
 		return "Approved credential"
 	}
 

@@ -15,70 +15,18 @@ type Proofs struct {
 }
 
 type Proof struct {
-	*base
+	Base
 	ConnectionID  string
 	Role          model.ProofRole         `faker:"oneof: PROVER, PROVER"`
 	Attributes    []*model.ProofAttribute `faker:"proofAttributes"`
 	Values        []*model.ProofValue     `faker:"-"`
 	InitiatedByUs bool
 	Result        bool
-	Provable      *time.Time `faker:"-"`
-	Approved      *time.Time `faker:"-"`
-	Verified      *time.Time `faker:"-"`
-	Failed        *time.Time `faker:"-"`
-	Archived      *time.Time `faker:"-"`
-}
-
-func NewProof(tenantID string, p *Proof) *Proof {
-	defaultBase := &base{TenantID: tenantID}
-	if p != nil {
-		if p.base == nil {
-			p.base = defaultBase
-		} else {
-			p.base.TenantID = tenantID
-		}
-		return p.copy()
-	}
-	return &Proof{base: defaultBase}
-}
-
-func (p *Proof) copy() (n *Proof) {
-	n = NewProof("", nil)
-
-	attributes := make([]*model.ProofAttribute, len(p.Attributes))
-	for index := range p.Attributes {
-		attributes[index] = &model.ProofAttribute{
-			ID:        p.Attributes[index].ID,
-			Name:      p.Attributes[index].Name,
-			CredDefID: p.Attributes[index].CredDefID,
-		}
-	}
-
-	values := make([]*model.ProofValue, len(p.Values))
-	for index := range p.Values {
-		values[index] = &model.ProofValue{
-			ID:          p.Values[index].ID,
-			AttributeID: p.Values[index].AttributeID,
-			Value:       p.Values[index].Value,
-		}
-	}
-
-	if p.base != nil {
-		n.base = p.base.copy()
-	}
-	n.ConnectionID = p.ConnectionID
-	n.Role = p.Role
-	n.InitiatedByUs = p.InitiatedByUs
-	n.Result = p.Result
-	n.Provable = copyTime(p.Provable)
-	n.Approved = copyTime(p.Approved)
-	n.Verified = copyTime(p.Verified)
-	n.Failed = copyTime(p.Failed)
-	n.Attributes = attributes
-	n.Values = values
-	n.Archived = copyTime(p.Archived)
-
-	return n
+	Provable      time.Time `faker:"-"`
+	Approved      time.Time `faker:"-"`
+	Verified      time.Time `faker:"-"`
+	Failed        time.Time `faker:"-"`
+	Archived      time.Time `faker:"-"`
 }
 
 func (p *Proof) ToEdge() *model.ProofEdge {
@@ -97,28 +45,28 @@ func (p *Proof) ToNode() *model.Proof {
 		Values:        p.Values,
 		InitiatedByUs: p.InitiatedByUs,
 		Result:        p.Result,
-		ApprovedMs:    timeToStringPtr(p.Approved),
-		VerifiedMs:    timeToStringPtr(p.Verified),
+		ApprovedMs:    timeToStringPtr(&p.Approved),
+		VerifiedMs:    timeToStringPtr(&p.Verified),
 		CreatedMs:     timeToString(&p.Created),
 	}
 }
 
 func (p *Proof) Description() string {
-	if p.Verified != nil {
+	if !p.Verified.IsZero() {
 		switch p.Role {
 		case model.ProofRoleVerifier:
 			return "Verified credential"
 		case model.ProofRoleProver:
 			return "Proved credential"
 		}
-	} else if p.Approved != nil {
+	} else if !p.Approved.IsZero() {
 		return "Approved proof"
 	}
 	switch p.Role {
 	case model.ProofRoleVerifier:
 		return "Received proof offer"
 	case model.ProofRoleProver:
-		if p.Provable != nil {
+		if !p.Provable.IsZero() {
 			return "Provable proof request"
 		}
 		return "Blocked proof request"

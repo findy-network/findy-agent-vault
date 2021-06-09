@@ -57,7 +57,7 @@ func (pg *Database) getProofForObject(objectName, columnName, objectID, tenantID
 		" INNER JOIN " + objectName + " ON " + objectName +
 		"." + columnName + "=proof.id WHERE " + objectName + ".id = $1 AND proof.tenant_id = $2"
 
-	c = model.NewProof("", nil)
+	c = &model.Proof{}
 	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
 		c, err = readRowToProof(rows, c)
@@ -90,7 +90,7 @@ func (pg *Database) addProofAttributes(id string, attributes []*graph.ProofAttri
 	return attributes, nil
 }
 
-func (pg *Database) AddProof(p *model.Proof) (n *model.Proof, err error) {
+func (pg *Database) AddProof(p *model.Proof) (proof *model.Proof, err error) {
 	defer err2.Annotate("AddProof", &err)
 
 	if len(p.Attributes) == 0 {
@@ -102,10 +102,12 @@ func (pg *Database) AddProof(p *model.Proof) (n *model.Proof, err error) {
 			"VALUES (" + sqlArguments(proofFields) + ") RETURNING " + sqlInsertFields
 	)
 
-	n = model.NewProof(p.TenantID, p)
+	proof = &model.Proof{}
+	*proof = *p
+
 	err2.Check(pg.doRowQuery(
 		func(rows *sql.Rows) error {
-			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
+			return rows.Scan(&proof.ID, &proof.Created, &proof.Cursor)
 		},
 		sqlProofInsert,
 		p.TenantID,
@@ -117,11 +119,11 @@ func (pg *Database) AddProof(p *model.Proof) (n *model.Proof, err error) {
 		p.Provable,
 	))
 
-	attributes, err := pg.addProofAttributes(n.ID, n.Attributes)
+	attributes, err := pg.addProofAttributes(proof.ID, proof.Attributes)
 	err2.Check(err)
 
-	n.Attributes = attributes
-	return n, err
+	proof.Attributes = attributes
+	return proof, err
 }
 
 func (pg *Database) UpdateProof(p *model.Proof) (n *model.Proof, err error) {
@@ -173,11 +175,8 @@ func (pg *Database) UpdateProof(p *model.Proof) (n *model.Proof, err error) {
 
 func readRowToProof(rows *sql.Rows, previous *model.Proof) (*model.Proof, error) {
 	a := &graph.ProofAttribute{}
-	var approved sql.NullTime
-	var verified sql.NullTime
-	var failed sql.NullTime
 
-	n := model.NewProof("", nil)
+	n := &model.Proof{}
 
 	value := &graph.ProofValue{}
 
@@ -191,25 +190,15 @@ func readRowToProof(rows *sql.Rows, previous *model.Proof) (*model.Proof, error)
 		&n.Archived,
 		&n.Provable,
 		&n.Created,
-		&approved,
-		&verified,
-		&failed,
+		&n.Approved,
+		&n.Verified,
+		&n.Failed,
 		&n.Cursor,
 		&a.ID,
 		&a.Name,
 		&value.Value,
 		&a.CredDefID,
 	)
-
-	if approved.Valid {
-		n.Approved = &approved.Time
-	}
-	if verified.Valid {
-		n.Verified = &verified.Time
-	}
-	if failed.Valid {
-		n.Failed = &failed.Time
-	}
 
 	n.Attributes = make([]*graph.ProofAttribute, 0)
 	if previous.ID == n.ID {
@@ -237,7 +226,7 @@ func (pg *Database) GetProof(id, tenantID string) (p *model.Proof, err error) {
 		" WHERE proof.id=$1 AND tenant_id=$2" +
 		" ORDER BY proof_attribute.index"
 
-	p = model.NewProof("", nil)
+	p = &model.Proof{}
 	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
 		p, err = readRowToProof(rows, p)
@@ -263,7 +252,7 @@ func (pg *Database) getProofsForQuery(
 		HasNextPage:     false,
 		HasPreviousPage: false,
 	}
-	prevProof := model.NewProof("", nil)
+	prevProof := &model.Proof{}
 	var proof *model.Proof
 	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)

@@ -5,7 +5,6 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
-	"github.com/findy-network/findy-agent-vault/utils"
 )
 
 type Jobs struct {
@@ -15,7 +14,7 @@ type Jobs struct {
 }
 
 type Job struct {
-	*base
+	Base
 	ProtocolType         model.ProtocolType `faker:"oneof: NONE,NONE"`
 	ProtocolConnectionID *string            `faker:"-"`
 	ProtocolCredentialID *string            `faker:"-"`
@@ -33,38 +32,6 @@ type JobOutput struct {
 	Credential *Credential
 	Proof      *Proof
 	Message    *Message
-}
-
-func NewJob(id, tenantID string, j *Job) *Job {
-	defaultBase := &base{ID: id, TenantID: tenantID}
-	if j != nil {
-		if j.base == nil {
-			j.base = defaultBase
-		} else {
-			j.base.ID = id
-			j.base.TenantID = tenantID
-		}
-		return j.copy()
-	}
-	return &Job{base: defaultBase}
-}
-
-func (j *Job) copy() (n *Job) {
-	n = NewJob("", "", nil)
-	if j.base != nil {
-		n.base = j.base.copy()
-	}
-	n.ProtocolType = j.ProtocolType
-	n.ProtocolConnectionID = utils.CopyStrPtr(j.ProtocolConnectionID)
-	n.ProtocolCredentialID = utils.CopyStrPtr(j.ProtocolCredentialID)
-	n.ProtocolProofID = utils.CopyStrPtr(j.ProtocolProofID)
-	n.ProtocolMessageID = utils.CopyStrPtr(j.ProtocolMessageID)
-	n.ConnectionID = utils.CopyStrPtr(j.ConnectionID)
-	n.Status = j.Status
-	n.Result = j.Result
-	n.InitiatedByUs = j.InitiatedByUs
-	n.Updated = j.Updated
-	return n
 }
 
 func (j *Job) ToEdge() *model.JobEdge {

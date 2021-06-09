@@ -27,7 +27,7 @@ func (pg *Database) getJobForObject(objectName, objectID, tenantID string) (j *m
 		" job INNER JOIN " + objectName + " ON " + objectName +
 		".job_id=job.id WHERE " + objectName + ".id = $1 AND job.tenant_id = $2"
 
-	j = model.NewJob("", "", nil)
+	j = &model.Job{}
 	err2.Check(pg.doRowQuery(
 		readRowToJob(j),
 		sqlJobSelectByObjectID,
@@ -38,13 +38,14 @@ func (pg *Database) getJobForObject(objectName, objectID, tenantID string) (j *m
 	return
 }
 
-func (pg *Database) AddJob(j *model.Job) (n *model.Job, err error) {
+func (pg *Database) AddJob(j *model.Job) (job *model.Job, err error) {
 	defer err2.Annotate("AddJob", &err)
 
-	n = model.NewJob(j.ID, j.TenantID, j)
+	job = &model.Job{}
+	*job = *j
 	err2.Check(pg.doRowQuery(
 		func(rows *sql.Rows) error {
-			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
+			return rows.Scan(&job.ID, &job.Created, &job.Cursor)
 		},
 		sqlJobInsert,
 		j.ID,
@@ -60,7 +61,7 @@ func (pg *Database) AddJob(j *model.Job) (n *model.Job, err error) {
 		j.InitiatedByUs,
 	))
 
-	return n, err
+	return job, err
 }
 
 func (pg *Database) UpdateJob(arg *model.Job) (j *model.Job, err error) {
@@ -72,7 +73,7 @@ func (pg *Database) UpdateJob(arg *model.Job) (j *model.Job, err error) {
 		" WHERE id = $8 AND tenant_id = $9" +
 		" RETURNING " + sqlJobBaseFields + ", created, cursor"
 
-	j = model.NewJob("", "", nil)
+	j = &model.Job{}
 	err2.Check(pg.doRowQuery(
 		readRowToJob(j),
 		sqlJobUpdate,
@@ -90,7 +91,7 @@ func (pg *Database) UpdateJob(arg *model.Job) (j *model.Job, err error) {
 }
 
 func rowToJob(rows *sql.Rows) (n *model.Job, err error) {
-	n = model.NewJob("", "", nil)
+	n = &model.Job{}
 	return n, readRowToJob(n)(rows)
 }
 
@@ -120,7 +121,7 @@ func (pg *Database) GetJob(id, tenantID string) (job *model.Job, err error) {
 
 	sqlJobSelectByID := sqlJobSelect + " job WHERE id=$1 AND tenant_id=$2"
 
-	job = model.NewJob("", "", nil)
+	job = &model.Job{}
 	err2.Check(pg.doRowQuery(
 		readRowToJob(job),
 		sqlJobSelectByID,

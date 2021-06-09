@@ -25,7 +25,7 @@ func (pg *Database) getMessageForObject(objectName, columnName, objectID, tenant
 		" message INNER JOIN " + objectName + " ON " + objectName +
 		"." + columnName + "=message.id WHERE " + objectName + ".id = $1 AND message.tenant_id = $2"
 
-	m = model.NewMessage("", nil)
+	m = &model.Message{}
 	err2.Check(pg.doRowQuery(
 		readRowToMessage(m),
 		sqlMessageSelectByObjectID,
@@ -37,7 +37,7 @@ func (pg *Database) getMessageForObject(objectName, columnName, objectID, tenant
 }
 
 func rowToMessage(rows *sql.Rows) (n *model.Message, err error) {
-	n = model.NewMessage("", nil)
+	n = &model.Message{}
 	return n, readRowToMessage(n)(rows)
 }
 
@@ -57,7 +57,7 @@ func readRowToMessage(n *model.Message) func(*sql.Rows) error {
 	}
 }
 
-func (pg *Database) AddMessage(arg *model.Message) (n *model.Message, err error) {
+func (pg *Database) AddMessage(arg *model.Message) (msg *model.Message, err error) {
 	defer err2.Annotate("AddMessage", &err)
 
 	var (
@@ -65,10 +65,11 @@ func (pg *Database) AddMessage(arg *model.Message) (n *model.Message, err error)
 			"VALUES (" + sqlArguments(messageFields) + ") RETURNING " + sqlInsertFields
 	)
 
-	n = model.NewMessage(arg.TenantID, arg)
+	msg = &model.Message{}
+	*msg = *arg
 	err2.Check(pg.doRowQuery(
 		func(rows *sql.Rows) error {
-			return rows.Scan(&n.ID, &n.Created, &n.Cursor)
+			return rows.Scan(&msg.ID, &msg.Created, &msg.Cursor)
 		},
 		sqlMessageInsert,
 		arg.TenantID,
@@ -79,7 +80,7 @@ func (pg *Database) AddMessage(arg *model.Message) (n *model.Message, err error)
 		arg.Archived,
 	))
 
-	return n, err
+	return msg, err
 }
 
 func (pg *Database) UpdateMessage(arg *model.Message) (m *model.Message, err error) {
@@ -88,7 +89,7 @@ func (pg *Database) UpdateMessage(arg *model.Message) (m *model.Message, err err
 	sqlMessageUpdate := "UPDATE message SET delivered=$1 WHERE id = $2 AND tenant_id = $3" +
 		" RETURNING id," + sqlBaseMessageFields + ", created, cursor"
 
-	m = model.NewMessage("", nil)
+	m = &model.Message{}
 	err2.Check(pg.doRowQuery(
 		readRowToMessage(m),
 		sqlMessageUpdate,
@@ -104,7 +105,7 @@ func (pg *Database) GetMessage(id, tenantID string) (m *model.Message, err error
 
 	sqlMessageSelectByID := sqlMessageSelect + " message WHERE id=$1 AND tenant_id=$2"
 
-	m = model.NewMessage("", nil)
+	m = &model.Message{}
 	err2.Check(pg.doRowQuery(
 		readRowToMessage(m),
 		sqlMessageSelectByID,

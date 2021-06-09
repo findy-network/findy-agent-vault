@@ -25,9 +25,62 @@ type testableDB struct {
 	testConnection   *model.Connection
 }
 
+func (t *testableDB) updateTestConnection() {
+	c := &model.Connection{}
+	*c = *t.testConnection
+	c.ID = uuid.New().String()
+	t.testConnection = c
+}
+
+func (t *testableDB) newTestCredential(cred *model.Credential) *model.Credential {
+	c := &model.Credential{}
+	*c = *cred
+	c.ID = uuid.New().String()
+	c.TenantID = t.testTenantID
+	c.ConnectionID = t.testConnectionID
+	return c
+}
+
+func (t *testableDB) newTestEvent(event *model.Event) *model.Event {
+	e := &model.Event{}
+	*e = *event
+	e.ID = uuid.New().String()
+	e.TenantID = t.testTenantID
+	e.ConnectionID = &t.testConnectionID
+	return e
+}
+
+func (t *testableDB) newTestJob(job *model.Job) *model.Job {
+	j := &model.Job{}
+	*j = *job
+	j.ID = uuid.New().String()
+	j.TenantID = t.testTenantID
+	j.ConnectionID = &t.testConnectionID
+	return j
+}
+
+func (t *testableDB) newTestMessage(msg *model.Message) *model.Message {
+	m := &model.Message{}
+	*m = *msg
+	m.ID = uuid.New().String()
+	m.TenantID = t.testTenantID
+	m.ConnectionID = t.testConnectionID
+	return m
+}
+
+func (t *testableDB) newTestProof(proof *model.Proof) *model.Proof {
+	p := &model.Proof{}
+	*p = *proof
+	p.ID = uuid.New().String()
+	p.TenantID = t.testTenantID
+	p.ConnectionID = t.testConnectionID
+	return p
+}
+
 var (
 	DBs            []*testableDB
-	testCredential *model.Credential = model.NewCredential("", &model.Credential{
+	testCredential *model.Credential = &model.Credential{
+		Base:          model.Base{ID: uuid.New().String()},
 		Role:          graph.CredentialRoleHolder,
 		SchemaID:      "schemaId",
 		CredDefID:     "credDefId",
@@ -36,8 +89,8 @@ var (
 			{Name: "name1", Value: "value1"},
 			{Name: "name2", Value: "value2"},
 		},
-	})
-	testProof *model.Proof = model.NewProof("", &model.Proof{
+	}
+	testProof *model.Proof = &model.Proof{
 		Role:          graph.ProofRoleProver,
 		InitiatedByUs: false,
 		Result:        true,
@@ -45,21 +98,22 @@ var (
 			{Name: "name1", CredDefID: "cred_def_id"},
 			{Name: "name2", CredDefID: "cred_def_id"},
 		},
-	})
-	testMessage *model.Message = model.NewMessage("", &model.Message{
-		Message:   "msg content",
+	}
+	testMessage *model.Message = &model.Message{Message: "msg content",
 		SentByMe:  false,
-		Delivered: nil,
-	})
-	testEvent *model.Event = model.NewEvent("", &model.Event{
+		Delivered: false,
+	}
+
+	testEvent *model.Event = &model.Event{
+		Base:        model.Base{ID: uuid.New().String()},
 		Description: "event desc",
 		Read:        false,
-	})
-	testJob *model.Job = model.NewJob("", "", &model.Job{
+	}
+	testJob *model.Job = &model.Job{
 		ProtocolType: graph.ProtocolTypeConnection,
 		Status:       graph.JobStatusWaiting,
 		Result:       graph.JobResultNone,
-	})
+	}
 )
 
 func validateTimestap(t *testing.T, exp, got *time.Time, name string) {
@@ -100,11 +154,11 @@ func setup() {
 	}
 	utils.SetLogConfig(&utils.Configuration{LogLevel: logLevel})
 
-	testAgent := model.NewAgent(nil)
+	testAgent := &model.Agent{}
 	testAgent.AgentID = "testAgentID"
 	testAgent.Label = testAgentLabel
 
-	testConnection := model.EmptyConnection()
+	testConnection := &model.Connection{}
 	testConnection.OurDid = "ourDid"
 	testConnection.TheirDid = "theirDid"
 	testConnection.TheirEndpoint = "theirEndpoint"
@@ -137,10 +191,11 @@ func setup() {
 		s.testTenantID = a.ID
 		s.testAgentID = a.AgentID
 
-		s.testConnection = model.NewConnection(uuid.New().String(), s.testTenantID, testConnection)
+		s.testConnection = testConnection
+		s.updateTestConnection()
 		s.testConnection.TenantID = s.testTenantID
 
-		c, err := s.db.AddConnection(testConnection)
+		c, err := s.db.AddConnection(s.testConnection)
 		if err != nil {
 			panic(err)
 		}
