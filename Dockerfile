@@ -14,6 +14,8 @@ RUN VERSION=$(cat ./VERSION) && \
 
 FROM ghcr.io/findy-network/findy-base:alpine-3.13
 
+LABEL org.opencontainers.image.source https://github.com/findy-network/findy-agent-vault
+
 EXPOSE 8085
 
 # override when running

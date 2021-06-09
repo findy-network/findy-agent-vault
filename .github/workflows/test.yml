@@ -3,6 +3,16 @@ on: push
 env:
   FAV_DB_PASSWORD: password
 jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.37
+          args: --timeout=5m
   test:
     runs-on: ubuntu-latest
     steps:
