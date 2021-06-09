@@ -292,12 +292,12 @@ func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) (
 func getJobStatusForTimestamps(approved, completed, failed *time.Time) (status model.JobStatus, result model.JobResult) {
 	status = model.JobStatusWaiting
 	result = model.JobResultNone
-	if failed != nil {
+	if failed != nil && !failed.IsZero() {
 		status = model.JobStatusComplete
 		result = model.JobResultFailure
-	} else if approved == nil && completed == nil {
+	} else if (approved == nil || approved.IsZero()) && (completed == nil || completed.IsZero()) {
 		status = model.JobStatusPending
-	} else if completed != nil {
+	} else if completed != nil && !completed.IsZero() {
 		status = model.JobStatusComplete
 		result = model.JobResultSuccess
 	}
