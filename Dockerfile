@@ -30,7 +30,8 @@ ENV FAV_AGENCY_ADMIN_ID "findy-root"
 COPY --from=0 /work/db/migrations /db/migrations
 COPY --from=0 /go/bin/findy-agent-vault /findy-agent-vault
 
-RUN echo '[[ ! -z "$STARTUP_FILE_STORAGE_S3" ]] && /s3-copy $STARTUP_FILE_STORAGE_S3 grpc /' > /start.sh && \
+RUN echo '#!/bin/sh' > /start.sh && \
+    echo '[[ ! -z "$STARTUP_FILE_STORAGE_S3" ]] && /s3-copy $STARTUP_FILE_STORAGE_S3 grpc /' >> /start.sh && \
     echo '/findy-agent-vault' >> /start.sh && chmod a+x /start.sh
 
 ENTRYPOINT ["/bin/sh", "-c", "/start.sh"]
