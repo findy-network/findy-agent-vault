@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	sqlAgentFields          = "id, agent_id, label, raw_jwt, created, last_accessed"
+	sqlAgentFields          = "id, agent_id, label, raw_jwt, created, last_accessed, cursor"
 	sqlAgentSelect          = "SELECT " + sqlAgentFields + " FROM agent"
 	sqlAgentSelectByID      = sqlAgentSelect + " WHERE id=$1"
 	sqlAgentSelectByAgentID = sqlAgentSelect + " WHERE agent_id=$1"
@@ -114,7 +114,7 @@ func rowToAgent(rows *sql.Rows) (a *model.Agent, err error) {
 func readRowToAgent(a *model.Agent) func(*sql.Rows) error {
 	return func(rows *sql.Rows) error {
 		return rows.Scan(
-			&a.ID, &a.AgentID, &a.Label, &a.RawJWT, &a.Created, &a.LastAccessed,
+			&a.ID, &a.AgentID, &a.Label, &a.RawJWT, &a.Created, &a.LastAccessed, &a.Cursor,
 		)
 	}
 }
