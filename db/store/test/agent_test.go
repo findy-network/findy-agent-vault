@@ -92,6 +92,9 @@ func TestAddAgent(t *testing.T) {
 				if time.Since(a.Created) > time.Second {
 					t.Errorf("Timestamp not in threshold %v", a.Created)
 				}
+				if a.Cursor == 0 {
+					t.Errorf("Cursor invalid %v", a.Cursor)
+				}
 			}
 
 			// Add data
