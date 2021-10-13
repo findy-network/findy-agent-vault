@@ -21,6 +21,8 @@ const (
 const (
 	cursorPartsCount = 2
 	maxPatchSize     = 100
+	cursorLen        = 10
+	cursorBits       = 64
 )
 
 type Params struct {
@@ -58,7 +60,7 @@ func LogRequest(prefix string, params *Params) {
 func CreateCursor(created uint64, object interface{}) string {
 	typeName := reflect.TypeOf(object).Name()
 	return base64.StdEncoding.EncodeToString(
-		[]byte(typeName + ":" + strconv.FormatUint(created, 10)),
+		[]byte(typeName + ":" + strconv.FormatUint(created, cursorLen)),
 	)
 }
 
@@ -73,7 +75,7 @@ func ParseCursor(cursor string, object interface{}) (uint64, error) {
 		return 0, errors.New(ErrorCursorInvalid)
 	}
 
-	value, err := strconv.ParseUint(parts[1], 10, 64)
+	value, err := strconv.ParseUint(parts[1], cursorLen, cursorBits)
 	if err != nil {
 		return 0, errors.New(ErrorCursorInvalid)
 	}

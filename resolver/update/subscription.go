@@ -57,7 +57,8 @@ func (s *subscriberRegister) add(tenantID string) (subscriptionID string, eventC
 
 	utils.LogMed().Infof("Add subscription for tenant %s", tenantID)
 
-	subscriptionID = tenantID + "-" + strconv.FormatInt(utils.CurrentTimeMs(), 10)
+	const timeLen = 10
+	subscriptionID = tenantID + "-" + strconv.FormatInt(utils.CurrentTimeMs(), timeLen)
 	newSubscription := &subscription{
 		tenantID: tenantID,
 		channel:  make(chan *model.EventEdge, 1),
