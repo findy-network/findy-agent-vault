@@ -9,6 +9,8 @@ import (
 )
 
 const defaultPort = "8085"
+const defaultAgencyPort = "50051"
+const defaultDBPort = "5432"
 const localhost = "localhost"
 
 var Version = "dev"
@@ -50,11 +52,11 @@ func LoadConfig() *Configuration {
 	v.SetDefault("agency_main_subscriber", true)
 	v.SetDefault("agency_cert_path", "")
 	v.SetDefault("agency_host", localhost)
-	v.SetDefault("agency_port", 50051)
+	v.SetDefault("agency_port", defaultAgencyPort)
 	v.SetDefault("agency_admin_id", "findy-root")
 	v.SetDefault("db_host", localhost)
 	v.SetDefault("db_password", "")
-	v.SetDefault("db_port", 5432)
+	v.SetDefault("db_port", defaultDBPort)
 	v.SetDefault("db_tracing", false)
 	v.SetDefault("db_migrations_path", "file://db/migrations")
 	v.SetDefault("db_name", "vault")

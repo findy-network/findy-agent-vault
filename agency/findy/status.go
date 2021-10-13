@@ -17,7 +17,7 @@ type counter struct {
 	lastCode codes.Code
 }
 
-func (c counter) reset() {
+func (c *counter) reset() {
 	c.count = 0
 	c.lastCode = codes.Unknown
 }
@@ -246,7 +246,7 @@ func (f *Agency) agentStatusLoop(a *model.Agent, ch chan *AgentStatus, retryCoun
 
 	for {
 		chRes, ok := <-ch
-		var chErr error = nil
+		var chErr error
 		if chRes != nil {
 			chErr = chRes.err
 		}

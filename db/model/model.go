@@ -7,8 +7,9 @@ import (
 )
 
 func timeToString(t *time.Time) string {
+	const timeLen = 10
 	if t != nil && !t.IsZero() {
-		return strconv.FormatInt(t.UnixNano()/time.Millisecond.Nanoseconds(), 10)
+		return strconv.FormatInt(t.UnixNano()/time.Millisecond.Nanoseconds(), timeLen)
 	}
 	return ""
 }

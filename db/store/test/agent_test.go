@@ -62,6 +62,33 @@ func TestGetListenerAgents(t *testing.T) {
 	}
 }
 
+func agentValidator(t *testing.T, testAgent *model.Agent) func(a *model.Agent) {
+	return func(a *model.Agent) {
+		if a == nil {
+			t.Errorf("Expecting result, agent is nil")
+			return
+		}
+		if a.AgentID != testAgent.AgentID {
+			t.Errorf("Agent id mismatch expected %s got %s", testAgent.AgentID, a.AgentID)
+		}
+		if a.Label != testAgent.Label {
+			t.Errorf("Agent label mismatch expected %s got %s", testAgent.Label, a.Label)
+		}
+		if a.RawJWT != testAgent.RawJWT {
+			t.Errorf("Agent RawJWT mismatch expected %v got %v", testAgent.RawJWT, a.RawJWT)
+		}
+		if a.ID == "" {
+			t.Errorf("Invalid agent id %s", a.ID)
+		}
+		if time.Since(a.Created) > time.Second {
+			t.Errorf("Timestamp not in threshold %v", a.Created)
+		}
+		if a.Cursor == 0 {
+			t.Errorf("Cursor invalid %v", a.Cursor)
+		}
+	}
+}
+
 func TestAddAgent(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
@@ -72,27 +99,7 @@ func TestAddAgent(t *testing.T) {
 			testJwt := "jwt"
 			testAgent.RawJWT = testJwt
 
-			var validateAgent = func(a *model.Agent) {
-				if a == nil {
-					t.Errorf("Expecting result, agent is nil")
-					return
-				}
-				if a.AgentID != testAgent.AgentID {
-					t.Errorf("Agent id mismatch expected %s got %s", testAgent.AgentID, a.AgentID)
-				}
-				if a.Label != testAgent.Label {
-					t.Errorf("Agent label mismatch expected %s got %s", testAgent.Label, a.Label)
-				}
-				if a.RawJWT != testAgent.RawJWT {
-					t.Errorf("Agent RawJWT mismatch expected %v got %v", testAgent.RawJWT, a.RawJWT)
-				}
-				if a.ID == "" {
-					t.Errorf("Invalid agent id %s", a.ID)
-				}
-				if time.Since(a.Created) > time.Second {
-					t.Errorf("Timestamp not in threshold %v", a.Created)
-				}
-			}
+			validateAgent := agentValidator(t, testAgent)
 
 			// Add data
 			a, err := s.db.AddAgent(testAgent)

@@ -46,7 +46,7 @@ func (r *Resolver) FetchAgents() []*agency.Agent {
 	after := uint64(0)
 	allAgents := make([]*model.Agent, 0)
 	for nextPage {
-		agents, err := r.db.GetListenerAgents(&paginator.BatchInfo{Count: 100, After: after})
+		agents, err := r.db.GetListenerAgents(&paginator.BatchInfo{Count: 50, After: after})
 		if err != nil && store.ErrorCode(err) != store.ErrCodeNotFound {
 			panic(err)
 		}

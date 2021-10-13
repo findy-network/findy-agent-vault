@@ -28,10 +28,7 @@ check_fmt:
 	@gofmt -l $(GOFILES)
 
 lint:
-	$(GOPATH)/bin/golint ./... 
-
-lint_e:
-	@$(GOPATH)/bin/golint ./... | grep -v export | cat
+	golangci-lint run
 
 init-test:
 	-docker stop findy-agent-vault-test-db
