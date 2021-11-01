@@ -1,5 +1,7 @@
 # findy-agent-vault
 
+[![test](https://github.com/findy-network/findy-agent-vault/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/findy-network/findy-agent-vault/actions/workflows/test.yml)
+
 Vault provides both
 
 1. Data storage service for findy-agency clients
@@ -21,8 +23,8 @@ Vault provides currently only a GraphQL API but intends to support also GRPC in 
    go run . version
    ```
 
-
    You shoud see something similar to this:
+
    ```bash
    I0526 14:43:44.750568   50912 config.go:68] Configuration file was not found, using environment/default variables only
    Vault version dev
@@ -54,6 +56,7 @@ Vault cannot function without a working installation of [core agency](github.com
    ```
 
 1. Vault uses postgres to store its data. You can start postgres in a docker container:
+
    ```bash
    make db
    ```
