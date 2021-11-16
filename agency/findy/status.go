@@ -198,7 +198,6 @@ func (f *Agency) handleNotification(
 }
 
 func (f *Agency) waitAndRetryListening(a *model.Agent, err error, retryCounter counter) counter {
-	const maxCount = 5
 	const waitTime = 5
 	count := retryCounter.count
 
@@ -209,27 +208,23 @@ func (f *Agency) waitAndRetryListening(a *model.Agent, err error, retryCounter c
 		errCode = e.Code()
 	}
 
-	if count < maxCount || errCode == codes.Unavailable { // try to connect infinitely if service is coming up
-		glog.Warningln("listenAgent: channel closed, try reconnecting...", count)
-		if errCode == retryCounter.lastCode {
-			count++
-		} else {
-			count = 0
-		}
-		for {
-			newWaitTime := count * waitTime
-			glog.Warningf("listenAgent: waiting, reconnecting after %d secs...", newWaitTime)
-			time.Sleep(time.Duration(newWaitTime) * time.Second)
-
-			err := f.listenAgentWithRetry(a, counter{count, errCode})
-			if err == nil {
-				utils.LogLow().Infoln("Agent listening retry succeeded.")
-				break
-			}
-			glog.Warningf("listenAgent: cannot connect server, try again...")
-		}
+	glog.Warningln("listenAgent: channel closed, try reconnecting...", count)
+	if errCode == retryCounter.lastCode {
+		count++
 	} else {
-		glog.Errorf("Retry count exceeded with code %v, aborting listening for %v.", errCode, a.AgentID)
+		count = 0
+	}
+	for {
+		newWaitTime := count * waitTime
+		glog.Warningf("listenAgent: waiting, reconnecting after %d secs...", newWaitTime)
+		time.Sleep(time.Duration(newWaitTime) * time.Second)
+
+		err := f.listenAgentWithRetry(a, counter{count, errCode})
+		if err == nil {
+			utils.LogLow().Infoln("Agent listening retry succeeded.")
+			break
+		}
+		glog.Warningf("listenAgent: cannot connect server, try again...")
 	}
 
 	return counter{count, errCode}
