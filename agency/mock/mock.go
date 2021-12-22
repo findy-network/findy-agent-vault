@@ -5,48 +5,37 @@
 package mock
 
 import (
+	reflect "reflect"
+
 	model "github.com/findy-network/findy-agent-vault/agency/model"
 	utils "github.com/findy-network/findy-agent-vault/utils"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
-// MockAgency is a mock of Agency interface
+// MockAgency is a mock of Agency interface.
 type MockAgency struct {
 	ctrl     *gomock.Controller
 	recorder *MockAgencyMockRecorder
 }
 
-// MockAgencyMockRecorder is the mock recorder for MockAgency
+// MockAgencyMockRecorder is the mock recorder for MockAgency.
 type MockAgencyMockRecorder struct {
 	mock *MockAgency
 }
 
-// NewMockAgency creates a new mock instance
+// NewMockAgency creates a new mock instance.
 func NewMockAgency(ctrl *gomock.Controller) *MockAgency {
 	mock := &MockAgency{ctrl: ctrl}
 	mock.recorder = &MockAgencyMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockAgency) EXPECT() *MockAgencyMockRecorder {
 	return m.recorder
 }
 
-// Init mocks base method
-func (m *MockAgency) Init(l model.Listener, agents []*model.Agent, archiver model.Archiver, config *utils.Configuration) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Init", l, agents, archiver, config)
-}
-
-// Init indicates an expected call of Init
-func (mr *MockAgencyMockRecorder) Init(l, agents, archiver, config interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init", reflect.TypeOf((*MockAgency)(nil).Init), l, agents, archiver, config)
-}
-
-// AddAgent mocks base method
+// AddAgent mocks base method.
 func (m *MockAgency) AddAgent(agent *model.Agent) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddAgent", agent)
@@ -54,29 +43,13 @@ func (m *MockAgency) AddAgent(agent *model.Agent) error {
 	return ret0
 }
 
-// AddAgent indicates an expected call of AddAgent
+// AddAgent indicates an expected call of AddAgent.
 func (mr *MockAgencyMockRecorder) AddAgent(agent interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAgent", reflect.TypeOf((*MockAgency)(nil).AddAgent), agent)
 }
 
-// Invite mocks base method
-func (m *MockAgency) Invite(a *model.Agent) (string, string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Invite", a)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(string)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// Invite indicates an expected call of Invite
-func (mr *MockAgencyMockRecorder) Invite(a interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Invite", reflect.TypeOf((*MockAgency)(nil).Invite), a)
-}
-
-// Connect mocks base method
+// Connect mocks base method.
 func (m *MockAgency) Connect(a *model.Agent, invitation string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Connect", a, invitation)
@@ -85,13 +58,68 @@ func (m *MockAgency) Connect(a *model.Agent, invitation string) (string, error) 
 	return ret0, ret1
 }
 
-// Connect indicates an expected call of Connect
+// Connect indicates an expected call of Connect.
 func (mr *MockAgencyMockRecorder) Connect(a, invitation interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Connect", reflect.TypeOf((*MockAgency)(nil).Connect), a, invitation)
 }
 
-// SendMessage mocks base method
+// Init mocks base method.
+func (m *MockAgency) Init(l model.Listener, agents []*model.Agent, archiver model.Archiver, config *utils.Configuration) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Init", l, agents, archiver, config)
+}
+
+// Init indicates an expected call of Init.
+func (mr *MockAgencyMockRecorder) Init(l, agents, archiver, config interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init", reflect.TypeOf((*MockAgency)(nil).Init), l, agents, archiver, config)
+}
+
+// Invite mocks base method.
+func (m *MockAgency) Invite(a *model.Agent) (*model.InvitationData, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Invite", a)
+	ret0, _ := ret[0].(*model.InvitationData)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Invite indicates an expected call of Invite.
+func (mr *MockAgencyMockRecorder) Invite(a interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Invite", reflect.TypeOf((*MockAgency)(nil).Invite), a)
+}
+
+// ResumeCredentialOffer mocks base method.
+func (m *MockAgency) ResumeCredentialOffer(a *model.Agent, job *model.JobInfo, accept bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResumeCredentialOffer", a, job, accept)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ResumeCredentialOffer indicates an expected call of ResumeCredentialOffer.
+func (mr *MockAgencyMockRecorder) ResumeCredentialOffer(a, job, accept interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResumeCredentialOffer", reflect.TypeOf((*MockAgency)(nil).ResumeCredentialOffer), a, job, accept)
+}
+
+// ResumeProofRequest mocks base method.
+func (m *MockAgency) ResumeProofRequest(a *model.Agent, job *model.JobInfo, accept bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResumeProofRequest", a, job, accept)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ResumeProofRequest indicates an expected call of ResumeProofRequest.
+func (mr *MockAgencyMockRecorder) ResumeProofRequest(a, job, accept interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResumeProofRequest", reflect.TypeOf((*MockAgency)(nil).ResumeProofRequest), a, job, accept)
+}
+
+// SendMessage mocks base method.
 func (m *MockAgency) SendMessage(a *model.Agent, connectionID, message string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendMessage", a, connectionID, message)
@@ -100,36 +128,8 @@ func (m *MockAgency) SendMessage(a *model.Agent, connectionID, message string) (
 	return ret0, ret1
 }
 
-// SendMessage indicates an expected call of SendMessage
+// SendMessage indicates an expected call of SendMessage.
 func (mr *MockAgencyMockRecorder) SendMessage(a, connectionID, message interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockAgency)(nil).SendMessage), a, connectionID, message)
-}
-
-// ResumeCredentialOffer mocks base method
-func (m *MockAgency) ResumeCredentialOffer(a *model.Agent, job *model.JobInfo, accept bool) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ResumeCredentialOffer", a, job, accept)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// ResumeCredentialOffer indicates an expected call of ResumeCredentialOffer
-func (mr *MockAgencyMockRecorder) ResumeCredentialOffer(a, job, accept interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResumeCredentialOffer", reflect.TypeOf((*MockAgency)(nil).ResumeCredentialOffer), a, job, accept)
-}
-
-// ResumeProofRequest mocks base method
-func (m *MockAgency) ResumeProofRequest(a *model.Agent, job *model.JobInfo, accept bool) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ResumeProofRequest", a, job, accept)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// ResumeProofRequest indicates an expected call of ResumeProofRequest
-func (mr *MockAgencyMockRecorder) ResumeProofRequest(a, job, accept interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResumeProofRequest", reflect.TypeOf((*MockAgency)(nil).ResumeProofRequest), a, job, accept)
 }

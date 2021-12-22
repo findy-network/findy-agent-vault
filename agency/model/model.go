@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/findy-network/findy-agent-vault/utils"
+	didexchange "github.com/findy-network/findy-common-go/std/didexchange/invitation"
 )
 
 type JobInfo struct {
@@ -17,11 +18,17 @@ type Agent struct {
 	AgentID  string
 }
 
+type InvitationData struct {
+	Raw  string
+	ID   string
+	Data didexchange.Invitation
+}
+
 type Agency interface {
 	Init(l Listener, agents []*Agent, archiver Archiver, config *utils.Configuration)
 	AddAgent(agent *Agent) error
 
-	Invite(a *Agent) (string, string, error)
+	Invite(a *Agent) (*InvitationData, error)
 	Connect(a *Agent, invitation string) (string, error)
 	SendMessage(a *Agent, connectionID, message string) (string, error)
 

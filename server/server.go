@@ -1,9 +1,11 @@
 package server
 
 import (
+	"context"
 	"net/http"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/rs/cors"
 
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -62,6 +64,14 @@ func NewServer(resolver generated.ResolverRoot, jwtSecret string) *VaultServer {
 	srv.Use(extension.Introspection{})
 	srv.Use(extension.AutomaticPersistedQuery{
 		Cache: lru.New(persistedQueryCacheSize),
+	})
+
+	srv.AroundResponses(func(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
+		res := next(ctx)
+		for index, err := range res.Errors {
+			glog.Errorf("Returning GQL error %s-%d: %s", err.Path, index, err.Error())
+		}
+		return res
 	})
 
 	authChecker := jwtMW.New(&jwtMW.Options{

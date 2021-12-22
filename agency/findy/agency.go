@@ -9,7 +9,6 @@ import (
 	"github.com/findy-network/findy-common-go/agency/client"
 	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
 	"github.com/findy-network/findy-common-go/jwt"
-	didexchange "github.com/findy-network/findy-common-go/std/didexchange/invitation"
 	"github.com/golang/glog"
 	"github.com/google/uuid"
 	"github.com/lainio/err2"
@@ -77,9 +76,9 @@ func (f *Agency) AddAgent(agent *model.Agent) error {
 	return f.listenAgent(agent)
 }
 
-func (f *Agency) Invite(a *model.Agent) (invitation, id string, err error) {
+func (f *Agency) Invite(a *model.Agent) (data *model.InvitationData, err error) {
 	cmd := agency.NewAgentServiceClient(f.conn)
-	id = uuid.New().String()
+	id := uuid.New().String()
 
 	res, err := cmd.CreateInvitation(
 		f.ctx,
@@ -88,16 +87,18 @@ func (f *Agency) Invite(a *model.Agent) (invitation, id string, err error) {
 	)
 	err2.Check(err)
 
-	invitation = res.JSON
+	data = &model.InvitationData{}
+
+	err2.Check(json.Unmarshal([]byte(res.GetJSON()), &data.Data))
+
+	data.Raw = res.GetURL()
+	data.ID = id
 
 	return
 }
 
 func (f *Agency) Connect(a *model.Agent, strInvitation string) (id string, err error) {
 	defer err2.Return(&err) // TODO: do not leak internal errors to client
-
-	inv := didexchange.Invitation{}
-	err2.Check(json.Unmarshal([]byte(strInvitation), &inv))
 
 	cmd := f.userSyncClient(a, "")
 

@@ -2,6 +2,7 @@ package findy
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"net"
@@ -29,6 +30,10 @@ const (
 		`"recipientKeys":["Hmk4756ry7fqBCKPf634SRvaM3xss1QBhoFC1uAbwkVL"],"@id":"d679e4c6-b8db-4c39-99ca-783034b51bd4"` +
 		`,"label":"findy-issuer","@type":"did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/invitation"}`
 	testID = "d679e4c6-b8db-4c39-99ca-783034b51bd4"
+)
+
+var (
+	testInvitationURL = fmt.Sprintf("didcomm://aries_connection_invitation?c_i=%s", base64.StdEncoding.EncodeToString([]byte(testInvitation)))
 )
 
 type mockServer struct {
@@ -71,7 +76,7 @@ func (*mockServer) Give(context.Context, *agency.Answer) (*agency.ClientID, erro
 	return nil, status.Errorf(codes.Unimplemented, "method Give not implemented")
 }
 func (*mockServer) CreateInvitation(context.Context, *agency.InvitationBase) (*agency.Invitation, error) {
-	return &agency.Invitation{JSON: testInvitation}, nil
+	return &agency.Invitation{JSON: testInvitation, URL: testInvitationURL}, nil
 }
 
 func dialer() func(context.Context, string) (net.Conn, error) {
@@ -207,15 +212,15 @@ func TestInit(t *testing.T) {
 }
 
 func TestInvite(t *testing.T) {
-	invitation, id, err := findy.Invite(agent)
+	data, err := findy.Invite(agent)
 	if err != nil {
 		t.Errorf("Encountered error on invite %v", err)
 	}
-	if id == "" {
+	if data.ID == "" {
 		t.Errorf("Received empty job id ")
 	}
-	if invitation != testInvitation {
-		t.Errorf("Mismatch with invitation expecting %v, got %v", testInvitation, invitation)
+	if data.Raw != testInvitationURL {
+		t.Errorf("Mismatch with invitation expecting %v, got %v", testInvitationURL, data.Raw)
 	}
 }
 
