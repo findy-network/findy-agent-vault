@@ -1,13 +1,11 @@
 package test
 
 import (
-	"encoding/json"
 	"testing"
 
+	agency "github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/graph/model"
-	"github.com/findy-network/findy-common-go/std/didexchange/invitation"
 	"github.com/golang/mock/gomock"
-	"github.com/lainio/err2"
 )
 
 const (
@@ -33,12 +31,14 @@ func TestInvite(t *testing.T) {
 	const user = "TestInvite"
 	m := beforeEachWithID(t, user)
 
-	mockInvitation := invitation.Invitation{}
-	jsonBytes := err2.Bytes.Try(json.Marshal(&mockInvitation))
+	data := agency.InvitationData{
+		ID:  "d679e4c6-b8db-4c39-99ca-783034b51bd4",
+		Raw: "raw",
+	}
 
 	m.
 		EXPECT().
-		Invite(gomock.Any()).Return(string(jsonBytes), "d679e4c6-b8db-4c39-99ca-783034b51bd4", nil)
+		Invite(gomock.Any()).Return(&data, nil)
 
 	resp, err := r.Mutation().Invite(testContextForUser(user))
 	if err != nil {

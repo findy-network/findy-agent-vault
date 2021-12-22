@@ -7,6 +7,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
+	"github.com/findy-network/findy-agent-vault/resolver/invitation"
 	"github.com/findy-network/findy-agent-vault/resolver/query/agent"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
@@ -228,6 +229,5 @@ func (r *Resolver) Endpoint(ctx context.Context, payload string) (i *model.Invit
 	if decoded, err := base64.StdEncoding.DecodeString(payload); err == nil {
 		payload = string(decoded)
 	}
-
-	return utils.FromAriesInvitation(payload)
+	return invitation.FromURLParam(payload)
 }

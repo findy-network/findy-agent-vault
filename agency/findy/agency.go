@@ -2,6 +2,7 @@ package findy
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/utils"
@@ -75,9 +76,9 @@ func (f *Agency) AddAgent(agent *model.Agent) error {
 	return f.listenAgent(agent)
 }
 
-func (f *Agency) Invite(a *model.Agent) (invitation, id string, err error) {
+func (f *Agency) Invite(a *model.Agent) (data *model.InvitationData, err error) {
 	cmd := agency.NewAgentServiceClient(f.conn)
-	id = uuid.New().String()
+	id := uuid.New().String()
 
 	res, err := cmd.CreateInvitation(
 		f.ctx,
@@ -86,7 +87,12 @@ func (f *Agency) Invite(a *model.Agent) (invitation, id string, err error) {
 	)
 	err2.Check(err)
 
-	invitation = res.JSON
+	data = &model.InvitationData{}
+
+	err2.Check(json.Unmarshal([]byte(res.GetJSON()), &data.Data))
+
+	data.Raw = res.GetURL()
+	data.ID = id
 
 	return
 }

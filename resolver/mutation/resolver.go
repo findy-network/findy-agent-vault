@@ -7,6 +7,7 @@ import (
 	dbModel "github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/graph/model"
+	"github.com/findy-network/findy-agent-vault/resolver/invitation"
 	"github.com/findy-network/findy-agent-vault/resolver/query/agent"
 	"github.com/findy-network/findy-agent-vault/resolver/update"
 	"github.com/findy-network/findy-agent-vault/utils"
@@ -54,15 +55,15 @@ func (r *Resolver) Invite(ctx context.Context) (res *model.InvitationResponse, e
 	tenant, err := r.GetAgent(ctx)
 	err2.Check(err)
 
-	str, id, err := r.agency.Invite(r.AgencyAuth(tenant))
+	data, err := r.agency.Invite(r.AgencyAuth(tenant))
 	err2.Check(err)
 
-	res, err = utils.FromAriesInvitation(str)
+	res, err = invitation.FromAgency(data)
 	err2.Check(err)
 
 	err2.Check(r.AddJob(
 		&dbModel.Job{
-			Base:          dbModel.Base{ID: id, TenantID: tenant.ID},
+			Base:          dbModel.Base{ID: data.ID, TenantID: tenant.ID},
 			ProtocolType:  model.ProtocolTypeConnection,
 			InitiatedByUs: true,
 			Status:        model.JobStatusWaiting,
