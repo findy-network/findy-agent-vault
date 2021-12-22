@@ -5,14 +5,14 @@ go 1.16
 require (
 	github.com/99designs/gqlgen v0.13.0
 	github.com/bxcodec/faker/v3 v3.6.0
-	github.com/findy-network/findy-common-go v0.1.7-0.20210527125553-4a46a2db405d
+	github.com/findy-network/findy-common-go v0.1.28
 	github.com/gchaincl/sqlhooks/v2 v2.0.1
 	github.com/golang-migrate/migrate/v4 v4.14.1
 	github.com/golang/glog v0.0.0-20210429001901-424d2337a529
 	github.com/golang/mock v1.5.0
 	github.com/google/uuid v1.2.0
 	github.com/gorilla/websocket v1.4.2
-	github.com/lainio/err2 v0.6.1
+	github.com/lainio/err2 v0.7.0
 	github.com/lib/pq v1.10.2
 	github.com/rs/cors v1.7.0
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
