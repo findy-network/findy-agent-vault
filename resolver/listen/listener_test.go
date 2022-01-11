@@ -75,7 +75,7 @@ func TestAddConnection(t *testing.T) {
 
 	m.
 		EXPECT().
-		GetJob(gomock.Eq(job.JobID), gomock.Eq(job.TenantID)).
+		GetJob(gomock.Eq(job.ConnectionID), gomock.Eq(job.TenantID)).
 		Return(resultJob, nil)
 	m.
 		EXPECT().
