@@ -28,7 +28,9 @@ func (l *Listener) AddConnection(info *agency.JobInfo, data *agency.Connection) 
 
 	utils.LogMed().Infof("Add connection %s for tenant %s", info.ConnectionID, info.TenantID)
 
-	job, err := l.db.GetJob(info.JobID, info.TenantID)
+	// TODO: job is currently created with Connection ID ->
+	// use job ID instead and let agency create the ids, needs API change?
+	job, err := l.db.GetJob(info.ConnectionID, info.TenantID)
 	err2.Check(err)
 
 	now := utils.CurrentTime()
