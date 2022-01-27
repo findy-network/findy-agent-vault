@@ -1,6 +1,7 @@
 # findy-agent-vault
 
 [![test](https://github.com/findy-network/findy-agent-vault/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/findy-network/findy-agent-vault/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/findy-network/findy-agent-vault/branch/master/graph/badge.svg?token=DIB52YS58H)](https://codecov.io/gh/findy-network/findy-agent-vault)
 
 Vault provides both
 

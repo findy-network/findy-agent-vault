@@ -46,8 +46,11 @@ init-test:
 test:
 	go test -v ./...
 
-test_cov:
-	go test -coverprofile=c.out ./... -coverpkg=./... && go tool cover -html=c.out
+test_cov_out:
+	go test -v -coverprofile=coverage.txt ./...
+
+test_cov: test_cov_out
+	go tool cover -html=coverage.txt
 
 db:
 	-docker stop findy-agent-vault-db
