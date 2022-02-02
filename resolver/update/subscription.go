@@ -47,7 +47,10 @@ func (s *subscriberRegister) notify(tenantID string, event *dbModel.Event) {
 			glog.Errorf("No subscription channel found for subscription ID %s", subscriptionID)
 			continue
 		}
-		subscription.channel <- event.ToEdge()
+
+		eventEdge := event.ToEdge()
+		utils.LogMed().Infof("Sending event %v to tenant %s", eventEdge, tenantID)
+		subscription.channel <- eventEdge
 	}
 }
 
