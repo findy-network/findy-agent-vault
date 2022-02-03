@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/findy-network/findy-agent-vault/db/model"
+	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
@@ -122,13 +123,15 @@ func (pg *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (
 		HasPreviousPage: false,
 	}
 	var connection *model.Connection
-	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+	if err = pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
 		connection, err = rowToConnection(rows)
 		err2.Check(err)
 		c.Connections = append(c.Connections, connection)
 		return
-	}, query, args...))
+	}, query, args...); err != nil && store.ErrorCode(err) != store.ErrCodeNotFound {
+		err2.Check(err)
+	}
 
 	if info.Count < len(c.Connections) {
 		c.Connections = c.Connections[:info.Count]
