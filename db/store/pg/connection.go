@@ -123,7 +123,7 @@ func (pg *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (
 		HasPreviousPage: false,
 	}
 	var connection *model.Connection
-	if err := pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+	if err = pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
 		connection, err = rowToConnection(rows)
 		err2.Check(err)
