@@ -129,9 +129,11 @@ func (pg *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (
 		err2.Check(err)
 		c.Connections = append(c.Connections, connection)
 		return
-	}, query, args...); err != nil && store.ErrorCode(err) != store.ErrCodeNotFound {
-		err2.Check(err)
+	}, query, args...); err != nil && store.ErrorCode(err) == store.ErrCodeNotFound {
+		// no connections is not an error
+		err = nil
 	}
+	err2.Check(err)
 
 	if info.Count < len(c.Connections) {
 		c.Connections = c.Connections[:info.Count]
