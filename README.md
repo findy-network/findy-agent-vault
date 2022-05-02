@@ -3,6 +3,22 @@
 [![test](https://github.com/findy-network/findy-agent-vault/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/findy-network/findy-agent-vault/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/findy-network/findy-agent-vault/branch/dev/graph/badge.svg?token=DIB52YS58H)](https://codecov.io/gh/findy-network/findy-agent-vault)
 
+## Getting Started
+
+Findy Agency is a collection of services ([Core](https://github.com/findy-network/findy-agent),
+[Auth](https://github.com/findy-network/findy-agent-auth),
+[this service](https://github.com/findy-network/findy-agent-vault) and
+[Web Wallet](https://github.com/findy-network/findy-wallet-pwa)) that provide
+full SSI agency along with a web wallet for individuals.
+To start experimenting with Findy Agency we recommend you to start with
+[the documentation](https://findy-network.github.io/) and
+[set up the agency to your localhost environment](https://github.com/findy-network/findy-wallet-pwa/tree/dev/tools/env#agency-setup-for-local-development).
+
+- [Documentation](https://findy-network.github.io/)
+- [Instructions for starting agency in Docker containers](https://github.com/findy-network/findy-wallet-pwa/tree/dev/tools/env#agency-setup-for-local-development)
+
+## Project
+
 Vault provides both
 
 1. Data storage service for findy-agency clients
