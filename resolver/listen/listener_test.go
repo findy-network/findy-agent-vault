@@ -217,7 +217,7 @@ func TestUpdateCredential(t *testing.T) {
 	m := NewMockDB(ctrl)
 	var (
 		now              = utils.CurrentTimeMs()
-		credentialID     = "credential-id"
+		credentialID     = "credential-id" //#nosec
 		job              = &agency.JobInfo{JobID: "job-id", TenantID: "tenant-id", ConnectionID: "connection-id"}
 		credentialUpdate = &agency.CredentialUpdate{
 			ApprovedMs: &now,
