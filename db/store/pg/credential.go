@@ -45,6 +45,7 @@ var (
 )
 
 const (
+	//#nosec
 	sqlCredentialJoin = " INNER JOIN credential_attribute on credential_attribute.credential_id = credential.id"
 )
 
@@ -126,6 +127,7 @@ func (pg *Database) AddCredential(c *model.Credential) (cred *model.Credential, 
 func (pg *Database) UpdateCredential(c *model.Credential) (n *model.Credential, err error) {
 	defer err2.Annotate("UpdateCredential", &err)
 
+	//#nosec
 	const sqlCredentialUpdate = "UPDATE credential SET approved=$1, issued=$2, failed=$3 WHERE id = $4" // TODO: tenant_id, connection_id?
 
 	_, err = pg.db.Exec(
@@ -340,6 +342,7 @@ func (pg *Database) ArchiveCredential(id, tenantID string) (err error) {
 	defer err2.Annotate("ArchiveCredential", &err)
 
 	var (
+		//#nosec
 		sqlCredentialArchive = "UPDATE credential SET archived=$1 WHERE id = $2 and tenant_id = $3 RETURNING id"
 	)
 
