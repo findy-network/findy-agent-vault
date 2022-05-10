@@ -47,7 +47,11 @@ test:
 	go test -v ./...
 
 test_cov_out:
-	go test -v -coverprofile=coverage.txt ./...
+	go test \
+		-coverpkg=github.com/findy-network/findy-agent-vault/... \
+		-coverprofile=coverage.txt  \
+		-covermode=atomic \
+		./...
 
 test_cov: test_cov_out
 	go tool cover -html=coverage.txt
