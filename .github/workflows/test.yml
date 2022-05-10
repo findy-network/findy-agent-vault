@@ -71,13 +71,13 @@ jobs:
             -H "Content-Type: application/json" \
             -X POST http://localhost:8085/query)
           echo $response | grep '{"data":{"user":{"name":"test","__typename":"User"}}}'
-      - name: Collect docker logs
-        if: ${{ always() }}
+      - name: collect docker logs
+        if: ${{ failure() }}
         uses: jwalton/gh-docker-logs@v2.2.0
         with:
           dest: "./.logs/docker-logs"
       - name: archive logs
-        if: ${{ always() }}
+        if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
           name: container-logs
