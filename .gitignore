@@ -9,4 +9,5 @@ findy-agent-vault
 .docker
 cert/
 .cert
+.data
 licenses.txt
