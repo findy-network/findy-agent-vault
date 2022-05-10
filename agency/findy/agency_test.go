@@ -84,7 +84,7 @@ func dialer() func(context.Context, string) (net.Conn, error) {
 
 	listener := bufconn.Listen(bufSize)
 	// TODO:
-	pki := rpc.LoadPKI("../../.github/workflows/cert")
+	pki := rpc.LoadPKI("../../scripts/e2e/config/cert")
 	glog.V(1).Infof("starting gRPC server with\ncrt:\t%s\nkey:\t%s\nclient:\t%s",
 		pki.Server.CertFile, pki.Server.KeyFile, pki.Client.CertFile)
 
@@ -153,7 +153,7 @@ func (m *mockListener) FailJob(job *model.JobInfo) error {
 }
 
 var (
-	tlsPath     = "../../.github/workflows/cert"
+	tlsPath     = "../../scripts/e2e/config/cert"
 	dialOptions = []grpc.DialOption{grpc.WithContextDialer(dialer())}
 	findy       = &Agency{
 		vault:   &mockListener{},
