@@ -1,4 +1,4 @@
-FROM golang:1.16-alpine3.13
+FROM golang:1.18-alpine3.15
 
 WORKDIR /work
 
@@ -12,7 +12,7 @@ RUN VERSION=$(cat ./VERSION) && \
     -ldflags "-X 'github.com/findy-network/findy-agent-vault/utils.Version=$VERSION'"\
     -o /go/bin/findy-agent-vault
 
-FROM ghcr.io/findy-network/findy-base:alpine-3.13
+FROM ghcr.io/findy-network/findy-base:alpine-3.15
 
 LABEL org.opencontainers.image.source https://github.com/findy-network/findy-agent-vault
 
