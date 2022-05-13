@@ -11,7 +11,7 @@ require (
 	github.com/golang/glog v0.0.0-20210429001901-424d2337a529
 	github.com/golang/mock v1.5.0
 	github.com/google/uuid v1.2.0
-	github.com/gorilla/websocket v1.4.2
+	github.com/gorilla/websocket v1.5.0
 	github.com/lainio/err2 v0.7.0
 	github.com/lib/pq v1.10.2
 	github.com/rs/cors v1.8.2
