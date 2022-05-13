@@ -1,7 +1,9 @@
-#!/bin/sh
+#!/bin/bash
+
+TARGET=$1
 
 getServerStatus(){
-    local resCode=$(curl -s --write-out '%{http_code}' --output /dev/null http://$1:8085/health)
+    local resCode=$(curl -s --write-out '%{http_code}' --output /dev/null http://$TARGET:8085/health)
     if (( ${resCode} == 200 )); then
         return 0
     else
@@ -10,7 +12,7 @@ getServerStatus(){
 }
 
 # wait for db
-while ! nc -z $1 5432;
+while ! nc -z $TARGET 5432;
 do
     echo 'wait for db';
     sleep 1;
