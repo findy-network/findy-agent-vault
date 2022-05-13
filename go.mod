@@ -14,7 +14,7 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/lainio/err2 v0.7.0
 	github.com/lib/pq v1.10.2
-	github.com/rs/cors v1.7.0
+	github.com/rs/cors v1.8.2
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/viper v1.7.1
 	github.com/vektah/gqlparser/v2 v2.1.0
