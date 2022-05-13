@@ -54,6 +54,7 @@ jobs:
           sudo ./install.sh -b /bin
       - name: test # TODO: make more extensive test set
         run: |
+          ./scripts/wait-for-db.sh localhost
           acator_key=$(findy-agent-cli new-key)
           findy-agent-cli authn register \
               -u test \

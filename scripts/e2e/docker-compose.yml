@@ -36,10 +36,10 @@ services:
       - vault-db
       - core
     environment:
-      FAV_DB_PASSWORD: 'password'
-      FAV_AGENCY_HOST: 'core'
+      FAV_DB_PASSWORD: "password"
+      FAV_AGENCY_HOST: "core"
     ports:
-      - '8085:8085'
+      - "8085:8085"
     restart: unless-stopped
     entrypoint: >
       /bin/sh -c "
@@ -55,5 +55,7 @@ services:
     volumes:
       - .data/vault:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: 'vault'
-      POSTGRES_PASSWORD: 'password'
+      POSTGRES_DB: "vault"
+      POSTGRES_PASSWORD: "password"
+    ports:
+      - "5432:5432"
