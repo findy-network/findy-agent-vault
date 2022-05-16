@@ -8,3 +8,5 @@ coverage:
       default:
         target: 50%
         only_pulls: true
+ignore:
+  - "graph/generated"
