@@ -50,7 +50,7 @@ linters:
     - asciicheck
     - bidichk
     - bodyclose
-    #    - containedctx
+    - containedctx
     - contextcheck
     #    - cyclop
     - deadcode
