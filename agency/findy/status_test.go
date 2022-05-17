@@ -202,16 +202,18 @@ type mockClientConn struct {
 }
 
 func (m *mockClientConn) release(id string, protocolType agency.Protocol_Type) (pid *agency.ProtocolID, err error) {
-	return nil, nil
+	return &agency.ProtocolID{}, nil
 }
 func (m *mockClientConn) status(id string, protocolType agency.Protocol_Type) (pid *agency.ProtocolStatus, err error) {
-	return nil, nil
+	return &agency.ProtocolStatus{}, nil
 }
 func (m *mockClientConn) listen(id string) (ch chan *AgentStatus, err error) {
-	return nil, nil
+	ch = make(chan *AgentStatus)
+	return ch, nil
 }
 func (m *mockClientConn) psmHook() (ch chan *ops.AgencyStatus, err error) {
-	return nil, nil
+	ch = make(chan *ops.AgencyStatus)
+	return ch, nil
 }
 
 func TestHandleNotification(t *testing.T) {

@@ -2,9 +2,11 @@ coverage:
   status:
     project:
       default:
-        target: 27%
+        target: 80%
         threshold: 3%
     patch:
       default:
         target: 50%
         only_pulls: true
+ignore:
+  - "graph/generated"
