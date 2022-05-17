@@ -17,6 +17,13 @@ import (
 	"google.golang.org/grpc/credentials/oauth"
 )
 
+type clientConn interface {
+	release(id string, protocolType agency.Protocol_Type) (pid *agency.ProtocolID, err error)
+	status(id string, protocolType agency.Protocol_Type) (pid *agency.ProtocolStatus, err error)
+	listen(id string) (ch chan *AgentStatus, err error)
+	psmHook() (ch chan *ops.AgencyStatus, err error)
+}
+
 type Client struct {
 	*client.Conn
 	ctx   context.Context
@@ -38,7 +45,7 @@ func (f *Agency) userSyncClient(a *model.Agent, connectionID string) *async.Pair
 }
 
 // Connection configuration for "async" requests, done on behalf of the web wallet
-func (f *Agency) userAsyncClient(a *model.Agent) *Client {
+func (f *Agency) getUserAsyncClient(a *model.Agent) clientConn {
 	opts := callOptions(jwt.BuildJWT(a.AgentID))
 	return &Client{&f.conn, f.ctx, opts}
 }

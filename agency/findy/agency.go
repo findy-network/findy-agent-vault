@@ -28,6 +28,8 @@ type Agency struct {
 
 	ctx  context.Context
 	conn client.Conn
+
+	userAsyncClient func(a *model.Agent) clientConn
 }
 
 func (f *Agency) Init(
@@ -54,6 +56,7 @@ func (f *Agency) Init(
 
 	f.vault = listener
 	f.archiver = archiver
+	f.userAsyncClient = f.getUserAsyncClient
 
 	if config.AgencyMainSubscriber {
 		err := f.listenAdminHook()

@@ -8,6 +8,7 @@ import (
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/utils"
 	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
+	ops "github.com/findy-network/findy-common-go/grpc/ops/v1"
 )
 
 var (
@@ -197,11 +198,31 @@ func (s *statusListener) proofStorage() *mockStorage            { return s.proof
 func (s *statusListener) proofUpdateStorage() *mockStorage      { return s.proofUpt }
 func (s *statusListener) failedStorage() *mockStorage           { return s.failed }
 
+type mockClientConn struct {
+}
+
+func (m *mockClientConn) release(id string, protocolType agency.Protocol_Type) (pid *agency.ProtocolID, err error) {
+	return nil, nil
+}
+func (m *mockClientConn) status(id string, protocolType agency.Protocol_Type) (pid *agency.ProtocolStatus, err error) {
+	return nil, nil
+}
+func (m *mockClientConn) listen(id string) (ch chan *AgentStatus, err error) {
+	return nil, nil
+}
+func (m *mockClientConn) psmHook() (ch chan *ops.AgencyStatus, err error) {
+	return nil, nil
+}
+
 func TestHandleNotification(t *testing.T) {
 	now := utils.CurrentTimeMs()
 
 	listener := &statusListener{}
-	testFindy := &Agency{vault: listener, currentTimeMs: func() int64 { return now }}
+	testFindy := &Agency{
+		vault:           listener,
+		currentTimeMs:   func() int64 { return now },
+		userAsyncClient: func(a *model.Agent) clientConn { return &mockClientConn{} },
+	}
 
 	var createJob = func(id string) *model.JobInfo { return &model.JobInfo{JobID: id} }
 	const (
