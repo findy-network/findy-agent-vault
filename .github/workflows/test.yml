@@ -55,6 +55,8 @@ jobs:
       - name: test # TODO: make more extensive test set
         run: |
           ./scripts/wait-for-db.sh localhost
+
+          # register user
           acator_key=$(findy-agent-cli new-key)
           findy-agent-cli authn register \
               -u test \
@@ -66,12 +68,22 @@ jobs:
               --url http://localhost:8088 \
               --origin http://localhost:8088 \
               --key $acator_key)
+
+          # check that authentication is ok
           response=$(curl \
             -H "Authorization: Bearer $jwt" \
             -d '{"operationName":"GetUser","variables":{},"query":"query GetUser {\n  user {\n    name\n    __typename\n  }\n}"}' \
             -H "Content-Type: application/json" \
             -X POST http://localhost:8085/query)
           echo $response | grep '{"data":{"user":{"name":"test","__typename":"User"}}}'
+
+          # check that connection to agency works
+          response=$(curl \
+            -H "Authorization: Bearer $jwt" \
+            -d '{"operationName":"Invitation","variables":{},"query":"mutation Invitation {\n  invite {\n    ...InvitationFragment\n    __typename\n  }\n}\n\nfragment InvitationFragment on InvitationResponse {\n  label\n  __typename\n}"}' \
+            -H "Content-Type: application/json" \
+            -X POST http://localhost:8085/query)
+          echo $response | grep '{"data":{"invite":{"label":"test","__typename":"InvitationResponse"}}}'
       - name: collect docker logs
         if: ${{ failure() }}
         uses: jwalton/gh-docker-logs@v2.2.0
