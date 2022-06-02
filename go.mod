@@ -12,7 +12,7 @@ require (
 	github.com/golang/mock v1.5.0
 	github.com/google/uuid v1.2.0
 	github.com/gorilla/websocket v1.5.0
-	github.com/lainio/err2 v0.8.5
+	github.com/lainio/err2 v0.8.6
 	github.com/lib/pq v1.10.6
 	github.com/rs/cors v1.8.2
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
