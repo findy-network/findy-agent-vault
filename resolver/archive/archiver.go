@@ -142,7 +142,7 @@ func (a *Archiver) ArchiveConnection(info *agency.ArchiveInfo, data *agency.Conn
 		defer err2.Return(&err)
 
 		now := utils.CurrentTime()
-		connection, err := a.db.AddConnection(&model.Connection{
+		connection := try.To1(a.db.AddConnection(&model.Connection{
 			Base: model.Base{
 				ID:       info.ConnectionID,
 				TenantID: agent.TenantID,
@@ -154,8 +154,7 @@ func (a *Archiver) ArchiveConnection(info *agency.ArchiveInfo, data *agency.Conn
 			Approved:      now, // TODO: get approved from agency
 			Invited:       initiatedByUs,
 			Archived:      now,
-		})
-		try.To(err)
+		}))
 
 		return connection.ID, nil
 	}))
@@ -169,14 +168,13 @@ func (a *Archiver) ArchiveMessage(info *agency.ArchiveInfo, data *agency.Message
 		defer err2.Return(&err)
 
 		now := utils.CurrentTime()
-		message, err := a.db.AddMessage(&model.Message{
+		message := try.To1(a.db.AddMessage(&model.Message{
 			Base:         model.Base{TenantID: agent.TenantID},
 			ConnectionID: info.ConnectionID,
 			Message:      data.Message,
 			SentByMe:     data.SentByMe, // TODO: sent time
 			Archived:     now,
-		})
-		try.To(err)
+		}))
 
 		return message.ID, nil
 	}))
@@ -191,7 +189,7 @@ func (a *Archiver) ArchiveCredential(info *agency.ArchiveInfo, data *agency.Cred
 		defer err2.Return(&err)
 
 		now := utils.CurrentTime()
-		credential, err := a.db.AddCredential(&model.Credential{
+		credential := try.To1(a.db.AddCredential(&model.Credential{
 			Base:          model.Base{TenantID: agent.TenantID},
 			ConnectionID:  info.ConnectionID,
 			Role:          data.Role,
@@ -201,8 +199,7 @@ func (a *Archiver) ArchiveCredential(info *agency.ArchiveInfo, data *agency.Cred
 			InitiatedByUs: data.InitiatedByUs,
 			Issued:        now, // TODO: get actual issued time
 			Archived:      now,
-		})
-		try.To(err)
+		}))
 
 		return credential.ID, nil
 	}))
@@ -217,7 +214,7 @@ func (a *Archiver) ArchiveProof(info *agency.ArchiveInfo, data *agency.Proof) {
 		defer err2.Return(&err)
 
 		now := utils.CurrentTime()
-		proof, err := a.db.AddProof(&model.Proof{
+		proof := try.To1(a.db.AddProof(&model.Proof{
 			Base:          model.Base{TenantID: agent.TenantID},
 			ConnectionID:  info.ConnectionID,
 			Role:          data.Role,
@@ -225,8 +222,7 @@ func (a *Archiver) ArchiveProof(info *agency.ArchiveInfo, data *agency.Proof) {
 			Result:        true,
 			InitiatedByUs: data.InitiatedByUs,
 			Verified:      now, // TODO: get actual verified time
-		})
-		try.To(err)
+		}))
 
 		return proof.ID, nil
 	}))

@@ -128,14 +128,13 @@ func (pg *Database) UpdateCredential(c *model.Credential) (n *model.Credential, 
 	//#nosec
 	const sqlCredentialUpdate = "UPDATE credential SET approved=$1, issued=$2, failed=$3 WHERE id = $4" // TODO: tenant_id, connection_id?
 
-	_, err = pg.db.Exec(
+	try.To1(pg.db.Exec(
 		sqlCredentialUpdate,
 		c.Approved,
 		c.Issued,
 		c.Failed,
 		c.ID,
-	)
-	try.To(err)
+	))
 	return c, err
 }
 
@@ -319,14 +318,13 @@ func (pg *Database) GetCredentialCount(tenantID string, connectionID *string) (c
 		sqlCredentialBatchWhere           = " WHERE tenant_id=$1 AND issued > timestamp '0001-01-01' "
 		sqlCredentialBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2 AND issued > timestamp '0001-01-01' "
 	)
-	count, err = pg.getCount(
+	count = try.To1(pg.getCount(
 		"credential",
 		sqlCredentialBatchWhere,
 		sqlCredentialBatchWhereConnection,
 		tenantID,
 		connectionID,
-	)
-	try.To(err)
+	))
 	return
 }
 

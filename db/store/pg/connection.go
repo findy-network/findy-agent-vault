@@ -163,14 +163,13 @@ func (pg *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (
 
 func (pg *Database) GetConnectionCount(tenantID string) (count int, err error) {
 	defer err2.Annotate("GetCredentialCount", &err)
-	count, err = pg.getCount(
+	count = try.To1(pg.getCount(
 		"connection",
 		" WHERE tenant_id=$1 ",
 		"",
 		tenantID,
 		nil,
-	)
-	try.To(err)
+	))
 	return
 }
 

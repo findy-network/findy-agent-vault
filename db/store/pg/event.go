@@ -203,14 +203,13 @@ func (pg *Database) GetEventCount(tenantID string, connectionID *string) (count 
 		sqlEventBatchWhere           = " WHERE tenant_id=$1 "
 		sqlEventBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2"
 	)
-	count, err = pg.getCount(
+	count = try.To1(pg.getCount(
 		"event",
 		sqlEventBatchWhere,
 		sqlEventBatchWhereConnection,
 		tenantID,
 		connectionID,
-	)
-	try.To(err)
+	))
 	return
 }
 

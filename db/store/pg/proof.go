@@ -133,15 +133,14 @@ func (pg *Database) UpdateProof(p *model.Proof) (n *model.Proof, err error) {
 		sqlProofAttributeUpdate = "UPDATE proof_attribute SET value = (CASE %s END) WHERE id IN (%s)"
 	)
 
-	_, err = pg.db.Exec(
+	try.To1(pg.db.Exec(
 		sqlProofUpdate,
 		p.Provable,
 		p.Approved,
 		p.Verified,
 		p.Failed,
 		p.ID,
-	)
-	try.To(err)
+	))
 
 	valueUpdate := ""
 	ids := ""
@@ -157,11 +156,10 @@ func (pg *Database) UpdateProof(p *model.Proof) (n *model.Proof, err error) {
 	}
 
 	if valueUpdate != "" {
-		_, err = pg.db.Exec(
+		try.To1(pg.db.Exec(
 			fmt.Sprintf(sqlProofAttributeUpdate, valueUpdate, ids),
 			args...,
-		)
-		try.To(err)
+		))
 	}
 
 	for i, value := range p.Values {
@@ -360,14 +358,13 @@ func (pg *Database) GetProofCount(tenantID string, connectionID *string) (count 
 		sqlProofBatchWhere           = " WHERE tenant_id=$1 AND verified IS NOT NULL "
 		sqlProofBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2 AND verified IS NOT NULL "
 	)
-	count, err = pg.getCount(
+	count = try.To1(pg.getCount(
 		"proof",
 		sqlProofBatchWhere,
 		sqlProofBatchWhereConnection,
 		tenantID,
 		connectionID,
-	)
-	try.To(err)
+	))
 	return
 }
 

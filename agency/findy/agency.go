@@ -60,10 +60,7 @@ func (f *Agency) Init(
 	f.userAsyncClient = f.getUserAsyncClient
 
 	if config.AgencyMainSubscriber {
-		err := f.listenAdminHook()
-		if err != nil {
-			panic(err)
-		}
+		try.To(f.listenAdminHook())
 	} else {
 		glog.Warningln("DEV mode: Skipping subscribing to PSM hook.")
 	}
@@ -84,12 +81,11 @@ func (f *Agency) Invite(a *model.Agent) (data *model.InvitationData, err error) 
 	cmd := agency.NewAgentServiceClient(f.conn)
 	id := uuid.New().String()
 
-	res, err := cmd.CreateInvitation(
+	res := try.To1(cmd.CreateInvitation(
 		f.ctx,
 		&agency.InvitationBase{Label: a.Label, ID: id},
 		callOptions(a.RawJWT)...,
-	)
-	try.To(err)
+	))
 
 	data = &model.InvitationData{}
 

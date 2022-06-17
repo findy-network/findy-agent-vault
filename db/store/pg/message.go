@@ -226,14 +226,13 @@ func (pg *Database) GetMessageCount(tenantID string, connectionID *string) (coun
 		sqlMessageBatchWhere           = " WHERE tenant_id=$1 "
 		sqlMessageBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2"
 	)
-	count, err = pg.getCount(
+	count = try.To1(pg.getCount(
 		"message",
 		sqlMessageBatchWhere,
 		sqlMessageBatchWhereConnection,
 		tenantID,
 		connectionID,
-	)
-	try.To(err)
+	))
 	return
 }
 

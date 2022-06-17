@@ -109,18 +109,16 @@ func InitDB(config *utils.Configuration, reset, createDB bool) store.DB {
 	var sqlDB *sql.DB
 	var err error
 	if config.DBTracing {
-		sqlDB, err = initTraceHook(psqlInfo)
+		sqlDB = try.To1(initTraceHook(psqlInfo))
 	} else {
-		sqlDB, err = sql.Open("postgres", psqlInfo)
+		sqlDB = try.To1(sql.Open("postgres", psqlInfo))
 	}
-	try.To(err)
 
 	driver := try.To1(postgres.WithInstance(sqlDB, &postgres.Config{}))
 
-	m, err := migrate.NewWithDatabaseInstance(
+	m := try.To1(migrate.NewWithDatabaseInstance(
 		config.DBMigrationsPath, "postgres", driver,
-	)
-	try.To(err)
+	))
 
 	if reset {
 		err = m.Down()
