@@ -8,6 +8,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
 const (
@@ -46,14 +47,12 @@ func (pg *Database) GetListenerAgents(info *paginator.BatchInfo) (a *model.Agent
 		HasPreviousPage: false,
 	}
 	var agent *model.Agent
-	err = pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
-		agent, err = rowToAgent(rows)
-		err2.Check(err)
+		agent = try.To1(rowToAgent(rows))
 		a.Agents = append(a.Agents, agent)
 		return
-	}, query, args...)
-	err2.Check(err)
+	}, query, args...))
 
 	if info.Count < len(a.Agents) {
 		a.Agents = a.Agents[:info.Count]
@@ -92,7 +91,7 @@ func (pg *Database) AddAgent(a *model.Agent) (newAgent *model.Agent, err error) 
 	newAgent = &model.Agent{}
 	*newAgent = *a
 
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		readRowToAgent(newAgent),
 		sqlAgentInsert,
 		a.AgentID,
@@ -133,7 +132,7 @@ func (pg *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
 	}
 	a = &model.Agent{}
 
-	err2.Check(pg.doRowQuery(readRowToAgent(a), query, *queryID))
+	try.To(pg.doRowQuery(readRowToAgent(a), query, *queryID))
 
 	a.TenantID = a.ID
 

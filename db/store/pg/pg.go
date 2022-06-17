@@ -14,6 +14,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
 const (
@@ -112,22 +113,21 @@ func InitDB(config *utils.Configuration, reset, createDB bool) store.DB {
 	} else {
 		sqlDB, err = sql.Open("postgres", psqlInfo)
 	}
-	err2.Check(err)
+	try.To(err)
 
-	driver, err := postgres.WithInstance(sqlDB, &postgres.Config{})
-	err2.Check(err)
+	driver := try.To1(postgres.WithInstance(sqlDB, &postgres.Config{}))
 
 	m, err := migrate.NewWithDatabaseInstance(
 		config.DBMigrationsPath, "postgres", driver,
 	)
-	err2.Check(err)
+	try.To(err)
 
 	if reset {
 		err = m.Down()
 		if err == migrate.ErrNoChange {
 			glog.Info("empty db, skipping db cleanup")
 		} else {
-			err2.Check(err)
+			try.To(err)
 			version, _, _ := m.Version()
 			glog.Infof("db reset to version: %d", version)
 		}
@@ -137,13 +137,12 @@ func InitDB(config *utils.Configuration, reset, createDB bool) store.DB {
 	if err == migrate.ErrNoChange {
 		glog.Info("no new migrations, skipping db modifications")
 	} else {
-		err2.Check(err)
+		try.To(err)
 		version, _, _ := m.Version()
 		glog.Infof("migrations ok: %d", version)
 	}
 
-	err = sqlDB.Ping()
-	err2.Check(err)
+	try.To(sqlDB.Ping())
 
 	glog.Infof("successfully connected to postgres %s:%d\n", config.DBHost, config.DBPort)
 
@@ -170,7 +169,7 @@ func (pg *Database) getCount(
 		args = append(args, *connectionID)
 	}
 
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&count)
 		},
@@ -209,8 +208,7 @@ func sqlArguments(fields []string) string {
 func (pg *Database) doRowQuery(scan func(*sql.Rows) error, query string, args ...interface{}) (err error) {
 	defer err2.Return(&err)
 
-	rows, err := pg.db.Query(query, args...)
-	err2.Check(err)
+	rows := try.To1(pg.db.Query(query, args...))
 	defer rows.Close()
 
 	if rows.Next() {
@@ -218,8 +216,8 @@ func (pg *Database) doRowQuery(scan func(*sql.Rows) error, query string, args ..
 	} else {
 		err = store.NewError(store.ErrCodeNotFound, "no rows returned")
 	}
-	err2.Check(err)
-	err2.Check(rows.Err())
+	try.To(err)
+	try.To(rows.Err())
 
 	return nil
 }
@@ -227,8 +225,7 @@ func (pg *Database) doRowQuery(scan func(*sql.Rows) error, query string, args ..
 func (pg *Database) doRowsQuery(scan func(*sql.Rows) error, query string, args ...interface{}) (err error) {
 	defer err2.Return(&err)
 
-	rows, err := pg.db.Query(query, args...)
-	err2.Check(err)
+	rows := try.To1(pg.db.Query(query, args...))
 	defer rows.Close()
 
 	scanCount := 0
@@ -240,8 +237,8 @@ func (pg *Database) doRowsQuery(scan func(*sql.Rows) error, query string, args .
 	if scanCount == 0 {
 		err = store.NewError(store.ErrCodeNotFound, "no rows returned")
 	}
-	err2.Check(err)
-	err2.Check(rows.Err())
+	try.To(err)
+	try.To(rows.Err())
 
 	return nil
 }

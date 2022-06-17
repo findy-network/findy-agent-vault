@@ -12,6 +12,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/resolver/update"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
 type Resolver struct {
@@ -33,8 +34,7 @@ func NewResolver(
 func (r *Resolver) MarkEventRead(ctx context.Context, input model.MarkReadInput) (e *model.Event, err error) {
 	defer err2.Return(&err)
 
-	tenant, err := r.GetAgent(ctx)
-	err2.Check(err)
+	tenant := try.To1(r.GetAgent(ctx))
 
 	utils.LogLow().Infof(
 		"mutationResolver:MarkEventRead for tenant %s, event: %s",
@@ -42,8 +42,7 @@ func (r *Resolver) MarkEventRead(ctx context.Context, input model.MarkReadInput)
 		input.ID,
 	)
 
-	event, err := r.db.MarkEventRead(input.ID, tenant.ID)
-	err2.Check(err)
+	event := try.To1(r.db.MarkEventRead(input.ID, tenant.ID))
 
 	return event.ToNode(), nil
 }
@@ -52,16 +51,13 @@ func (r *Resolver) Invite(ctx context.Context) (res *model.InvitationResponse, e
 	defer err2.Return(&err)
 	utils.LogLow().Info("mutationResolver:Invite")
 
-	tenant, err := r.GetAgent(ctx)
-	err2.Check(err)
+	tenant := try.To1(r.GetAgent(ctx))
 
-	data, err := r.agency.Invite(r.AgencyAuth(tenant))
-	err2.Check(err)
+	data := try.To1(r.agency.Invite(r.AgencyAuth(tenant)))
 
-	res, err = invitation.FromAgency(data)
-	err2.Check(err)
+	res = try.To1(invitation.FromAgency(data))
 
-	err2.Check(r.AddJob(
+	try.To(r.AddJob(
 		&dbModel.Job{
 			Base:          dbModel.Base{ID: data.ID, TenantID: tenant.ID},
 			ProtocolType:  model.ProtocolTypeConnection,
@@ -79,13 +75,11 @@ func (r *Resolver) Connect(ctx context.Context, input model.ConnectInput) (res *
 	defer err2.Return(&err)
 	utils.LogLow().Info("mutationResolver:Connect")
 
-	tenant, err := r.GetAgent(ctx)
-	err2.Check(err)
+	tenant := try.To1(r.GetAgent(ctx))
 
-	id, err := r.agency.Connect(r.AgencyAuth(tenant), input.Invitation)
-	err2.Check(err)
+	id := try.To1(r.agency.Connect(r.AgencyAuth(tenant), input.Invitation))
 
-	err2.Check(r.AddJob(
+	try.To(r.AddJob(
 		&dbModel.Job{
 			Base:          dbModel.Base{ID: id, TenantID: tenant.ID},
 			ProtocolType:  model.ProtocolTypeConnection,
@@ -104,11 +98,9 @@ func (r *Resolver) SendMessage(ctx context.Context, input model.MessageInput) (r
 	defer err2.Return(&err)
 	utils.LogLow().Info("mutationResolver:SendMessage")
 
-	tenant, err := r.GetAgent(ctx)
-	err2.Check(err)
+	tenant := try.To1(r.GetAgent(ctx))
 
-	_, err = r.agency.SendMessage(r.AgencyAuth(tenant), input.ConnectionID, input.Message)
-	err2.Check(err)
+	try.To1(r.agency.SendMessage(r.AgencyAuth(tenant), input.ConnectionID, input.Message))
 
 	res = &model.Response{Ok: true}
 	return
@@ -118,11 +110,9 @@ func (r *Resolver) Resume(ctx context.Context, input model.ResumeJobInput) (res 
 	defer err2.Return(&err)
 	utils.LogLow().Info("mutationResolver:Resume")
 
-	tenant, err := r.GetAgent(ctx)
-	err2.Check(err)
+	tenant := try.To1(r.GetAgent(ctx))
 
-	job, err := r.db.GetJob(input.ID, tenant.ID)
-	err2.Check(err)
+	job := try.To1(r.db.GetJob(input.ID, tenant.ID))
 
 	jobInfo := &agency.JobInfo{
 		TenantID:     tenant.ID,
@@ -132,9 +122,9 @@ func (r *Resolver) Resume(ctx context.Context, input model.ResumeJobInput) (res 
 
 	switch job.ProtocolType {
 	case model.ProtocolTypeCredential:
-		err2.Check(r.agency.ResumeCredentialOffer(r.AgencyAuth(tenant), jobInfo, input.Accept))
+		try.To(r.agency.ResumeCredentialOffer(r.AgencyAuth(tenant), jobInfo, input.Accept))
 	case model.ProtocolTypeProof:
-		err2.Check(r.agency.ResumeProofRequest(r.AgencyAuth(tenant), jobInfo, input.Accept))
+		try.To(r.agency.ResumeProofRequest(r.AgencyAuth(tenant), jobInfo, input.Accept))
 	case model.ProtocolTypeBasicMessage:
 	case model.ProtocolTypeConnection:
 	case model.ProtocolTypeNone:

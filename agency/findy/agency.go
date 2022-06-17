@@ -12,6 +12,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/google/uuid"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 	"google.golang.org/grpc"
 )
 
@@ -88,11 +89,11 @@ func (f *Agency) Invite(a *model.Agent) (data *model.InvitationData, err error) 
 		&agency.InvitationBase{Label: a.Label, ID: id},
 		callOptions(a.RawJWT)...,
 	)
-	err2.Check(err)
+	try.To(err)
 
 	data = &model.InvitationData{}
 
-	err2.Check(json.Unmarshal([]byte(res.GetJSON()), &data.Data))
+	try.To(json.Unmarshal([]byte(res.GetJSON()), &data.Data))
 
 	data.Raw = res.GetURL()
 	data.ID = id
@@ -106,8 +107,7 @@ func (f *Agency) Connect(a *model.Agent, strInvitation string) (id string, err e
 	cmd := f.userSyncClient(a, "")
 
 	cmd.Label = a.Label
-	protocolID, err := cmd.Connection(f.ctx, strInvitation)
-	err2.Check(err)
+	protocolID := try.To1(cmd.Connection(f.ctx, strInvitation))
 
 	return protocolID.ID, err
 }
@@ -117,8 +117,7 @@ func (f *Agency) SendMessage(a *model.Agent, connectionID, message string) (id s
 
 	cmd := f.userSyncClient(a, connectionID)
 
-	protocolID, err := cmd.BasicMessage(f.ctx, message)
-	err2.Check(err)
+	protocolID := try.To1(cmd.BasicMessage(f.ctx, message))
 
 	return protocolID.ID, err
 }
@@ -137,15 +136,14 @@ func (f *Agency) resume(
 		state = agency.ProtocolState_ACK
 	}
 
-	_, err = cmd.Resume(f.ctx, job.JobID, protocol, state)
-	err2.Check(err)
+	try.To1(cmd.Resume(f.ctx, job.JobID, protocol, state))
 
 	return
 }
 
 func (f *Agency) ResumeCredentialOffer(a *model.Agent, job *model.JobInfo, accept bool) (err error) {
 	defer err2.Return(&err)
-	err2.Check(f.resume(a, job, accept, agency.Protocol_ISSUE_CREDENTIAL))
+	try.To(f.resume(a, job, accept, agency.Protocol_ISSUE_CREDENTIAL))
 
 	now := f.currentTimeMs()
 	return f.vault.UpdateCredential(job, &model.CredentialUpdate{ApprovedMs: &now})
@@ -153,7 +151,7 @@ func (f *Agency) ResumeCredentialOffer(a *model.Agent, job *model.JobInfo, accep
 
 func (f *Agency) ResumeProofRequest(a *model.Agent, job *model.JobInfo, accept bool) (err error) {
 	defer err2.Return(&err)
-	err2.Check(f.resume(a, job, accept, agency.Protocol_PRESENT_PROOF))
+	try.To(f.resume(a, job, accept, agency.Protocol_PRESENT_PROOF))
 
 	now := f.currentTimeMs()
 	return f.vault.UpdateProof(job, &model.ProofUpdate{ApprovedMs: &now})

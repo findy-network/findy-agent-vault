@@ -10,6 +10,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
 func constructProofAttributeInsert(count int) string {
@@ -58,10 +59,9 @@ func (pg *Database) getProofForObject(objectName, columnName, objectID, tenantID
 		"." + columnName + "=proof.id WHERE " + objectName + ".id = $1 AND proof.tenant_id = $2"
 
 	c = &model.Proof{}
-	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
-		c, err = readRowToProof(rows, c)
-		err2.Check(err)
+		c = try.To1(readRowToProof(rows, c))
 		return
 	}, sqlProofSelectByObjectID, objectID, tenantID))
 
@@ -79,10 +79,9 @@ func (pg *Database) addProofAttributes(id string, attributes []*graph.ProofAttri
 	}
 
 	index := 0
-	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
-		err = rows.Scan(&attributes[index].ID)
-		err2.Check(err)
+		try.To(rows.Scan(&attributes[index].ID))
 		index++
 		return
 	}, query, args...))
@@ -105,7 +104,7 @@ func (pg *Database) AddProof(p *model.Proof) (proof *model.Proof, err error) {
 	proof = &model.Proof{}
 	*proof = *p
 
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&proof.ID, &proof.Created, &proof.Cursor)
 		},
@@ -119,8 +118,7 @@ func (pg *Database) AddProof(p *model.Proof) (proof *model.Proof, err error) {
 		p.Provable,
 	))
 
-	attributes, err := pg.addProofAttributes(proof.ID, proof.Attributes)
-	err2.Check(err)
+	attributes := try.To1(pg.addProofAttributes(proof.ID, proof.Attributes))
 
 	proof.Attributes = attributes
 	return proof, err
@@ -143,7 +141,7 @@ func (pg *Database) UpdateProof(p *model.Proof) (n *model.Proof, err error) {
 		p.Failed,
 		p.ID,
 	)
-	err2.Check(err)
+	try.To(err)
 
 	valueUpdate := ""
 	ids := ""
@@ -163,7 +161,7 @@ func (pg *Database) UpdateProof(p *model.Proof) (n *model.Proof, err error) {
 			fmt.Sprintf(sqlProofAttributeUpdate, valueUpdate, ids),
 			args...,
 		)
-		err2.Check(err)
+		try.To(err)
 	}
 
 	for i, value := range p.Values {
@@ -227,10 +225,9 @@ func (pg *Database) GetProof(id, tenantID string) (p *model.Proof, err error) {
 		" ORDER BY proof_attribute.index"
 
 	p = &model.Proof{}
-	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
-		p, err = readRowToProof(rows, p)
-		err2.Check(err)
+		p = try.To1(readRowToProof(rows, p))
 		return
 	}, sqlProofSelectByID, id, tenantID))
 
@@ -254,10 +251,9 @@ func (pg *Database) getProofsForQuery(
 	}
 	prevProof := &model.Proof{}
 	var proof *model.Proof
-	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
-		proof, err = readRowToProof(rows, prevProof)
-		err2.Check(err)
+		proof = try.To1(readRowToProof(rows, prevProof))
 		if prevProof.ID != "" && prevProof.ID != proof.ID {
 			p.Proofs = append(p.Proofs, prevProof)
 		}
@@ -371,7 +367,7 @@ func (pg *Database) GetProofCount(tenantID string, connectionID *string) (count 
 		tenantID,
 		connectionID,
 	)
-	err2.Check(err)
+	try.To(err)
 	return
 }
 
@@ -387,7 +383,7 @@ func (pg *Database) ArchiveProof(id, tenantID string) (err error) {
 	)
 
 	now := utils.CurrentTime()
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&id)
 		},

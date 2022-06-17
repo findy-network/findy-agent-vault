@@ -5,6 +5,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 	"github.com/spf13/viper"
 )
 
@@ -73,10 +74,10 @@ func LoadConfig() *Configuration {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			glog.Info("Configuration file was not found, using environment/default variables only")
 		} else {
-			err2.Check(err)
+			try.To(err)
 		}
 	}
-	err2.Check(v.Unmarshal(&config))
+	try.To(v.Unmarshal(&config))
 
 	config.Address = fmt.Sprintf(":%d", config.ServerPort)
 	SetLogConfig(&config)

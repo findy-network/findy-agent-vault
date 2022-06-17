@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
 const (
@@ -32,8 +33,8 @@ func logParse(level string) {
 	defer err2.Catch(func(err error) {
 		fmt.Println("ERROR:", err)
 	})
-	err2.Check(flag.Set("logtostderr", "true"))
-	err2.Check(flag.Set("stderrthreshold", "WARNING"))
-	err2.Check(flag.Set("v", level))
+	try.To(flag.Set("logtostderr", "true"))
+	try.To(flag.Set("stderrthreshold", "WARNING"))
+	try.To(flag.Set("v", level))
 	flag.Parse()
 }

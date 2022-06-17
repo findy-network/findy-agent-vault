@@ -9,6 +9,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
 type Resolver struct {
@@ -23,8 +24,7 @@ func NewResolver(db store.DB, agentResolver *agent.Resolver) *Resolver {
 func (r *Resolver) Connection(ctx context.Context, obj *model.Proof) (c *model.Pairwise, err error) {
 	defer err2.Return(&err)
 
-	tenant, err := r.GetAgent(ctx)
-	err2.Check(err)
+	tenant := try.To1(r.GetAgent(ctx))
 
 	utils.LogLow().Infof(
 		"proofResolver:Connection for tenant %s, proof: %s",
@@ -32,8 +32,7 @@ func (r *Resolver) Connection(ctx context.Context, obj *model.Proof) (c *model.P
 		obj.ID,
 	)
 
-	connection, err := r.db.GetConnectionForProof(obj.ID, tenant.ID)
-	err2.Check(err)
+	connection := try.To1(r.db.GetConnectionForProof(obj.ID, tenant.ID))
 
 	return connection.ToNode(), nil
 }
@@ -41,8 +40,7 @@ func (r *Resolver) Connection(ctx context.Context, obj *model.Proof) (c *model.P
 func (r *Resolver) Provable(ctx context.Context, obj *model.Proof) (res *model.Provable, err error) {
 	defer err2.Return(&err)
 
-	tenant, err := r.GetAgent(ctx)
-	err2.Check(err)
+	tenant := try.To1(r.GetAgent(ctx))
 
 	utils.LogLow().Infof(
 		"proofResolver:Provable for tenant %s, proof : %s",

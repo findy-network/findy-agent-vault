@@ -8,6 +8,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
 var (
@@ -26,7 +27,7 @@ func (pg *Database) getMessageForObject(objectName, columnName, objectID, tenant
 		"." + columnName + "=message.id WHERE " + objectName + ".id = $1 AND message.tenant_id = $2"
 
 	m = &model.Message{}
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		readRowToMessage(m),
 		sqlMessageSelectByObjectID,
 		objectID,
@@ -67,7 +68,7 @@ func (pg *Database) AddMessage(arg *model.Message) (msg *model.Message, err erro
 
 	msg = &model.Message{}
 	*msg = *arg
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&msg.ID, &msg.Created, &msg.Cursor)
 		},
@@ -90,7 +91,7 @@ func (pg *Database) UpdateMessage(arg *model.Message) (m *model.Message, err err
 		" RETURNING id," + sqlBaseMessageFields + ", created, cursor"
 
 	m = &model.Message{}
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		readRowToMessage(m),
 		sqlMessageUpdate,
 		arg.Delivered,
@@ -106,7 +107,7 @@ func (pg *Database) GetMessage(id, tenantID string) (m *model.Message, err error
 	sqlMessageSelectByID := sqlMessageSelect + " message WHERE id=$1 AND tenant_id=$2"
 
 	m = &model.Message{}
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		readRowToMessage(m),
 		sqlMessageSelectByID,
 		id,
@@ -132,10 +133,9 @@ func (pg *Database) getMessagesForQuery(
 		HasPreviousPage: false,
 	}
 	var message *model.Message
-	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
-		message, err = rowToMessage(rows)
-		err2.Check(err)
+		message = try.To1(rowToMessage(rows))
 		m.Messages = append(m.Messages, message)
 		return
 	}, query, args...))
@@ -233,7 +233,7 @@ func (pg *Database) GetMessageCount(tenantID string, connectionID *string) (coun
 		tenantID,
 		connectionID,
 	)
-	err2.Check(err)
+	try.To(err)
 	return
 }
 
@@ -249,7 +249,7 @@ func (pg *Database) ArchiveMessage(id, tenantID string) (err error) {
 	)
 
 	now := utils.CurrentTime()
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&id)
 		},

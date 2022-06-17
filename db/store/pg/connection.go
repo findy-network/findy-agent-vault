@@ -9,6 +9,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
 var (
@@ -39,7 +40,7 @@ func (pg *Database) getConnectionForObject(objectName, columnName, objectID, ten
 		"." + columnName + "=connection.id WHERE " + objectName + ".id = $1 AND connection.tenant_id = $2"
 
 	c = &model.Connection{}
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		readRowToConnection(c),
 		sqlConnectionSelectByObjectID,
 		objectID,
@@ -54,7 +55,7 @@ func (pg *Database) AddConnection(c *model.Connection) (newConnection *model.Con
 
 	newConnection = &model.Connection{}
 	*newConnection = *c
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&newConnection.ID, &newConnection.Created, &newConnection.Cursor)
 		},
@@ -102,7 +103,7 @@ func (pg *Database) GetConnection(id, tenantID string) (c *model.Connection, err
 	sqlConnectionSelectByID := sqlConnectionSelect + " WHERE id=$1 AND tenant_id=$2"
 
 	c = &model.Connection{}
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		readRowToConnection(c),
 		sqlConnectionSelectByID,
 		id,
@@ -125,15 +126,14 @@ func (pg *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (
 	var connection *model.Connection
 	if err = pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
-		connection, err = rowToConnection(rows)
-		err2.Check(err)
+		connection = try.To1(rowToConnection(rows))
 		c.Connections = append(c.Connections, connection)
 		return
 	}, query, args...); err != nil && store.ErrorCode(err) == store.ErrCodeNotFound {
 		// no connections is not an error
 		err = nil
 	}
-	err2.Check(err)
+	try.To(err)
 
 	if info.Count < len(c.Connections) {
 		c.Connections = c.Connections[:info.Count]
@@ -170,7 +170,7 @@ func (pg *Database) GetConnectionCount(tenantID string) (count int, err error) {
 		tenantID,
 		nil,
 	)
-	err2.Check(err)
+	try.To(err)
 	return
 }
 
@@ -184,7 +184,7 @@ func (pg *Database) ArchiveConnection(id, tenantID string) (err error) {
 
 	now := utils.CurrentTime()
 	newConnection := &model.Connection{}
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		readRowToConnection(newConnection),
 		sqlConnectionArchive,
 		now,

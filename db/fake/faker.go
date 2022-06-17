@@ -11,7 +11,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/store"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/utils"
-	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
 const FakeCloudDID = "cloudDID"
@@ -33,8 +33,7 @@ func AddMessages(db store.DB, tenantID, connectionID string, count int) []*model
 
 	newMessages := make([]*model.Message, count)
 	for index, message := range messages {
-		c, err := db.AddMessage(message)
-		err2.Check(err)
+		c := try.To1(db.AddMessage(message))
 		time.Sleep(time.Millisecond) // generate different timestamps for items
 
 		newMessages[index] = c
@@ -54,8 +53,7 @@ func AddEvents(db store.DB, tenantID, connectionID string, jobID *string, count 
 
 	newEvents := make([]*model.Event, count)
 	for index, event := range events {
-		c, err := db.AddEvent(event)
-		err2.Check(err)
+		c := try.To1(db.AddEvent(event))
 		time.Sleep(time.Millisecond) // generate different timestamps for items
 
 		newEvents[index] = c
@@ -95,15 +93,13 @@ func AddCredentials(db store.DB, tenantID, connectionID string, count int) []*mo
 
 	newCredentials := make([]*model.Credential, count)
 	for index, credential := range credentials {
-		c, err := db.AddCredential(credential)
-		err2.Check(err)
+		c := try.To1(db.AddCredential(credential))
 		time.Sleep(time.Millisecond) // generate different timestamps for items
 
 		now := time.Now().UTC()
 		c.Approved = now
 		c.Issued = now
-		_, err = db.UpdateCredential(c)
-		err2.Check(err)
+		try.To1(db.UpdateCredential(c))
 
 		newCredentials[index] = c
 	}
@@ -122,16 +118,14 @@ func AddProofs(db store.DB, tenantID, connectionID string, count int, verify boo
 
 	newProofs := make([]*model.Proof, count)
 	for index, proof := range proofs {
-		p, err := db.AddProof(proof)
-		err2.Check(err)
+		p := try.To1(db.AddProof(proof))
 		time.Sleep(time.Millisecond) // generate different timestamps for items
 
 		now := time.Now().UTC()
 		if verify {
 			p.Approved = now
 			p.Verified = now
-			_, err = db.UpdateProof(p)
-			err2.Check(err)
+			try.To1(db.UpdateProof(p))
 		}
 
 		newProofs[index] = p
@@ -151,8 +145,7 @@ func AddConnections(db store.DB, tenantID string, count int) []*model.Connection
 
 	newConnections := make([]*model.Connection, count)
 	for index, connection := range connections {
-		c, err := db.AddConnection(connection)
-		err2.Check(err)
+		c := try.To1(db.AddConnection(connection))
 		time.Sleep(time.Millisecond) // generate different timestamps for items
 		newConnections[index] = c
 	}
@@ -166,11 +159,9 @@ func AddAgent(db store.DB) *model.Agent {
 	_ = faker.AddProvider("agentId", func(v reflect.Value) (interface{}, error) {
 		return FakeCloudDID, nil
 	})
-	var err error
 	agent := fakeAgent()
 
-	agent, err = db.AddAgent(agent)
-	err2.Check(err)
+	agent = try.To1(db.AddAgent(agent))
 
 	utils.LogTrace().Infof("Generated tenant %s with agent id %s", agent.ID, agent.AgentID)
 	return agent
@@ -214,8 +205,7 @@ func addJobs(
 
 	newJobs := make([]*model.Job, count)
 	for index, job := range jobs {
-		c, err := db.AddJob(job)
-		err2.Check(err)
+		c := try.To1(db.AddJob(job))
 		time.Sleep(time.Millisecond) // generate different timestamps for items
 
 		newJobs[index] = c
@@ -228,7 +218,7 @@ func addJobs(
 
 func fakeAgent() *model.Agent {
 	agent := &model.Agent{}
-	err2.Check(faker.FakeData(&agent))
+	try.To(faker.FakeData(&agent))
 	return agent
 }
 
@@ -240,7 +230,7 @@ func Connection(tenantID string) *model.Connection {
 	})
 
 	connection := &model.Connection{}
-	err2.Check(faker.FakeData(connection))
+	try.To(faker.FakeData(connection))
 	connection.ID = faker.UUIDHyphenated()
 	connection.TenantID = tenantID
 	return connection
@@ -255,7 +245,7 @@ func Credential(tenantID, connectionID string) *model.Credential {
 		}, nil
 	})
 	credential := &model.Credential{}
-	err2.Check(faker.FakeData(credential))
+	try.To(faker.FakeData(credential))
 	credential.TenantID = tenantID
 	credential.ConnectionID = connectionID
 	return credential
@@ -270,7 +260,7 @@ func Proof(tenantID, connectionID string) *model.Proof {
 		}, nil
 	})
 	proof := &model.Proof{}
-	err2.Check(faker.FakeData(proof))
+	try.To(faker.FakeData(proof))
 	proof.TenantID = tenantID
 	proof.ConnectionID = connectionID
 	return proof
@@ -278,7 +268,7 @@ func Proof(tenantID, connectionID string) *model.Proof {
 
 func fakeEvent(tenantID, connectionID string, jobID *string) *model.Event {
 	event := &model.Event{}
-	err2.Check(faker.FakeData(event))
+	try.To(faker.FakeData(event))
 	event.TenantID = tenantID
 	event.ConnectionID = &connectionID
 	event.JobID = jobID
@@ -291,7 +281,7 @@ func fakeJob(
 	status graph.JobStatus,
 ) *model.Job {
 	job := &model.Job{}
-	err2.Check(faker.FakeData(job))
+	try.To(faker.FakeData(job))
 	job.ID = id
 	job.TenantID = tenantID
 	job.ConnectionID = &connectionID
@@ -314,7 +304,7 @@ func fakeJob(
 
 func Message(tenantID, connectionID string) *model.Message {
 	message := &model.Message{}
-	err2.Check(faker.FakeData(message))
+	try.To(faker.FakeData(message))
 	message.TenantID = tenantID
 	message.ConnectionID = connectionID
 	return message

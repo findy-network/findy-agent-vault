@@ -6,6 +6,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/resolver/query/agent"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
 type Updater struct {
@@ -29,14 +30,13 @@ func (r *Updater) AddEvent(tenantID string, job *model.Job, description string) 
 		connectionID = job.ConnectionID
 		jobID = &job.ID
 	}
-	event, err := r.db.AddEvent(&model.Event{
+	event := try.To1(r.db.AddEvent(&model.Event{
 		Base:         model.Base{TenantID: tenantID},
 		Read:         false,
 		Description:  description,
 		ConnectionID: connectionID,
 		JobID:        jobID,
-	})
-	err2.Check(err)
+	}))
 
 	r.eventSubscribers.notify(tenantID, event)
 	return err
@@ -47,10 +47,9 @@ func (r *Updater) AddJob(job *model.Job, description string) (err error) {
 
 	utils.LogMed().Infof("Add job with ID %s for tenant %s", job.ID, job.TenantID)
 
-	job, err = r.db.AddJob(job)
-	err2.Check(err)
+	job = try.To1(r.db.AddJob(job))
 
-	err2.Check(r.AddEvent(job.TenantID, job, description))
+	try.To(r.AddEvent(job.TenantID, job, description))
 
 	return
 }
@@ -60,10 +59,9 @@ func (r *Updater) UpdateJob(job *model.Job, description string) (err error) {
 
 	utils.LogMed().Infof("Update job with ID %s for tenant %s", job.ID, job.TenantID)
 
-	job, err = r.db.UpdateJob(job)
-	err2.Check(err)
+	job = try.To1(r.db.UpdateJob(job))
 
-	err2.Check(r.AddEvent(job.TenantID, job, description))
+	try.To(r.AddEvent(job.TenantID, job, description))
 
 	return
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/resolver/query/agent"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
 type Resolver struct {
@@ -22,16 +23,14 @@ func NewResolver(db store.DB, agentResolver *agent.Resolver) *Resolver {
 func (r *Resolver) TotalCount(ctx context.Context, obj *model.JobConnection) (c int, err error) {
 	defer err2.Return(&err)
 
-	tenant, err := r.GetAgent(ctx)
-	err2.Check(err)
+	tenant := try.To1(r.GetAgent(ctx))
 
 	utils.LogLow().Infof(
 		"jobConnectionResolver:TotalCount for tenant %s, connection: %v",
 		tenant.ID,
 		obj.ConnectionID,
 	)
-	count, err := r.db.GetJobCount(tenant.ID, obj.ConnectionID, obj.Completed)
-	err2.Check(err)
+	count := try.To1(r.db.GetJobCount(tenant.ID, obj.ConnectionID, obj.Completed))
 
 	return count, nil
 }

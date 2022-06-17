@@ -9,6 +9,7 @@ import (
 	ops "github.com/findy-network/findy-common-go/grpc/ops/v1"
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
 const waitTime = 5
@@ -95,8 +96,7 @@ func (f *Agency) listenAdminHook() (err error) {
 	cmd := f.adminClient()
 	// Error in registration is not notified here, instead all relevant info comes
 	// in stream callback from now on
-	ch, err := cmd.psmHook()
-	err2.Check(err)
+	ch := try.To1(cmd.psmHook())
 
 	go f.adminStatusLoop(ch)
 	return nil
