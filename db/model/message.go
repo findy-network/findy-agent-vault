@@ -35,7 +35,7 @@ func (m *Message) ToNode() *model.BasicMessage {
 		ID:        m.ID,
 		Message:   m.Message,
 		SentByMe:  m.SentByMe,
-		Delivered: nil, // TODO
+		Delivered: nil, // TODO: linter needs coment, implement later
 		CreatedMs: timeToString(&m.Created),
 	}
 }
