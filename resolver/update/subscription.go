@@ -10,6 +10,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
 type subscription struct {
@@ -121,8 +122,7 @@ func (s *subscriberRegister) remove(subscriptionID string) {
 func (r *Updater) EventAdded(ctx context.Context) (ch <-chan *model.EventEdge, err error) {
 	defer err2.Return(&err)
 
-	tenant, err := r.GetAgent(ctx)
-	err2.Check(err)
+	tenant := try.To1(r.GetAgent(ctx))
 
 	id, events := r.eventSubscribers.add(tenant.ID)
 	utils.LogMed().Info("subscriptionResolver:EventAdded, id: ", id)

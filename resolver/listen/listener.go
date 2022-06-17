@@ -12,6 +12,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
 type Listener struct {
@@ -30,12 +31,11 @@ func (l *Listener) AddConnection(info *agency.JobInfo, data *agency.Connection) 
 
 	// TODO: job is currently created with Connection ID ->
 	// use job ID instead and let agency create the ids, needs API change?
-	job, err := l.db.GetJob(info.ConnectionID, info.TenantID)
-	err2.Check(err)
+	job := try.To1(l.db.GetJob(info.ConnectionID, info.TenantID))
 
 	now := utils.CurrentTime()
 
-	connection, err := l.db.AddConnection(
+	connection := try.To1(l.db.AddConnection(
 		&dbModel.Connection{
 			Base: dbModel.Base{
 				ID:       info.ConnectionID,
@@ -47,15 +47,14 @@ func (l *Listener) AddConnection(info *agency.JobInfo, data *agency.Connection) 
 			TheirLabel:    data.TheirLabel,
 			Approved:      now, // TODO: get approved from agency?
 			Invited:       job.InitiatedByUs,
-		})
-	err2.Check(err)
+		}))
 
 	job.ConnectionID = &connection.ID
 	job.ProtocolConnectionID = &connection.ID
 	job.Status = model.JobStatusComplete
 	job.Result = model.JobResultSuccess
 
-	err2.Check(l.UpdateJob(
+	try.To(l.UpdateJob(
 		job,
 		"Established connection to "+connection.TheirLabel,
 	))
@@ -65,15 +64,14 @@ func (l *Listener) AddConnection(info *agency.JobInfo, data *agency.Connection) 
 func (l *Listener) AddMessage(info *agency.JobInfo, data *agency.Message) (err error) {
 	defer err2.Return(&err)
 
-	msg, err := l.db.AddMessage(&dbModel.Message{
+	msg := try.To1(l.db.AddMessage(&dbModel.Message{
 		Base:         dbModel.Base{TenantID: info.TenantID},
 		ConnectionID: info.ConnectionID,
 		Message:      data.Message,
 		SentByMe:     data.SentByMe,
-	})
-	err2.Check(err)
+	}))
 
-	err2.Check(l.AddJob(&dbModel.Job{
+	try.To(l.AddJob(&dbModel.Job{
 		Base:              dbModel.Base{ID: info.JobID, TenantID: info.TenantID},
 		ConnectionID:      &info.ConnectionID,
 		ProtocolType:      model.ProtocolTypeBasicMessage,
@@ -86,14 +84,14 @@ func (l *Listener) AddMessage(info *agency.JobInfo, data *agency.Message) (err e
 }
 
 func (l *Listener) UpdateMessage(info *agency.JobInfo, _ *agency.MessageUpdate) (err error) {
-	// TODO
+	// TODO: linter needs coment, implement later
 	return nil
 }
 
 func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) (err error) {
 	defer err2.Return(&err)
 
-	credential, err := l.db.AddCredential(&dbModel.Credential{
+	credential := try.To1(l.db.AddCredential(&dbModel.Credential{
 		Base:          dbModel.Base{TenantID: info.TenantID},
 		ConnectionID:  info.ConnectionID,
 		Role:          data.Role,
@@ -101,8 +99,7 @@ func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) 
 		CredDefID:     data.CredDefID,
 		Attributes:    data.Attributes,
 		InitiatedByUs: data.InitiatedByUs,
-	})
-	err2.Check(err)
+	}))
 
 	utils.LogMed().Infof("Add credential %s for tenant %s", credential.ID, info.TenantID)
 
@@ -111,7 +108,7 @@ func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) 
 		status = model.JobStatusPending
 	}
 
-	err2.Check(l.AddJob(&dbModel.Job{
+	try.To(l.AddJob(&dbModel.Job{
 		Base:                 dbModel.Base{ID: info.JobID, TenantID: info.TenantID},
 		ConnectionID:         &info.ConnectionID,
 		ProtocolType:         model.ProtocolTypeCredential,
@@ -126,24 +123,21 @@ func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) 
 func (l *Listener) UpdateCredential(info *agency.JobInfo, data *agency.CredentialUpdate) (err error) {
 	defer err2.Return(&err)
 
-	job, err := l.db.GetJob(info.JobID, info.TenantID)
-	err2.Check(err)
+	job := try.To1(l.db.GetJob(info.JobID, info.TenantID))
 
 	utils.LogMed().Infof("Update credential %s for tenant %s", *job.ProtocolCredentialID, info.TenantID)
 
-	credential, err := l.db.GetCredential(*job.ProtocolCredentialID, job.TenantID)
-	err2.Check(err)
+	credential := try.To1(l.db.GetCredential(*job.ProtocolCredentialID, job.TenantID))
 
 	credential.Approved = utils.TSToTimeIfNotSet(&credential.Approved, data.ApprovedMs)
 	credential.Issued = utils.TSToTimeIfNotSet(&credential.Issued, data.IssuedMs)
 	credential.Failed = utils.TSToTimeIfNotSet(&credential.Failed, data.FailedMs)
 
-	credential, err = l.db.UpdateCredential(credential)
-	err2.Check(err)
+	credential = try.To1(l.db.UpdateCredential(credential))
 
 	job.Status, job.Result = getJobStatusForTimestamps(&credential.Approved, &credential.Issued, &credential.Failed)
 
-	err2.Check(l.UpdateJob(job, credential.Description()))
+	try.To(l.UpdateJob(job, credential.Description()))
 
 	// Since we have new credential, check if any of the blocked proofs becomes unblocked
 	if credential.IsIssued() {
@@ -201,8 +195,7 @@ func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error
 		newProof.Provable = utils.CurrentTime()
 	}
 
-	proof, err := l.db.AddProof(newProof)
-	err2.Check(err)
+	proof := try.To1(l.db.AddProof(newProof))
 
 	utils.LogMed().Infof("Add proof %s for tenant %s", proof.ID, info.TenantID)
 
@@ -214,7 +207,7 @@ func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error
 		status = model.JobStatusBlocked
 	}
 
-	err2.Check(l.AddJob(&dbModel.Job{
+	try.To(l.AddJob(&dbModel.Job{
 		Base:            dbModel.Base{ID: info.JobID, TenantID: info.TenantID},
 		ConnectionID:    &info.ConnectionID,
 		ProtocolType:    model.ProtocolTypeProof,
@@ -231,17 +224,15 @@ func (l *Listener) updateBlockedProof(job *dbModel.Job) (err error) {
 
 	utils.LogMed().Infof("Update blocked proof %s for tenant %s", *job.ProtocolProofID, job.TenantID)
 
-	proof, err := l.db.GetProof(*job.ProtocolProofID, job.TenantID)
-	err2.Check(err)
+	proof := try.To1(l.db.GetProof(*job.ProtocolProofID, job.TenantID))
 
 	if l.isProvable(&agency.JobInfo{TenantID: job.TenantID, JobID: job.ID, ConnectionID: *job.ConnectionID}, proof) {
 		proof.Provable = utils.CurrentTime()
-		proof, err = l.db.UpdateProof(proof)
-		err2.Check(err)
+		proof = try.To1(l.db.UpdateProof(proof))
 
 		job.Status, job.Result = getJobStatusForProof(proof)
 
-		err2.Check(l.UpdateJob(job, proof.Description()))
+		try.To(l.UpdateJob(job, proof.Description()))
 	} else {
 		utils.LogMed().Infof("Skipping update for blocked proof %s for tenant %s", *job.ProtocolProofID, job.TenantID)
 	}
@@ -252,13 +243,11 @@ func (l *Listener) updateBlockedProof(job *dbModel.Job) (err error) {
 func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) (err error) {
 	defer err2.Return(&err)
 
-	job, err := l.db.GetJob(info.JobID, info.TenantID)
-	err2.Check(err)
+	job := try.To1(l.db.GetJob(info.JobID, info.TenantID))
 
 	utils.LogMed().Infof("Update proof %s for tenant %s", *job.ProtocolProofID, info.TenantID)
 
-	proof, err := l.db.GetProof(*job.ProtocolProofID, job.TenantID)
-	err2.Check(err)
+	proof := try.To1(l.db.GetProof(*job.ProtocolProofID, job.TenantID))
 
 	proof.Approved = utils.TSToTimeIfNotSet(&proof.Approved, data.ApprovedMs)
 	proof.Verified = utils.TSToTimeIfNotSet(&proof.Verified, data.VerifiedMs)
@@ -267,9 +256,7 @@ func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) (
 	if !proof.Verified.IsZero() {
 		// TODO: these values should come from agency
 		// now we just pick first found value and actually only guessing what core agency has picked
-		var provableAttrs []*model.ProvableAttribute
-		provableAttrs, err = l.db.SearchCredentials(proof.TenantID, proof.Attributes)
-		err2.Check(err)
+		provableAttrs := try.To1(l.db.SearchCredentials(proof.TenantID, proof.Attributes))
 		proof.Values = make([]*model.ProofValue, 0)
 		for _, attr := range provableAttrs {
 			if len(attr.Credentials) > 0 {
@@ -282,12 +269,11 @@ func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) (
 		}
 	}
 
-	proof, err = l.db.UpdateProof(proof)
-	err2.Check(err)
+	proof = try.To1(l.db.UpdateProof(proof))
 
 	job.Status, job.Result = getJobStatusForProof(proof)
 
-	err2.Check(l.UpdateJob(job, proof.Description()))
+	try.To(l.UpdateJob(job, proof.Description()))
 	return nil
 }
 
@@ -317,13 +303,12 @@ func getJobStatusForProof(proof *dbModel.Proof) (status model.JobStatus, result 
 func (l *Listener) FailJob(info *agency.JobInfo) (err error) {
 	defer err2.Return(&err)
 
-	job, err := l.db.GetJob(info.JobID, info.TenantID)
-	err2.Check(err)
+	job := try.To1(l.db.GetJob(info.JobID, info.TenantID))
 
 	utils.LogMed().Infof("Fail job %s for tenant %s", job.ID, info.TenantID)
 	job.Status = model.JobStatusComplete
 	job.Result = model.JobResultFailure
 
-	err2.Check(l.UpdateJob(job, fmt.Sprintf("Protocol %s failed", job.ProtocolType.String())))
+	try.To(l.UpdateJob(job, fmt.Sprintf("Protocol %s failed", job.ProtocolType.String())))
 	return nil
 }

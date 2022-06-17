@@ -10,6 +10,7 @@ import (
 
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
 const (
@@ -111,16 +112,13 @@ func Validate(prefix string, params *Params) (info *BatchInfo, err error) {
 	tail := false
 	var before, after uint64
 
-	count, tail, err = ValidateFirstAndLast(params.First, params.Last)
-	err2.Check(err)
+	count, tail = try.To2(ValidateFirstAndLast(params.First, params.Last))
 
 	if params.After != nil {
-		after, err = ParseCursor(*params.After, params.Object)
-		err2.Check(err)
+		after = try.To1(ParseCursor(*params.After, params.Object))
 	}
 	if params.Before != nil {
-		before, err = ParseCursor(*params.Before, params.Object)
-		err2.Check(err)
+		before = try.To1(ParseCursor(*params.Before, params.Object))
 	}
 
 	info = &BatchInfo{

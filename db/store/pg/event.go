@@ -7,6 +7,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
 const (
@@ -24,7 +25,7 @@ func (pg *Database) AddEvent(e *model.Event) (event *model.Event, err error) {
 
 	event = &model.Event{}
 	*event = *e
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&event.ID, &event.Created, &event.Cursor)
 		},
@@ -46,7 +47,7 @@ func (pg *Database) MarkEventRead(id, tenantID string) (event *model.Event, err 
 		" RETURNING id," + sqlEventFields + ", created, cursor"
 
 	event = &model.Event{}
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		readRowToEvent(event),
 		sqlEventUpdate,
 		id,
@@ -83,7 +84,7 @@ func (pg *Database) GetEvent(id, tenantID string) (event *model.Event, err error
 		" WHERE event.id=$1 AND tenant_id=$2"
 
 	event = &model.Event{}
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		readRowToEvent(event),
 		sqlEventSelectByID,
 		id,
@@ -109,10 +110,9 @@ func (pg *Database) getEventsForQuery(
 	}
 
 	var event *model.Event
-	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
-		event, err = rowToEvent(rows)
-		err2.Check(err)
+		event = try.To1(rowToEvent(rows))
 		e.Events = append(e.Events, event)
 		return
 	}, query, args...))
@@ -203,14 +203,13 @@ func (pg *Database) GetEventCount(tenantID string, connectionID *string) (count 
 		sqlEventBatchWhere           = " WHERE tenant_id=$1 "
 		sqlEventBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2"
 	)
-	count, err = pg.getCount(
+	count = try.To1(pg.getCount(
 		"event",
 		sqlEventBatchWhere,
 		sqlEventBatchWhereConnection,
 		tenantID,
 		connectionID,
-	)
-	err2.Check(err)
+	))
 	return
 }
 

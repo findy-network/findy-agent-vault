@@ -11,6 +11,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2"
 	"github.com/lainio/err2/assert"
+	"github.com/lainio/err2/try"
 )
 
 func constructCredentialAttributeInsert(count int) string {
@@ -60,10 +61,9 @@ func (pg *Database) getCredentialForObject(objectName, columnName, objectID, ten
 		"." + columnName + "=credential.id WHERE " + objectName + ".id = $1 AND credential.tenant_id = $2"
 
 	cred = &model.Credential{}
-	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
-		cred, err = readRowToCredential(rows, cred)
-		err2.Check(err)
+		cred = try.To1(readRowToCredential(rows, cred))
 		return
 	}, sqlCredentialSelectByObjectID, objectID, tenantID))
 
@@ -80,10 +80,9 @@ func (pg *Database) addCredentialAttributes(id string, attributes []*graph.Crede
 	}
 
 	index := 0
-	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
-		err = rows.Scan(&attributes[index].ID)
-		err2.Check(err)
+		try.To(rows.Scan(&attributes[index].ID))
 		index++
 		return
 	}, query, args...))
@@ -103,7 +102,7 @@ func (pg *Database) AddCredential(c *model.Credential) (cred *model.Credential, 
 
 	cred = &model.Credential{}
 	*cred = *c
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&cred.ID, &cred.Created, &cred.Cursor)
 		},
@@ -117,8 +116,7 @@ func (pg *Database) AddCredential(c *model.Credential) (cred *model.Credential, 
 		c.Archived,
 	))
 
-	attributes, err := pg.addCredentialAttributes(cred.ID, cred.Attributes)
-	err2.Check(err)
+	attributes := try.To1(pg.addCredentialAttributes(cred.ID, cred.Attributes))
 
 	cred.Attributes = attributes
 	return cred, err
@@ -130,14 +128,13 @@ func (pg *Database) UpdateCredential(c *model.Credential) (n *model.Credential, 
 	//#nosec
 	const sqlCredentialUpdate = "UPDATE credential SET approved=$1, issued=$2, failed=$3 WHERE id = $4" // TODO: tenant_id, connection_id?
 
-	_, err = pg.db.Exec(
+	try.To1(pg.db.Exec(
 		sqlCredentialUpdate,
 		c.Approved,
 		c.Issued,
 		c.Failed,
 		c.ID,
-	)
-	err2.Check(err)
+	))
 	return c, err
 }
 
@@ -184,10 +181,9 @@ func (pg *Database) GetCredential(id, tenantID string) (cred *model.Credential, 
 		" ORDER BY credential_attribute.index"
 
 	cred = &model.Credential{}
-	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
-		cred, err = readRowToCredential(rows, cred)
-		err2.Check(err)
+		cred = try.To1(readRowToCredential(rows, cred))
 		return
 	}, sqlCredentialSelectByID, id, tenantID))
 
@@ -212,10 +208,9 @@ func (pg *Database) getCredentialsForQuery(
 	}
 	prevCredential := &model.Credential{}
 	var credential *model.Credential
-	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
-		credential, err = readRowToCredential(rows, prevCredential)
-		err2.Check(err)
+		credential = try.To1(readRowToCredential(rows, prevCredential))
 		if prevCredential.ID != "" && prevCredential.ID != credential.ID {
 			c.Credentials = append(c.Credentials, prevCredential)
 		}
@@ -323,14 +318,13 @@ func (pg *Database) GetCredentialCount(tenantID string, connectionID *string) (c
 		sqlCredentialBatchWhere           = " WHERE tenant_id=$1 AND issued > timestamp '0001-01-01' "
 		sqlCredentialBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2 AND issued > timestamp '0001-01-01' "
 	)
-	count, err = pg.getCount(
+	count = try.To1(pg.getCount(
 		"credential",
 		sqlCredentialBatchWhere,
 		sqlCredentialBatchWhereConnection,
 		tenantID,
 		connectionID,
-	)
-	err2.Check(err)
+	))
 	return
 }
 
@@ -347,7 +341,7 @@ func (pg *Database) ArchiveCredential(id, tenantID string) (err error) {
 	)
 
 	now := utils.CurrentTime()
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&id)
 		},
@@ -384,10 +378,10 @@ func (pg *Database) SearchCredentials(
 		credValue string
 	}
 	searchResults := make([]*searchResult, 0)
-	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
 		s := &searchResult{}
-		err2.Check(rows.Scan(&s.credID, &s.attrName, &s.credDefID, &s.credValue))
+		try.To(rows.Scan(&s.credID, &s.attrName, &s.credDefID, &s.credValue))
 		searchResults = append(searchResults, s)
 		return
 	}, sqlCredentialSearch, tenantID))

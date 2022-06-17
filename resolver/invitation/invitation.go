@@ -10,6 +10,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/graph/model"
 	didexchange "github.com/findy-network/findy-common-go/std/didexchange/invitation"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 	"github.com/skip2/go-qrcode"
 )
 
@@ -18,8 +19,7 @@ const imageSize = 256
 func FromURLParam(raw string) (res *model.InvitationResponse, err error) {
 	err2.Return(&err)
 
-	qrCode, err := strToQRCode(raw)
-	err2.Check(err)
+	qrCode := try.To1(strToQRCode(raw))
 
 	invitation := didexchange.Invitation{}
 	// ignore error on purpose
@@ -41,8 +41,7 @@ func FromURLParam(raw string) (res *model.InvitationResponse, err error) {
 func FromAgency(data *agency.InvitationData) (res *model.InvitationResponse, err error) {
 	err2.Return(&err)
 
-	qrCode, err := strToQRCode(data.Raw)
-	err2.Check(err)
+	qrCode := try.To1(strToQRCode(data.Raw))
 
 	res = &model.InvitationResponse{
 		ID:       data.Data.ID,
@@ -58,12 +57,10 @@ func FromAgency(data *agency.InvitationData) (res *model.InvitationResponse, err
 func strToQRCode(str string) (res string, err error) {
 	defer err2.Return(&err)
 
-	code, err := qrcode.New(str, qrcode.Low)
-	err2.Check(err)
+	code := try.To1(qrcode.New(str, qrcode.Low))
 
 	var buf bytes.Buffer
-	err = png.Encode(&buf, code.Image(imageSize))
-	err2.Check(err)
+	try.To(png.Encode(&buf, code.Image(imageSize)))
 
 	res = base64.StdEncoding.EncodeToString(buf.Bytes())
 	return

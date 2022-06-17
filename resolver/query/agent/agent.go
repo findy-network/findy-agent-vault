@@ -8,6 +8,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
 type Resolver struct {
@@ -22,12 +23,11 @@ func NewResolver(db store.DB, agencyInstance agency.Agency) *Resolver {
 func (r *Resolver) GetAgent(ctx context.Context) (agent *model.Agent, err error) {
 	err2.Return(&err)
 
-	agent, err = store.GetAgent(ctx, r.db)
-	err2.Check(err)
+	agent = try.To1(store.GetAgent(ctx, r.db))
 
 	// make sure we are listening events for this agent
 	if agent.IsNewOnboard() {
-		err2.Check(r.agency.AddAgent(r.AgencyAuth(agent)))
+		try.To(r.agency.AddAgent(r.AgencyAuth(agent)))
 	}
 	return
 }

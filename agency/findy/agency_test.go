@@ -18,6 +18,7 @@ import (
 	"github.com/findy-network/findy-common-go/rpc"
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -108,7 +109,7 @@ func dialer() func(context.Context, string) (net.Conn, error) {
 		defer err2.Catch(func(err error) {
 			log.Fatal(err)
 		})
-		err2.Check(s.Serve(lis))
+		try.To(s.Serve(lis))
 	}()
 
 	return func(context.Context, string) (net.Conn, error) {

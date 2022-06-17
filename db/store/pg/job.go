@@ -8,6 +8,7 @@ import (
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 )
 
 var (
@@ -28,7 +29,7 @@ func (pg *Database) getJobForObject(objectName, objectID, tenantID string) (j *m
 		".job_id=job.id WHERE " + objectName + ".id = $1 AND job.tenant_id = $2"
 
 	j = &model.Job{}
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		readRowToJob(j),
 		sqlJobSelectByObjectID,
 		objectID,
@@ -43,7 +44,7 @@ func (pg *Database) AddJob(j *model.Job) (job *model.Job, err error) {
 
 	job = &model.Job{}
 	*job = *j
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		func(rows *sql.Rows) error {
 			return rows.Scan(&job.ID, &job.Created, &job.Cursor)
 		},
@@ -74,7 +75,7 @@ func (pg *Database) UpdateJob(arg *model.Job) (j *model.Job, err error) {
 		" RETURNING " + sqlJobBaseFields + ", created, cursor"
 
 	j = &model.Job{}
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		readRowToJob(j),
 		sqlJobUpdate,
 		arg.ProtocolConnectionID,
@@ -122,7 +123,7 @@ func (pg *Database) GetJob(id, tenantID string) (job *model.Job, err error) {
 	sqlJobSelectByID := sqlJobSelect + " job WHERE id=$1 AND tenant_id=$2"
 
 	job = &model.Job{}
-	err2.Check(pg.doRowQuery(
+	try.To(pg.doRowQuery(
 		readRowToJob(job),
 		sqlJobSelectByID,
 		id,
@@ -148,10 +149,9 @@ func (pg *Database) getJobsForQuery(
 		HasPreviousPage: false,
 	}
 	var job *model.Job
-	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
-		job, err = rowToJob(rows)
-		err2.Check(err)
+		job = try.To1(rowToJob(rows))
 		j.Jobs = append(j.Jobs, job)
 		return
 	}, query, args...))
@@ -260,14 +260,13 @@ func (pg *Database) GetJobCount(tenantID string, connectionID *string, completed
 		qWhereConnection = sqlJobBatchWhereConnectionAll
 	}
 
-	count, err = pg.getCount(
+	count = try.To1(pg.getCount(
 		"job",
 		qWhere,
 		qWhereConnection,
 		tenantID,
 		connectionID,
-	)
-	err2.Check(err)
+	))
 	return
 }
 
@@ -279,20 +278,16 @@ func (pg *Database) GetJobOutput(id, tenantID string, protocolType graph.Protoco
 	defer err2.Return(&err)
 	switch protocolType {
 	case graph.ProtocolTypeConnection:
-		connection, err := pg.getConnectionForObject("job", "protocol_connection_id", id, tenantID)
-		err2.Check(err)
+		connection := try.To1(pg.getConnectionForObject("job", "protocol_connection_id", id, tenantID))
 		return &model.JobOutput{Connection: connection}, nil
 	case graph.ProtocolTypeCredential:
-		credential, err := pg.getCredentialForObject("job", "protocol_credential_id", id, tenantID)
-		err2.Check(err)
+		credential := try.To1(pg.getCredentialForObject("job", "protocol_credential_id", id, tenantID))
 		return &model.JobOutput{Credential: credential}, nil
 	case graph.ProtocolTypeProof:
-		proof, err := pg.getProofForObject("job", "protocol_proof_id", id, tenantID)
-		err2.Check(err)
+		proof := try.To1(pg.getProofForObject("job", "protocol_proof_id", id, tenantID))
 		return &model.JobOutput{Proof: proof}, nil
 	case graph.ProtocolTypeBasicMessage:
-		message, err := pg.getMessageForObject("job", "protocol_message_id", id, tenantID)
-		err2.Check(err)
+		message := try.To1(pg.getMessageForObject("job", "protocol_message_id", id, tenantID))
 		return &model.JobOutput{Message: message}, nil
 	case graph.ProtocolTypeNone:
 		break
@@ -310,10 +305,9 @@ func (pg *Database) GetOpenProofJobs(tenantID string, proofAttributes []*graph.P
 
 	jobs = make([]*model.Job, 0)
 	var job *model.Job
-	err2.Check(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
+	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
 		defer err2.Return(&err)
-		job, err = rowToJob(rows)
-		err2.Check(err)
+		job = try.To1(rowToJob(rows))
 		jobs = append(jobs, job)
 		return
 	}, query, tenantID))

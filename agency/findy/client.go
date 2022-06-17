@@ -13,6 +13,7 @@ import (
 	"github.com/findy-network/findy-common-go/jwt"
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/oauth"
 )
@@ -84,8 +85,7 @@ func (c *Client) listen(id string) (ch chan *AgentStatus, err error) {
 	agentClient := agency.NewAgentServiceClient(c.ClientConn)
 	statusCh := make(chan *AgentStatus)
 
-	stream, err := agentClient.Listen(c.ctx, clientID, c.cOpts...)
-	err2.Check(err)
+	stream := try.To1(agentClient.Listen(c.ctx, clientID, c.cOpts...))
 	utils.LogLow().Infoln("successful start of listen id:", clientID.ID)
 
 	go func() {
@@ -101,7 +101,7 @@ func (c *Client) listen(id string) (ch chan *AgentStatus, err error) {
 				break
 			}
 			statusCh <- &AgentStatus{status, err}
-			err2.Check(err)
+			try.To(err)
 		}
 	}()
 	return statusCh, nil

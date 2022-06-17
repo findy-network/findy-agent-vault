@@ -8,6 +8,7 @@ import (
 	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
+	"github.com/lainio/err2/try"
 	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
 )
@@ -53,21 +54,21 @@ func (f *Agency) handleProtocolFailure(
 	now := f.currentTimeMs()
 	switch notification.ProtocolType {
 	case agency.Protocol_ISSUE_CREDENTIAL:
-		err2.Check(f.vault.UpdateCredential(
+		try.To(f.vault.UpdateCredential(
 			job,
 			&model.CredentialUpdate{
 				FailedMs: &now,
 			},
 		))
 	case agency.Protocol_PRESENT_PROOF:
-		err2.Check(f.vault.UpdateProof(
+		try.To(f.vault.UpdateProof(
 			job,
 			&model.ProofUpdate{
 				FailedMs: &now,
 			},
 		))
 	default:
-		err2.Check(f.vault.FailJob(job))
+		try.To(f.vault.FailJob(job))
 	}
 	return
 }
@@ -90,7 +91,7 @@ func (f *Agency) handleProtocolSuccess(
 			return
 		}
 
-		err2.Check(f.vault.AddConnection(job, connection))
+		try.To(f.vault.AddConnection(job, connection))
 
 	case agency.Protocol_BASIC_MESSAGE:
 		message := statusToMessage(status)
@@ -100,17 +101,17 @@ func (f *Agency) handleProtocolSuccess(
 		}
 
 		// TODO: delivered?
-		err2.Check(f.vault.AddMessage(job, message))
+		try.To(f.vault.AddMessage(job, message))
 
 	case agency.Protocol_ISSUE_CREDENTIAL:
-		err2.Check(f.vault.UpdateCredential(
+		try.To(f.vault.UpdateCredential(
 			job,
 			&model.CredentialUpdate{
 				IssuedMs: &now,
 			},
 		))
 	case agency.Protocol_PRESENT_PROOF:
-		err2.Check(f.vault.UpdateProof(
+		try.To(f.vault.UpdateProof(
 			job,
 			&model.ProofUpdate{
 				VerifiedMs: &now,
@@ -298,8 +299,7 @@ func (f *Agency) listenAgentWithRetry(a *model.Agent, retryCounter counter) (err
 
 	// Error in registration is not notified here, instead all relevant info comes
 	// in stream callback from now on
-	ch, err := cmd.listen(a.TenantID)
-	err2.Check(err)
+	ch := try.To1(cmd.listen(a.TenantID))
 
 	go f.agentStatusLoop(a, ch, retryCounter)
 
@@ -312,6 +312,5 @@ func (f *Agency) releaseCompleted(a *model.Agent, protocolID string, protocolTyp
 	})
 
 	cmd := f.userAsyncClient(a)
-	_, err := cmd.release(protocolID, protocolType)
-	err2.Check(err)
+	try.To1(cmd.release(protocolID, protocolType))
 }

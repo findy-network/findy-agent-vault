@@ -11,6 +11,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
 	"github.com/lainio/err2/assert"
+	"github.com/lainio/err2/try"
 )
 
 type Archiver struct {
@@ -62,13 +63,12 @@ func (a *Archiver) archiveExisting(
 
 	utils.LogLow().Infof("Archive for existing job %s (%s)", job.ID, job.ProtocolType)
 
-	idToUpdate, archive, err = a.matchProtocol(job)
-	err2.Check(err)
+	idToUpdate, archive = try.To2(a.matchProtocol(job))
 
 	assert.P.True(*idToUpdate != nil, "existing job to archive should have a valid protocol id")
 
 	// TODO: update data also?
-	err2.Check(archive(**idToUpdate, agent.TenantID))
+	try.To(archive(**idToUpdate, agent.TenantID))
 
 	if job.Status != graph.JobStatusComplete || job.Result != graph.JobResultSuccess {
 		utils.LogLow().Infof("Update existing job %s (%s) when archiving", job.ID, job.ProtocolType)
@@ -77,8 +77,7 @@ func (a *Archiver) archiveExisting(
 		job.Status = graph.JobStatusComplete
 		job.Result = graph.JobResultSuccess
 		job.ConnectionID = &info.ConnectionID
-		_, err = a.db.UpdateJob(job)
-		err2.Check(err)
+		try.To1(a.db.UpdateJob(job))
 	}
 	return nil
 }
@@ -91,8 +90,7 @@ func (a *Archiver) archiveNew(
 ) (err error) {
 	defer err2.Return(&err)
 
-	id, err := addToStore(agent, info.InitiatedByUs)
-	err2.Check(err)
+	id := try.To1(addToStore(agent, info.InitiatedByUs))
 
 	job := &model.Job{
 		Base:          model.Base{ID: info.JobID, TenantID: agent.TenantID},
@@ -108,8 +106,7 @@ func (a *Archiver) archiveNew(
 	utils.LogLow().Infof("Create new job %s (%s) when archiving", job.ID, job.ProtocolType)
 
 	// add job
-	_, err = a.db.AddJob(job)
-	err2.Check(err)
+	try.To1(a.db.AddJob(job))
 
 	return
 }
@@ -121,17 +118,16 @@ func (a *Archiver) archive(
 ) (err error) {
 	defer err2.Return(&err)
 
-	agent, err := a.db.GetAgent(nil, &info.AgentID)
-	err2.Check(err)
+	agent := try.To1(a.db.GetAgent(nil, &info.AgentID))
 
 	job, err := a.db.GetJob(info.JobID, agent.TenantID)
 
 	if err == nil { // job exists
-		err2.Check(a.archiveExisting(info, agent, job))
+		try.To(a.archiveExisting(info, agent, job))
 	} else if store.ErrorCode(err) == store.ErrCodeNotFound { // job is new
-		err2.Check(a.archiveNew(info, agent, protocolType, addToStore))
+		try.To(a.archiveNew(info, agent, protocolType, addToStore))
 	} else {
-		err2.Check(err) // some other error
+		try.To(err) // some other error
 	}
 
 	return
@@ -142,11 +138,11 @@ func (a *Archiver) ArchiveConnection(info *agency.ArchiveInfo, data *agency.Conn
 		glog.Errorf("Encountered error when archiving connection %s", err)
 	})
 
-	err2.Check(a.archive(info, graph.ProtocolTypeConnection, func(agent *model.Agent, initiatedByUs bool) (id string, err error) {
+	try.To(a.archive(info, graph.ProtocolTypeConnection, func(agent *model.Agent, initiatedByUs bool) (id string, err error) {
 		defer err2.Return(&err)
 
 		now := utils.CurrentTime()
-		connection, err := a.db.AddConnection(&model.Connection{
+		connection := try.To1(a.db.AddConnection(&model.Connection{
 			Base: model.Base{
 				ID:       info.ConnectionID,
 				TenantID: agent.TenantID,
@@ -158,8 +154,7 @@ func (a *Archiver) ArchiveConnection(info *agency.ArchiveInfo, data *agency.Conn
 			Approved:      now, // TODO: get approved from agency
 			Invited:       initiatedByUs,
 			Archived:      now,
-		})
-		err2.Check(err)
+		}))
 
 		return connection.ID, nil
 	}))
@@ -169,18 +164,17 @@ func (a *Archiver) ArchiveMessage(info *agency.ArchiveInfo, data *agency.Message
 	defer err2.Catch(func(err error) {
 		glog.Errorf("Encountered error when archiving message %s", err)
 	})
-	err2.Check(a.archive(info, graph.ProtocolTypeBasicMessage, func(agent *model.Agent, initiatedByUs bool) (id string, err error) {
+	try.To(a.archive(info, graph.ProtocolTypeBasicMessage, func(agent *model.Agent, initiatedByUs bool) (id string, err error) {
 		defer err2.Return(&err)
 
 		now := utils.CurrentTime()
-		message, err := a.db.AddMessage(&model.Message{
+		message := try.To1(a.db.AddMessage(&model.Message{
 			Base:         model.Base{TenantID: agent.TenantID},
 			ConnectionID: info.ConnectionID,
 			Message:      data.Message,
 			SentByMe:     data.SentByMe, // TODO: sent time
 			Archived:     now,
-		})
-		err2.Check(err)
+		}))
 
 		return message.ID, nil
 	}))
@@ -191,11 +185,11 @@ func (a *Archiver) ArchiveCredential(info *agency.ArchiveInfo, data *agency.Cred
 		glog.Errorf("Encountered error when archiving credential %s", err)
 	})
 
-	err2.Check(a.archive(info, graph.ProtocolTypeCredential, func(agent *model.Agent, initiatedByUs bool) (id string, err error) {
+	try.To(a.archive(info, graph.ProtocolTypeCredential, func(agent *model.Agent, initiatedByUs bool) (id string, err error) {
 		defer err2.Return(&err)
 
 		now := utils.CurrentTime()
-		credential, err := a.db.AddCredential(&model.Credential{
+		credential := try.To1(a.db.AddCredential(&model.Credential{
 			Base:          model.Base{TenantID: agent.TenantID},
 			ConnectionID:  info.ConnectionID,
 			Role:          data.Role,
@@ -205,8 +199,7 @@ func (a *Archiver) ArchiveCredential(info *agency.ArchiveInfo, data *agency.Cred
 			InitiatedByUs: data.InitiatedByUs,
 			Issued:        now, // TODO: get actual issued time
 			Archived:      now,
-		})
-		err2.Check(err)
+		}))
 
 		return credential.ID, nil
 	}))
@@ -217,11 +210,11 @@ func (a *Archiver) ArchiveProof(info *agency.ArchiveInfo, data *agency.Proof) {
 		glog.Errorf("Encountered error when archiving proof %s", err)
 	})
 
-	err2.Check(a.archive(info, graph.ProtocolTypeProof, func(agent *model.Agent, initiatedByUs bool) (id string, err error) {
+	try.To(a.archive(info, graph.ProtocolTypeProof, func(agent *model.Agent, initiatedByUs bool) (id string, err error) {
 		defer err2.Return(&err)
 
 		now := utils.CurrentTime()
-		proof, err := a.db.AddProof(&model.Proof{
+		proof := try.To1(a.db.AddProof(&model.Proof{
 			Base:          model.Base{TenantID: agent.TenantID},
 			ConnectionID:  info.ConnectionID,
 			Role:          data.Role,
@@ -229,8 +222,7 @@ func (a *Archiver) ArchiveProof(info *agency.ArchiveInfo, data *agency.Proof) {
 			Result:        true,
 			InitiatedByUs: data.InitiatedByUs,
 			Verified:      now, // TODO: get actual verified time
-		})
-		err2.Check(err)
+		}))
 
 		return proof.ID, nil
 	}))
