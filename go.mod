@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/99designs/gqlgen v0.17.13
 	github.com/bxcodec/faker/v3 v3.8.0
-	github.com/findy-network/findy-common-go v0.1.36
+	github.com/findy-network/findy-common-go v0.1.39
 	github.com/gchaincl/sqlhooks/v2 v2.0.1
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/golang/glog v0.0.0-20210429001901-424d2337a529
@@ -18,13 +18,13 @@ require (
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/viper v1.12.0
 	github.com/vektah/gqlparser/v2 v2.4.7
-	google.golang.org/grpc v1.46.2
+	google.golang.org/grpc v1.47.0
 )
 
 require (
 	cloud.google.com/go/compute v1.6.1 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
-	github.com/auth0/go-jwt-middleware v1.0.0 // indirect
+	github.com/auth0/go-jwt-middleware v1.0.1 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.5+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
