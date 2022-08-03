@@ -9,6 +9,7 @@ import (
 	"github.com/findy-network/findy-common-go/agency/client"
 	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
 	"github.com/findy-network/findy-common-go/jwt"
+	"github.com/findy-network/findy-common-go/rpc"
 	"github.com/golang/glog"
 	"github.com/google/uuid"
 	"github.com/lainio/err2"
@@ -21,14 +22,16 @@ type Agency struct {
 	vault         model.Listener
 	archiver      model.Archiver
 
-	agencyHost    string
-	agencyPort    int
-	agencyAdminID string
-	tlsPath       string
-	options       []grpc.DialOption
+	agencyHost     string
+	agencyPort     int
+	agencyAdminID  string
+	agencyInsecure bool
+	tlsPath        string
+	options        []grpc.DialOption
 
-	ctx  context.Context
-	conn client.Conn
+	ctx        context.Context
+	connConfig *rpc.ClientCfg
+	conn       client.Conn
 
 	userAsyncClient func(a *model.Agent) clientConn
 }
@@ -45,15 +48,19 @@ func (f *Agency) Init(
 	f.agencyHost = config.AgencyHost
 	f.agencyPort = config.AgencyPort
 	f.agencyAdminID = config.AgencyAdminID
+	f.agencyInsecure = config.AgencyInsecure
 	f.tlsPath = config.AgencyCertPath
 
 	f.ctx = context.Background()
+	if f.agencyInsecure && f.tlsPath == "" {
+		glog.Warning("Establishing insecure connection to agency")
+		f.connConfig = client.BuildInsecureClientConnBase(f.agencyHost, f.agencyPort, f.options)
+	} else {
+		f.connConfig = client.BuildClientConnBase(f.tlsPath, f.agencyHost, f.agencyPort, f.options)
+	}
 	// open connection without JWT token
 	// instead, token is set on each call
-	f.conn = client.TryAuthOpen(
-		"",
-		client.BuildClientConnBase(f.tlsPath, f.agencyHost, f.agencyPort, f.options),
-	)
+	f.conn = client.TryAuthOpen("", f.connConfig)
 
 	f.vault = listener
 	f.archiver = archiver
@@ -84,7 +91,7 @@ func (f *Agency) Invite(a *model.Agent) (data *model.InvitationData, err error) 
 	res := try.To1(cmd.CreateInvitation(
 		f.ctx,
 		&agency.InvitationBase{Label: a.Label, ID: id},
-		callOptions(a.RawJWT)...,
+		f.callOptions(a.RawJWT)...,
 	))
 
 	data = &model.InvitationData{}

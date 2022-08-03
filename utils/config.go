@@ -27,6 +27,7 @@ type Configuration struct {
 	AgencyHost           string `mapstructure:"agency_host"`
 	AgencyPort           int    `mapstructure:"agency_port"`
 	AgencyAdminID        string `mapstructure:"agency_admin_id"`
+	AgencyInsecure       bool   `mapstructure:"agency_insecure"`
 	Address              string
 	DBHost               string `mapstructure:"db_host"`
 	DBPassword           string `mapstructure:"db_password"`
@@ -55,6 +56,7 @@ func LoadConfig() *Configuration {
 	v.SetDefault("agency_host", localhost)
 	v.SetDefault("agency_port", defaultAgencyPort)
 	v.SetDefault("agency_admin_id", "findy-root")
+	v.SetDefault("agency_insecure", false)
 	v.SetDefault("db_host", localhost)
 	v.SetDefault("db_password", "")
 	v.SetDefault("db_port", defaultDBPort)
