@@ -11,6 +11,7 @@ import (
 	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
 	ops "github.com/findy-network/findy-common-go/grpc/ops/v1"
 	"github.com/findy-network/findy-common-go/jwt"
+	"github.com/findy-network/findy-common-go/rpc"
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
 	"github.com/lainio/err2/try"
@@ -31,7 +32,19 @@ type Client struct {
 	cOpts []grpc.CallOption
 }
 
-func callOptions(jwtToken string) []grpc.CallOption {
+func (f *Agency) callOptions(jwtToken string) []grpc.CallOption {
+	// Bypass security measures in insecure mode
+	if f.agencyInsecure {
+		conf := &rpc.ClientCfg{
+			JWT:      jwtToken,
+			Addr:     f.connConfig.Addr,
+			Opts:     f.connConfig.Opts,
+			Insecure: f.connConfig.Insecure,
+		}
+		return []grpc.CallOption{
+			grpc.PerRPCCredentials(conf),
+		}
+	}
 	return []grpc.CallOption{
 		grpc.PerRPCCredentials(
 			oauth.NewOauthAccess(jwt.OauthToken(jwtToken)),
@@ -41,19 +54,19 @@ func callOptions(jwtToken string) []grpc.CallOption {
 
 // Connection configuration for "sync" requests coming directly from web wallet
 func (f *Agency) userSyncClient(a *model.Agent, connectionID string) *async.Pairwise {
-	opts := callOptions(a.RawJWT)
+	opts := f.callOptions(a.RawJWT)
 	return async.NewPairwise(f.conn, connectionID, opts...)
 }
 
 // Connection configuration for "async" requests, done on behalf of the web wallet
 func (f *Agency) getUserAsyncClient(a *model.Agent) clientConn {
-	opts := callOptions(jwt.BuildJWT(a.AgentID))
+	opts := f.callOptions(jwt.BuildJWT(a.AgentID))
 	return &Client{&f.conn, f.ctx, opts}
 }
 
 // Connection configuration for agency administrative client
 func (f *Agency) adminClient() *Client {
-	opts := callOptions(jwt.BuildJWT(f.agencyAdminID))
+	opts := f.callOptions(jwt.BuildJWT(f.agencyAdminID))
 	return &Client{&f.conn, f.ctx, opts}
 }
 

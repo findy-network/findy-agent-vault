@@ -28,6 +28,7 @@ ENV FAV_AGENCY_HOST "localhost"
 ENV FAV_AGENCY_PORT "50051"
 ENV FAV_AGENCY_CERT_PATH "/grpc"
 ENV FAV_AGENCY_ADMIN_ID "findy-root"
+ENV FAV_AGENCY_INSECURE "false"
 
 COPY --from=0 /work/db/migrations /db/migrations
 COPY --from=0 /go/bin/findy-agent-vault /findy-agent-vault

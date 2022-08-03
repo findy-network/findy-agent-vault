@@ -8,10 +8,11 @@ import (
 
 func TestConfigFromEnv(t *testing.T) {
 	const (
-		testPort   = 1234
-		testSecret = "test-secret"
-		testHost   = "test-host"
-		testPath   = "test-path"
+		testPort     = 1234
+		testSecret   = "test-secret"
+		testHost     = "test-host"
+		testPath     = "test-path"
+		testInsecure = "true"
 	)
 
 	strPort := fmt.Sprintf("%d", testPort)
@@ -27,6 +28,7 @@ func TestConfigFromEnv(t *testing.T) {
 	os.Setenv("FAV_AGENCY_PORT", strPort)
 	os.Setenv("FAV_AGENCY_ADMIN_ID", testSecret)
 	os.Setenv("FAV_AGENCY_CERT_PATH", testPath)
+	os.Setenv("FAV_AGENCY_INSECURE", testInsecure)
 
 	config := LoadConfig()
 	if config.ServerPort != testPort {
@@ -64,5 +66,8 @@ func TestConfigFromEnv(t *testing.T) {
 	}
 	if config.AgencyCertPath != testPath {
 		t.Errorf("agency cert path differs")
+	}
+	if !config.AgencyInsecure {
+		t.Errorf("agency insecure differs")
 	}
 }
