@@ -80,14 +80,17 @@ func (*mockServer) CreateInvitation(context.Context, *agency.InvitationBase) (*a
 	return &agency.Invitation{JSON: testInvitation, URL: testInvitationURL}, nil
 }
 
-func dialer() func(context.Context, string) (net.Conn, error) {
+func dialer(insecure bool) func(context.Context, string) (net.Conn, error) {
 	const bufSize = 1024 * 1024
 
 	listener := bufconn.Listen(bufSize)
-	// TODO:
-	pki := rpc.LoadPKI("../../scripts/e2e/config/cert")
-	glog.V(1).Infof("starting gRPC server with\ncrt:\t%s\nkey:\t%s\nclient:\t%s",
-		pki.Server.CertFile, pki.Server.KeyFile, pki.Client.CertFile)
+	var pki *rpc.PKI
+	if !insecure {
+		// TODO:
+		pki = rpc.LoadPKI("../../scripts/e2e/config/cert")
+		glog.V(1).Infof("starting gRPC server with\ncrt:\t%s\nkey:\t%s\nclient:\t%s",
+			pki.Server.CertFile, pki.Server.KeyFile, pki.Client.CertFile)
+	}
 
 	s, lis, err := rpc.PrepareServe(&rpc.ServerCfg{
 		Port:    50051,
@@ -154,9 +157,10 @@ func (m *mockListener) FailJob(job *model.JobInfo) error {
 }
 
 var (
-	tlsPath     = "../../scripts/e2e/config/cert"
-	dialOptions = []grpc.DialOption{grpc.WithContextDialer(dialer())}
-	findy       = &Agency{
+	tlsPath             = "../../scripts/e2e/config/cert"
+	dialOptions         = []grpc.DialOption{grpc.WithContextDialer(dialer(false))}
+	insecureDialOptions = []grpc.DialOption{grpc.WithContextDialer(dialer(true))}
+	findy               = &Agency{
 		vault:   &mockListener{},
 		tlsPath: tlsPath,
 		options: dialOptions,
@@ -201,6 +205,39 @@ func TestInit(t *testing.T) {
 	if mockAgencyServer.hookID == "" {
 		t.Errorf("psm hook registration failed")
 	}
+	mockAgencyServer.hookID = ""
+	found := false
+	for _, clientID := range mockAgencyServer.clientIDs {
+		if clientID == testClientID {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("client listener registration failed")
+	}
+}
+
+func TestInitInsecure(t *testing.T) {
+	const testClientID = "test"
+	testAgency := &Agency{options: insecureDialOptions}
+	testAgency.Init(
+		&mockListener{},
+		[]*model.Agent{{AgentID: testClientID, TenantID: testClientID}},
+		&mockArchiver{},
+		&utils.Configuration{
+			JWTKey:               "mySuperSecretKeyLol",
+			AgencyCertPath:       "",
+			AgencyAdminID:        "admin-id",
+			AgencyMainSubscriber: true,
+			AgencyInsecure:       true,
+		},
+	)
+	// Wait for a while that calls complete
+	time.Sleep(time.Millisecond * 100)
+	if mockAgencyServer.hookID == "" {
+		t.Errorf("psm hook registration failed")
+	}
+	mockAgencyServer.hookID = ""
 	found := false
 	for _, clientID := range mockAgencyServer.clientIDs {
 		if clientID == testClientID {
