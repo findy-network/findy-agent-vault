@@ -109,6 +109,8 @@ func (f *Agency) Connect(a *model.Agent, strInvitation string) (id string, err e
 
 	cmd := f.userSyncClient(a, "")
 
+	utils.LogMed().Infof("Adding connection with invitation %s for tenant %s", strInvitation, a.TenantID)
+
 	cmd.Label = a.Label
 	protocolID := try.To1(cmd.Connection(f.ctx, strInvitation))
 
