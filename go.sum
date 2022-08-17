@@ -419,8 +419,8 @@ github.com/evanphx/json-patch v4.9.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLi
 github.com/evanphx/json-patch v4.11.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLiYLvXMP4fmwYFNcr97nuDLSk=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/felixge/httpsnoop v1.0.1/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
-github.com/findy-network/findy-common-go v0.1.41 h1:maaZ6gmmTEm2YgW0n1FWys8Tfhi8DD+brYKCldDbJyg=
-github.com/findy-network/findy-common-go v0.1.41/go.mod h1:nuHxuvSIdXj5nbOJwutsOvI9Px42pZAN5bZoexD89OM=
+github.com/findy-network/findy-common-go v0.1.42 h1:igEk7bfmkmcWCIMzQNWQcpS63D7TOroxoUNhn/tcsVU=
+github.com/findy-network/findy-common-go v0.1.42/go.mod h1:nuHxuvSIdXj5nbOJwutsOvI9Px42pZAN5bZoexD89OM=
 github.com/fogleman/gg v1.2.1-0.20190220221249-0403632d5b90/go.mod h1:R/bRT+9gY/C5z7JzPU0zXsXHKM4/ayA+zqcVNZzPa1k=
 github.com/fogleman/gg v1.3.0/go.mod h1:R/bRT+9gY/C5z7JzPU0zXsXHKM4/ayA+zqcVNZzPa1k=
 github.com/form3tech-oss/jwt-go v3.2.2+incompatible/go.mod h1:pbq4aXjuKjdthFRnoDwaVPLA+WlJuPGy+QneDUgJi2k=
