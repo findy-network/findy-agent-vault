@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/99designs/gqlgen v0.17.13
 	github.com/bxcodec/faker/v3 v3.8.0
-	github.com/findy-network/findy-common-go v0.1.41
+	github.com/findy-network/findy-common-go v0.1.42
 	github.com/gchaincl/sqlhooks/v2 v2.0.1
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/golang/glog v0.0.0-20210429001901-424d2337a529
