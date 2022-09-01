@@ -3,7 +3,7 @@ module github.com/findy-network/findy-agent-vault
 go 1.18
 
 require (
-	github.com/99designs/gqlgen v0.17.13
+	github.com/99designs/gqlgen v0.17.16
 	github.com/bxcodec/faker/v3 v3.8.0
 	github.com/findy-network/findy-common-go v0.1.42
 	github.com/gchaincl/sqlhooks/v2 v2.0.1
@@ -17,7 +17,7 @@ require (
 	github.com/rs/cors v1.8.2
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/viper v1.12.0
-	github.com/vektah/gqlparser/v2 v2.4.7
+	github.com/vektah/gqlparser/v2 v2.5.0
 	google.golang.org/grpc v1.48.0
 )
 
