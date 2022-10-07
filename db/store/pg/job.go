@@ -21,7 +21,7 @@ var (
 )
 
 func (pg *Database) getJobForObject(objectName, objectID, tenantID string) (j *model.Job, err error) {
-	defer err2.Annotate("getJobForObject", &err)
+	defer err2.Returnf(&err, "getJobForObject")
 
 	sqlJobSelectJoin := "SELECT " + sqlFields("job", jobFields) + ", job.created, job.cursor FROM"
 	sqlJobSelectByObjectID := sqlJobSelectJoin +
@@ -40,7 +40,7 @@ func (pg *Database) getJobForObject(objectName, objectID, tenantID string) (j *m
 }
 
 func (pg *Database) AddJob(j *model.Job) (job *model.Job, err error) {
-	defer err2.Annotate("AddJob", &err)
+	defer err2.Returnf(&err, "AddJob")
 
 	job = &model.Job{}
 	*job = *j
@@ -66,7 +66,7 @@ func (pg *Database) AddJob(j *model.Job) (job *model.Job, err error) {
 }
 
 func (pg *Database) UpdateJob(arg *model.Job) (j *model.Job, err error) {
-	defer err2.Annotate("UpdateJob", &err)
+	defer err2.Returnf(&err, "UpdateJob")
 
 	sqlJobUpdate := "UPDATE job " +
 		"SET protocol_connection_id=$1, protocol_credential_id=$2, protocol_proof_id=$3, protocol_message_id=$4," +
@@ -118,7 +118,7 @@ func readRowToJob(n *model.Job) func(*sql.Rows) error {
 }
 
 func (pg *Database) GetJob(id, tenantID string) (job *model.Job, err error) {
-	defer err2.Annotate("GetJob", &err)
+	defer err2.Returnf(&err, "GetJob")
 
 	sqlJobSelectByID := sqlJobSelect + " job WHERE id=$1 AND tenant_id=$2"
 
@@ -139,7 +139,7 @@ func (pg *Database) getJobsForQuery(
 	tenantID string,
 	initialArgs []interface{},
 ) (j *model.Jobs, err error) {
-	defer err2.Annotate("GetJobs", &err)
+	defer err2.Returnf(&err, "GetJobs")
 
 	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
 
@@ -243,7 +243,7 @@ func (pg *Database) GetJobs(info *paginator.BatchInfo, tenantID string, connecti
 }
 
 func (pg *Database) GetJobCount(tenantID string, connectionID *string, completed *bool) (count int, err error) {
-	defer err2.Annotate("GetJobCount", &err)
+	defer err2.Returnf(&err, "GetJobCount")
 	const (
 		sqlJobBatchWhere              = " WHERE tenant_id=$1 AND status != 'COMPLETE'"
 		sqlJobBatchWhereConnection    = " WHERE tenant_id=$1 AND connection_id=$2 AND status != 'COMPLETE'"
