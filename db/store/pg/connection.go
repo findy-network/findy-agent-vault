@@ -31,7 +31,7 @@ var (
 )
 
 func (pg *Database) getConnectionForObject(objectName, columnName, objectID, tenantID string) (c *model.Connection, err error) {
-	defer err2.Annotate("getConnectionForObject", &err)
+	defer err2.Returnf(&err, "getConnectionForObject")
 
 	sqlConnectionJoinSelect := "SELECT " + sqlFields("connection", connectionFields) +
 		", connection.created, connection.approved, connection.cursor FROM connection"
@@ -51,7 +51,7 @@ func (pg *Database) getConnectionForObject(objectName, columnName, objectID, ten
 }
 
 func (pg *Database) AddConnection(c *model.Connection) (newConnection *model.Connection, err error) {
-	defer err2.Annotate("AddConnection", &err)
+	defer err2.Returnf(&err, "AddConnection")
 
 	newConnection = &model.Connection{}
 	*newConnection = *c
@@ -98,7 +98,7 @@ func readRowToConnection(c *model.Connection) func(*sql.Rows) error {
 }
 
 func (pg *Database) GetConnection(id, tenantID string) (c *model.Connection, err error) {
-	defer err2.Annotate("GetConnection", &err)
+	defer err2.Returnf(&err, "GetConnection")
 
 	sqlConnectionSelectByID := sqlConnectionSelect + " WHERE id=$1 AND tenant_id=$2"
 
@@ -114,7 +114,7 @@ func (pg *Database) GetConnection(id, tenantID string) (c *model.Connection, err
 }
 
 func (pg *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (c *model.Connections, err error) {
-	defer err2.Annotate("GetConnections", &err)
+	defer err2.Returnf(&err, "GetConnections")
 
 	query, args := getBatchQuery(connectionQueryInfo, info, tenantID, []interface{}{})
 
@@ -162,7 +162,7 @@ func (pg *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (
 }
 
 func (pg *Database) GetConnectionCount(tenantID string) (count int, err error) {
-	defer err2.Annotate("GetCredentialCount", &err)
+	defer err2.Returnf(&err, "GetCredentialCount")
 	count = try.To1(pg.getCount(
 		"connection",
 		" WHERE tenant_id=$1 ",
@@ -174,7 +174,7 @@ func (pg *Database) GetConnectionCount(tenantID string) (count int, err error) {
 }
 
 func (pg *Database) ArchiveConnection(id, tenantID string) (err error) {
-	defer err2.Annotate("ArchiveConnection", &err)
+	defer err2.Returnf(&err, "ArchiveConnection")
 
 	var (
 		sqlConnectionArchive = "UPDATE connection SET archived=$1 WHERE id = $2 and tenant_id = $3 RETURNING " +
