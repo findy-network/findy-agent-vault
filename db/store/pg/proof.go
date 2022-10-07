@@ -49,7 +49,7 @@ const (
 )
 
 func (pg *Database) getProofForObject(objectName, columnName, objectID, tenantID string) (c *model.Proof, err error) {
-	defer err2.Annotate("getProofForObject", &err)
+	defer err2.Returnf(&err, "getProofForObject")
 
 	sqlProofJoinSelect := "SELECT proof.id, " + sqlFields("proof", proofFields) +
 		", " + sqlFields("proof", proofExtraFields) +
@@ -69,7 +69,7 @@ func (pg *Database) getProofForObject(objectName, columnName, objectID, tenantID
 }
 
 func (pg *Database) addProofAttributes(id string, attributes []*graph.ProofAttribute) (a []*graph.ProofAttribute, err error) {
-	defer err2.Annotate("addProofAttributes", &err)
+	defer err2.Returnf(&err, "addProofAttributes")
 
 	query := constructProofAttributeInsert(len(attributes))
 	args := make([]interface{}, 0)
@@ -90,7 +90,7 @@ func (pg *Database) addProofAttributes(id string, attributes []*graph.ProofAttri
 }
 
 func (pg *Database) AddProof(p *model.Proof) (proof *model.Proof, err error) {
-	defer err2.Annotate("AddProof", &err)
+	defer err2.Returnf(&err, "AddProof")
 
 	if len(p.Attributes) == 0 {
 		panic("Attributes are always required for proof.")
@@ -125,7 +125,7 @@ func (pg *Database) AddProof(p *model.Proof) (proof *model.Proof, err error) {
 }
 
 func (pg *Database) UpdateProof(p *model.Proof) (n *model.Proof, err error) {
-	defer err2.Annotate("UpdateProof", &err)
+	defer err2.Returnf(&err, "UpdateProof")
 
 	const (
 		// TODO: tenant id + connection id
@@ -216,7 +216,7 @@ func readRowToProof(rows *sql.Rows, previous *model.Proof) (*model.Proof, error)
 }
 
 func (pg *Database) GetProof(id, tenantID string) (p *model.Proof, err error) {
-	defer err2.Annotate("GetProof", &err)
+	defer err2.Returnf(&err, "GetProof")
 
 	sqlProofSelectByID := sqlProofSelect + " proof" + sqlProofJoin +
 		" WHERE proof.id=$1 AND tenant_id=$2" +
@@ -238,7 +238,7 @@ func (pg *Database) getProofsForQuery(
 	tenantID string,
 	initialArgs []interface{},
 ) (p *model.Proofs, err error) {
-	defer err2.Annotate("GetProofs", &err)
+	defer err2.Returnf(&err, "GetProofs")
 
 	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
 
@@ -353,7 +353,7 @@ func (pg *Database) GetProofs(info *paginator.BatchInfo, tenantID string, connec
 }
 
 func (pg *Database) GetProofCount(tenantID string, connectionID *string) (count int, err error) {
-	defer err2.Annotate("GetProofCount", &err)
+	defer err2.Returnf(&err, "GetProofCount")
 	const (
 		sqlProofBatchWhere           = " WHERE tenant_id=$1 AND verified IS NOT NULL "
 		sqlProofBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2 AND verified IS NOT NULL "
@@ -373,7 +373,7 @@ func (pg *Database) GetConnectionForProof(id, tenantID string) (*model.Connectio
 }
 
 func (pg *Database) ArchiveProof(id, tenantID string) (err error) {
-	defer err2.Annotate("ArchiveProof", &err)
+	defer err2.Returnf(&err, "ArchiveProof")
 
 	var (
 		sqlProofArchive = "UPDATE proof SET archived=$1 WHERE id = $2 and tenant_id = $3 RETURNING id"
