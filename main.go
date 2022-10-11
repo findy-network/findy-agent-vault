@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/findy-network/findy-agent-vault/agency/findy"
@@ -38,5 +39,11 @@ func main() {
 		_, _ = w.Write([]byte(config.Version))
 	})
 
-	glog.Fatal(http.ListenAndServe(config.Address, nil))
+	const serverTimeout = 5 * time.Second
+	ourServer := &http.Server{
+		Addr:              config.Address,
+		ReadHeaderTimeout: serverTimeout,
+	}
+
+	glog.Fatal(ourServer.ListenAndServe())
 }
