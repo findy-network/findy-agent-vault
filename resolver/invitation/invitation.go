@@ -3,12 +3,11 @@ package invitation
 import (
 	"bytes"
 	"encoding/base64"
-	"encoding/json"
 	"image/png"
 
 	agency "github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/graph/model"
-	didexchange "github.com/findy-network/findy-common-go/std/didexchange/invitation"
+	"github.com/findy-network/findy-common-go/std/didexchange/invitation"
 	"github.com/lainio/err2"
 	"github.com/lainio/err2/try"
 	"github.com/skip2/go-qrcode"
@@ -21,16 +20,12 @@ func FromURLParam(raw string) (res *model.InvitationResponse, err error) {
 
 	qrCode := try.To1(strToQRCode(raw))
 
-	invitation := didexchange.Invitation{}
-	// ignore error on purpose
-	_ = json.Unmarshal([]byte(raw), &invitation)
-
-	// TODO: parse invitation in URL-format
+	inv := try.To1(invitation.Translate(raw))
 
 	res = &model.InvitationResponse{
-		ID:       invitation.ID,
-		Endpoint: invitation.ServiceEndpoint,
-		Label:    invitation.Label,
+		ID:       inv.ID(),
+		Endpoint: inv.Services()[0].ServiceEndpoint,
+		Label:    inv.Label(),
 		Raw:      raw,
 		ImageB64: qrCode,
 	}
@@ -43,10 +38,12 @@ func FromAgency(data *agency.InvitationData) (res *model.InvitationResponse, err
 
 	qrCode := try.To1(strToQRCode(data.Raw))
 
+	inv := try.To1(invitation.Translate(data.Raw))
+
 	res = &model.InvitationResponse{
-		ID:       data.Data.ID,
-		Endpoint: data.Data.ServiceEndpoint,
-		Label:    data.Data.Label,
+		ID:       inv.ID(),
+		Endpoint: inv.Services()[0].ServiceEndpoint,
+		Label:    inv.Label(),
 		Raw:      data.Raw,
 		ImageB64: qrCode,
 	}

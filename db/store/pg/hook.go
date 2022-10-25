@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/findy-network/findy-agent-vault/utils"
-	"github.com/gchaincl/sqlhooks/v2"
 	"github.com/lib/pq"
+	"github.com/qustavo/sqlhooks/v2"
 )
 
 type traceCtxKey string
