@@ -2,7 +2,6 @@ package findy
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/findy-network/findy-agent-vault/agency/model"
 	"github.com/findy-network/findy-agent-vault/utils"
@@ -95,8 +94,6 @@ func (f *Agency) Invite(a *model.Agent) (data *model.InvitationData, err error) 
 	))
 
 	data = &model.InvitationData{}
-
-	try.To(json.Unmarshal([]byte(res.GetJSON()), &data.Data))
 
 	data.Raw = res.GetURL()
 	data.ID = id

@@ -2,7 +2,6 @@ package model
 
 import (
 	"github.com/findy-network/findy-agent-vault/utils"
-	didexchange "github.com/findy-network/findy-common-go/std/didexchange/invitation"
 )
 
 type JobInfo struct {
@@ -19,9 +18,8 @@ type Agent struct {
 }
 
 type InvitationData struct {
-	Raw  string
-	ID   string
-	Data didexchange.Invitation
+	Raw string
+	ID  string
 }
 
 type Agency interface {
