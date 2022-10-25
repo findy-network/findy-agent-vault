@@ -53,7 +53,6 @@ linters:
     #    - containedctx
     - contextcheck
     #    - cyclop
-    - deadcode
     - decorder
     - depguard
     - dogsled
@@ -113,7 +112,6 @@ linters:
     - rowserrcheck
     - sqlclosecheck
     - staticcheck
-    - structcheck
     - stylecheck
     - tagliatelle
     #    - tenv
@@ -124,7 +122,6 @@ linters:
     - unconvert
     - unparam
     - unused
-    - varcheck
     #    - varnamelen
     - wastedassign
     - whitespace
