@@ -382,3 +382,39 @@ func TestSearchCredentials(t *testing.T) {
 		})
 	}
 }
+
+func TestSearchCredentialsWithApostrophe(t *testing.T) {
+	for index := range DBs {
+		s := DBs[index]
+		t.Run("search credentials with apostrophe "+s.name, func(t *testing.T) {
+			now := utils.CurrentTime()
+			testCredential = s.newTestCredential(testCredential)
+
+			// Add data
+			testCredential.CredDefID = "searchCredentials's"
+			c, err := s.db.AddCredential(testCredential)
+			assert.D.True(err == nil)
+
+			c.Issued = now
+			c, err = s.db.UpdateCredential(c)
+			assert.D.True(err == nil)
+
+			proofRequest := &graph.Proof{Attributes: testProof.Attributes}
+			proofRequest.Attributes[0].CredDefID = testCredential.CredDefID
+			res, err := s.db.SearchCredentials(s.testTenantID, proofRequest.Attributes)
+
+			if err != nil {
+				t.Errorf("Encountered error when searching for creds %s", err)
+			}
+			if len(res) != len(proofRequest.Attributes) {
+				t.Errorf("Unexpected credential count %d", len(res))
+			}
+			if len(res[0].Credentials) != 1 {
+				t.Errorf("Expected credential was not found")
+			}
+			if res[0].Credentials[0].CredentialID != c.ID {
+				t.Errorf("Found Unexpected credential id, got: %s, exp: %s", res[0].Credentials[0].CredentialID, c.ID)
+			}
+		})
+	}
+}

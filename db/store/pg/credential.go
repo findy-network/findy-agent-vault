@@ -12,6 +12,7 @@ import (
 	"github.com/lainio/err2"
 	"github.com/lainio/err2/assert"
 	"github.com/lainio/err2/try"
+	"github.com/lib/pq"
 )
 
 func constructCredentialAttributeInsert(count int) string {
@@ -361,13 +362,20 @@ func (pg *Database) SearchCredentials(
 
 	assert.P.NotEmpty(proofAttributes, "cannot search credentials for empty proof")
 
-	attributeSearch := getInFilterForAttributes(proofAttributes)
+	credDefIDs := make([]string, 0)
+	names := make([]string, 0)
+	for _, attr := range proofAttributes {
+		if attr.CredDefID != "" {
+			credDefIDs = append(credDefIDs, attr.CredDefID)
+		}
+		names = append(names, attr.Name)
+	}
 
-	utils.LogMed().Infof("Searching for credentials %s", attributeSearch)
+	utils.LogMed().Infof("Searching for credentials with cred def id %v, name %v", credDefIDs, names)
 
 	var (
 		sqlCredentialSearch = "SELECT credential.id, name, cred_def_id, value FROM credential " + sqlCredentialJoin +
-			" WHERE tenant_id=$1 AND issued > timestamp '0001-01-01' AND (" + attributeSearch + ")" +
+			" WHERE tenant_id=$1 AND issued > timestamp '0001-01-01' AND (cred_def_id=ANY($2::varchar[]) OR name=ANY($3::varchar[]))" +
 			" ORDER BY credential.created"
 	)
 
@@ -384,7 +392,7 @@ func (pg *Database) SearchCredentials(
 		try.To(rows.Scan(&s.credID, &s.attrName, &s.credDefID, &s.credValue))
 		searchResults = append(searchResults, s)
 		return
-	}, sqlCredentialSearch, tenantID))
+	}, sqlCredentialSearch, tenantID, pq.Array(credDefIDs), pq.Array(names)))
 
 	res = make([]*graph.ProvableAttribute, 0)
 	for _, attr := range proofAttributes {
