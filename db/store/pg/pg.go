@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/findy-network/findy-agent-vault/db/store"
-	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/golang-migrate/migrate/v4"
@@ -239,28 +238,4 @@ func (pg *Database) doRowsQuery(scan func(*sql.Rows) error, query string, args .
 	try.To(rows.Err())
 
 	return nil
-}
-
-func getInFilterForAttributes(proofAttributes []*graph.ProofAttribute) string {
-	credDefs := ""
-	names := ""
-	for _, attr := range proofAttributes {
-		if attr.CredDefID != "" {
-			if credDefs != "" {
-				credDefs += ","
-			}
-			credDefs += fmt.Sprintf("'%s'", attr.CredDefID)
-		}
-		if names != "" {
-			names += ","
-		}
-		names += fmt.Sprintf("'%s'", attr.Name)
-	}
-
-	attributeSearch := ""
-	if credDefs != "" {
-		attributeSearch = "cred_def_id IN (" + credDefs + ") OR "
-	}
-	attributeSearch += " name IN (" + names + ")"
-	return attributeSearch
 }

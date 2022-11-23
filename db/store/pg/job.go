@@ -9,6 +9,7 @@ import (
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/lainio/err2"
 	"github.com/lainio/err2/try"
+	"github.com/lib/pq"
 )
 
 var (
@@ -297,11 +298,20 @@ func (pg *Database) GetJobOutput(id, tenantID string, protocolType graph.Protoco
 
 func (pg *Database) GetOpenProofJobs(tenantID string, proofAttributes []*graph.ProofAttribute) (jobs []*model.Job, err error) {
 	defer err2.Return(&err)
-	attributeSearch := getInFilterForAttributes(proofAttributes)
+
+	credDefIDs := make([]string, 0)
+	names := make([]string, 0)
+	for _, attr := range proofAttributes {
+		if attr.CredDefID != "" {
+			credDefIDs = append(credDefIDs, attr.CredDefID)
+		}
+		names = append(names, attr.Name)
+	}
 
 	query := "SELECT DISTINCT " + sqlFields("job", jobFields) + ", created, cursor FROM job " +
 		"INNER JOIN proof_attribute ON proof_attribute.proof_id = job.protocol_proof_id " +
-		"WHERE tenant_id=$1 AND status = 'BLOCKED' AND protocol_type = 'PROOF' AND (" + attributeSearch + ")"
+		"WHERE tenant_id=$1 AND status = 'BLOCKED' AND protocol_type = 'PROOF' AND " +
+		"(cred_def_id=ANY($2::varchar[]) OR name=ANY($3::varchar[]))"
 
 	jobs = make([]*model.Job, 0)
 	var job *model.Job
@@ -310,7 +320,7 @@ func (pg *Database) GetOpenProofJobs(tenantID string, proofAttributes []*graph.P
 		job = try.To1(rowToJob(rows))
 		jobs = append(jobs, job)
 		return
-	}, query, tenantID))
+	}, query, tenantID, pq.Array(credDefIDs), pq.Array(names)))
 
 	return jobs, nil
 }
