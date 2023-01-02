@@ -105,7 +105,7 @@ func ValidateFirstAndLast(first, last *int) (count int, valid bool, err error) {
 }
 
 func Validate(prefix string, params *Params) (info *BatchInfo, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 	LogRequest(prefix, params)
 
 	var count int

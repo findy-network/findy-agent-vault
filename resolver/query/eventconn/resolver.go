@@ -21,7 +21,7 @@ func NewResolver(db store.DB, agentResolver *agent.Resolver) *Resolver {
 }
 
 func (r *Resolver) TotalCount(ctx context.Context, obj *model.EventConnection) (c int, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	tenant := try.To1(r.GetAgent(ctx))
 

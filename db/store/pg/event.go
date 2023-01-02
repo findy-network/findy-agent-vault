@@ -21,7 +21,7 @@ var (
 )
 
 func (pg *Database) AddEvent(e *model.Event) (event *model.Event, err error) {
-	defer err2.Returnf(&err, "AddEvent")
+	defer err2.Handle(&err, "AddEvent")
 
 	event = &model.Event{}
 	*event = *e
@@ -41,7 +41,7 @@ func (pg *Database) AddEvent(e *model.Event) (event *model.Event, err error) {
 }
 
 func (pg *Database) MarkEventRead(id, tenantID string) (event *model.Event, err error) {
-	defer err2.Returnf(&err, "MarkEventRead")
+	defer err2.Handle(&err, "MarkEventRead")
 
 	const sqlEventUpdate = "UPDATE event SET read=true WHERE id = $1 AND tenant_id = $2" +
 		" RETURNING id," + sqlEventFields + ", created, cursor"
@@ -78,7 +78,7 @@ func readRowToEvent(n *model.Event) func(*sql.Rows) error {
 }
 
 func (pg *Database) GetEvent(id, tenantID string) (event *model.Event, err error) {
-	defer err2.Returnf(&err, "GetEvent")
+	defer err2.Handle(&err, "GetEvent")
 
 	const sqlEventSelectByID = sqlEventSelect + " event" +
 		" WHERE event.id=$1 AND tenant_id=$2"
@@ -100,7 +100,7 @@ func (pg *Database) getEventsForQuery(
 	tenantID string,
 	initialArgs []interface{},
 ) (e *model.Events, err error) {
-	defer err2.Returnf(&err, "GetEvents")
+	defer err2.Handle(&err, "GetEvents")
 
 	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
 	e = &model.Events{
@@ -111,7 +111,7 @@ func (pg *Database) getEventsForQuery(
 
 	var event *model.Event
 	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
-		defer err2.Return(&err)
+		defer err2.Handle(&err)
 		event = try.To1(rowToEvent(rows))
 		e.Events = append(e.Events, event)
 		return
@@ -198,7 +198,7 @@ func (pg *Database) GetEvents(info *paginator.BatchInfo, tenantID string, connec
 }
 
 func (pg *Database) GetEventCount(tenantID string, connectionID *string) (count int, err error) {
-	defer err2.Returnf(&err, "GetEventCount")
+	defer err2.Handle(&err, "GetEventCount")
 	const (
 		sqlEventBatchWhere           = " WHERE tenant_id=$1 "
 		sqlEventBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2"

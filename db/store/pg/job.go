@@ -22,7 +22,7 @@ var (
 )
 
 func (pg *Database) getJobForObject(objectName, objectID, tenantID string) (j *model.Job, err error) {
-	defer err2.Returnf(&err, "getJobForObject")
+	defer err2.Handle(&err, "getJobForObject")
 
 	sqlJobSelectJoin := "SELECT " + sqlFields("job", jobFields) + ", job.created, job.cursor FROM"
 	sqlJobSelectByObjectID := sqlJobSelectJoin +
@@ -41,7 +41,7 @@ func (pg *Database) getJobForObject(objectName, objectID, tenantID string) (j *m
 }
 
 func (pg *Database) AddJob(j *model.Job) (job *model.Job, err error) {
-	defer err2.Returnf(&err, "AddJob")
+	defer err2.Handle(&err, "AddJob")
 
 	job = &model.Job{}
 	*job = *j
@@ -67,7 +67,7 @@ func (pg *Database) AddJob(j *model.Job) (job *model.Job, err error) {
 }
 
 func (pg *Database) UpdateJob(arg *model.Job) (j *model.Job, err error) {
-	defer err2.Returnf(&err, "UpdateJob")
+	defer err2.Handle(&err, "UpdateJob")
 
 	sqlJobUpdate := "UPDATE job " +
 		"SET protocol_connection_id=$1, protocol_credential_id=$2, protocol_proof_id=$3, protocol_message_id=$4," +
@@ -119,7 +119,7 @@ func readRowToJob(n *model.Job) func(*sql.Rows) error {
 }
 
 func (pg *Database) GetJob(id, tenantID string) (job *model.Job, err error) {
-	defer err2.Returnf(&err, "GetJob")
+	defer err2.Handle(&err, "GetJob")
 
 	sqlJobSelectByID := sqlJobSelect + " job WHERE id=$1 AND tenant_id=$2"
 
@@ -140,7 +140,7 @@ func (pg *Database) getJobsForQuery(
 	tenantID string,
 	initialArgs []interface{},
 ) (j *model.Jobs, err error) {
-	defer err2.Returnf(&err, "GetJobs")
+	defer err2.Handle(&err, "GetJobs")
 
 	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
 
@@ -151,7 +151,7 @@ func (pg *Database) getJobsForQuery(
 	}
 	var job *model.Job
 	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
-		defer err2.Return(&err)
+		defer err2.Handle(&err)
 		job = try.To1(rowToJob(rows))
 		j.Jobs = append(j.Jobs, job)
 		return
@@ -244,7 +244,7 @@ func (pg *Database) GetJobs(info *paginator.BatchInfo, tenantID string, connecti
 }
 
 func (pg *Database) GetJobCount(tenantID string, connectionID *string, completed *bool) (count int, err error) {
-	defer err2.Returnf(&err, "GetJobCount")
+	defer err2.Handle(&err, "GetJobCount")
 	const (
 		sqlJobBatchWhere              = " WHERE tenant_id=$1 AND status != 'COMPLETE'"
 		sqlJobBatchWhereConnection    = " WHERE tenant_id=$1 AND connection_id=$2 AND status != 'COMPLETE'"
@@ -276,7 +276,7 @@ func (pg *Database) GetConnectionForJob(id, tenantID string) (*model.Connection,
 }
 
 func (pg *Database) GetJobOutput(id, tenantID string, protocolType graph.ProtocolType) (output *model.JobOutput, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 	switch protocolType {
 	case graph.ProtocolTypeConnection:
 		connection := try.To1(pg.getConnectionForObject("job", "protocol_connection_id", id, tenantID))
@@ -297,7 +297,7 @@ func (pg *Database) GetJobOutput(id, tenantID string, protocolType graph.Protoco
 }
 
 func (pg *Database) GetOpenProofJobs(tenantID string, proofAttributes []*graph.ProofAttribute) (jobs []*model.Job, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	credDefIDs := make([]string, 0)
 	names := make([]string, 0)
@@ -316,7 +316,7 @@ func (pg *Database) GetOpenProofJobs(tenantID string, proofAttributes []*graph.P
 	jobs = make([]*model.Job, 0)
 	var job *model.Job
 	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
-		defer err2.Return(&err)
+		defer err2.Handle(&err)
 		job = try.To1(rowToJob(rows))
 		jobs = append(jobs, job)
 		return

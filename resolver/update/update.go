@@ -24,7 +24,7 @@ func NewUpdater(db store.DB, agentResolver *agent.Resolver) *Updater {
 }
 
 func (r *Updater) AddEvent(tenantID string, job *model.Job, description string) (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 	var connectionID, jobID *string
 	if job != nil {
 		connectionID = job.ConnectionID
@@ -43,7 +43,7 @@ func (r *Updater) AddEvent(tenantID string, job *model.Job, description string) 
 }
 
 func (r *Updater) AddJob(job *model.Job, description string) (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	utils.LogMed().Infof("Add job with ID %s for tenant %s", job.ID, job.TenantID)
 
@@ -55,7 +55,7 @@ func (r *Updater) AddJob(job *model.Job, description string) (err error) {
 }
 
 func (r *Updater) UpdateJob(job *model.Job, description string) (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	utils.LogMed().Infof("Update job with ID %s for tenant %s", job.ID, job.TenantID)
 

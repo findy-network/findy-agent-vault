@@ -54,7 +54,7 @@ func (a *Archiver) archiveExisting(
 	agent *model.Agent,
 	job *model.Job,
 ) (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	var (
 		idToUpdate **string
@@ -88,7 +88,7 @@ func (a *Archiver) archiveNew(
 	protocolType graph.ProtocolType,
 	addToStore func(*model.Agent, bool) (string, error),
 ) (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	id := try.To1(addToStore(agent, info.InitiatedByUs))
 
@@ -116,7 +116,7 @@ func (a *Archiver) archive(
 	protocolType graph.ProtocolType,
 	addToStore func(*model.Agent, bool) (string, error),
 ) (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	agent := try.To1(a.db.GetAgent(nil, &info.AgentID))
 
@@ -139,7 +139,7 @@ func (a *Archiver) ArchiveConnection(info *agency.ArchiveInfo, data *agency.Conn
 	})
 
 	try.To(a.archive(info, graph.ProtocolTypeConnection, func(agent *model.Agent, initiatedByUs bool) (id string, err error) {
-		defer err2.Return(&err)
+		defer err2.Handle(&err)
 
 		now := utils.CurrentTime()
 		connection := try.To1(a.db.AddConnection(&model.Connection{
@@ -165,7 +165,7 @@ func (a *Archiver) ArchiveMessage(info *agency.ArchiveInfo, data *agency.Message
 		glog.Errorf("Encountered error when archiving message %s", err)
 	})
 	try.To(a.archive(info, graph.ProtocolTypeBasicMessage, func(agent *model.Agent, initiatedByUs bool) (id string, err error) {
-		defer err2.Return(&err)
+		defer err2.Handle(&err)
 
 		now := utils.CurrentTime()
 		message := try.To1(a.db.AddMessage(&model.Message{
@@ -186,7 +186,7 @@ func (a *Archiver) ArchiveCredential(info *agency.ArchiveInfo, data *agency.Cred
 	})
 
 	try.To(a.archive(info, graph.ProtocolTypeCredential, func(agent *model.Agent, initiatedByUs bool) (id string, err error) {
-		defer err2.Return(&err)
+		defer err2.Handle(&err)
 
 		now := utils.CurrentTime()
 		credential := try.To1(a.db.AddCredential(&model.Credential{
@@ -211,7 +211,7 @@ func (a *Archiver) ArchiveProof(info *agency.ArchiveInfo, data *agency.Proof) {
 	})
 
 	try.To(a.archive(info, graph.ProtocolTypeProof, func(agent *model.Agent, initiatedByUs bool) (id string, err error) {
-		defer err2.Return(&err)
+		defer err2.Handle(&err)
 
 		now := utils.CurrentTime()
 		proof := try.To1(a.db.AddProof(&model.Proof{

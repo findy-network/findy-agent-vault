@@ -21,7 +21,7 @@ func NewResolver(db store.DB, agentResolver *agent.Resolver) *Resolver {
 }
 
 func (r *Resolver) Connection(ctx context.Context, obj *model.Credential) (c *model.Pairwise, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	tenant := try.To1(r.GetAgent(ctx))
 

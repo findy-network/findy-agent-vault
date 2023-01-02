@@ -19,7 +19,7 @@ var (
 )
 
 func (pg *Database) getMessageForObject(objectName, columnName, objectID, tenantID string) (m *model.Message, err error) {
-	defer err2.Returnf(&err, "getMessageForObject")
+	defer err2.Handle(&err, "getMessageForObject")
 
 	sqlMessageSelectByObjectID := "SELECT message.id, " +
 		sqlFields("message", messageFields) + ", message.created, message.cursor FROM" +
@@ -59,7 +59,7 @@ func readRowToMessage(n *model.Message) func(*sql.Rows) error {
 }
 
 func (pg *Database) AddMessage(arg *model.Message) (msg *model.Message, err error) {
-	defer err2.Returnf(&err, "AddMessage")
+	defer err2.Handle(&err, "AddMessage")
 
 	var (
 		sqlMessageInsert = "INSERT INTO message " + "(" + sqlBaseMessageFields + ") " +
@@ -85,7 +85,7 @@ func (pg *Database) AddMessage(arg *model.Message) (msg *model.Message, err erro
 }
 
 func (pg *Database) UpdateMessage(arg *model.Message) (m *model.Message, err error) {
-	defer err2.Returnf(&err, "UpdateMessage")
+	defer err2.Handle(&err, "UpdateMessage")
 
 	sqlMessageUpdate := "UPDATE message SET delivered=$1 WHERE id = $2 AND tenant_id = $3" +
 		" RETURNING id," + sqlBaseMessageFields + ", created, cursor"
@@ -102,7 +102,7 @@ func (pg *Database) UpdateMessage(arg *model.Message) (m *model.Message, err err
 }
 
 func (pg *Database) GetMessage(id, tenantID string) (m *model.Message, err error) {
-	defer err2.Returnf(&err, "GetMessage")
+	defer err2.Handle(&err, "GetMessage")
 
 	sqlMessageSelectByID := sqlMessageSelect + " message WHERE id=$1 AND tenant_id=$2"
 
@@ -123,7 +123,7 @@ func (pg *Database) getMessagesForQuery(
 	tenantID string,
 	initialArgs []interface{},
 ) (m *model.Messages, err error) {
-	defer err2.Returnf(&err, "GetMessages")
+	defer err2.Handle(&err, "GetMessages")
 
 	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
 
@@ -134,7 +134,7 @@ func (pg *Database) getMessagesForQuery(
 	}
 	var message *model.Message
 	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
-		defer err2.Return(&err)
+		defer err2.Handle(&err)
 		message = try.To1(rowToMessage(rows))
 		m.Messages = append(m.Messages, message)
 		return
@@ -221,7 +221,7 @@ func (pg *Database) GetMessages(info *paginator.BatchInfo, tenantID string, conn
 }
 
 func (pg *Database) GetMessageCount(tenantID string, connectionID *string) (count int, err error) {
-	defer err2.Returnf(&err, "GetMessageCount")
+	defer err2.Handle(&err, "GetMessageCount")
 	const (
 		sqlMessageBatchWhere           = " WHERE tenant_id=$1 "
 		sqlMessageBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2"
@@ -241,7 +241,7 @@ func (pg *Database) GetConnectionForMessage(id, tenantID string) (*model.Connect
 }
 
 func (pg *Database) ArchiveMessage(id, tenantID string) (err error) {
-	defer err2.Returnf(&err, "ArchiveMessage")
+	defer err2.Handle(&err, "ArchiveMessage")
 
 	var (
 		sqlMessageArchive = "UPDATE message SET archived=$1 WHERE id = $2 and tenant_id = $3 RETURNING id"

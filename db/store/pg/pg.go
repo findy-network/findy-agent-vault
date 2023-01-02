@@ -154,7 +154,7 @@ func (pg *Database) getCount(
 	tableName, batchWhere, batchWhereConnection, tenantID string,
 	connectionID *string,
 ) (count int, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	query := "SELECT count(id) FROM " + tableName
 	args := make([]interface{}, 0)
@@ -203,7 +203,7 @@ func sqlArguments(fields []string) string {
 }
 
 func (pg *Database) doRowQuery(scan func(*sql.Rows) error, query string, args ...interface{}) (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	rows := try.To1(pg.db.Query(query, args...))
 	defer rows.Close()
@@ -220,7 +220,7 @@ func (pg *Database) doRowQuery(scan func(*sql.Rows) error, query string, args ..
 }
 
 func (pg *Database) doRowsQuery(scan func(*sql.Rows) error, query string, args ...interface{}) (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	rows := try.To1(pg.db.Query(query, args...))
 	defer rows.Close()

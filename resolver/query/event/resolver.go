@@ -21,7 +21,7 @@ func NewResolver(db store.DB, agentResolver *agent.Resolver) *Resolver {
 }
 
 func (r *Resolver) Connection(ctx context.Context, obj *model.Event) (c *model.Pairwise, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	tenant := try.To1(r.GetAgent(ctx))
 
@@ -37,7 +37,7 @@ func (r *Resolver) Connection(ctx context.Context, obj *model.Event) (c *model.P
 }
 
 func (r *Resolver) Job(ctx context.Context, obj *model.Event) (j *model.JobEdge, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	tenant := try.To1(r.GetAgent(ctx))
 

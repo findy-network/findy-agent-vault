@@ -27,7 +27,7 @@ func (r *Resolver) Credentials(
 	after, before *string,
 	first, last *int,
 ) (c *model.CredentialConnection, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	tenant := try.To1(r.GetAgent(ctx))
 
@@ -52,7 +52,7 @@ func (r *Resolver) Proofs(
 	after, before *string,
 	first, last *int,
 ) (c *model.ProofConnection, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	tenant := try.To1(r.GetAgent(ctx))
 
@@ -77,7 +77,7 @@ func (r *Resolver) Messages(
 	after, before *string,
 	first, last *int,
 ) (e *model.BasicMessageConnection, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	tenant := try.To1(r.GetAgent(ctx))
 
@@ -102,7 +102,7 @@ func (r *Resolver) Events(
 	after, before *string,
 	first, last *int,
 ) (e *model.EventConnection, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	tenant := try.To1(r.GetAgent(ctx))
 
@@ -128,7 +128,7 @@ func (r *Resolver) Jobs(
 	first, last *int,
 	completed *bool,
 ) (e *model.JobConnection, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	tenant := try.To1(r.GetAgent(ctx))
 

@@ -49,7 +49,7 @@ const (
 )
 
 func (pg *Database) getProofForObject(objectName, columnName, objectID, tenantID string) (c *model.Proof, err error) {
-	defer err2.Returnf(&err, "getProofForObject")
+	defer err2.Handle(&err, "getProofForObject")
 
 	sqlProofJoinSelect := "SELECT proof.id, " + sqlFields("proof", proofFields) +
 		", " + sqlFields("proof", proofExtraFields) +
@@ -60,7 +60,7 @@ func (pg *Database) getProofForObject(objectName, columnName, objectID, tenantID
 
 	c = &model.Proof{}
 	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
-		defer err2.Return(&err)
+		defer err2.Handle(&err)
 		c = try.To1(readRowToProof(rows, c))
 		return
 	}, sqlProofSelectByObjectID, objectID, tenantID))
@@ -69,7 +69,7 @@ func (pg *Database) getProofForObject(objectName, columnName, objectID, tenantID
 }
 
 func (pg *Database) addProofAttributes(id string, attributes []*graph.ProofAttribute) (a []*graph.ProofAttribute, err error) {
-	defer err2.Returnf(&err, "addProofAttributes")
+	defer err2.Handle(&err, "addProofAttributes")
 
 	query := constructProofAttributeInsert(len(attributes))
 	args := make([]interface{}, 0)
@@ -80,7 +80,7 @@ func (pg *Database) addProofAttributes(id string, attributes []*graph.ProofAttri
 
 	index := 0
 	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
-		defer err2.Return(&err)
+		defer err2.Handle(&err)
 		try.To(rows.Scan(&attributes[index].ID))
 		index++
 		return
@@ -90,7 +90,7 @@ func (pg *Database) addProofAttributes(id string, attributes []*graph.ProofAttri
 }
 
 func (pg *Database) AddProof(p *model.Proof) (proof *model.Proof, err error) {
-	defer err2.Returnf(&err, "AddProof")
+	defer err2.Handle(&err, "AddProof")
 
 	if len(p.Attributes) == 0 {
 		panic("Attributes are always required for proof.")
@@ -125,7 +125,7 @@ func (pg *Database) AddProof(p *model.Proof) (proof *model.Proof, err error) {
 }
 
 func (pg *Database) UpdateProof(p *model.Proof) (n *model.Proof, err error) {
-	defer err2.Returnf(&err, "UpdateProof")
+	defer err2.Handle(&err, "UpdateProof")
 
 	const (
 		// TODO: tenant id + connection id
@@ -216,7 +216,7 @@ func readRowToProof(rows *sql.Rows, previous *model.Proof) (*model.Proof, error)
 }
 
 func (pg *Database) GetProof(id, tenantID string) (p *model.Proof, err error) {
-	defer err2.Returnf(&err, "GetProof")
+	defer err2.Handle(&err, "GetProof")
 
 	sqlProofSelectByID := sqlProofSelect + " proof" + sqlProofJoin +
 		" WHERE proof.id=$1 AND tenant_id=$2" +
@@ -224,7 +224,7 @@ func (pg *Database) GetProof(id, tenantID string) (p *model.Proof, err error) {
 
 	p = &model.Proof{}
 	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
-		defer err2.Return(&err)
+		defer err2.Handle(&err)
 		p = try.To1(readRowToProof(rows, p))
 		return
 	}, sqlProofSelectByID, id, tenantID))
@@ -238,7 +238,7 @@ func (pg *Database) getProofsForQuery(
 	tenantID string,
 	initialArgs []interface{},
 ) (p *model.Proofs, err error) {
-	defer err2.Returnf(&err, "GetProofs")
+	defer err2.Handle(&err, "GetProofs")
 
 	query, args := getBatchQuery(queries, batch, tenantID, initialArgs)
 
@@ -250,7 +250,7 @@ func (pg *Database) getProofsForQuery(
 	prevProof := &model.Proof{}
 	var proof *model.Proof
 	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
-		defer err2.Return(&err)
+		defer err2.Handle(&err)
 		proof = try.To1(readRowToProof(rows, prevProof))
 		if prevProof.ID != "" && prevProof.ID != proof.ID {
 			p.Proofs = append(p.Proofs, prevProof)
@@ -353,7 +353,7 @@ func (pg *Database) GetProofs(info *paginator.BatchInfo, tenantID string, connec
 }
 
 func (pg *Database) GetProofCount(tenantID string, connectionID *string) (count int, err error) {
-	defer err2.Returnf(&err, "GetProofCount")
+	defer err2.Handle(&err, "GetProofCount")
 	const (
 		sqlProofBatchWhere           = " WHERE tenant_id=$1 AND verified IS NOT NULL "
 		sqlProofBatchWhereConnection = " WHERE tenant_id=$1 AND connection_id=$2 AND verified IS NOT NULL "
@@ -373,7 +373,7 @@ func (pg *Database) GetConnectionForProof(id, tenantID string) (*model.Connectio
 }
 
 func (pg *Database) ArchiveProof(id, tenantID string) (err error) {
-	defer err2.Returnf(&err, "ArchiveProof")
+	defer err2.Handle(&err, "ArchiveProof")
 
 	var (
 		sqlProofArchive = "UPDATE proof SET archived=$1 WHERE id = $2 and tenant_id = $3 RETURNING id"

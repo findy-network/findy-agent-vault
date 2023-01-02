@@ -89,7 +89,7 @@ func (f *Agency) adminStatusLoop(ch chan *ops.AgencyStatus) {
 }
 
 func (f *Agency) listenAdminHook() (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	glog.Info("Start listening to PSM events.")
 

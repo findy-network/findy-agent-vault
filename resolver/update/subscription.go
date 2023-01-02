@@ -120,7 +120,7 @@ func (s *subscriberRegister) remove(subscriptionID string) {
 }
 
 func (r *Updater) EventAdded(ctx context.Context) (ch <-chan *model.EventEdge, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	tenant := try.To1(r.GetAgent(ctx))
 

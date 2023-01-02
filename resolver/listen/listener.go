@@ -25,7 +25,7 @@ func NewListener(db store.DB, updater *update.Updater) *Listener {
 }
 
 func (l *Listener) AddConnection(info *agency.JobInfo, data *agency.Connection) (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	utils.LogMed().Infof("Add connection %s for tenant %s", info.ConnectionID, info.TenantID)
 
@@ -62,7 +62,7 @@ func (l *Listener) AddConnection(info *agency.JobInfo, data *agency.Connection) 
 }
 
 func (l *Listener) AddMessage(info *agency.JobInfo, data *agency.Message) (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	msg := try.To1(l.db.AddMessage(&dbModel.Message{
 		Base:         dbModel.Base{TenantID: info.TenantID},
@@ -89,7 +89,7 @@ func (l *Listener) UpdateMessage(info *agency.JobInfo, _ *agency.MessageUpdate) 
 }
 
 func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	credential := try.To1(l.db.AddCredential(&dbModel.Credential{
 		Base:          dbModel.Base{TenantID: info.TenantID},
@@ -121,7 +121,7 @@ func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) 
 }
 
 func (l *Listener) UpdateCredential(info *agency.JobInfo, data *agency.CredentialUpdate) (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	job := try.To1(l.db.GetJob(info.JobID, info.TenantID))
 
@@ -180,7 +180,7 @@ func (l *Listener) isProvable(info *agency.JobInfo, data *dbModel.Proof) bool {
 }
 
 func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	newProof := &dbModel.Proof{
 		Base:          dbModel.Base{TenantID: info.TenantID},
@@ -220,7 +220,7 @@ func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error
 }
 
 func (l *Listener) updateBlockedProof(job *dbModel.Job) (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	utils.LogMed().Infof("Update blocked proof %s for tenant %s", *job.ProtocolProofID, job.TenantID)
 
@@ -241,7 +241,7 @@ func (l *Listener) updateBlockedProof(job *dbModel.Job) (err error) {
 }
 
 func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	job := try.To1(l.db.GetJob(info.JobID, info.TenantID))
 
@@ -301,7 +301,7 @@ func getJobStatusForProof(proof *dbModel.Proof) (status model.JobStatus, result 
 }
 
 func (l *Listener) FailJob(info *agency.JobInfo) (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	job := try.To1(l.db.GetJob(info.JobID, info.TenantID))
 
