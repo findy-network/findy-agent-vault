@@ -46,7 +46,7 @@ func (f *Agency) handleProtocolFailure(
 	job *model.JobInfo,
 	notification *agency.Notification,
 ) (err error) {
-	defer err2.Handle(&err)
+	err2.Handle(&err)
 
 	// TODO: failure reason
 	utils.LogHigh().Infof("Job %s (%s) failed", job.JobID, notification.ProtocolType.String())
@@ -78,7 +78,7 @@ func (f *Agency) handleProtocolSuccess(
 	notification *agency.Notification,
 	status *agency.ProtocolStatus,
 ) (err error) {
-	defer err2.Handle(&err)
+	err2.Handle(&err)
 
 	utils.LogLow().Infof("Job %s (%s) success", job.JobID, notification.ProtocolType.String())
 
@@ -291,7 +291,7 @@ func (f *Agency) listenAgent(a *model.Agent) (err error) {
 }
 
 func (f *Agency) listenAgentWithRetry(a *model.Agent, retryCounter counter) (err error) {
-	defer err2.Handle(&err)
+	err2.Handle(&err)
 
 	utils.LogLow().Infoln("Listen agent with retry count", retryCounter.count)
 

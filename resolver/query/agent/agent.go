@@ -21,7 +21,7 @@ func NewResolver(db store.DB, agencyInstance agency.Agency) *Resolver {
 }
 
 func (r *Resolver) GetAgent(ctx context.Context) (agent *model.Agent, err error) {
-	defer err2.Handle(&err)
+	err2.Handle(&err)
 
 	agent = try.To1(store.GetAgent(ctx, r.db))
 

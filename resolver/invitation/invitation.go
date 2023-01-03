@@ -16,7 +16,7 @@ import (
 const imageSize = 256
 
 func FromURLParam(raw string) (res *model.InvitationResponse, err error) {
-	defer err2.Handle(&err)
+	err2.Handle(&err)
 
 	qrCode := try.To1(strToQRCode(raw))
 
@@ -34,7 +34,7 @@ func FromURLParam(raw string) (res *model.InvitationResponse, err error) {
 }
 
 func FromAgency(data *agency.InvitationData) (res *model.InvitationResponse, err error) {
-	defer err2.Handle(&err)
+	err2.Handle(&err)
 
 	qrCode := try.To1(strToQRCode(data.Raw))
 
