@@ -102,7 +102,7 @@ func (f *Agency) Invite(a *model.Agent) (data *model.InvitationData, err error) 
 }
 
 func (f *Agency) Connect(a *model.Agent, strInvitation string) (id string, err error) {
-	defer err2.Return(&err) // TODO: do not leak internal errors to client
+	defer err2.Handle(&err) // TODO: do not leak internal errors to client
 
 	cmd := f.userSyncClient(a, "")
 
@@ -115,7 +115,7 @@ func (f *Agency) Connect(a *model.Agent, strInvitation string) (id string, err e
 }
 
 func (f *Agency) SendMessage(a *model.Agent, connectionID, message string) (id string, err error) {
-	defer err2.Return(&err) // TODO: do not leak internal errors to client
+	defer err2.Handle(&err) // TODO: do not leak internal errors to client
 
 	cmd := f.userSyncClient(a, connectionID)
 
@@ -130,7 +130,7 @@ func (f *Agency) resume(
 	accept bool,
 	protocol agency.Protocol_Type,
 ) (err error) {
-	defer err2.Return(&err) // TODO: do not leak internal errors to client
+	defer err2.Handle(&err) // TODO: do not leak internal errors to client
 
 	cmd := f.userSyncClient(a, job.ConnectionID)
 	state := agency.ProtocolState_NACK
@@ -144,7 +144,7 @@ func (f *Agency) resume(
 }
 
 func (f *Agency) ResumeCredentialOffer(a *model.Agent, job *model.JobInfo, accept bool) (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 	try.To(f.resume(a, job, accept, agency.Protocol_ISSUE_CREDENTIAL))
 
 	now := f.currentTimeMs()
@@ -152,7 +152,7 @@ func (f *Agency) ResumeCredentialOffer(a *model.Agent, job *model.JobInfo, accep
 }
 
 func (f *Agency) ResumeProofRequest(a *model.Agent, job *model.JobInfo, accept bool) (err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 	try.To(f.resume(a, job, accept, agency.Protocol_PRESENT_PROOF))
 
 	now := f.currentTimeMs()

@@ -33,7 +33,7 @@ var (
 )
 
 func (pg *Database) GetListenerAgents(info *paginator.BatchInfo) (a *model.Agents, err error) {
-	defer err2.Returnf(&err, "GetListenerAgents")
+	defer err2.Handle(&err, "GetListenerAgents")
 
 	query, args := getBatchQuery(agentQueryInfo,
 		info,
@@ -48,7 +48,7 @@ func (pg *Database) GetListenerAgents(info *paginator.BatchInfo) (a *model.Agent
 	}
 	var agent *model.Agent
 	try.To(pg.doRowsQuery(func(rows *sql.Rows) (err error) {
-		defer err2.Return(&err)
+		defer err2.Handle(&err)
 		agent = try.To1(rowToAgent(rows))
 		a.Agents = append(a.Agents, agent)
 		return
@@ -81,7 +81,7 @@ func (pg *Database) GetListenerAgents(info *paginator.BatchInfo) (a *model.Agent
 }
 
 func (pg *Database) AddAgent(a *model.Agent) (newAgent *model.Agent, err error) {
-	defer err2.Returnf(&err, "AddAgent")
+	defer err2.Handle(&err, "AddAgent")
 
 	const sqlAgentInsert = "INSERT INTO agent (agent_id, label, raw_jwt) VALUES ($1, $2, $3) " +
 		"ON CONFLICT (agent_id) DO UPDATE SET " +
@@ -119,7 +119,7 @@ func readRowToAgent(a *model.Agent) func(*sql.Rows) error {
 }
 
 func (pg *Database) GetAgent(id, agentID *string) (a *model.Agent, err error) {
-	defer err2.Returnf(&err, "GetAgent")
+	defer err2.Handle(&err, "GetAgent")
 
 	if id == nil && agentID == nil {
 		panic(fmt.Errorf("either id or agent id is required"))

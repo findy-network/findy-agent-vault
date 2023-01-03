@@ -93,7 +93,7 @@ type AgentStatus struct {
 
 func (c *Client) listen(id string) (ch chan *AgentStatus, err error) {
 	clientID := &agency.ClientID{ID: id}
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	agentClient := agency.NewAgentServiceClient(c.ClientConn)
 	statusCh := make(chan *AgentStatus)

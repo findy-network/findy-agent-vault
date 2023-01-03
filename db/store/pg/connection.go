@@ -31,7 +31,7 @@ var (
 )
 
 func (pg *Database) getConnectionForObject(objectName, columnName, objectID, tenantID string) (c *model.Connection, err error) {
-	defer err2.Returnf(&err, "getConnectionForObject")
+	defer err2.Handle(&err, "getConnectionForObject")
 
 	sqlConnectionJoinSelect := "SELECT " + sqlFields("connection", connectionFields) +
 		", connection.created, connection.approved, connection.cursor FROM connection"
@@ -51,7 +51,7 @@ func (pg *Database) getConnectionForObject(objectName, columnName, objectID, ten
 }
 
 func (pg *Database) AddConnection(c *model.Connection) (newConnection *model.Connection, err error) {
-	defer err2.Returnf(&err, "AddConnection")
+	defer err2.Handle(&err, "AddConnection")
 
 	newConnection = &model.Connection{}
 	*newConnection = *c
@@ -98,7 +98,7 @@ func readRowToConnection(c *model.Connection) func(*sql.Rows) error {
 }
 
 func (pg *Database) GetConnection(id, tenantID string) (c *model.Connection, err error) {
-	defer err2.Returnf(&err, "GetConnection")
+	defer err2.Handle(&err, "GetConnection")
 
 	sqlConnectionSelectByID := sqlConnectionSelect + " WHERE id=$1 AND tenant_id=$2"
 
@@ -114,7 +114,7 @@ func (pg *Database) GetConnection(id, tenantID string) (c *model.Connection, err
 }
 
 func (pg *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (c *model.Connections, err error) {
-	defer err2.Returnf(&err, "GetConnections")
+	defer err2.Handle(&err, "GetConnections")
 
 	query, args := getBatchQuery(connectionQueryInfo, info, tenantID, []interface{}{})
 
@@ -125,7 +125,7 @@ func (pg *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (
 	}
 	var connection *model.Connection
 	if err = pg.doRowsQuery(func(rows *sql.Rows) (err error) {
-		defer err2.Return(&err)
+		defer err2.Handle(&err)
 		connection = try.To1(rowToConnection(rows))
 		c.Connections = append(c.Connections, connection)
 		return
@@ -162,7 +162,7 @@ func (pg *Database) GetConnections(info *paginator.BatchInfo, tenantID string) (
 }
 
 func (pg *Database) GetConnectionCount(tenantID string) (count int, err error) {
-	defer err2.Returnf(&err, "GetCredentialCount")
+	defer err2.Handle(&err, "GetCredentialCount")
 	count = try.To1(pg.getCount(
 		"connection",
 		" WHERE tenant_id=$1 ",
@@ -174,7 +174,7 @@ func (pg *Database) GetConnectionCount(tenantID string) (count int, err error) {
 }
 
 func (pg *Database) ArchiveConnection(id, tenantID string) (err error) {
-	defer err2.Returnf(&err, "ArchiveConnection")
+	defer err2.Handle(&err, "ArchiveConnection")
 
 	var (
 		sqlConnectionArchive = "UPDATE connection SET archived=$1 WHERE id = $2 and tenant_id = $3 RETURNING " +

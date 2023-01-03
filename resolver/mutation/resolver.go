@@ -32,7 +32,7 @@ func NewResolver(
 }
 
 func (r *Resolver) MarkEventRead(ctx context.Context, input model.MarkReadInput) (e *model.Event, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 
 	tenant := try.To1(r.GetAgent(ctx))
 
@@ -48,7 +48,7 @@ func (r *Resolver) MarkEventRead(ctx context.Context, input model.MarkReadInput)
 }
 
 func (r *Resolver) Invite(ctx context.Context) (res *model.InvitationResponse, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 	utils.LogLow().Info("mutationResolver:Invite")
 
 	tenant := try.To1(r.GetAgent(ctx))
@@ -72,7 +72,7 @@ func (r *Resolver) Invite(ctx context.Context) (res *model.InvitationResponse, e
 }
 
 func (r *Resolver) Connect(ctx context.Context, input model.ConnectInput) (res *model.Response, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 	utils.LogLow().Info("mutationResolver:Connect")
 
 	tenant := try.To1(r.GetAgent(ctx))
@@ -95,7 +95,7 @@ func (r *Resolver) Connect(ctx context.Context, input model.ConnectInput) (res *
 }
 
 func (r *Resolver) SendMessage(ctx context.Context, input model.MessageInput) (res *model.Response, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 	utils.LogLow().Info("mutationResolver:SendMessage")
 
 	tenant := try.To1(r.GetAgent(ctx))
@@ -107,7 +107,7 @@ func (r *Resolver) SendMessage(ctx context.Context, input model.MessageInput) (r
 }
 
 func (r *Resolver) Resume(ctx context.Context, input model.ResumeJobInput) (res *model.Response, err error) {
-	defer err2.Return(&err)
+	defer err2.Handle(&err)
 	utils.LogLow().Info("mutationResolver:Resume")
 
 	tenant := try.To1(r.GetAgent(ctx))
