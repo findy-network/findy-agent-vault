@@ -24,7 +24,7 @@ func NewResolver(db store.DB, agentResolver *agent.Resolver) *Resolver {
 }
 
 func (r *Resolver) Connections(ctx context.Context, after, before *string, first, last *int) (c *model.PairwiseConnection, err error) {
-	defer err2.Handle(&err)
+	defer err2.Handle(&err, func() {})
 
 	tenant := try.To1(r.GetAgent(ctx))
 
@@ -72,7 +72,7 @@ func (r *Resolver) Credentials(
 	after, before *string,
 	first, last *int,
 ) (c *model.CredentialConnection, err error) {
-	defer err2.Handle(&err)
+	defer err2.Handle(&err, func() {})
 
 	tenant := try.To1(r.GetAgent(ctx))
 
@@ -116,7 +116,7 @@ func (r *Resolver) Message(ctx context.Context, id string) (c *model.BasicMessag
 }
 
 func (r *Resolver) Events(ctx context.Context, after, before *string, first, last *int) (e *model.EventConnection, err error) {
-	defer err2.Handle(&err)
+	defer err2.Handle(&err, func() {})
 
 	tenant := try.To1(r.GetAgent(ctx))
 
@@ -153,7 +153,7 @@ func (r *Resolver) Jobs(
 	first, last *int,
 	completed *bool,
 ) (e *model.JobConnection, err error) {
-	defer err2.Handle(&err)
+	defer err2.Handle(&err, func() {})
 
 	tenant := try.To1(r.GetAgent(ctx))
 
