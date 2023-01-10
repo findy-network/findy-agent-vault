@@ -96,3 +96,7 @@ gen_mock:
 	go install github.com/golang/mock/mockgen@v1.6.0
 	~/go/bin/mockgen -package listen -source ./db/store/db.go DB > ./resolver/listen/listener_mock_store_test.go
 	~/go/bin/mockgen -package mock -source ./agency/model/model.go Agency > ./agency/mock/mock.go
+
+release:
+	gh workflow run do-release.yml
+
