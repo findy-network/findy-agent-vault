@@ -34,8 +34,7 @@ check_fmt:
 	@gofmt -l $(GOFILES)
 
 lint:
-	@curl -s https://raw.githubusercontent.com/findy-network/setup-go-action/master/linter/.golangci.yml > .golangci.temp.yml
-	@golangci-lint run --config=.golangci.temp.yml
+	@golangci-lint run
 
 init-test:
 	-docker stop findy-agent-vault-test-db
