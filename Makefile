@@ -1,10 +1,16 @@
 .PHONY: db
 
-scan:
-	@./scripts/scan.sh $(ARGS)
+cp_scanner:
+	mkdir -p .temp
+	@curl -s https://raw.githubusercontent.com/findy-network/setup-go-action/master/scanner/scan.sh > .temp/scan.sh && chmod a+x .temp/scan.sh
+	@curl -s https://raw.githubusercontent.com/findy-network/setup-go-action/master/scanner/lichen.sh > .temp/lichen.sh && chmod a+x .temp/lichen.sh
+	@curl -s https://raw.githubusercontent.com/findy-network/setup-go-action/master/scanner/lichen-cfg.yaml > .temp/lichen-cfg.yaml
 
-scan_and_report:
-	@./scripts/scan.sh v > licenses.txt
+scan: cp_scanner
+	.temp/scan.sh
+
+scan_and_report: cp_scanner
+	.temp/scan.sh v > licenses.txt
 
 generate: 
 	go generate ./...
@@ -28,7 +34,8 @@ check_fmt:
 	@gofmt -l $(GOFILES)
 
 lint:
-	golangci-lint run
+	@curl -s https://raw.githubusercontent.com/findy-network/setup-go-action/master/linter/.golangci.yml > .golangci.temp.yml
+	@golangci-lint run --config=.golangci.temp.yml
 
 init-test:
 	-docker stop findy-agent-vault-test-db

@@ -11,3 +11,6 @@ findy-agent-vault
 .data
 licenses.txt
 coverage.txt
+
+.golangci.temp.yml
+.temp
