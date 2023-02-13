@@ -91,6 +91,13 @@ jobs:
         with:
           service: "vault"
           service-image-path: ./
+      - name: setup go
+        uses: findy-network/setup-go-action@master
+        with:
+          skip-lint: "true"
+          skip-scan: "true
+      - name: print coverage
+        run: go tool covdata percent -i=coverage
       - name: archive logs
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
