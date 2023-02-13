@@ -40,10 +40,13 @@ func main() {
 		}
 		_, _ = w.Write([]byte(config.Version))
 	})
+	startServer(config.Address)
+}
 
+func startServer(address string) {
 	const serverTimeout = 5 * time.Second
 	ourServer := &http.Server{
-		Addr:              config.Address,
+		Addr:              address,
 		ReadHeaderTimeout: serverTimeout,
 	}
 
@@ -59,7 +62,7 @@ func main() {
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
 
-	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), 10*time.Second)
+	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), serverTimeout)
 	defer shutdownRelease()
 
 	if err := ourServer.Shutdown(shutdownCtx); err != nil {

@@ -4,8 +4,6 @@ ARG GOBUILD_ARGS=""
 
 WORKDIR /work
 
-RUN apk update && apk add git
-
 COPY go.* ./
 RUN go mod download
 
