@@ -88,5 +88,6 @@ jobs:
     steps:
       - name: test e2e flow
         uses: findy-network/e2e-test-action@master
-        # with:
-        #   linter-config-path: .golangci.yml
+        with:
+          service: "vault"
+          service-image-path: ./
