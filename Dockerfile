@@ -1,5 +1,7 @@
 FROM golang:1.20-alpine3.17
 
+ARG GOBUILD_ARGS=""
+
 WORKDIR /work
 
 RUN apk update && apk add git
@@ -10,7 +12,7 @@ RUN go mod download
 COPY . ./
 
 RUN VERSION=$(cat ./VERSION) && \
-  go build \
+  go build  ${GOBUILD_ARGS} \
   -ldflags "-X 'github.com/findy-network/findy-agent-vault/utils.Version=$VERSION'"\
   -o /go/bin/findy-agent-vault
 
@@ -19,6 +21,9 @@ FROM alpine:3.17
 LABEL org.opencontainers.image.source https://github.com/findy-network/findy-agent-vault
 
 EXPOSE 8085
+
+# used when running instrumented binary
+ENV GOCOVERDIR /coverage
 
 # override when running
 ENV FAV_JWT_KEY "mySuperSecretKeyLol"

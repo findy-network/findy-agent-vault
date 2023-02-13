@@ -91,3 +91,9 @@ jobs:
         with:
           service: "vault"
           service-image-path: ./
+      - name: archive logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage files
+          path: ./coverage
