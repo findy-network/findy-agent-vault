@@ -36,7 +36,9 @@ ENV FAV_AGENCY_INSECURE "false"
 COPY --from=0 /work/db/migrations /db/migrations
 COPY --from=0 /go/bin/findy-agent-vault /findy-agent-vault
 
+# keep this for now
+# if previous docker-compose-files still refer to the start script
 RUN echo '#!/bin/sh' > /start.sh && \
   echo '/findy-agent-vault' >> /start.sh && chmod a+x /start.sh
 
-ENTRYPOINT ["/bin/sh", "-c", "/start.sh"]
+ENTRYPOINT ["/findy-agent-vault"]
