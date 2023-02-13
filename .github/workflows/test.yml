@@ -95,7 +95,7 @@ jobs:
         uses: findy-network/setup-go-action@master
         with:
           skip-lint: "true"
-          skip-scan: "true
+          skip-scan: "true"
       - name: print coverage
         run: go tool covdata percent -i=coverage
       - name: archive logs
