@@ -83,3 +83,10 @@ jobs:
           name: container-logs
           path: .logs
           retention-days: 14
+  e2e-new:
+    runs-on: ubuntu-latest
+    steps:
+      - name: test e2e flow
+        uses: findy-network/e2e-test-action@master
+        # with:
+        #   linter-config-path: .golangci.yml
