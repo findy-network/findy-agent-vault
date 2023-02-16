@@ -25,64 +25,6 @@ jobs:
         env:
           POSTGRES_PASSWORD: password
           POSTGRES_DB: vault
-  e2e:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v3
-      - name: setup env
-        run: |
-          cd scripts/e2e
-          docker-compose up -d
-      - name: install cli
-        run: |
-          curl https://raw.githubusercontent.com/findy-network/findy-agent-cli/HEAD/install.sh > install.sh
-          chmod a+x install.sh
-          sudo ./install.sh -b /bin
-      - name: test # TODO: make more extensive test set
-        run: |
-          ./scripts/wait-for-db.sh localhost
-
-          # register user
-          acator_key=$(findy-agent-cli new-key)
-          findy-agent-cli authn register \
-              -u test \
-              --url http://localhost:8088 \
-              --origin http://localhost:8088 \
-              --key $acator_key
-          jwt=$(findy-agent-cli authn login \
-              -u test \
-              --url http://localhost:8088 \
-              --origin http://localhost:8088 \
-              --key $acator_key)
-
-          # check that authentication is ok
-          response=$(curl \
-            -H "Authorization: Bearer $jwt" \
-            -d '{"operationName":"GetUser","variables":{},"query":"query GetUser {\n  user {\n    name\n    __typename\n  }\n}"}' \
-            -H "Content-Type: application/json" \
-            -X POST http://localhost:8085/query)
-          echo $response | grep '{"data":{"user":{"name":"test","__typename":"User"}}}'
-
-          # check that connection to agency works
-          response=$(curl \
-            -H "Authorization: Bearer $jwt" \
-            -d '{"operationName":"Invitation","variables":{},"query":"mutation Invitation {\n  invite {\n    ...InvitationFragment\n    __typename\n  }\n}\n\nfragment InvitationFragment on InvitationResponse {\n  label\n  __typename\n}"}' \
-            -H "Content-Type: application/json" \
-            -X POST http://localhost:8085/query)
-          echo $response | grep '{"data":{"invite":{"label":"test","__typename":"InvitationResponse"}}}'
-      - name: collect docker logs
-        if: ${{ failure() }}
-        uses: jwalton/gh-docker-logs@v2.2.0
-        with:
-          dest: "./.logs/docker-logs"
-      - name: archive logs
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: container-logs
-          path: .logs
-          retention-days: 14
   e2e-new:
     runs-on: ubuntu-latest
     steps:
@@ -96,6 +38,8 @@ jobs:
           go-version-file: './go.mod'
       - name: print coverage
         run: go tool covdata percent -i=coverage
+        # TODO: print out txt-file
+        # add new job to send both txt-files to codecov
       - name: archive logs
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
