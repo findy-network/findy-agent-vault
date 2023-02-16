@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -9,11 +9,9 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/findy-network/findy-agent-vault/agency/findy"
 	"github.com/findy-network/findy-agent-vault/resolver"
-	"github.com/findy-network/findy-agent-vault/utils"
-
-	"github.com/golang/glog"
-
 	"github.com/findy-network/findy-agent-vault/server"
+	"github.com/findy-network/findy-agent-vault/utils"
+	"github.com/golang/glog"
 )
 
 func main() {
@@ -21,7 +19,7 @@ func main() {
 	config := utils.LoadConfig()
 
 	if len(os.Args) > 1 && os.Args[1] == "version" {
-		fmt.Printf("Vault version %s\n", config.Version)
+		log.Printf("Vault version %s\n", config.Version)
 		return
 	}
 

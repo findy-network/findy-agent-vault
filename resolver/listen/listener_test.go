@@ -11,9 +11,8 @@ import (
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/resolver/query/agent"
 	"github.com/findy-network/findy-agent-vault/resolver/update"
-	gomock "github.com/golang/mock/gomock"
-
 	"github.com/findy-network/findy-agent-vault/utils"
+	gomock "github.com/golang/mock/gomock"
 )
 
 func setup() {

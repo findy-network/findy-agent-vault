@@ -2,7 +2,7 @@ package utils
 
 import (
 	"flag"
-	"fmt"
+	"log"
 
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
@@ -31,7 +31,7 @@ func SetLogConfig(config *Configuration) {
 
 func logParse(level string) {
 	defer err2.Catch(func(err error) {
-		fmt.Println("ERROR:", err)
+		log.Println("ERROR:", err)
 	})
 	try.To(flag.Set("logtostderr", "true"))
 	try.To(flag.Set("stderrthreshold", "WARNING"))

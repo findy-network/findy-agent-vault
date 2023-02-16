@@ -51,9 +51,9 @@ linters:
     - asciicheck
     - bidichk
     - bodyclose
-    #    - containedctx
+    #- containedctx
     - contextcheck
-    #    - cyclop
+    - cyclop
     - decorder
     - depguard
     - dogsled
@@ -63,28 +63,28 @@ linters:
     - errcheck
     - errchkjson
     - errname
-    #    - errorlint
+    - errorlint
     - execinquery
     - exhaustive
-    #    - exhaustruct
+    #- exhaustruct
     - exportloopref
-    #    - forbidigo
-    #    - forcetypeassert
+    - forbidigo
+    - forcetypeassert
     - funlen
-    #    - gci
+    - gci
     - ginkgolinter
     - gocheckcompilerdirectives
-    #    - gochecknoglobals
+    #- gochecknoglobals
     - gochecknoinits
-    #    - gocognit
+    - gocognit
     - goconst
     - gocritic
     - gocyclo
-    #    - godot
-    #    - godox
-    #    - goerr113
+    #- godot
+    #- godox
+    #- goerr113
     - gofmt
-    #    - gofumpt
+    #- gofumpt
     - goheader
     - goimports
     - gomnd
@@ -97,23 +97,24 @@ linters:
     - grouper
     - importas
     - ineffassign
-    #    - interfacebloat
-    #    - ireturn
+    - interfacebloat
+    #- ireturn
     - lll
+    - loggercheck
     - maintidx
     - makezero
     - misspell
     - musttag
     - nakedret
-    #    - nestif
+    #- nestif
     - nilerr
     - nilnil
-    #    - nlreturn
+    #- nlreturn
     - noctx
     - nolintlint
-    #    - nonamedreturns
+    #- nonamedreturns
     - nosprintfhostport
-    #    - paralleltest
+    #- paralleltest
     - prealloc
     - predeclared
     - promlinter
@@ -124,17 +125,17 @@ linters:
     - staticcheck
     - stylecheck
     - tagliatelle
-    #    - tenv
+    - tenv
     - testableexamples
-    #    - testpackage
-    #    - thelper
+    #- testpackage
+    #- thelper
     - tparallel
     - typecheck
     - unconvert
     - unparam
     - unused
     - usestdlibvars
-    #    - varnamelen
+    #- varnamelen
     - wastedassign
     - whitespace
     #    - wrapcheck
@@ -144,6 +145,7 @@ issues:
     - path: _test.go
       linters:
         - dupl
+        - gochecknoglobals
     - path: db/store/pg/pg.go
       linters:
         - gocritic

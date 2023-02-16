@@ -5,19 +5,17 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/golang/glog"
-	"github.com/rs/cors"
-
-	"github.com/99designs/gqlgen/graphql/handler/extension"
-	"github.com/99designs/gqlgen/graphql/handler/lru"
-
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/findy-network/findy-agent-vault/graph/generated"
 	"github.com/findy-network/findy-agent-vault/utils"
 	jwtMW "github.com/findy-network/findy-common-go/jwt/mw"
+	"github.com/golang/glog"
 	"github.com/gorilla/websocket"
+	"github.com/rs/cors"
 )
 
 const (

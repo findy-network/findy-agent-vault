@@ -2,6 +2,7 @@ package pg
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/findy-network/findy-agent-vault/db/store"
@@ -10,7 +11,6 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // blank for migrate driver
-
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
 	"github.com/lainio/err2/try"
@@ -121,7 +121,7 @@ func InitDB(config *utils.Configuration, reset, createDB bool) store.DB {
 
 	if reset {
 		err = m.Down()
-		if err == migrate.ErrNoChange {
+		if errors.Is(err, migrate.ErrNoChange) {
 			glog.Info("empty db, skipping db cleanup")
 		} else {
 			try.To(err)
@@ -131,7 +131,7 @@ func InitDB(config *utils.Configuration, reset, createDB bool) store.DB {
 	}
 
 	err = m.Up()
-	if err == migrate.ErrNoChange {
+	if errors.Is(err, migrate.ErrNoChange) {
 		glog.Info("no new migrations, skipping db modifications")
 	} else {
 		try.To(err)

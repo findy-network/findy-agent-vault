@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/golang/glog"
@@ -45,7 +46,7 @@ type Configuration struct {
 
 func LoadConfig() *Configuration {
 	defer err2.Catch(func(err error) {
-		panic(fmt.Errorf("failed to read the configuration file: %s", err))
+		panic(fmt.Errorf("failed to read the configuration file: %w", err))
 	})
 	var config Configuration
 
@@ -73,7 +74,7 @@ func LoadConfig() *Configuration {
 	v.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+		if errors.As(err, &viper.ConfigFileNotFoundError{}) {
 			glog.Info("Configuration file was not found, using environment/default variables only")
 		} else {
 			try.To(err)

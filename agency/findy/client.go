@@ -2,6 +2,7 @@ package findy
 
 import (
 	"context"
+	"errors"
 	"io"
 
 	"github.com/findy-network/findy-agent-vault/agency/model"
@@ -111,7 +112,7 @@ func (c *Client) listen(id string) (ch chan *AgentStatus, err error) {
 		})
 		for {
 			status, err := stream.Recv()
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				glog.Warningln("status stream end")
 				close(statusCh)
 				break
