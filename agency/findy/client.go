@@ -102,7 +102,7 @@ func (c *Client) listen(id string) (ch chan *AgentStatus, err error) {
 	utils.LogLow().Infoln("successful start of listen id:", clientID.ID)
 
 	go func() {
-		defer err2.CatchTrace(func(err error) {
+		defer err2.Catch(func(err error) {
 			glog.Warningln("WARNING: error when reading response:", err)
 			close(statusCh)
 		})
