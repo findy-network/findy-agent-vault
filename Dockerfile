@@ -14,7 +14,7 @@ RUN VERSION=$(cat ./VERSION) && \
   -ldflags "-X 'github.com/findy-network/findy-agent-vault/utils.Version=$VERSION'"\
   -o /go/bin/findy-agent-vault
 
-FROM alpine:3.15
+FROM alpine:3.17
 
 LABEL org.opencontainers.image.source https://github.com/findy-network/findy-agent-vault
 
