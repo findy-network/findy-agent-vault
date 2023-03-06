@@ -5,19 +5,20 @@ go 1.20
 require (
 	github.com/99designs/gqlgen v0.17.24
 	github.com/bxcodec/faker/v3 v3.8.1
-	github.com/findy-network/findy-common-go v0.2.5
+	github.com/findy-network/findy-common-go v0.2.7
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/golang/glog v1.0.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0
-	github.com/lainio/err2 v0.8.13
+	github.com/lainio/err2 v0.8.14
 	github.com/lib/pq v1.10.7
 	github.com/qustavo/sqlhooks/v2 v2.1.0
 	github.com/rs/cors v1.8.3
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/viper v1.15.0
 	github.com/vektah/gqlparser/v2 v2.5.1
+	golang.org/x/oauth2 v0.4.0
 	google.golang.org/grpc v1.53.0
 )
 
@@ -62,8 +63,8 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
+	golang.org/x/exp v0.0.0-20230105202349-8879d0199aa3 // indirect
 	golang.org/x/net v0.5.0 // indirect
-	golang.org/x/oauth2 v0.4.0 // indirect
 	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
