@@ -1,10 +1,10 @@
 .PHONY: db
 
 scan:
-	@./scripts/scan.sh $(ARGS)
+	@curl -s https://raw.githubusercontent.com/findy-network/setup-go-action/master/scanner/cp_scan.sh | bash
 
 scan_and_report:
-	@./scripts/scan.sh v > licenses.txt
+	@curl -s https://raw.githubusercontent.com/findy-network/setup-go-action/master/scanner/cp_scan.sh | bash -s v > licenses.txt
 
 generate: 
 	go generate ./...
@@ -28,7 +28,7 @@ check_fmt:
 	@gofmt -l $(GOFILES)
 
 lint:
-	golangci-lint run
+	@golangci-lint run
 
 init-test:
 	-docker stop findy-agent-vault-test-db

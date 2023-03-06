@@ -15,6 +15,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/lainio/err2"
 	"github.com/lainio/err2/try"
+	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/oauth"
 )
@@ -47,7 +48,9 @@ func (f *Agency) callOptions(jwtToken string) []grpc.CallOption {
 	}
 	return []grpc.CallOption{
 		grpc.PerRPCCredentials(
-			oauth.NewOauthAccess(jwt.OauthToken(jwtToken)),
+			oauth.TokenSource{
+				TokenSource: oauth2.StaticTokenSource(jwt.OauthToken(jwtToken)),
+			},
 		),
 	}
 }
