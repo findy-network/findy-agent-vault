@@ -40,7 +40,7 @@ func validateMessage(t *testing.T, exp, got *model.Message) {
 		t.Errorf("Message connection id mismatch expected %s got %s", exp.ConnectionID, got.ConnectionID)
 	}
 	if got.Message != exp.Message {
-		t.Errorf("Message Message mismatch expected %s got %s", exp.Message, got.Message)
+		t.Errorf("Message message mismatch expected %s got %s", exp.Message, got.Message)
 	}
 	if got.SentByMe != exp.SentByMe {
 		t.Errorf("Message SentByMe mismatch expected %v got %v", exp.SentByMe, got.SentByMe)
