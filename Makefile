@@ -1,16 +1,10 @@
 .PHONY: db
 
-cp_scanner:
-	mkdir -p .temp
-	@curl -s https://raw.githubusercontent.com/findy-network/setup-go-action/master/scanner/scan.sh > .temp/scan.sh && chmod a+x .temp/scan.sh
-	@curl -s https://raw.githubusercontent.com/findy-network/setup-go-action/master/scanner/lichen.sh > .temp/lichen.sh && chmod a+x .temp/lichen.sh
-	@curl -s https://raw.githubusercontent.com/findy-network/setup-go-action/master/scanner/lichen-cfg.yaml > .temp/lichen-cfg.yaml
+scan:
+	@curl -s https://raw.githubusercontent.com/findy-network/setup-go-action/master/scanner/cp_scan.sh | bash
 
-scan: cp_scanner
-	.temp/scan.sh
-
-scan_and_report: cp_scanner
-	.temp/scan.sh v > licenses.txt
+scan_and_report:
+	@curl -s https://raw.githubusercontent.com/findy-network/setup-go-action/master/scanner/cp_scan.sh | bash -s v > licenses.txt
 
 generate: 
 	go generate ./...
