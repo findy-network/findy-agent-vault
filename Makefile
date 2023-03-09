@@ -1,10 +1,12 @@
+SCAN_SCRIPT_URL="https://raw.githubusercontent.com/findy-network/setup-go-action/master/scanner/cp_scan.sh"
+
 .PHONY: db
 
 scan:
-	@curl -s https://raw.githubusercontent.com/findy-network/setup-go-action/master/scanner/cp_scan.sh | bash
+	@curl -s $(SCAN_SCRIPT_URL) | bash
 
 scan_and_report:
-	@curl -s https://raw.githubusercontent.com/findy-network/setup-go-action/master/scanner/cp_scan.sh | bash -s v > licenses.txt
+	@curl -s $(SCAN_SCRIPT_URL) | bash -s v > licenses.txt
 
 generate: 
 	go generate ./...
