@@ -108,6 +108,5 @@ func (r *Resolver) Store() store.DB {
 
 func (r *Resolver) Close() {
 	r.db.Close()
-	// TODO: close agency connection (and other open connections)s
+	// TODO: close agency connection (and other open connections)
 }
-
