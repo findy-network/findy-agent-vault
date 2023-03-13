@@ -92,7 +92,7 @@ dclean:
 	-docker rmi findy-agent-vault
 
 dbuild:
-	docker build --build-arg -t findy-agent-vault .
+	docker build -t findy-agent-vault .
 
 gen_mock:
 	go install github.com/golang/mock/mockgen@v1.6.0
