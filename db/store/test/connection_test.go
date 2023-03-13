@@ -6,12 +6,10 @@ import (
 	"testing"
 
 	"github.com/findy-network/findy-agent-vault/db/fake"
+	"github.com/findy-network/findy-agent-vault/db/model"
+	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/lainio/err2/assert"
-
-	"github.com/findy-network/findy-agent-vault/paginator"
-
-	"github.com/findy-network/findy-agent-vault/db/model"
 )
 
 func validateConnection(t *testing.T, exp, got *model.Connection) {
@@ -97,10 +95,10 @@ func TestAddConnectionSameIDDifferentTenant(t *testing.T) {
 
 func TestGetConnections(t *testing.T) {
 	for index := range DBs {
-		s := DBs[index]
-		t.Run("get connections "+s.name, func(t *testing.T) {
+		db := DBs[index]
+		t.Run("get connections "+db.name, func(t *testing.T) {
 			size := 5
-			a, all := AddAgentAndConnections(s.db, "TestGetConnections", size*3)
+			agent, all := AddAgentAndConnections(db.db, "TestGetConnections", size*3)
 
 			sort.Slice(all, func(i, j int) bool {
 				return all[i].Created.Sub(all[j].Created) < 0
@@ -152,22 +150,24 @@ func TestGetConnections(t *testing.T) {
 				for _, testCase := range tests {
 					tc := testCase
 					t.Run(tc.name, func(t *testing.T) {
-						c, err := s.db.GetConnections(tc.args, a.ID)
-						if err != nil {
-							t.Errorf("Error fetching connections %s", err.Error())
-						} else {
-							if len(c.Connections) != tc.args.Count {
-								t.Errorf("Mismatch in connection count: %v  expected: %v", len(c.Connections), tc.args.Count)
-							}
-							if c.HasNextPage != tc.result.HasNextPage {
-								t.Errorf("Batch next page mismatch %v expected: %v", c.HasNextPage, tc.result.HasNextPage)
-							}
-							if c.HasPreviousPage != tc.result.HasPreviousPage {
-								t.Errorf("Batch previous page mismatch %v expected: %v", c.HasPreviousPage, tc.result.HasPreviousPage)
-							}
-							for index, connection := range c.Connections {
-								validateConnection(t, tc.result.Connections[index], connection)
-							}
+						assert.PushTester(t)
+						defer assert.PopTester()
+
+						c, err := db.db.GetConnections(tc.args, agent.ID)
+
+						assert.NoError(err, "Error fetching connections %v", err)
+						assert.Equal(
+							len(c.Connections), tc.args.Count,
+							"Mismatch in connection count: %v  expected: %v", len(c.Connections), tc.args.Count)
+						assert.Equal(
+							c.HasNextPage, tc.result.HasNextPage,
+							"Batch next page mismatch %v expected: %v", c.HasNextPage, tc.result.HasNextPage)
+						assert.Equal(
+							c.HasPreviousPage, tc.result.HasPreviousPage,
+							"Batch previous page mismatch %v expected: %v", c.HasPreviousPage, tc.result.HasPreviousPage)
+
+						for index, connection := range c.Connections {
+							validateConnection(t, tc.result.Connections[index], connection)
 						}
 					})
 				}

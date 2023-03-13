@@ -55,6 +55,7 @@ func GetAgent(ctx context.Context, db DB) (*model.Agent, error) {
 	return db.AddAgent(a)
 }
 
+//nolint:interfacebloat
 type DB interface {
 	GetListenerAgents(info *paginator.BatchInfo) (*model.Agents, error)
 	Close()

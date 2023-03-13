@@ -105,7 +105,7 @@ func dialer(insecure bool) func(context.Context, string) (net.Conn, error) {
 		},
 	})
 	if err != nil {
-		panic(fmt.Errorf("unable to register mock server %v", err))
+		panic(fmt.Errorf("unable to register mock server %w", err))
 	}
 
 	go func() {
@@ -287,9 +287,10 @@ func TestResumeCredentialOffer(t *testing.T) {
 	if err != nil {
 		t.Errorf("Encountered error on resume credential offer %v", err)
 	}
-	vault := findy.vault.(*mockListener)
-	if vault.credTS != utils.CurrentTimeMs() {
-		t.Errorf("Expected valid credential timestamp %v", vault.credTS)
+	if vault, ok := findy.vault.(*mockListener); ok {
+		if vault.credTS != utils.CurrentTimeMs() {
+			t.Errorf("Expected valid credential timestamp %v", vault.credTS)
+		}
 	}
 }
 
@@ -298,8 +299,9 @@ func TestResumeProofRequest(t *testing.T) {
 	if err != nil {
 		t.Errorf("Encountered error on resume proof request %v", err)
 	}
-	vault := findy.vault.(*mockListener)
-	if vault.proofTS != utils.CurrentTimeMs() {
-		t.Errorf("Expected valid proof timestamp %v", vault.proofTS)
+	if vault, ok := findy.vault.(*mockListener); ok {
+		if vault.proofTS != utils.CurrentTimeMs() {
+			t.Errorf("Expected valid proof timestamp %v", vault.proofTS)
+		}
 	}
 }
