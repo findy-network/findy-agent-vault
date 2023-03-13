@@ -28,6 +28,7 @@ func main() {
 	}
 
 	gqlResolver := resolver.InitResolver(config, &findy.Agency{})
+	defer gqlResolver.Close()
 
 	srv := server.NewServer(gqlResolver, config.JWTKey)
 	http.Handle("/query", srv.Handle())

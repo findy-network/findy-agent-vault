@@ -105,3 +105,9 @@ func InitResolver(config *utils.Configuration, coreAgency agency.Agency) *Resolv
 func (r *Resolver) Store() store.DB {
 	return r.db
 }
+
+func (r *Resolver) Close() {
+	r.db.Close()
+	// TODO: close agency connection (and other open connections)s
+}
+
