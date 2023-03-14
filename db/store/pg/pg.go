@@ -4,11 +4,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/findy-network/findy-agent-vault/db/store"
 	"github.com/findy-network/findy-agent-vault/paginator"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // blank for migrate driver
 	"github.com/golang/glog"
@@ -106,14 +108,27 @@ func InitDB(config *utils.Configuration, reset, createDB bool) store.DB {
 		config.DBHost, config.DBPort, user, config.DBPassword, config.DBName)
 
 	var sqlDB *sql.DB
+	var driver database.Driver
 	var err error
-	if config.DBTracing {
-		sqlDB = try.To1(initTraceHook(psqlInfo))
-	} else {
-		sqlDB = try.To1(sql.Open("postgres", psqlInfo))
+	// Start waiting for DB if it is not ready
+	for {
+		if config.DBTracing {
+			sqlDB, err = initTraceHook(psqlInfo)
+		} else {
+			sqlDB, err = sql.Open("postgres", psqlInfo)
+		}
+		if err == nil {
+			driver, err = postgres.WithInstance(sqlDB, &postgres.Config{})
+		}
+		if err != nil {
+			// TODO: make configurable
+			const sleepTime = time.Second * 5
+			glog.Infof("DB not ready, waiting for %v", sleepTime)
+			time.Sleep(sleepTime)
+		} else {
+			break
+		}
 	}
-
-	driver := try.To1(postgres.WithInstance(sqlDB, &postgres.Config{}))
 
 	m := try.To1(migrate.NewWithDatabaseInstance(
 		config.DBMigrationsPath, "postgres", driver,

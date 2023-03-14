@@ -14,3 +14,4 @@ coverage.txt
 
 .golangci.temp.yml
 .temp
+coverage/

@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -24,6 +28,7 @@ func main() {
 	}
 
 	gqlResolver := resolver.InitResolver(config, &findy.Agency{})
+	defer gqlResolver.Close()
 
 	srv := server.NewServer(gqlResolver, config.JWTKey)
 	http.Handle("/query", srv.Handle())
@@ -36,12 +41,34 @@ func main() {
 		}
 		_, _ = w.Write([]byte(config.Version))
 	})
+	startServer(config.Address)
+}
 
+func startServer(address string) {
 	const serverTimeout = 5 * time.Second
 	ourServer := &http.Server{
-		Addr:              config.Address,
+		Addr:              address,
 		ReadHeaderTimeout: serverTimeout,
 	}
 
-	glog.Fatal(ourServer.ListenAndServe())
+	go func() {
+		if err := ourServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			glog.Errorf("HTTP server error: %v", err)
+		} else {
+			glog.Infoln("Stopped serving new connections.")
+		}
+	}()
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	<-sigChan
+
+	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), serverTimeout)
+	defer shutdownRelease()
+
+	if err := ourServer.Shutdown(shutdownCtx); err != nil {
+		glog.Errorf("HTTP shutdown error: %v", err)
+	} else {
+		glog.Infoln("Graceful shutdown complete.")
+	}
 }
