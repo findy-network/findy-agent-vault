@@ -34,7 +34,6 @@ jobs:
         uses: findy-network/e2e-test-action@master
         with:
           service: "vault"
-          service-image-path: ./
       - uses: actions/setup-go@v3
         with:
           go-version-file: './go.mod'
