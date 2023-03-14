@@ -3,7 +3,7 @@ module github.com/findy-network/findy-agent-vault
 go 1.20
 
 require (
-	github.com/99designs/gqlgen v0.17.25
+	github.com/99designs/gqlgen v0.17.26
 	github.com/bxcodec/faker/v3 v3.8.1
 	github.com/findy-network/findy-common-go v0.2.11
 	github.com/golang-migrate/migrate/v4 v4.15.2
