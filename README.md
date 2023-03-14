@@ -59,7 +59,7 @@ Vault cannot function without a working installation of [core agency](github.com
    # core agency port
    export FAV_AGENCY_PORT="<50051>"
    # path to agency grpc cert files
-   export FAV_AGENCY_CERT_PATH="<scripts/e2e/config/cert>"
+   export FAV_AGENCY_CERT_PATH="<scripts/test-cert>"
    # true if this vault is the primary vault for the agency installation
    export FAV_AGENCY_MAIN_SUBSCRIBER=false
    # common agency JWT secret

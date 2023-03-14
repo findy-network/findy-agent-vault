@@ -87,7 +87,7 @@ func dialer(insecure bool) func(context.Context, string) (net.Conn, error) {
 	var pki *rpc.PKI
 	if !insecure {
 		// TODO:
-		pki = rpc.LoadPKI("../../scripts/e2e/config/cert")
+		pki = rpc.LoadPKI("../../scripts/test-cert")
 		glog.V(1).Infof("starting gRPC server with\ncrt:\t%s\nkey:\t%s\nclient:\t%s",
 			pki.Server.CertFile, pki.Server.KeyFile, pki.Client.CertFile)
 	}
@@ -157,7 +157,7 @@ func (m *mockListener) FailJob(job *model.JobInfo) error {
 }
 
 var (
-	tlsPath             = "../../scripts/e2e/config/cert"
+	tlsPath             = "../../scripts/test-cert"
 	dialOptions         = []grpc.DialOption{grpc.WithContextDialer(dialer(false))}
 	insecureDialOptions = []grpc.DialOption{grpc.WithContextDialer(dialer(true))}
 	findy               = &Agency{
