@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: test e2e flow
-        uses: findy-network/e2e-test-action@master
+        uses: findy-network/e2e-test-action@add-db-wait-script 
         with:
           service: "vault"
       - uses: actions/setup-go@v3
