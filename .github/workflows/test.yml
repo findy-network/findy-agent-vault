@@ -60,10 +60,6 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: ${{ github.sha }}-coverage-e2e.txt
-      - name: download coverage file
-        uses: actions/download-artifact@v3
-        with:
-          name: ${{ github.sha }}-coverage-e2e.txt
       - name: upload coverage
         uses: codecov/codecov-action@v3
         with:
