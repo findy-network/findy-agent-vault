@@ -161,7 +161,7 @@ func (s *statusListener) AddMessage(job *model.JobInfo, message *model.Message) 
 	return nil
 }
 
-func (s *statusListener) UpdateMessage(job *model.JobInfo, update *model.MessageUpdate) error {
+func (s *statusListener) UpdateMessage(_ *model.JobInfo, _ *model.MessageUpdate) error {
 	panic("Not implemented")
 }
 
@@ -201,13 +201,13 @@ func (s *statusListener) failedStorage() *mockStorage           { return s.faile
 type mockClientConn struct {
 }
 
-func (m *mockClientConn) release(id string, protocolType agency.Protocol_Type) (pid *agency.ProtocolID, err error) {
+func (m *mockClientConn) release(_ string, _ agency.Protocol_Type) (pid *agency.ProtocolID, err error) {
 	return &agency.ProtocolID{}, nil
 }
-func (m *mockClientConn) status(id string, protocolType agency.Protocol_Type) (pid *agency.ProtocolStatus, err error) {
+func (m *mockClientConn) status(_ string, _ agency.Protocol_Type) (pid *agency.ProtocolStatus, err error) {
 	return &agency.ProtocolStatus{}, nil
 }
-func (m *mockClientConn) listen(id string) (ch chan *AgentStatus, err error) {
+func (m *mockClientConn) listen(_ string) (ch chan *AgentStatus, err error) {
 	ch = make(chan *AgentStatus)
 	return ch, nil
 }

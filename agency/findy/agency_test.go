@@ -61,7 +61,7 @@ func (*mockServer) Release(context.Context, *agency.ProtocolID) (*agency.Protoco
 	return &agency.ProtocolID{ID: testID}, nil
 }
 
-func (m *mockServer) PSMHook(dataHook *ops.DataHook, server ops.AgencyService_PSMHookServer) error {
+func (m *mockServer) PSMHook(dataHook *ops.DataHook, _ ops.AgencyService_PSMHookServer) error {
 	m.hookID = dataHook.ID
 	return nil
 }
@@ -69,7 +69,7 @@ func (*mockServer) Onboard(context.Context, *ops.Onboarding) (*ops.OnboardResult
 	return nil, status.Errorf(codes.Unimplemented, "method Onboard not implemented")
 }
 
-func (m *mockServer) Listen(id *agency.ClientID, server agency.AgentService_ListenServer) error {
+func (m *mockServer) Listen(id *agency.ClientID, _ agency.AgentService_ListenServer) error {
 	m.clientIDs = append(m.clientIDs, id.ID)
 	return nil
 }
@@ -125,34 +125,34 @@ type mockListener struct {
 	proofTS int64
 }
 
-func (m *mockListener) AddConnection(job *model.JobInfo, connection *model.Connection) error {
+func (m *mockListener) AddConnection(_ *model.JobInfo, _ *model.Connection) error {
 	panic("Not implemented")
 }
-func (m *mockListener) AddMessage(job *model.JobInfo, message *model.Message) error {
+func (m *mockListener) AddMessage(_ *model.JobInfo, _ *model.Message) error {
 	panic("Not implemented")
 }
-func (m *mockListener) UpdateMessage(job *model.JobInfo, update *model.MessageUpdate) error {
+func (m *mockListener) UpdateMessage(_ *model.JobInfo, _ *model.MessageUpdate) error {
 	panic("Not implemented")
 }
 
-func (m *mockListener) AddCredential(job *model.JobInfo, credential *model.Credential) error {
+func (m *mockListener) AddCredential(_ *model.JobInfo, _ *model.Credential) error {
 	panic("Not implemented")
 }
-func (m *mockListener) UpdateCredential(job *model.JobInfo, update *model.CredentialUpdate) error {
+func (m *mockListener) UpdateCredential(_ *model.JobInfo, update *model.CredentialUpdate) error {
 	m.credTS = *update.ApprovedMs
 	return nil
 }
 
-func (m *mockListener) AddProof(job *model.JobInfo, proof *model.Proof) error {
+func (m *mockListener) AddProof(_ *model.JobInfo, _ *model.Proof) error {
 	panic("Not implemented")
 }
 
-func (m *mockListener) UpdateProof(job *model.JobInfo, update *model.ProofUpdate) error {
+func (m *mockListener) UpdateProof(_ *model.JobInfo, update *model.ProofUpdate) error {
 	m.proofTS = *update.ApprovedMs
 	return nil
 }
 
-func (m *mockListener) FailJob(job *model.JobInfo) error {
+func (m *mockListener) FailJob(_ *model.JobInfo) error {
 	panic("Not implemented")
 }
 
