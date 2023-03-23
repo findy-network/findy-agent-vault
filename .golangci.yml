@@ -120,7 +120,7 @@ linters:
     - promlinter
     - reassign
     - revive
-    - rowserrcheck
+    #- rowserrcheck
     - sqlclosecheck
     - staticcheck
     - stylecheck

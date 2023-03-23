@@ -111,11 +111,9 @@ func Validate(prefix string, params *Params) (info *BatchInfo, err error) {
 
 	LogRequest(prefix, params)
 
-	var count int
-	tail := false
 	var before, after uint64
 
-	count, tail = try.To2(ValidateFirstAndLast(params.First, params.Last))
+	count, tail := try.To2(ValidateFirstAndLast(params.First, params.Last))
 
 	if params.After != nil {
 		after = try.To1(ParseCursor(*params.After, params.Object))

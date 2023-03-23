@@ -10,7 +10,7 @@ RUN go mod download
 COPY . ./
 
 RUN VERSION=$(cat ./VERSION) && \
-  go build  ${GOBUILD_ARGS} \
+  go build ${GOBUILD_ARGS} \
   -ldflags "-X 'github.com/findy-network/findy-agent-vault/utils.Version=$VERSION'"\
   -o /go/bin/findy-agent-vault
 

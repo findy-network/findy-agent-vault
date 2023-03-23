@@ -25,7 +25,7 @@ func (h *traceHook) Before(ctx context.Context, query string, args ...interface{
 	return context.WithValue(ctx, traceCtxKey("QueryTrace"), time.Now()), nil
 }
 
-func (h *traceHook) After(ctx context.Context, query string, args ...interface{}) (context.Context, error) {
+func (h *traceHook) After(ctx context.Context, _ string, _ ...interface{}) (context.Context, error) {
 	if begin, ok := ctx.Value(traceCtxKey("QueryTrace")).(time.Time); ok {
 		utils.LogTrace().Infof("< took: %s\n", time.Since(begin))
 	}

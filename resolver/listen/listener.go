@@ -83,8 +83,8 @@ func (l *Listener) AddMessage(info *agency.JobInfo, data *agency.Message) (err e
 	return nil
 }
 
-func (l *Listener) UpdateMessage(info *agency.JobInfo, _ *agency.MessageUpdate) (err error) {
-	// TODO: linter needs coment, implement later
+func (l *Listener) UpdateMessage(_ *agency.JobInfo, _ *agency.MessageUpdate) (err error) {
+	// TODO: linter needs comment, implement later
 	return nil
 }
 
