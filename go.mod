@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/99designs/gqlgen v0.17.26
 	github.com/bxcodec/faker/v3 v3.8.1
-	github.com/findy-network/findy-common-go v0.2.13
+	github.com/findy-network/findy-common-go v0.2.15
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/golang/glog v1.1.1
 	github.com/golang/mock v1.6.0
@@ -70,7 +70,7 @@ require (
 	golang.org/x/text v0.8.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f // indirect
-	google.golang.org/protobuf v1.29.1 // indirect
+	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
