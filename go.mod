@@ -14,7 +14,7 @@ require (
 	github.com/lainio/err2 v0.9.0
 	github.com/lib/pq v1.10.7
 	github.com/qustavo/sqlhooks/v2 v2.1.0
-	github.com/rs/cors v1.8.3
+	github.com/rs/cors v1.9.0
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/viper v1.15.0
 	github.com/vektah/gqlparser/v2 v2.5.1
