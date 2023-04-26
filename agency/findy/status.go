@@ -56,6 +56,7 @@ func (f *Agency) handleProtocolFailure(
 	case agency.Protocol_ISSUE_CREDENTIAL:
 		try.To(f.vault.UpdateCredential(
 			job,
+			nil,
 			&model.CredentialUpdate{
 				FailedMs: &now,
 			},
@@ -63,6 +64,7 @@ func (f *Agency) handleProtocolFailure(
 	case agency.Protocol_PRESENT_PROOF:
 		try.To(f.vault.UpdateProof(
 			job,
+			nil,
 			&model.ProofUpdate{
 				FailedMs: &now,
 			},
@@ -106,6 +108,7 @@ func (f *Agency) handleProtocolSuccess(
 	case agency.Protocol_ISSUE_CREDENTIAL:
 		try.To(f.vault.UpdateCredential(
 			job,
+			statusToCredential(status),
 			&model.CredentialUpdate{
 				IssuedMs: &now,
 			},
@@ -113,6 +116,7 @@ func (f *Agency) handleProtocolSuccess(
 	case agency.Protocol_PRESENT_PROOF:
 		try.To(f.vault.UpdateProof(
 			job,
+			statusToProof(status),
 			&model.ProofUpdate{
 				VerifiedMs: &now,
 			},

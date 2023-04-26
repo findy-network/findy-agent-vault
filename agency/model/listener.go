@@ -43,10 +43,10 @@ type Listener interface {
 	UpdateMessage(job *JobInfo, update *MessageUpdate) error
 
 	AddCredential(job *JobInfo, credential *Credential) error
-	UpdateCredential(job *JobInfo, update *CredentialUpdate) error
+	UpdateCredential(job *JobInfo, credential *Credential, update *CredentialUpdate) error
 
 	AddProof(job *JobInfo, proof *Proof) error
-	UpdateProof(job *JobInfo, update *ProofUpdate) error
+	UpdateProof(job *JobInfo, proof *Proof, update *ProofUpdate) error
 
 	FailJob(job *JobInfo) error
 }

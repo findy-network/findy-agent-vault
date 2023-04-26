@@ -138,7 +138,7 @@ func (m *mockListener) UpdateMessage(_ *model.JobInfo, _ *model.MessageUpdate) e
 func (m *mockListener) AddCredential(_ *model.JobInfo, _ *model.Credential) error {
 	panic("Not implemented")
 }
-func (m *mockListener) UpdateCredential(_ *model.JobInfo, update *model.CredentialUpdate) error {
+func (m *mockListener) UpdateCredential(_ *model.JobInfo, _ *model.Credential, update *model.CredentialUpdate) error {
 	m.credTS = *update.ApprovedMs
 	return nil
 }
@@ -147,7 +147,7 @@ func (m *mockListener) AddProof(_ *model.JobInfo, _ *model.Proof) error {
 	panic("Not implemented")
 }
 
-func (m *mockListener) UpdateProof(_ *model.JobInfo, update *model.ProofUpdate) error {
+func (m *mockListener) UpdateProof(_ *model.JobInfo, _ *model.Proof, update *model.ProofUpdate) error {
 	m.proofTS = *update.ApprovedMs
 	return nil
 }

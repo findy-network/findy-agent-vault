@@ -120,10 +120,23 @@ func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) 
 	return nil
 }
 
-func (l *Listener) UpdateCredential(info *agency.JobInfo, data *agency.CredentialUpdate) (err error) {
+func (l *Listener) UpdateCredential(
+	info *agency.JobInfo,
+	credentialInput *agency.Credential,
+	data *agency.CredentialUpdate,
+) (err error) {
 	defer err2.Handle(&err)
 
-	job := try.To1(l.db.GetJob(info.JobID, info.TenantID))
+	job, err := l.db.GetJob(info.JobID, info.TenantID)
+	if err != nil {
+		if credentialInput != nil && store.ErrorCode(err) == store.ErrCodeNotFound {
+			// we might have auto-accepting on in case we want to add the credential here
+			utils.LogHigh().Infof("Adding credential on update for tenant %s", info.TenantID)
+			try.To(l.AddCredential(info, credentialInput))
+		} else {
+			return err
+		}
+	}
 
 	utils.LogMed().Infof("Update credential %s for tenant %s", *job.ProtocolCredentialID, info.TenantID)
 
@@ -240,10 +253,19 @@ func (l *Listener) updateBlockedProof(job *dbModel.Job) (err error) {
 	return nil
 }
 
-func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) (err error) {
+func (l *Listener) UpdateProof(info *agency.JobInfo, proofInput *agency.Proof, data *agency.ProofUpdate) (err error) {
 	defer err2.Handle(&err)
 
-	job := try.To1(l.db.GetJob(info.JobID, info.TenantID))
+	job, err := l.db.GetJob(info.JobID, info.TenantID)
+	if err != nil {
+		if proofInput != nil && store.ErrorCode(err) == store.ErrCodeNotFound {
+			// we might have auto-accepting on in case we want to add the proof here
+			utils.LogHigh().Infof("Adding proof on update for tenant %s", info.TenantID)
+			try.To(l.AddProof(info, proofInput))
+		} else {
+			return err
+		}
+	}
 
 	utils.LogMed().Infof("Update proof %s for tenant %s", *job.ProtocolProofID, info.TenantID)
 
