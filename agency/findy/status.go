@@ -130,15 +130,17 @@ func (f *Agency) handleStatus(
 	notification *agency.Notification,
 	status *agency.ProtocolStatus,
 ) {
+	defer err2.Catch(func(err error) {
+		glog.Errorf("Error when handling action: %v", err)
+	})
+
 	switch status.State.State {
 	case agency.ProtocolState_ERR:
-		if f.handleProtocolFailure(job, notification) == nil {
-			f.releaseCompleted(a, status.State.ProtocolID.ID, status.State.ProtocolID.TypeID)
-		}
+		try.To(f.handleProtocolFailure(job, notification))
+		f.releaseCompleted(a, status.State.ProtocolID.ID, status.State.ProtocolID.TypeID)
 	case agency.ProtocolState_OK:
-		if f.handleProtocolSuccess(job, notification, status) == nil {
-			f.releaseCompleted(a, status.State.ProtocolID.ID, status.State.ProtocolID.TypeID)
-		}
+		try.To(f.handleProtocolSuccess(job, notification, status))
+		f.releaseCompleted(a, status.State.ProtocolID.ID, status.State.ProtocolID.TypeID)
 	default:
 		utils.LogLow().Infof(
 			"Received status update %s: %s",
@@ -154,7 +156,7 @@ func (f *Agency) handleAction(
 	status *agency.ProtocolStatus,
 ) {
 	defer err2.Catch(func(err error) {
-		glog.Errorf("Error when handling status: %v", err)
+		glog.Errorf("Error when handling action: %v", err)
 	})
 
 	switch notification.ProtocolType {
