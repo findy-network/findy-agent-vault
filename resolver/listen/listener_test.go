@@ -268,7 +268,7 @@ func TestUpdateCredential(t *testing.T) {
 
 	l := createListener(m)
 
-	_ = l.UpdateCredential(job, credentialUpdate)
+	_ = l.UpdateCredential(job, nil, credentialUpdate)
 }
 
 func TestAddProof(t *testing.T) {
@@ -394,5 +394,5 @@ func TestUpdateProof(t *testing.T) {
 
 	l := createListener(m)
 
-	_ = l.UpdateProof(job, proofUpdate)
+	_ = l.UpdateProof(job, nil, proofUpdate)
 }

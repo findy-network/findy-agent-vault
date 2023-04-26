@@ -72,7 +72,7 @@ func (f *Agency) handleProtocolFailure(
 	default:
 		try.To(f.vault.FailJob(job))
 	}
-	return
+	return err
 }
 
 func (f *Agency) handleProtocolSuccess(
