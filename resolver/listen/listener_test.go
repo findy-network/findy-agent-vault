@@ -334,7 +334,7 @@ func TestAddProof(t *testing.T) {
 
 	l := createListener(m)
 
-	_ = l.AddProof(job, proof)
+	_, _ = l.AddProof(job, proof)
 
 	utils.CurrentStaticTime = time.Time{}
 }
@@ -395,4 +395,113 @@ func TestUpdateProof(t *testing.T) {
 	l := createListener(m)
 
 	_ = l.UpdateProof(job, nil, proofUpdate)
+}
+
+func TestUpdateNonExistentProof(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	utils.CurrentStaticTime = utils.CurrentTime()
+
+	m := NewMockDB(ctrl)
+	var (
+		now   = utils.CurrentTime()
+		nowMs = now.UTC().UnixNano() / int64(time.Millisecond)
+		job   = &agency.JobInfo{JobID: "job-id", TenantID: "tenant-id", ConnectionID: "connection-id"}
+		//proofID     = "proof-id"
+		proofUpdate = &agency.ProofUpdate{
+			ApprovedMs: &nowMs,
+		}
+		proof = &agency.Proof{
+			Role: graph.ProofRoleProver,
+			Attributes: []*graph.ProofAttribute{{
+				Name:      "attribute-name",
+				CredDefID: "cred-def-id",
+			}},
+			InitiatedByUs: false,
+		}
+		resultProof = &model.Proof{
+			Base:          model.Base{TenantID: job.TenantID, ID: "proof-id"},
+			ConnectionID:  job.ConnectionID,
+			Role:          proof.Role,
+			Attributes:    proof.Attributes,
+			Result:        false,
+			InitiatedByUs: proof.InitiatedByUs,
+			Provable:      now,
+		}
+		resultJob = &model.Job{
+			Base:            model.Base{ID: job.JobID, TenantID: job.TenantID},
+			ConnectionID:    &job.ConnectionID,
+			ProtocolType:    graph.ProtocolTypeProof,
+			ProtocolProofID: &resultProof.ID,
+			InitiatedByUs:   proof.InitiatedByUs,
+			Status:          graph.JobStatusPending,
+			Result:          graph.JobResultNone,
+		}
+		event = &model.Event{
+			Base:         model.Base{TenantID: job.TenantID},
+			Read:         false,
+			Description:  resultProof.Description(),
+			ConnectionID: &job.ConnectionID,
+			JobID:        &job.JobID,
+		}
+		updateResultProof = &model.Proof{
+			Base:     model.Base{TenantID: job.TenantID},
+			Role:     graph.ProofRoleProver,
+			Approved: utils.TSToTimeIfNotSet(nil, proofUpdate.ApprovedMs),
+		}
+
+		updateResultJob = &model.Job{
+			Base:            model.Base{ID: job.JobID, TenantID: job.TenantID},
+			ConnectionID:    &job.ConnectionID,
+			ProtocolProofID: &resultProof.ID,
+		}
+		updateEvent = &model.Event{
+			Base:         model.Base{TenantID: job.TenantID},
+			Read:         false,
+			Description:  updateResultProof.Description(),
+			ConnectionID: &job.ConnectionID,
+			JobID:        &job.JobID,
+		}
+	)
+
+	// auto-accepted credentials do not have pre-created jobs
+	m.
+		EXPECT().
+		GetJob(gomock.Eq(job.JobID), gomock.Eq(job.TenantID)).
+		Return(nil, store.NewError(store.ErrCodeNotFound, "no rows returned"))
+	m.
+		EXPECT().
+		AddProof(gomock.Any()).
+		Return(resultProof, nil)
+	m.
+		EXPECT().
+		SearchCredentials(gomock.Any(), gomock.Any())
+	m.EXPECT().
+		AddJob(resultJob).
+		Return(resultJob, nil)
+	m.
+		EXPECT().
+		AddEvent(event).
+		Return(event, nil)
+	m.
+		EXPECT().
+		GetProof(gomock.Any(), gomock.Any()).
+		Return(updateResultProof, nil)
+	m.
+		EXPECT().
+		UpdateProof(updateResultProof).
+		Return(updateResultProof, nil)
+	m.
+		EXPECT().
+		UpdateJob(resultJob).
+		Return(updateResultJob, nil)
+	m.
+		EXPECT().
+		AddEvent(updateEvent).
+		Return(updateEvent, nil)
+
+	l := createListener(m)
+
+	_ = l.UpdateProof(job, proof, proofUpdate)
 }

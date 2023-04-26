@@ -57,7 +57,7 @@ func (r *Resolver) Invite(ctx context.Context) (res *model.InvitationResponse, e
 
 	res = try.To1(invitation.FromAgency(data))
 
-	try.To(r.AddJob(
+	_ = try.To1(r.AddJob(
 		&dbModel.Job{
 			Base:          dbModel.Base{ID: data.ID, TenantID: tenant.ID},
 			ProtocolType:  model.ProtocolTypeConnection,
@@ -79,7 +79,7 @@ func (r *Resolver) Connect(ctx context.Context, input model.ConnectInput) (res *
 
 	id := try.To1(r.agency.Connect(r.AgencyAuth(tenant), input.Invitation))
 
-	try.To(r.AddJob(
+	_ = try.To1(r.AddJob(
 		&dbModel.Job{
 			Base:          dbModel.Base{ID: id, TenantID: tenant.ID},
 			ProtocolType:  model.ProtocolTypeConnection,
