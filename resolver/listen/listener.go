@@ -88,7 +88,7 @@ func (l *Listener) UpdateMessage(_ *agency.JobInfo, _ *agency.MessageUpdate) (er
 	return nil
 }
 
-func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) (err error) {
+func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) (job *dbModel.Job, err error) {
 	defer err2.Handle(&err)
 
 	credential := try.To1(l.db.AddCredential(&dbModel.Credential{
@@ -108,7 +108,7 @@ func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) 
 		status = model.JobStatusPending
 	}
 
-	_ = try.To1(l.AddJob(&dbModel.Job{
+	return l.AddJob(&dbModel.Job{
 		Base:                 dbModel.Base{ID: info.JobID, TenantID: info.TenantID},
 		ConnectionID:         &info.ConnectionID,
 		ProtocolType:         model.ProtocolTypeCredential,
@@ -116,8 +116,7 @@ func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) 
 		InitiatedByUs:        data.InitiatedByUs,
 		Status:               status,
 		Result:               model.JobResultNone,
-	}, credential.Description()))
-	return nil
+	}, credential.Description())
 }
 
 func (l *Listener) UpdateCredential(
@@ -132,7 +131,7 @@ func (l *Listener) UpdateCredential(
 		if credentialInput != nil && store.ErrorCode(err) == store.ErrCodeNotFound {
 			// we might have auto-accepting on in case we want to add the credential here
 			utils.LogHigh().Infof("Adding credential on update for tenant %s", info.TenantID)
-			try.To(l.AddCredential(info, credentialInput))
+			job = try.To1(l.AddCredential(info, credentialInput))
 		} else {
 			return err
 		}
