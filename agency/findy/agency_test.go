@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/findy-network/findy-agent-vault/agency/model"
+	dbModel "github.com/findy-network/findy-agent-vault/db/model"
 	"github.com/findy-network/findy-agent-vault/utils"
 	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
 	ops "github.com/findy-network/findy-common-go/grpc/ops/v1"
@@ -135,7 +136,7 @@ func (m *mockListener) UpdateMessage(_ *model.JobInfo, _ *model.MessageUpdate) e
 	panic("Not implemented")
 }
 
-func (m *mockListener) AddCredential(_ *model.JobInfo, _ *model.Credential) error {
+func (m *mockListener) AddCredential(_ *model.JobInfo, _ *model.Credential) (*dbModel.Job, error) {
 	panic("Not implemented")
 }
 func (m *mockListener) UpdateCredential(_ *model.JobInfo, _ *model.Credential, update *model.CredentialUpdate) error {
@@ -143,7 +144,7 @@ func (m *mockListener) UpdateCredential(_ *model.JobInfo, _ *model.Credential, u
 	return nil
 }
 
-func (m *mockListener) AddProof(_ *model.JobInfo, _ *model.Proof) error {
+func (m *mockListener) AddProof(_ *model.JobInfo, _ *model.Proof) (*dbModel.Job, error) {
 	panic("Not implemented")
 }
 

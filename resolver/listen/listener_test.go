@@ -377,7 +377,6 @@ func TestUpdateNonExistentCredential(t *testing.T) {
 	l := createListener(m)
 
 	_ = l.UpdateCredential(job, credential, credentialUpdate)
-
 }
 
 func TestAddProof(t *testing.T) {
