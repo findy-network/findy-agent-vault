@@ -171,7 +171,7 @@ func (f *Agency) handleAction(
 			return
 		}
 		// TODO: what if we are issuer?
-		try.To(f.vault.AddCredential(job, credential))
+		_ = try.To1(f.vault.AddCredential(job, credential))
 
 	case agency.Protocol_PRESENT_PROOF:
 		proof := statusToProof(status)
@@ -180,7 +180,7 @@ func (f *Agency) handleAction(
 			return
 		}
 		// TODO: what if we are verifier?
-		try.To(f.vault.AddProof(job, proof))
+		_ = try.To1(f.vault.AddProof(job, proof))
 
 	case agency.Protocol_NONE:
 	case agency.Protocol_TRUST_PING:
