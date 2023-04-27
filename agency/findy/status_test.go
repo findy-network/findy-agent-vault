@@ -168,7 +168,7 @@ func (s *statusListener) UpdateMessage(_ *model.JobInfo, _ *model.MessageUpdate)
 
 func (s *statusListener) AddCredential(job *model.JobInfo, credential *model.Credential) (*dbModel.Job, error) {
 	s.cred = &mockStorage{info: job, credential: credential}
-	return nil, nil
+	return &dbModel.Job{}, nil
 }
 
 func (s *statusListener) UpdateCredential(job *model.JobInfo, _ *model.Credential, update *model.CredentialUpdate) error {
@@ -178,7 +178,7 @@ func (s *statusListener) UpdateCredential(job *model.JobInfo, _ *model.Credentia
 
 func (s *statusListener) AddProof(job *model.JobInfo, proof *model.Proof) (*dbModel.Job, error) {
 	s.proof = &mockStorage{info: job, proof: proof}
-	return nil, nil
+	return &dbModel.Job{}, nil
 }
 
 func (s *statusListener) UpdateProof(job *model.JobInfo, _ *model.Proof, update *model.ProofUpdate) error {

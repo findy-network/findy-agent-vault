@@ -15,6 +15,27 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
+var (
+	credential = &agency.Credential{
+		Role:      graph.CredentialRoleHolder,
+		SchemaID:  "schema-id",
+		CredDefID: "cred-def-id",
+		Attributes: []*graph.CredentialValue{{
+			Name:  "attribute-name",
+			Value: "attribute-value",
+		}},
+		InitiatedByUs: false,
+	}
+	proof = &agency.Proof{
+		Role: graph.ProofRoleProver,
+		Attributes: []*graph.ProofAttribute{{
+			Name:      "attribute-name",
+			CredDefID: "cred-def-id",
+		}},
+		InitiatedByUs: false,
+	}
+)
+
 func setup() {
 	utils.SetLogDefaults()
 }
@@ -153,17 +174,7 @@ func TestAddCredential(t *testing.T) {
 
 	m := NewMockDB(ctrl)
 	var (
-		job        = &agency.JobInfo{JobID: "job-id", TenantID: "tenant-id", ConnectionID: "connection-id"}
-		credential = &agency.Credential{
-			Role:      graph.CredentialRoleHolder,
-			SchemaID:  "schema-id",
-			CredDefID: "cred-def-id",
-			Attributes: []*graph.CredentialValue{{
-				Name:  "attribute-name",
-				Value: "attribute-value",
-			}},
-			InitiatedByUs: false,
-		}
+		job              = &agency.JobInfo{JobID: "job-id", TenantID: "tenant-id", ConnectionID: "connection-id"}
 		resultCredential = &model.Credential{
 			Base:          model.Base{TenantID: job.TenantID},
 			ConnectionID:  job.ConnectionID,
@@ -277,18 +288,8 @@ func TestUpdateNonExistentCredential(t *testing.T) {
 
 	m := NewMockDB(ctrl)
 	var (
-		now        = utils.CurrentTimeMs()
-		job        = &agency.JobInfo{JobID: "job-id", TenantID: "tenant-id", ConnectionID: "connection-id"}
-		credential = &agency.Credential{
-			Role:      graph.CredentialRoleHolder,
-			SchemaID:  "schema-id",
-			CredDefID: "cred-def-id",
-			Attributes: []*graph.CredentialValue{{
-				Name:  "attribute-name",
-				Value: "attribute-value",
-			}},
-			InitiatedByUs: false,
-		}
+		now              = utils.CurrentTimeMs()
+		job              = &agency.JobInfo{JobID: "job-id", TenantID: "tenant-id", ConnectionID: "connection-id"}
 		resultCredential = &model.Credential{
 			Base:          model.Base{TenantID: job.TenantID},
 			ConnectionID:  job.ConnectionID,
@@ -387,16 +388,8 @@ func TestAddProof(t *testing.T) {
 
 	m := NewMockDB(ctrl)
 	var (
-		now   = utils.CurrentTime()
-		job   = &agency.JobInfo{JobID: "job-id", TenantID: "tenant-id", ConnectionID: "connection-id"}
-		proof = &agency.Proof{
-			Role: graph.ProofRoleProver,
-			Attributes: []*graph.ProofAttribute{{
-				Name:      "attribute-name",
-				CredDefID: "cred-def-id",
-			}},
-			InitiatedByUs: false,
-		}
+		now         = utils.CurrentTime()
+		job         = &agency.JobInfo{JobID: "job-id", TenantID: "tenant-id", ConnectionID: "connection-id"}
 		resultProof = &model.Proof{
 			Base:          model.Base{TenantID: job.TenantID},
 			ConnectionID:  job.ConnectionID,
@@ -513,20 +506,11 @@ func TestUpdateNonExistentProof(t *testing.T) {
 
 	m := NewMockDB(ctrl)
 	var (
-		now   = utils.CurrentTime()
-		nowMs = now.UTC().UnixNano() / int64(time.Millisecond)
-		job   = &agency.JobInfo{JobID: "job-id", TenantID: "tenant-id", ConnectionID: "connection-id"}
-		//proofID     = "proof-id"
+		now         = utils.CurrentTime()
+		nowMs       = now.UTC().UnixNano() / int64(time.Millisecond)
+		job         = &agency.JobInfo{JobID: "job-id", TenantID: "tenant-id", ConnectionID: "connection-id"}
 		proofUpdate = &agency.ProofUpdate{
 			ApprovedMs: &nowMs,
-		}
-		proof = &agency.Proof{
-			Role: graph.ProofRoleProver,
-			Attributes: []*graph.ProofAttribute{{
-				Name:      "attribute-name",
-				CredDefID: "cred-def-id",
-			}},
-			InitiatedByUs: false,
 		}
 		resultProof = &model.Proof{
 			Base:          model.Base{TenantID: job.TenantID, ID: "proof-id"},
