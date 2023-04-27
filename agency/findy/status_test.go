@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/findy-network/findy-agent-vault/agency/model"
+	dbModel "github.com/findy-network/findy-agent-vault/db/model"
 	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/utils"
 	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
@@ -165,22 +166,22 @@ func (s *statusListener) UpdateMessage(_ *model.JobInfo, _ *model.MessageUpdate)
 	panic("Not implemented")
 }
 
-func (s *statusListener) AddCredential(job *model.JobInfo, credential *model.Credential) error {
+func (s *statusListener) AddCredential(job *model.JobInfo, credential *model.Credential) (*dbModel.Job, error) {
 	s.cred = &mockStorage{info: job, credential: credential}
-	return nil
+	return &dbModel.Job{}, nil
 }
 
-func (s *statusListener) UpdateCredential(job *model.JobInfo, update *model.CredentialUpdate) error {
+func (s *statusListener) UpdateCredential(job *model.JobInfo, _ *model.Credential, update *model.CredentialUpdate) error {
 	s.credUpt = &mockStorage{info: job, credUpdate: update}
 	return nil
 }
 
-func (s *statusListener) AddProof(job *model.JobInfo, proof *model.Proof) error {
+func (s *statusListener) AddProof(job *model.JobInfo, proof *model.Proof) (*dbModel.Job, error) {
 	s.proof = &mockStorage{info: job, proof: proof}
-	return nil
+	return &dbModel.Job{}, nil
 }
 
-func (s *statusListener) UpdateProof(job *model.JobInfo, update *model.ProofUpdate) error {
+func (s *statusListener) UpdateProof(job *model.JobInfo, _ *model.Proof, update *model.ProofUpdate) error {
 	s.proofUpt = &mockStorage{info: job, proofUpdate: update}
 	return nil
 }

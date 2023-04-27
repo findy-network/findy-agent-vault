@@ -42,12 +42,12 @@ func (r *Updater) AddEvent(tenantID string, job *model.Job, description string) 
 	return err
 }
 
-func (r *Updater) AddJob(job *model.Job, description string) (err error) {
+func (r *Updater) AddJob(inputJob *model.Job, description string) (job *model.Job, err error) {
 	defer err2.Handle(&err)
 
-	utils.LogMed().Infof("Add job with ID %s for tenant %s", job.ID, job.TenantID)
+	utils.LogMed().Infof("Add job with ID %s for tenant %s", inputJob.ID, inputJob.TenantID)
 
-	job = try.To1(r.db.AddJob(job))
+	job = try.To1(r.db.AddJob(inputJob))
 
 	try.To(r.AddEvent(job.TenantID, job, description))
 

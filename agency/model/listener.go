@@ -1,6 +1,9 @@
 package model
 
-import "github.com/findy-network/findy-agent-vault/graph/model"
+import (
+	dbModel "github.com/findy-network/findy-agent-vault/db/model"
+	"github.com/findy-network/findy-agent-vault/graph/model"
+)
 
 type Connection struct {
 	OurDID, TheirDID, TheirEndpoint, TheirLabel string
@@ -42,11 +45,11 @@ type Listener interface {
 	AddMessage(job *JobInfo, message *Message) error
 	UpdateMessage(job *JobInfo, update *MessageUpdate) error
 
-	AddCredential(job *JobInfo, credential *Credential) error
-	UpdateCredential(job *JobInfo, update *CredentialUpdate) error
+	AddCredential(job *JobInfo, credential *Credential) (*dbModel.Job, error)
+	UpdateCredential(job *JobInfo, credential *Credential, update *CredentialUpdate) error
 
-	AddProof(job *JobInfo, proof *Proof) error
-	UpdateProof(job *JobInfo, update *ProofUpdate) error
+	AddProof(job *JobInfo, proof *Proof) (*dbModel.Job, error)
+	UpdateProof(job *JobInfo, proof *Proof, update *ProofUpdate) error
 
 	FailJob(job *JobInfo) error
 }

@@ -71,7 +71,7 @@ func (l *Listener) AddMessage(info *agency.JobInfo, data *agency.Message) (err e
 		SentByMe:     data.SentByMe,
 	}))
 
-	try.To(l.AddJob(&dbModel.Job{
+	_ = try.To1(l.AddJob(&dbModel.Job{
 		Base:              dbModel.Base{ID: info.JobID, TenantID: info.TenantID},
 		ConnectionID:      &info.ConnectionID,
 		ProtocolType:      model.ProtocolTypeBasicMessage,
@@ -88,7 +88,7 @@ func (l *Listener) UpdateMessage(_ *agency.JobInfo, _ *agency.MessageUpdate) (er
 	return nil
 }
 
-func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) (err error) {
+func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) (job *dbModel.Job, err error) {
 	defer err2.Handle(&err)
 
 	credential := try.To1(l.db.AddCredential(&dbModel.Credential{
@@ -108,7 +108,7 @@ func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) 
 		status = model.JobStatusPending
 	}
 
-	try.To(l.AddJob(&dbModel.Job{
+	return l.AddJob(&dbModel.Job{
 		Base:                 dbModel.Base{ID: info.JobID, TenantID: info.TenantID},
 		ConnectionID:         &info.ConnectionID,
 		ProtocolType:         model.ProtocolTypeCredential,
@@ -116,14 +116,26 @@ func (l *Listener) AddCredential(info *agency.JobInfo, data *agency.Credential) 
 		InitiatedByUs:        data.InitiatedByUs,
 		Status:               status,
 		Result:               model.JobResultNone,
-	}, credential.Description()))
-	return nil
+	}, credential.Description())
 }
 
-func (l *Listener) UpdateCredential(info *agency.JobInfo, data *agency.CredentialUpdate) (err error) {
+func (l *Listener) UpdateCredential(
+	info *agency.JobInfo,
+	credentialInput *agency.Credential,
+	data *agency.CredentialUpdate,
+) (err error) {
 	defer err2.Handle(&err)
 
-	job := try.To1(l.db.GetJob(info.JobID, info.TenantID))
+	job, err := l.db.GetJob(info.JobID, info.TenantID)
+	if err != nil {
+		if credentialInput != nil && store.ErrorCode(err) == store.ErrCodeNotFound {
+			// we might have auto-accepting on in case we want to add the credential here
+			utils.LogHigh().Infof("Adding credential on update for tenant %s", info.TenantID)
+			job = try.To1(l.AddCredential(info, credentialInput))
+		} else {
+			return err
+		}
+	}
 
 	utils.LogMed().Infof("Update credential %s for tenant %s", *job.ProtocolCredentialID, info.TenantID)
 
@@ -179,7 +191,7 @@ func (l *Listener) isProvable(info *agency.JobInfo, data *dbModel.Proof) bool {
 	return provable
 }
 
-func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error) {
+func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (job *dbModel.Job, err error) {
 	defer err2.Handle(&err)
 
 	newProof := &dbModel.Proof{
@@ -207,7 +219,7 @@ func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error
 		status = model.JobStatusBlocked
 	}
 
-	try.To(l.AddJob(&dbModel.Job{
+	job = try.To1(l.AddJob(&dbModel.Job{
 		Base:            dbModel.Base{ID: info.JobID, TenantID: info.TenantID},
 		ConnectionID:    &info.ConnectionID,
 		ProtocolType:    model.ProtocolTypeProof,
@@ -216,7 +228,7 @@ func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (err error
 		Status:          status,
 		Result:          model.JobResultNone,
 	}, proof.Description()))
-	return nil
+	return job, nil
 }
 
 func (l *Listener) updateBlockedProof(job *dbModel.Job) (err error) {
@@ -240,10 +252,19 @@ func (l *Listener) updateBlockedProof(job *dbModel.Job) (err error) {
 	return nil
 }
 
-func (l *Listener) UpdateProof(info *agency.JobInfo, data *agency.ProofUpdate) (err error) {
+func (l *Listener) UpdateProof(info *agency.JobInfo, proofInput *agency.Proof, data *agency.ProofUpdate) (err error) {
 	defer err2.Handle(&err)
 
-	job := try.To1(l.db.GetJob(info.JobID, info.TenantID))
+	job, err := l.db.GetJob(info.JobID, info.TenantID)
+	if err != nil {
+		if proofInput != nil && store.ErrorCode(err) == store.ErrCodeNotFound {
+			// we might have auto-accepting on in case we want to add the proof here
+			utils.LogHigh().Infof("Adding proof on update for tenant %s", info.TenantID)
+			job = try.To1(l.AddProof(info, proofInput))
+		} else {
+			return err
+		}
+	}
 
 	utils.LogMed().Infof("Update proof %s for tenant %s", *job.ProtocolProofID, info.TenantID)
 

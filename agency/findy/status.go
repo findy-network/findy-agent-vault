@@ -56,6 +56,7 @@ func (f *Agency) handleProtocolFailure(
 	case agency.Protocol_ISSUE_CREDENTIAL:
 		try.To(f.vault.UpdateCredential(
 			job,
+			nil,
 			&model.CredentialUpdate{
 				FailedMs: &now,
 			},
@@ -63,6 +64,7 @@ func (f *Agency) handleProtocolFailure(
 	case agency.Protocol_PRESENT_PROOF:
 		try.To(f.vault.UpdateProof(
 			job,
+			nil,
 			&model.ProofUpdate{
 				FailedMs: &now,
 			},
@@ -70,7 +72,7 @@ func (f *Agency) handleProtocolFailure(
 	default:
 		try.To(f.vault.FailJob(job))
 	}
-	return
+	return err
 }
 
 func (f *Agency) handleProtocolSuccess(
@@ -106,6 +108,7 @@ func (f *Agency) handleProtocolSuccess(
 	case agency.Protocol_ISSUE_CREDENTIAL:
 		try.To(f.vault.UpdateCredential(
 			job,
+			statusToCredential(status),
 			&model.CredentialUpdate{
 				IssuedMs: &now,
 			},
@@ -113,6 +116,7 @@ func (f *Agency) handleProtocolSuccess(
 	case agency.Protocol_PRESENT_PROOF:
 		try.To(f.vault.UpdateProof(
 			job,
+			statusToProof(status),
 			&model.ProofUpdate{
 				VerifiedMs: &now,
 			},
@@ -130,15 +134,17 @@ func (f *Agency) handleStatus(
 	notification *agency.Notification,
 	status *agency.ProtocolStatus,
 ) {
+	defer err2.Catch(func(err error) {
+		glog.Errorf("Error when handling action: %v", err)
+	})
+
 	switch status.State.State {
 	case agency.ProtocolState_ERR:
-		if f.handleProtocolFailure(job, notification) == nil {
-			f.releaseCompleted(a, status.State.ProtocolID.ID, status.State.ProtocolID.TypeID)
-		}
+		try.To(f.handleProtocolFailure(job, notification))
+		f.releaseCompleted(a, status.State.ProtocolID.ID, status.State.ProtocolID.TypeID)
 	case agency.ProtocolState_OK:
-		if f.handleProtocolSuccess(job, notification, status) == nil {
-			f.releaseCompleted(a, status.State.ProtocolID.ID, status.State.ProtocolID.TypeID)
-		}
+		try.To(f.handleProtocolSuccess(job, notification, status))
+		f.releaseCompleted(a, status.State.ProtocolID.ID, status.State.ProtocolID.TypeID)
 	default:
 		utils.LogLow().Infof(
 			"Received status update %s: %s",
@@ -154,7 +160,7 @@ func (f *Agency) handleAction(
 	status *agency.ProtocolStatus,
 ) {
 	defer err2.Catch(func(err error) {
-		glog.Errorf("Error when handling status: %v", err)
+		glog.Errorf("Error when handling action: %v", err)
 	})
 
 	switch notification.ProtocolType {
@@ -165,7 +171,7 @@ func (f *Agency) handleAction(
 			return
 		}
 		// TODO: what if we are issuer?
-		try.To(f.vault.AddCredential(job, credential))
+		_ = try.To1(f.vault.AddCredential(job, credential))
 
 	case agency.Protocol_PRESENT_PROOF:
 		proof := statusToProof(status)
@@ -174,7 +180,7 @@ func (f *Agency) handleAction(
 			return
 		}
 		// TODO: what if we are verifier?
-		try.To(f.vault.AddProof(job, proof))
+		_ = try.To1(f.vault.AddProof(job, proof))
 
 	case agency.Protocol_NONE:
 	case agency.Protocol_TRUST_PING:
