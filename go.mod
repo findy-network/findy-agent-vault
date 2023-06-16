@@ -19,11 +19,11 @@ require (
 	github.com/spf13/viper v1.16.0
 	github.com/vektah/gqlparser/v2 v2.5.3
 	golang.org/x/oauth2 v0.9.0
-	google.golang.org/grpc v1.55.0
+	google.golang.org/grpc v1.56.0
 )
 
 require (
-	cloud.google.com/go/compute v1.19.0 // indirect
+	cloud.google.com/go/compute v1.19.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/auth0/go-jwt-middleware v1.0.1 // indirect
