@@ -90,7 +90,7 @@ func (f *Agency) handleProtocolSuccess(
 		connection := statusToConnection(status)
 		if connection == nil {
 			glog.Errorf("Received invalid connection object for %s", job.JobID)
-			return
+			return err
 		}
 
 		try.To(f.vault.AddConnection(job, connection))
@@ -99,7 +99,7 @@ func (f *Agency) handleProtocolSuccess(
 		message := statusToMessage(status)
 		if message == nil {
 			glog.Errorf("Received invalid message object for %s", job.JobID)
-			return
+			return err
 		}
 
 		// TODO: delivered?
