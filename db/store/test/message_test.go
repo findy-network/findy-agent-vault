@@ -310,7 +310,7 @@ func TestArchiveMessage(t *testing.T) {
 
 			// Add data
 			m, err := s.db.AddMessage(testMessage)
-			assert.D.True(err == nil)
+			assert.That(err == nil)
 
 			now := utils.CurrentTime()
 			err = s.db.ArchiveMessage(m.ID, m.TenantID)
@@ -320,7 +320,7 @@ func TestArchiveMessage(t *testing.T) {
 
 			// Get data for id
 			got, err := s.db.GetMessage(m.ID, m.TenantID)
-			assert.D.True(err == nil)
+			assert.That(err == nil)
 
 			m.Archived = now
 			validateMessage(t, m, got)
