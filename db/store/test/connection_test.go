@@ -201,7 +201,7 @@ func TestArchiveConnection(t *testing.T) {
 			s.updateTestConnection()
 			// Add data
 			c, err := s.db.AddConnection(s.testConnection)
-			assert.D.True(err == nil)
+			assert.That(err == nil)
 
 			// Archive object
 			now := utils.CurrentTime()
@@ -212,7 +212,7 @@ func TestArchiveConnection(t *testing.T) {
 
 			// Get data for id
 			got, err := s.db.GetConnection(c.ID, c.TenantID)
-			assert.D.True(err == nil)
+			assert.That(err == nil)
 
 			c.Archived = now
 			validateConnection(t, c, got)

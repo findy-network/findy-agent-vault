@@ -360,7 +360,7 @@ func (pg *Database) SearchCredentials(
 ) (res []*graph.ProvableAttribute, err error) {
 	defer err2.Handle(&err, "SearchCredentials")
 
-	assert.P.NotEmpty(proofAttributes, "cannot search credentials for empty proof")
+	assert.That(len(proofAttributes) > 0, "cannot search credentials for empty proof")
 
 	credDefIDs := make([]string, 0)
 	names := make([]string, 0)

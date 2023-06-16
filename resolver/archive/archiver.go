@@ -65,7 +65,7 @@ func (a *Archiver) archiveExisting(
 
 	idToUpdate, archive = try.To2(a.matchProtocol(job))
 
-	assert.P.True(*idToUpdate != nil, "existing job to archive should have a valid protocol id")
+	assert.That(*idToUpdate != nil, "existing job to archive should have a valid protocol id")
 
 	// TODO: update data also?
 	try.To(archive(**idToUpdate, agent.TenantID))

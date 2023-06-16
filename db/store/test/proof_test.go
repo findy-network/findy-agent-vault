@@ -348,7 +348,7 @@ func TestArchiveProof(t *testing.T) {
 
 			// Add data
 			p, err := s.db.AddProof(testProof)
-			assert.D.True(err == nil)
+			assert.That(err == nil)
 
 			now := utils.CurrentTime()
 			err = s.db.ArchiveProof(p.ID, p.TenantID)
@@ -358,7 +358,7 @@ func TestArchiveProof(t *testing.T) {
 
 			// Get data for id
 			got, err := s.db.GetProof(p.ID, p.TenantID)
-			assert.D.True(err == nil)
+			assert.That(err == nil)
 
 			p.Archived = now
 			validateProof(t, p, got)

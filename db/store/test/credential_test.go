@@ -328,7 +328,7 @@ func TestArchiveCredential(t *testing.T) {
 
 			// Add data
 			c, err := s.db.AddCredential(testCredential)
-			assert.D.True(err == nil)
+			assert.That(err == nil)
 
 			now := utils.CurrentTime()
 			err = s.db.ArchiveCredential(c.ID, c.TenantID)
@@ -338,7 +338,7 @@ func TestArchiveCredential(t *testing.T) {
 
 			// Get data for id
 			got, err := s.db.GetCredential(c.ID, c.TenantID)
-			assert.D.True(err == nil)
+			assert.That(err == nil)
 
 			c.Archived = now
 			validateCredential(t, c, got)
@@ -356,11 +356,11 @@ func TestSearchCredentials(t *testing.T) {
 			// Add data
 			testCredential.CredDefID = "searchCredentials"
 			c, err := s.db.AddCredential(testCredential)
-			assert.D.True(err == nil)
+			assert.That(err == nil)
 
 			c.Issued = now
 			c, err = s.db.UpdateCredential(c)
-			assert.D.True(err == nil)
+			assert.That(err == nil)
 
 			proofRequest := &graph.Proof{Attributes: testProof.Attributes}
 			proofRequest.Attributes[0].Name = testCredential.Attributes[0].Name
@@ -393,11 +393,11 @@ func TestSearchCredentialsWithApostrophe(t *testing.T) {
 			// Add data
 			testCredential.CredDefID = "searchCredentials's"
 			c, err := s.db.AddCredential(testCredential)
-			assert.D.True(err == nil)
+			assert.That(err == nil)
 
 			c.Issued = now
 			c, err = s.db.UpdateCredential(c)
-			assert.D.True(err == nil)
+			assert.That(err == nil)
 
 			proofRequest := &graph.Proof{Attributes: testProof.Attributes}
 			proofRequest.Attributes[0].CredDefID = testCredential.CredDefID
