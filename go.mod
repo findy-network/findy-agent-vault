@@ -19,7 +19,7 @@ require (
 	github.com/spf13/viper v1.16.0
 	github.com/vektah/gqlparser/v2 v2.5.6
 	golang.org/x/oauth2 v0.10.0
-	google.golang.org/grpc v1.56.1
+	google.golang.org/grpc v1.56.2
 )
 
 require (
