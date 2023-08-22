@@ -9,7 +9,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/golang/glog v1.1.2
 	github.com/golang/mock v1.6.0
-	github.com/google/uuid v1.3.0
+	github.com/google/uuid v1.3.1
 	github.com/gorilla/websocket v1.5.0
 	github.com/lainio/err2 v0.9.40
 	github.com/lib/pq v1.10.9
