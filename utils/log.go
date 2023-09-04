@@ -30,9 +30,9 @@ func SetLogConfig(config *Configuration) {
 }
 
 func logParse(level string) {
-	defer err2.Catch(func(err error) {
+	defer err2.Catch(err2.Err(func(err error) {
 		log.Println("ERROR:", err)
-	})
+	}))
 	try.To(flag.Set("logtostderr", "true"))
 	try.To(flag.Set("stderrthreshold", "WARNING"))
 	try.To(flag.Set("v", level))

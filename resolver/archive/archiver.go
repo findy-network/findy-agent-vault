@@ -134,9 +134,9 @@ func (a *Archiver) archive(
 }
 
 func (a *Archiver) ArchiveConnection(info *agency.ArchiveInfo, data *agency.Connection) {
-	defer err2.Catch(func(err error) {
+	defer err2.Catch(err2.Err(func(err error) {
 		glog.Errorf("Encountered error when archiving connection %s", err)
-	})
+	}))
 
 	try.To(a.archive(info, graph.ProtocolTypeConnection, func(agent *model.Agent, initiatedByUs bool) (id string, err error) {
 		defer err2.Handle(&err)
@@ -161,9 +161,9 @@ func (a *Archiver) ArchiveConnection(info *agency.ArchiveInfo, data *agency.Conn
 }
 
 func (a *Archiver) ArchiveMessage(info *agency.ArchiveInfo, data *agency.Message) {
-	defer err2.Catch(func(err error) {
+	defer err2.Catch(err2.Err(func(err error) {
 		glog.Errorf("Encountered error when archiving message %s", err)
-	})
+	}))
 	try.To(a.archive(info, graph.ProtocolTypeBasicMessage, func(agent *model.Agent, initiatedByUs bool) (id string, err error) {
 		defer err2.Handle(&err)
 
@@ -181,9 +181,9 @@ func (a *Archiver) ArchiveMessage(info *agency.ArchiveInfo, data *agency.Message
 }
 
 func (a *Archiver) ArchiveCredential(info *agency.ArchiveInfo, data *agency.Credential) {
-	defer err2.Catch(func(err error) {
+	defer err2.Catch(err2.Err(func(err error) {
 		glog.Errorf("Encountered error when archiving credential %s", err)
-	})
+	}))
 
 	try.To(a.archive(info, graph.ProtocolTypeCredential, func(agent *model.Agent, initiatedByUs bool) (id string, err error) {
 		defer err2.Handle(&err)
@@ -206,9 +206,9 @@ func (a *Archiver) ArchiveCredential(info *agency.ArchiveInfo, data *agency.Cred
 }
 
 func (a *Archiver) ArchiveProof(info *agency.ArchiveInfo, data *agency.Proof) {
-	defer err2.Catch(func(err error) {
+	defer err2.Catch(err2.Err(func(err error) {
 		glog.Errorf("Encountered error when archiving proof %s", err)
-	})
+	}))
 
 	try.To(a.archive(info, graph.ProtocolTypeProof, func(agent *model.Agent, initiatedByUs bool) (id string, err error) {
 		defer err2.Handle(&err)

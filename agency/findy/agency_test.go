@@ -110,9 +110,9 @@ func dialer(insecure bool) func(context.Context, string) (net.Conn, error) {
 	}
 
 	go func() {
-		defer err2.Catch(func(err error) {
+		defer err2.Catch(err2.Err(func(err error) {
 			log.Fatal(err)
-		})
+		}))
 		try.To(s.Serve(lis))
 	}()
 
