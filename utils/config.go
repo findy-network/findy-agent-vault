@@ -45,9 +45,9 @@ type Configuration struct {
 }
 
 func LoadConfig() *Configuration {
-	defer err2.Catch(func(err error) {
+	defer err2.Catch(err2.Err(func(err error) {
 		panic(fmt.Errorf("failed to read the configuration file: %w", err))
-	})
+	}))
 	var config Configuration
 
 	v := viper.New()

@@ -134,9 +134,9 @@ func (f *Agency) handleStatus(
 	notification *agency.Notification,
 	status *agency.ProtocolStatus,
 ) {
-	defer err2.Catch(func(err error) {
+	defer err2.Catch(err2.Err(func(err error) {
 		glog.Errorf("Error when handling action: %v", err)
-	})
+	}))
 
 	switch status.State.State {
 	case agency.ProtocolState_ERR:
@@ -159,9 +159,9 @@ func (f *Agency) handleAction(
 	notification *agency.Notification,
 	status *agency.ProtocolStatus,
 ) {
-	defer err2.Catch(func(err error) {
+	defer err2.Catch(err2.Err(func(err error) {
 		glog.Errorf("Error when handling action: %v", err)
-	})
+	}))
 
 	switch notification.ProtocolType {
 	case agency.Protocol_ISSUE_CREDENTIAL:
@@ -171,7 +171,7 @@ func (f *Agency) handleAction(
 			return
 		}
 		// TODO: what if we are issuer?
-		_ = try.To1(f.vault.AddCredential(job, credential))
+		try.To1(f.vault.AddCredential(job, credential))
 
 	case agency.Protocol_PRESENT_PROOF:
 		proof := statusToProof(status)
@@ -180,7 +180,7 @@ func (f *Agency) handleAction(
 			return
 		}
 		// TODO: what if we are verifier?
-		_ = try.To1(f.vault.AddProof(job, proof))
+		try.To1(f.vault.AddProof(job, proof))
 
 	case agency.Protocol_NONE:
 	case agency.Protocol_TRUST_PING:
@@ -242,11 +242,11 @@ func (f *Agency) waitAndRetryListening(a *model.Agent, err error, retryCounter c
 }
 
 func (f *Agency) agentStatusLoop(a *model.Agent, ch chan *AgentStatus, retryCounter counter) {
-	defer err2.Catch(func(err error) {
+	defer err2.Catch(err2.Err(func(err error) {
 		glog.Errorf("Recovered error in agent listener routine: %s, continue listening...", err.Error())
 
 		go f.agentStatusLoop(a, ch, counter{})
-	})
+	}))
 
 	utils.LogLow().Infoln("Start agentStatusLoop for", a.AgentID)
 
@@ -317,9 +317,9 @@ func (f *Agency) listenAgentWithRetry(a *model.Agent, retryCounter counter) (err
 }
 
 func (f *Agency) releaseCompleted(a *model.Agent, protocolID string, protocolType agency.Protocol_Type) {
-	defer err2.Catch(func(err error) {
+	defer err2.Catch(err2.Err(func(err error) {
 		glog.Errorf("Failure when releasing protocol: %s", err.Error())
-	})
+	}))
 
 	cmd := f.userAsyncClient(a)
 	try.To1(cmd.release(protocolID, protocolType))

@@ -48,10 +48,10 @@ func (f *Agency) startHookOrWait() {
 }
 
 func (f *Agency) adminStatusLoop(ch chan *ops.AgencyStatus) {
-	defer err2.Catch(func(err error) {
+	defer err2.Catch(err2.Err(func(err error) {
 		glog.Errorf("Recovered error in psm hook routine: %s", err.Error())
 		go f.adminStatusLoop(ch)
-	})
+	}))
 
 	for {
 		status, ok := <-ch
