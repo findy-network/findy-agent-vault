@@ -2,6 +2,8 @@ module github.com/findy-network/findy-agent-vault
 
 go 1.21
 
+toolchain go1.21.0
+
 require (
 	github.com/99designs/gqlgen v0.17.31
 	github.com/bxcodec/faker/v3 v3.8.1
