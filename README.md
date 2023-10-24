@@ -28,6 +28,33 @@ Vault provides currently only a GraphQL API but intends to support also GRPC in 
 
 ![Architecture](./docs/arch-drawio.png)
 
+## API
+
+The vault API is currently missing proper documentation, but you can figure out the functionality
+from [the API schema](./schema/schema.graphqls).
+
+Authentication is implemented with [agency-wide JWT token](./docs/README.md#cross-service-authentication).
+You can generate a JWT token easily for your agent e.g. using [the CLI tool](https://github.com/findy-network/findy-agent-cli) or [web wallet](https://github.com/findy-network/findy-wallet-pwa) application.
+
+Easiest is to start playing around with the queries:
+
+![Query](./docs/query-methods.png)
+
+- *connections* are the existing pairwise connections to other agents
+- *messages* are sent and received messages through the Aries basic message protocol
+- *credentials* are the credentials possessed by the holder (agent),
+received through the Aries issue credential protocol
+- *proofs* are the proofs sent by the holder (agent),
+sent through the Aries present proof protocol
+- *jobs* are differented Aries protocol flows the agent has participated in. Information from unfinished
+connections, messages, credentials or proofs can be obtained through jobs.
+
+The API pagination is implemented according to [GraphQL Cursor Connections Specification](https://relay.dev/graphql/connections.htm).
+
+You can find the full schema diaram [here](./docs/gql_schema.png).
+
+It is recommended to study [web wallet implementation](https://github.com/findy-network/findy-wallet-pwa) to understand more about the API features.
+
 ## Setup development environment
 
 ### Basic setup
