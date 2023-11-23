@@ -9,7 +9,7 @@ require (
 	github.com/bxcodec/faker/v3 v3.8.1
 	github.com/findy-network/findy-common-go v0.2.47
 	github.com/golang-migrate/migrate/v4 v4.16.2
-	github.com/golang/glog v1.1.2
+	github.com/golang/glog v1.2.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.4.0
 	github.com/gorilla/websocket v1.5.1
