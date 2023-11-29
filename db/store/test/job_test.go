@@ -345,7 +345,7 @@ func TestGetConnectionForJob(t *testing.T) {
 func TestGetConnectionOutputForJob(t *testing.T) {
 	for index := range DBs {
 		s := DBs[index]
-		t.Run("get credential output for job "+s.name, func(t *testing.T) {
+		t.Run("get connection output for job "+s.name, func(t *testing.T) {
 			a, connections := AddAgentAndConnections(s.db, "TestGetConnectionOutputForJob", 3)
 			connection := connections[0]
 			jobs := fake.AddConnectionJobs(s.db, a.ID, connection.ID, connection.ID, 1)
