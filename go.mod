@@ -7,7 +7,7 @@ toolchain go1.21.0
 require (
 	github.com/99designs/gqlgen v0.17.31
 	github.com/bxcodec/faker/v3 v3.8.1
-	github.com/findy-network/findy-common-go v0.2.52
+	github.com/findy-network/findy-common-go v0.2.53
 	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/golang/glog v1.2.0
 	github.com/golang/mock v1.6.0
@@ -78,7 +78,7 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f // indirect
-	google.golang.org/protobuf v1.31.0 // indirect
+	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
