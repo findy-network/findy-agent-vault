@@ -41,7 +41,7 @@ init-test:
 		-e POSTGRES_DB=vault \
 		-v $(PWD)/.db/test:/var/lib/postgresql/data \
 		-p 5433:5432 \
-		-d postgres:13.8-alpine
+		-d postgres:16.1-alpine
 	sleep 30
 
 
@@ -67,7 +67,7 @@ db:
 		-e POSTGRES_DB=vault \
 		-v $(PWD)/.db/data:/var/lib/postgresql/data \
 		-p 5432:5432 \
-		-d postgres:13.8-alpine
+		-d postgres:16.1-alpine
 
 db_client:
 	docker run -it --rm --network host jbergknoff/postgresql-client postgres://postgres:$(FAV_DB_PASSWORD)@localhost:5432/vault?sslmode=disable
