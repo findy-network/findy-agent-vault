@@ -7,7 +7,7 @@ toolchain go1.21.0
 require (
 	github.com/99designs/gqlgen v0.17.31
 	github.com/bxcodec/faker/v3 v3.8.1
-	github.com/findy-network/findy-common-go v0.2.56
+	github.com/findy-network/findy-common-go v0.2.58
 	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/golang/glog v1.2.0
 	github.com/golang/mock v1.6.0
