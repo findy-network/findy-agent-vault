@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.21.0
 
 require (
-	github.com/99designs/gqlgen v0.17.31
+	github.com/99designs/gqlgen v0.17.45
 	github.com/bxcodec/faker/v3 v3.8.1
 	github.com/findy-network/findy-common-go v0.2.67
 	github.com/golang-migrate/migrate/v4 v4.17.0
@@ -59,6 +59,7 @@ require (
 	github.com/pquerna/cachecontrol v0.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
+	github.com/sosodev/duration v1.2.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect

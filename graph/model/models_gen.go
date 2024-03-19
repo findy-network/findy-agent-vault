@@ -12,15 +12,15 @@ type BasicMessage struct {
 	ID         string    `json:"id"`
 	Message    string    `json:"message"`
 	SentByMe   bool      `json:"sentByMe"`
-	Delivered  *bool     `json:"delivered"`
+	Delivered  *bool     `json:"delivered,omitempty"`
 	CreatedMs  string    `json:"createdMs"`
 	Connection *Pairwise `json:"connection"`
 }
 
 type BasicMessageConnection struct {
-	ConnectionID *string             `json:"ConnectionId"`
-	Edges        []*BasicMessageEdge `json:"edges"`
-	Nodes        []*BasicMessage     `json:"nodes"`
+	ConnectionID *string             `json:"ConnectionId,omitempty"`
+	Edges        []*BasicMessageEdge `json:"edges,omitempty"`
+	Nodes        []*BasicMessage     `json:"nodes,omitempty"`
 	PageInfo     *PageInfo           `json:"pageInfo"`
 	TotalCount   int                 `json:"totalCount"`
 }
@@ -41,16 +41,16 @@ type Credential struct {
 	CredDefID     string             `json:"credDefId"`
 	Attributes    []*CredentialValue `json:"attributes"`
 	InitiatedByUs bool               `json:"initiatedByUs"`
-	ApprovedMs    *string            `json:"approvedMs"`
-	IssuedMs      *string            `json:"issuedMs"`
+	ApprovedMs    *string            `json:"approvedMs,omitempty"`
+	IssuedMs      *string            `json:"issuedMs,omitempty"`
 	CreatedMs     string             `json:"createdMs"`
 	Connection    *Pairwise          `json:"connection"`
 }
 
 type CredentialConnection struct {
-	ConnectionID *string           `json:"connectionId"`
-	Edges        []*CredentialEdge `json:"edges"`
-	Nodes        []*Credential     `json:"nodes"`
+	ConnectionID *string           `json:"connectionId,omitempty"`
+	Edges        []*CredentialEdge `json:"edges,omitempty"`
+	Nodes        []*Credential     `json:"nodes,omitempty"`
 	PageInfo     *PageInfo         `json:"pageInfo"`
 	TotalCount   int               `json:"totalCount"`
 }
@@ -77,14 +77,14 @@ type Event struct {
 	Read        bool      `json:"read"`
 	Description string    `json:"description"`
 	CreatedMs   string    `json:"createdMs"`
-	Job         *JobEdge  `json:"job"`
-	Connection  *Pairwise `json:"connection"`
+	Job         *JobEdge  `json:"job,omitempty"`
+	Connection  *Pairwise `json:"connection,omitempty"`
 }
 
 type EventConnection struct {
-	ConnectionID *string      `json:"connectionId"`
-	Edges        []*EventEdge `json:"edges"`
-	Nodes        []*Event     `json:"nodes"`
+	ConnectionID *string      `json:"connectionId,omitempty"`
+	Edges        []*EventEdge `json:"edges,omitempty"`
+	Nodes        []*Event     `json:"nodes,omitempty"`
 	PageInfo     *PageInfo    `json:"pageInfo"`
 	TotalCount   int          `json:"totalCount"`
 }
@@ -114,10 +114,10 @@ type Job struct {
 }
 
 type JobConnection struct {
-	ConnectionID *string    `json:"connectionId"`
-	Completed    *bool      `json:"completed"`
-	Edges        []*JobEdge `json:"edges"`
-	Nodes        []*Job     `json:"nodes"`
+	ConnectionID *string    `json:"connectionId,omitempty"`
+	Completed    *bool      `json:"completed,omitempty"`
+	Edges        []*JobEdge `json:"edges,omitempty"`
+	Nodes        []*Job     `json:"nodes,omitempty"`
 	PageInfo     *PageInfo  `json:"pageInfo"`
 	TotalCount   int        `json:"totalCount"`
 }
@@ -128,10 +128,10 @@ type JobEdge struct {
 }
 
 type JobOutput struct {
-	Connection *PairwiseEdge     `json:"connection"`
-	Message    *BasicMessageEdge `json:"message"`
-	Credential *CredentialEdge   `json:"credential"`
-	Proof      *ProofEdge        `json:"proof"`
+	Connection *PairwiseEdge     `json:"connection,omitempty"`
+	Message    *BasicMessageEdge `json:"message,omitempty"`
+	Credential *CredentialEdge   `json:"credential,omitempty"`
+	Proof      *ProofEdge        `json:"proof,omitempty"`
 }
 
 type LoginResponse struct {
@@ -147,11 +147,14 @@ type MessageInput struct {
 	Message      string `json:"message"`
 }
 
+type Mutation struct {
+}
+
 type PageInfo struct {
-	EndCursor       *string `json:"endCursor"`
+	EndCursor       *string `json:"endCursor,omitempty"`
 	HasNextPage     bool    `json:"hasNextPage"`
 	HasPreviousPage bool    `json:"hasPreviousPage"`
-	StartCursor     *string `json:"startCursor"`
+	StartCursor     *string `json:"startCursor,omitempty"`
 }
 
 type Pairwise struct {
@@ -171,8 +174,8 @@ type Pairwise struct {
 }
 
 type PairwiseConnection struct {
-	Edges      []*PairwiseEdge `json:"edges"`
-	Nodes      []*Pairwise     `json:"nodes"`
+	Edges      []*PairwiseEdge `json:"edges,omitempty"`
+	Nodes      []*Pairwise     `json:"nodes,omitempty"`
 	PageInfo   *PageInfo       `json:"pageInfo"`
 	TotalCount int             `json:"totalCount"`
 }
@@ -190,8 +193,8 @@ type Proof struct {
 	Provable      *Provable         `json:"provable"`
 	InitiatedByUs bool              `json:"initiatedByUs"`
 	Result        bool              `json:"result"`
-	VerifiedMs    *string           `json:"verifiedMs"`
-	ApprovedMs    *string           `json:"approvedMs"`
+	VerifiedMs    *string           `json:"verifiedMs,omitempty"`
+	ApprovedMs    *string           `json:"approvedMs,omitempty"`
 	CreatedMs     string            `json:"createdMs"`
 	Connection    *Pairwise         `json:"connection"`
 }
@@ -203,9 +206,9 @@ type ProofAttribute struct {
 }
 
 type ProofConnection struct {
-	ConnectionID *string      `json:"connectionId"`
-	Edges        []*ProofEdge `json:"edges"`
-	Nodes        []*Proof     `json:"nodes"`
+	ConnectionID *string      `json:"connectionId,omitempty"`
+	Edges        []*ProofEdge `json:"edges,omitempty"`
+	Nodes        []*Proof     `json:"nodes,omitempty"`
 	PageInfo     *PageInfo    `json:"pageInfo"`
 	TotalCount   int          `json:"totalCount"`
 }
@@ -233,6 +236,9 @@ type ProvableAttribute struct {
 	Credentials []*CredentialMatch `json:"credentials"`
 }
 
+type Query struct {
+}
+
 type Response struct {
 	Ok bool `json:"ok"`
 }
@@ -240,6 +246,9 @@ type Response struct {
 type ResumeJobInput struct {
 	ID     string `json:"id"`
 	Accept bool   `json:"accept"`
+}
+
+type Subscription struct {
 }
 
 type User struct {
