@@ -218,6 +218,16 @@ type ProofEdge struct {
 	Node   *Proof `json:"node"`
 }
 
+type ProofRequestAttribute struct {
+	Name      string `json:"name"`
+	CredDefID string `json:"credDefId"`
+}
+
+type ProofRequestInput struct {
+	ConnectionID string                   `json:"connectionId"`
+	Attributes   []*ProofRequestAttribute `json:"attributes,omitempty"`
+}
+
 type ProofValue struct {
 	ID          string `json:"id"`
 	AttributeID string `json:"attributeId"`

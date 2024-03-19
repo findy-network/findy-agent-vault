@@ -263,6 +263,16 @@ input MessageInput {
   message: String!
 }
 
+input ProofRequestAttribute {
+  name: String!
+  credDefId: String!
+}
+
+input ProofRequestInput {
+  connectionId: ID!
+  attributes: [ProofRequestAttribute]
+}
+
 input ResumeJobInput {
   id: ID!
   accept: Boolean!
@@ -332,6 +342,7 @@ type Mutation {
   invite: InvitationResponse!
   connect(input: ConnectInput!): Response!
   sendMessage(input: MessageInput!): Response!
+  sendProofRequest(input: ProofRequestInput!): Response!
 
   resume(input: ResumeJobInput!): Response!
 }

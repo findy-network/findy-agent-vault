@@ -22,6 +22,11 @@ type InvitationData struct {
 	ID  string
 }
 
+type Attribute struct {
+	Name      string
+	CredDefID string
+}
+
 type Agency interface {
 	Init(l Listener, agents []*Agent, archiver Archiver, config *utils.Configuration)
 	AddAgent(agent *Agent) error
@@ -29,6 +34,7 @@ type Agency interface {
 	Invite(a *Agent) (*InvitationData, error)
 	Connect(a *Agent, invitation string) (string, error)
 	SendMessage(a *Agent, connectionID, message string) (string, error)
+	SendProofRequest(a *Agent, connectionID string, attributes []Attribute) (string, error)
 
 	ResumeCredentialOffer(a *Agent, job *JobInfo, accept bool) error
 	ResumeProofRequest(a *Agent, job *JobInfo, accept bool) error

@@ -124,6 +124,28 @@ func (f *Agency) SendMessage(a *model.Agent, connectionID, message string) (id s
 	return protocolID.ID, err
 }
 
+func (f *Agency) SendProofRequest(a *model.Agent, connectionID string, attributes []model.Attribute) (id string, err error) {
+	defer err2.Handle(&err) // TODO: do not leak internal errors to client
+
+	cmd := f.userSyncClient(a, connectionID)
+
+	proofAttrs := make([]*agency.Protocol_Proof_Attribute, len(attributes))
+	for i, attr := range attributes {
+		proofAttrs[i] = &agency.Protocol_Proof_Attribute{
+			Name:      attr.Name,
+			CredDefID: attr.CredDefID,
+		}
+	}
+
+	proof := &agency.Protocol_Proof{
+		Attributes: proofAttrs,
+	}
+
+	protocolID := try.To1(cmd.ReqProofWithAttrs(f.ctx, proof))
+
+	return protocolID.ID, err
+}
+
 func (f *Agency) resume(
 	a *model.Agent,
 	job *model.JobInfo,

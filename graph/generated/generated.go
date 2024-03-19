@@ -187,11 +187,12 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		Connect       func(childComplexity int, input model.ConnectInput) int
-		Invite        func(childComplexity int) int
-		MarkEventRead func(childComplexity int, input model.MarkReadInput) int
-		Resume        func(childComplexity int, input model.ResumeJobInput) int
-		SendMessage   func(childComplexity int, input model.MessageInput) int
+		Connect          func(childComplexity int, input model.ConnectInput) int
+		Invite           func(childComplexity int) int
+		MarkEventRead    func(childComplexity int, input model.MarkReadInput) int
+		Resume           func(childComplexity int, input model.ResumeJobInput) int
+		SendMessage      func(childComplexity int, input model.MessageInput) int
+		SendProofRequest func(childComplexity int, input model.ProofRequestInput) int
 	}
 
 	PageInfo struct {
@@ -339,6 +340,7 @@ type MutationResolver interface {
 	Invite(ctx context.Context) (*model.InvitationResponse, error)
 	Connect(ctx context.Context, input model.ConnectInput) (*model.Response, error)
 	SendMessage(ctx context.Context, input model.MessageInput) (*model.Response, error)
+	SendProofRequest(ctx context.Context, input model.ProofRequestInput) (*model.Response, error)
 	Resume(ctx context.Context, input model.ResumeJobInput) (*model.Response, error)
 }
 type PairwiseResolver interface {
@@ -976,6 +978,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SendMessage(childComplexity, args["input"].(model.MessageInput)), true
 
+	case "Mutation.sendProofRequest":
+		if e.complexity.Mutation.SendProofRequest == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_sendProofRequest_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SendProofRequest(childComplexity, args["input"].(model.ProofRequestInput)), true
+
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
 			break
@@ -1550,6 +1564,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConnectInput,
 		ec.unmarshalInputMarkReadInput,
 		ec.unmarshalInputMessageInput,
+		ec.unmarshalInputProofRequestAttribute,
+		ec.unmarshalInputProofRequestInput,
 		ec.unmarshalInputResumeJobInput,
 	)
 	first := true
@@ -1930,6 +1946,16 @@ input MessageInput {
   message: String!
 }
 
+input ProofRequestAttribute {
+  name: String!
+  credDefId: String!
+}
+
+input ProofRequestInput {
+  connectionId: ID!
+  attributes: [ProofRequestAttribute]
+}
+
 input ResumeJobInput {
   id: ID!
   accept: Boolean!
@@ -1999,6 +2025,7 @@ type Mutation {
   invite: InvitationResponse!
   connect(input: ConnectInput!): Response!
   sendMessage(input: MessageInput!): Response!
+  sendProofRequest(input: ProofRequestInput!): Response!
 
   resume(input: ResumeJobInput!): Response!
 }
@@ -2066,6 +2093,21 @@ func (ec *executionContext) field_Mutation_sendMessage_args(ctx context.Context,
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNMessageInput2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐMessageInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_sendProofRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.ProofRequestInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNProofRequestInput2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofRequestInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -6428,6 +6470,65 @@ func (ec *executionContext) fieldContext_Mutation_sendMessage(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_sendMessage_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_sendProofRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_sendProofRequest(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SendProofRequest(rctx, fc.Args["input"].(model.ProofRequestInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Response)
+	fc.Result = res
+	return ec.marshalNResponse2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_sendProofRequest(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ok":
+				return ec.fieldContext_Response_ok(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Response", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_sendProofRequest_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -12130,6 +12231,74 @@ func (ec *executionContext) unmarshalInputMessageInput(ctx context.Context, obj 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputProofRequestAttribute(ctx context.Context, obj interface{}) (model.ProofRequestAttribute, error) {
+	var it model.ProofRequestAttribute
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "credDefId"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "credDefId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("credDefId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CredDefID = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputProofRequestInput(ctx context.Context, obj interface{}) (model.ProofRequestInput, error) {
+	var it model.ProofRequestInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"connectionId", "attributes"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "connectionId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("connectionId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ConnectionID = data
+		case "attributes":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("attributes"))
+			data, err := ec.unmarshalOProofRequestAttribute2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofRequestAttribute(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Attributes = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputResumeJobInput(ctx context.Context, obj interface{}) (model.ResumeJobInput, error) {
 	var it model.ResumeJobInput
 	asMap := map[string]interface{}{}
@@ -13378,6 +13547,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "sendMessage":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_sendMessage(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "sendProofRequest":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_sendProofRequest(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -15458,6 +15634,11 @@ func (ec *executionContext) marshalNProofConnection2ᚖgithubᚗcomᚋfindyᚑne
 	return ec._ProofConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNProofRequestInput2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofRequestInput(ctx context.Context, v interface{}) (model.ProofRequestInput, error) {
+	res, err := ec.unmarshalInputProofRequestInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNProofRole2githubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofRole(ctx context.Context, v interface{}) (model.ProofRole, error) {
 	var res model.ProofRole
 	err := res.UnmarshalGQL(v)
@@ -16515,6 +16696,34 @@ func (ec *executionContext) marshalOProofEdge2ᚖgithubᚗcomᚋfindyᚑnetwork�
 		return graphql.Null
 	}
 	return ec._ProofEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOProofRequestAttribute2ᚕᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofRequestAttribute(ctx context.Context, v interface{}) ([]*model.ProofRequestAttribute, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ProofRequestAttribute, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOProofRequestAttribute2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofRequestAttribute(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOProofRequestAttribute2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofRequestAttribute(ctx context.Context, v interface{}) (*model.ProofRequestAttribute, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputProofRequestAttribute(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOProofValue2ᚖgithubᚗcomᚋfindyᚑnetworkᚋfindyᚑagentᚑvaultᚋgraphᚋmodelᚐProofValue(ctx context.Context, sel ast.SelectionSet, v *model.ProofValue) graphql.Marshaler {

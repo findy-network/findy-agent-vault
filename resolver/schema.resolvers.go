@@ -76,6 +76,11 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input model.MessageI
 	return r.resolvers.mutation.SendMessage(ctx, input)
 }
 
+// SendProofRequest is the resolver for the sendProofRequest field.
+func (r *mutationResolver) SendProofRequest(ctx context.Context, input model.ProofRequestInput) (*model.Response, error) {
+	return r.resolvers.mutation.SendProofRequest(ctx, input)
+}
+
 // Resume is the resolver for the resume field.
 func (r *mutationResolver) Resume(ctx context.Context, input model.ResumeJobInput) (*model.Response, error) {
 	return r.resolvers.mutation.Resume(ctx, input)
