@@ -103,6 +103,7 @@ var (
 			Name:      "attribute-name",
 			CredDefID: "cred-def-id",
 		}},
+		Values:        []*model.ProofValue{},
 		InitiatedByUs: false,
 	}
 	testProofStatus = func(jobID string, state agency.ProtocolState_State) *agency.ProtocolStatus {
