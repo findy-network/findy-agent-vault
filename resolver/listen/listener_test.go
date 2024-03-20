@@ -498,6 +498,69 @@ func TestUpdateProof(t *testing.T) {
 	_ = l.UpdateProof(job, nil, proofUpdate)
 }
 
+func TestUpdateProofForVerifier(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	m := NewMockDB(ctrl)
+	var (
+		now         = utils.CurrentTimeMs()
+		proofID     = "proof-id"
+		job         = &agency.JobInfo{JobID: "job-id", TenantID: "tenant-id", ConnectionID: "connection-id"}
+		proofUpdate = &agency.ProofUpdate{
+			ApprovedMs: &now,
+		}
+		srcProof = &agency.Proof{
+			Role:       graph.ProofRoleVerifier,
+			Attributes: []*graph.ProofAttribute{{Name: "name", CredDefID: "cred-def-id"}},
+			Values:     []*agency.ProofValue{{Name: "name", CredDefID: "cred-def-id", Value: "value"}},
+		}
+		resultProof = &model.Proof{
+			Base:     model.Base{TenantID: job.TenantID},
+			Role:     graph.ProofRoleVerifier,
+			Approved: utils.TSToTimeIfNotSet(nil, proofUpdate.ApprovedMs),
+		}
+
+		resultJob = &model.Job{
+			Base:            model.Base{ID: job.JobID, TenantID: job.TenantID},
+			ConnectionID:    &job.ConnectionID,
+			ProtocolProofID: &proofID,
+		}
+		event = &model.Event{
+			Base:         model.Base{TenantID: job.TenantID},
+			Read:         false,
+			Description:  resultProof.Description(),
+			ConnectionID: &job.ConnectionID,
+			JobID:        &job.JobID,
+		}
+	)
+
+	m.
+		EXPECT().
+		GetJob(gomock.Eq(job.JobID), gomock.Eq(job.TenantID)).
+		Return(resultJob, nil)
+	m.
+		EXPECT().
+		GetProof(gomock.Eq(proofID), gomock.Eq(job.TenantID)).
+		Return(resultProof, nil)
+	m.
+		EXPECT().
+		UpdateProof(resultProof).
+		Return(resultProof, nil)
+	m.
+		EXPECT().
+		UpdateJob(resultJob).
+		Return(resultJob, nil)
+	m.
+		EXPECT().
+		AddEvent(event).
+		Return(event, nil)
+
+	l := createListener(m)
+
+	_ = l.UpdateProof(job, srcProof, proofUpdate)
+}
+
 func TestUpdateNonExistentProof(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
