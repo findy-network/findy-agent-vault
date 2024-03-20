@@ -511,14 +511,14 @@ func TestUpdateProofForVerifier(t *testing.T) {
 			ApprovedMs: &now,
 		}
 		srcProof = &agency.Proof{
-			Role:       graph.ProofRoleVerifier,
-			Attributes: []*graph.ProofAttribute{{Name: "name", CredDefID: "cred-def-id"}},
-			Values:     []*agency.ProofValue{{Name: "name", CredDefID: "cred-def-id", Value: "value"}},
+			Role:   graph.ProofRoleVerifier,
+			Values: []*agency.ProofValue{{Name: "name", CredDefID: "cred-def-id", Value: "value"}},
 		}
 		resultProof = &model.Proof{
-			Base:     model.Base{TenantID: job.TenantID},
-			Role:     graph.ProofRoleVerifier,
-			Approved: utils.TSToTimeIfNotSet(nil, proofUpdate.ApprovedMs),
+			Base:       model.Base{TenantID: job.TenantID},
+			Role:       graph.ProofRoleVerifier,
+			Attributes: []*graph.ProofAttribute{{Name: "name", CredDefID: "cred-def-id"}},
+			Approved:   utils.TSToTimeIfNotSet(nil, proofUpdate.ApprovedMs),
 		}
 
 		resultJob = &model.Job{
