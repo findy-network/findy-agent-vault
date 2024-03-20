@@ -185,7 +185,7 @@ func (f *Agency) handleAction(
 		if proof.Role == graph.ProofRoleVerifier {
 			// always auto-accept proof requests when we are verifier
 			// existing proof gets updated
-			f.resumeProofRequest(a, job, proof, true)
+			try.To(f.resumeProofRequest(a, job, proof, true))
 		} else {
 			// we are prover, add proof as new object
 			try.To1(f.vault.AddProof(job, proof))
