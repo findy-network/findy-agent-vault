@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/findy-network/findy-agent-vault/agency/model"
+	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/utils"
 	"github.com/findy-network/findy-common-go/agency/client"
 	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
@@ -124,6 +125,50 @@ func (f *Agency) SendMessage(a *model.Agent, connectionID, message string) (id s
 	return protocolID.ID, err
 }
 
+func (f *Agency) SendProofRequest(a *model.Agent, connectionID string, attributes []model.Attribute) (id string, err error) {
+	defer err2.Handle(&err) // TODO: do not leak internal errors to client
+
+	cmd := f.userSyncClient(a, connectionID)
+
+	// Create attributes for agency and those for vault db
+	proofAttrs := make([]*agency.Protocol_Proof_Attribute, len(attributes))
+	vaultAttrs := make([]*graph.ProofAttribute, len(attributes))
+	for i, attr := range attributes {
+		proofAttrs[i] = &agency.Protocol_Proof_Attribute{
+			Name:      attr.Name,
+			CredDefID: attr.CredDefID,
+		}
+		vaultAttrs[i] = &graph.ProofAttribute{
+			Name:      attr.Name,
+			CredDefID: attr.CredDefID,
+		}
+	}
+
+	proof := &agency.Protocol_Proof{
+		Attributes: proofAttrs,
+	}
+
+	// Agency request
+	protocolID := try.To1(cmd.ReqProofWithAttrs(f.ctx, proof))
+
+	// Add proof to db
+	job := &model.JobInfo{
+		TenantID:     a.TenantID,
+		JobID:        protocolID.ID,
+		ConnectionID: connectionID,
+	}
+
+	vaultProof := &model.Proof{
+		Role:          graph.ProofRoleVerifier,
+		Attributes:    vaultAttrs,
+		InitiatedByUs: true,
+	}
+
+	try.To1(f.vault.AddProof(job, vaultProof))
+
+	return protocolID.ID, err
+}
+
 func (f *Agency) resume(
 	a *model.Agent,
 	job *model.JobInfo,
@@ -152,9 +197,13 @@ func (f *Agency) ResumeCredentialOffer(a *model.Agent, job *model.JobInfo, accep
 }
 
 func (f *Agency) ResumeProofRequest(a *model.Agent, job *model.JobInfo, accept bool) (err error) {
+	return f.resumeProofRequest(a, job, nil, accept)
+}
+
+func (f *Agency) resumeProofRequest(a *model.Agent, job *model.JobInfo, proof *model.Proof, accept bool) (err error) {
 	defer err2.Handle(&err)
 	try.To(f.resume(a, job, accept, agency.Protocol_PRESENT_PROOF))
 
 	now := f.currentTimeMs()
-	return f.vault.UpdateProof(job, nil, &model.ProofUpdate{ApprovedMs: &now})
+	return f.vault.UpdateProof(job, proof, &model.ProofUpdate{ApprovedMs: &now})
 }

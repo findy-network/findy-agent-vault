@@ -106,6 +106,26 @@ func (r *Resolver) SendMessage(ctx context.Context, input model.MessageInput) (r
 	return
 }
 
+func (r *Resolver) SendProofRequest(ctx context.Context, input model.ProofRequestInput) (res *model.Response, err error) {
+	defer err2.Handle(&err)
+	utils.LogLow().Info("mutationResolver:SendMessage")
+
+	tenant := try.To1(r.GetAgent(ctx))
+
+	attributes := make([]agency.Attribute, len(input.Attributes))
+	for i, a := range input.Attributes {
+		attributes[i] = agency.Attribute{
+			Name:      a.Name,
+			CredDefID: a.CredDefID,
+		}
+	}
+
+	try.To1(r.agency.SendProofRequest(r.AgencyAuth(tenant), input.ConnectionID, attributes))
+
+	res = &model.Response{Ok: true}
+	return
+}
+
 func (r *Resolver) Resume(ctx context.Context, input model.ResumeJobInput) (res *model.Response, err error) {
 	defer err2.Handle(&err)
 	utils.LogLow().Info("mutationResolver:Resume")

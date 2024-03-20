@@ -52,15 +52,25 @@ func statusToProof(status *agency.ProtocolStatus) *model.Proof {
 			role = graph.ProofRoleVerifier
 		}
 		attributes := make([]*graph.ProofAttribute, 0)
+		values := make([]*model.ProofValue, 0)
 		for _, v := range proof.Proof.Attributes {
 			attributes = append(attributes, &graph.ProofAttribute{
 				Name:      v.Name,
 				CredDefID: v.CredDefID,
 			})
+
+			if role == graph.ProofRoleVerifier {
+				values = append(values, &model.ProofValue{
+					Name:      v.Name,
+					CredDefID: v.CredDefID,
+					Value:     v.Value,
+				})
+			}
 		}
 		return &model.Proof{
 			Role:          role,
 			Attributes:    attributes,
+			Values:        values,
 			InitiatedByUs: false,
 		}
 	}

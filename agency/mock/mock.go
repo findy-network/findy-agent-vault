@@ -133,3 +133,18 @@ func (mr *MockAgencyMockRecorder) SendMessage(a, connectionID, message interface
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockAgency)(nil).SendMessage), a, connectionID, message)
 }
+
+// SendProofRequest mocks base method.
+func (m *MockAgency) SendProofRequest(a *model.Agent, connectionID string, attributes []model.Attribute) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendProofRequest", a, connectionID, attributes)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SendProofRequest indicates an expected call of SendProofRequest.
+func (mr *MockAgencyMockRecorder) SendProofRequest(a, connectionID, attributes interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendProofRequest", reflect.TypeOf((*MockAgency)(nil).SendProofRequest), a, connectionID, attributes)
+}

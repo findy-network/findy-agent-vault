@@ -203,19 +203,19 @@ func (l *Listener) AddProof(info *agency.JobInfo, data *agency.Proof) (job *dbMo
 		InitiatedByUs: data.InitiatedByUs,
 	}
 
-	if l.isProvable(info, newProof) {
+	if newProof.Role == model.ProofRoleProver && l.isProvable(info, newProof) {
 		newProof.Provable = utils.CurrentTime()
 	}
 
 	proof := try.To1(l.db.AddProof(newProof))
 
-	utils.LogMed().Infof("Add proof %s for tenant %s", proof.ID, info.TenantID)
+	utils.LogMed().Infof("Add proof %s for %s, tenant %s", proof.ID, proof.Role.String(), info.TenantID)
 
 	status := model.JobStatusWaiting
 	if !data.InitiatedByUs {
 		status = model.JobStatusPending
 	}
-	if newProof.Provable.IsZero() {
+	if newProof.Role == model.ProofRoleProver && newProof.Provable.IsZero() {
 		status = model.JobStatusBlocked
 	}
 
@@ -252,6 +252,28 @@ func (l *Listener) updateBlockedProof(job *dbModel.Job) (err error) {
 	return nil
 }
 
+func getValuesForVerifier(proof *dbModel.Proof, proofInput *agency.Proof) []*model.ProofValue {
+	values := make([]*model.ProofValue, 0)
+	// Update values with the ones received as verifier
+	if proof.Role == model.ProofRoleVerifier && len(proof.Values) == 0 && len(proofInput.Values) > 0 {
+		for _, attr := range proof.Attributes {
+			value := ""
+			for _, v := range proofInput.Values {
+				if v.CredDefID == attr.CredDefID && v.Name == attr.Name {
+					value = v.Value
+					break
+				}
+			}
+			// match attribute id and value
+			values = append(values, &model.ProofValue{
+				AttributeID: attr.ID,
+				Value:       value,
+			})
+		}
+	}
+	return values
+}
+
 func (l *Listener) UpdateProof(info *agency.JobInfo, proofInput *agency.Proof, data *agency.ProofUpdate) (err error) {
 	defer err2.Handle(&err)
 
@@ -266,15 +288,26 @@ func (l *Listener) UpdateProof(info *agency.JobInfo, proofInput *agency.Proof, d
 		}
 	}
 
-	utils.LogMed().Infof("Update proof %s for tenant %s", *job.ProtocolProofID, info.TenantID)
+	role := model.ProofRoleProver
+	if proofInput != nil {
+		role = proofInput.Role
+	}
+
+	utils.LogMed().Infof("Update proof %s for %s, tenant %s", *job.ProtocolProofID, role, info.TenantID)
 
 	proof := try.To1(l.db.GetProof(*job.ProtocolProofID, job.TenantID))
+
+	// values for verifier are updated here
+	valuesForVerifier := getValuesForVerifier(proof, proofInput)
+	if len(valuesForVerifier) > 0 {
+		proof.Values = valuesForVerifier
+	}
 
 	proof.Approved = utils.TSToTimeIfNotSet(&proof.Approved, data.ApprovedMs)
 	proof.Verified = utils.TSToTimeIfNotSet(&proof.Verified, data.VerifiedMs)
 	proof.Failed = utils.TSToTimeIfNotSet(&proof.Verified, data.VerifiedMs)
 
-	if !proof.Verified.IsZero() {
+	if proof.Role == model.ProofRoleProver && !proof.Verified.IsZero() {
 		// TODO: these values should come from agency
 		// now we just pick first found value and actually only guessing what core agency has picked
 		provableAttrs := try.To1(l.db.SearchCredentials(proof.TenantID, proof.Attributes))

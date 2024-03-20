@@ -145,7 +145,7 @@ func (m *mockListener) UpdateCredential(_ *model.JobInfo, _ *model.Credential, u
 }
 
 func (m *mockListener) AddProof(_ *model.JobInfo, _ *model.Proof) (*dbModel.Job, error) {
-	panic("Not implemented")
+	return &dbModel.Job{}, nil
 }
 
 func (m *mockListener) UpdateProof(_ *model.JobInfo, _ *model.Proof, update *model.ProofUpdate) error {
@@ -276,7 +276,17 @@ func TestConnect(t *testing.T) {
 func TestSendMessage(t *testing.T) {
 	id, err := findy.SendMessage(agent, "id", "message")
 	if err != nil {
-		t.Errorf("Encountered error on connect %v", err)
+		t.Errorf("Encountered error on sending message %v", err)
+	}
+	if id != testID {
+		t.Errorf("Mismatch with id expecting %v, got %v", testID, id)
+	}
+}
+
+func TestSendProofRequest(t *testing.T) {
+	id, err := findy.SendProofRequest(agent, "id", []model.Attribute{{Name: "name", CredDefID: "credDefID"}})
+	if err != nil {
+		t.Errorf("Encountered error on sending proof request %v", err)
 	}
 	if id != testID {
 		t.Errorf("Mismatch with id expecting %v, got %v", testID, id)
