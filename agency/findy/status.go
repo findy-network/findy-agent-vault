@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/findy-network/findy-agent-vault/agency/model"
+	graph "github.com/findy-network/findy-agent-vault/graph/model"
 	"github.com/findy-network/findy-agent-vault/utils"
 	agency "github.com/findy-network/findy-common-go/grpc/agency/v1"
 	"github.com/golang/glog"
@@ -155,6 +156,7 @@ func (f *Agency) handleStatus(
 }
 
 func (f *Agency) handleAction(
+	a *model.Agent,
 	job *model.JobInfo,
 	notification *agency.Notification,
 	status *agency.ProtocolStatus,
@@ -179,8 +181,15 @@ func (f *Agency) handleAction(
 			glog.Errorf("Received invalid proof object for %s", job.JobID)
 			return
 		}
-		// TODO: what if we are verifier?
-		try.To1(f.vault.AddProof(job, proof))
+
+		if proof.Role == graph.ProofRoleVerifier {
+			// always auto-accept proof requests when we are verifier
+			// existing proof gets updated
+			f.resumeProofRequest(a, job, proof, true)
+		} else {
+			// we are prover, add proof as new object
+			try.To1(f.vault.AddProof(job, proof))
+		}
 
 	case agency.Protocol_NONE:
 	case agency.Protocol_TRUST_PING:
@@ -199,7 +208,7 @@ func (f *Agency) handleNotification(
 ) {
 	switch notification.TypeID {
 	case agency.Notification_PROTOCOL_PAUSED:
-		f.handleAction(job, notification, status)
+		f.handleAction(a, job, notification, status)
 	case agency.Notification_STATUS_UPDATE:
 		f.handleStatus(a, job, notification, status)
 	case agency.Notification_NONE:

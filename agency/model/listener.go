@@ -29,9 +29,16 @@ type CredentialUpdate struct {
 	ApprovedMs, IssuedMs, FailedMs *int64
 }
 
+type ProofValue struct {
+	Name      string
+	CredDefID string
+	Value     string
+}
+
 type Proof struct {
 	Role          model.ProofRole
 	Attributes    []*model.ProofAttribute
+	Values        []*ProofValue
 	InitiatedByUs bool
 }
 
